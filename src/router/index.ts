@@ -23,6 +23,14 @@ const routes: RouteRecordRaw[] = [
     component: () =>
       import('../pages/echarts/water-ball-chart/water-ball-chart.vue'),
   },
+  {
+    path: '/plugins-video-broadcast',
+    meta: {
+      name: '语音播报',
+    },
+    component: () =>
+      import('../pages/plugins/video-broadcast/video-broacast.vue'),
+  },
 ]
 
 export default createRouter({
