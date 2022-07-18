@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
+import pluginRoutes from './modules/plugins'
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/echarts-map',
@@ -31,6 +33,7 @@ const routes: RouteRecordRaw[] = [
     component: () =>
       import('../pages/plugins/video-broadcast/video-broacast.vue'),
   },
+  ...pluginRoutes,
 ]
 
 export default createRouter({
