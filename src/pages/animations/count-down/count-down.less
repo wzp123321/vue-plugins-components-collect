@@ -1,8 +1,20 @@
 // 定义属性
-@property --t {
+@property --time {
   syntax: '<integer>';
   inherits: false;
   initial-value: 0;
+}
+
+@counter-style stop {
+  system: cyclic;
+  symbols: 'Go~';
+  range: 0 0;
+}
+
+@keyframes countdown {
+  to {
+    --time: 0;
+  }
 }
 
 .count-down {
@@ -12,16 +24,39 @@
   align-items: center;
   text-align: center;
 
-  &::after {
-    --t: 5;
-    counter-reset: time var(--t);
-    content: counter(time);
-    animation: countdown 5s forwards;
+  // 重置动画
+  &:active::after {
+    cursor: pointer;
+    animation: none;
   }
 
-  @keyframes countdown {
+  &::after {
+    --time: 5;
+    --duration: 1;
+    font-size: 60px;
+    counter-reset: time var(--time);
+    content: counter(time, stop);
+    animation: countdown calc(var(--time) * var(--duration) * 1s)
+        steps(var(--time)) forwards,
+      shark calc(var(--duration) * 1s) calc(var(--duration) * 0.8s)
+        calc(var(--time));
+  }
+
+  @keyframes stop {
     to {
-      --t: 0;
+      content: 'Go~';
+    }
+  }
+
+  @keyframes shark {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    20% {
+      opacity: 0;
+      transform: scale(0.4);
     }
   }
 }
