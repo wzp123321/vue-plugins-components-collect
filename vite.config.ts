@@ -1,6 +1,9 @@
-import { defineConfig } from 'vite'
-import { resolve } from 'path'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import { resolve } from 'path';
+import vue from '@vitejs/plugin-vue';
+
+import Components from 'unplugin-vue-components/vite';
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -24,6 +27,11 @@ export default ({ mode }) => {
         strict: false, // 解决Unrestricted file system access  vite对根目录的访问做了限制
       },
     },
-    plugins: [vue()],
-  })
-}
+    plugins: [
+      vue(),
+      Components({
+        resolvers: [AntDesignVueResolver()],
+      }),
+    ],
+  });
+};

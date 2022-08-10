@@ -1,0 +1,6 @@
+<div class="crypto-js flex">
+  <textarea v-model="text" cols="30" rows="10"></textarea>
+  <a-radio-group v-model:value="checkedMethod">
+    <a-radio v-for="(item, index) in methods" :key="'method'+ index" :label="item" :value="item"></a-radio>
+  </a-radio-group>
+</div>
