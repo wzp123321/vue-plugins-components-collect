@@ -1,1 +1,3 @@
-<div class="autoheight-textarea">{{text}}</div>
+<div class="autoheight-textarea">
+  <textarea rows="1" v-model="text" :maxlength="MAX_LENGTH" @input="handleInput"></textarea>
+</div>

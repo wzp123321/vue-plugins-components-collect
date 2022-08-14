@@ -3,18 +3,41 @@
  * @Author: wanzp
  * @Date: 2022-08-13 22:10:01
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2022-08-13 23:01:15
+ * @Last Modified time: 2022-08-14 21:16:00
  */
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
+
+const MAX_LENGTH = 200;
 
 export default defineComponent({
   name: 'AutoHeightTextArea',
-  setup(this, props, ctx) {
-    const text =
-      '新部编人教版八年级语文上册《唐诗五首》古诗词原文及翻译\n\n\n \n\n12．唐诗五首\n\n黄鹤楼（作者：崔颢）\n\n昔人已乘黄鹤去，此地空余黄鹤楼。黄鹤一去不复返，白云千载空悠悠。\n\n晴川历历汉阳树，芳草萋萋鹦鹉洲。日暮乡关何处是，烟波江上使人愁。\n\n译文：\n\n传说中的仙人早乘黄鹤飞去，这地方只留下空荡的黄鹤楼。飞去的黄鹤再也不能复返了，唯有悠悠白云徒然千载依旧。汉阳晴川阁的碧树历历在目，鹦鹉洲的芳草长得密密稠稠，时至黄昏不知何处是我家乡？面对烟波渺渺大江令人发愁！\n\n \n\n使至塞上（作者：王维）\n\n单车欲问边，属国过居延。征蓬出汉塞，归雁入吴天。\n\n大漠孤烟直，长河落日圆。萧关逢候骑，都护在燕然。\n\n译文：\n\n乘单车想去慰问边关，路经的属国已过居延。\n\n千里飞蓬也飘出汉塞，北归大雁正翱翔云天。\n\n浩瀚沙漠中孤烟直上，无尽黄河上落日浑圆。\n\n到萧关遇到侦候骑士，告诉我都护已在燕然。\n\n \n\n渡荆门送别（作者：李白）\n\n渡远荆门外，来从楚国游。山随平野尽，江入大荒流。\n\n月下飞天镜，云生结海楼。仍怜故乡水，万里送行舟。\n\n译文：\n\n乘船远行，路过荆门一带，来到楚国故地。\n\n青山渐渐消失，平野一望无边。长江滔滔奔涌，流入广袤荒原。\n\n月映江面，犹如明天飞镜；云变蓝天，生成海市蜃楼。\n\n故乡之水恋恋不舍，不远万里送我行舟。\n\n \n\n春望（作者：杜甫）\n\n国破山河在， 城春草木深。感时花溅泪，恨别鸟惊心。\n\n烽火连三月， 家书抵万金。白头搔更短，浑欲不胜簪。\n\n译文：\n\n长安沦陷，国家破碎，只有山河依旧；春天来了，人烟稀少的长安城里草木茂密。\n\n感伤国事，不禁涕泪四溅，鸟鸣惊心，徒增离愁别恨。\n\n连绵的战火已经延续了半年多，家书难得，一封抵得上万两黄金。\n\n愁绪缠绕，搔头思考，白发越搔越短，简直要不能插簪了。\n\n \n\n钱塘湖春行（作者：白居易）\n\n孤山寺北贾亭西， 水面初平云脚低。几处早莺争暖树，谁家新燕啄春泥。\n\n乱花渐欲迷人眼， 浅草才能没马蹄。最爱湖东行不足，绿杨阴里白沙堤。\n\n译文：\n\n绕过孤山寺以北漫步贾公亭以西，湖水初涨与岸平齐白云垂得很低。\n\n几只早出的黄莺争栖向阳的暖树，谁家新飞来的燕子忙着筑巢衔泥。\n\n野花竞相开放就要让人眼花缭乱，春草还没有长高才刚刚没过马蹄。\n\n最喜爱湖东的美景令人流连忘返，杨柳成排绿荫中穿过一条白沙堤。';
+  setup() {
+    const text = ref<string>('');
+
+    const handleInput = (e: InputEvent) => {
+      const inputEle = e.target as HTMLInputElement;
+
+      inputEle.style.height = `${inputEle.scrollHeight + 2}px`;
+
+      if (e.isComposing) {
+        return;
+      }
+
+      // 过滤特殊字符
+      const characters: string = '';
+      const defaultStr = String.raw`\`\\;\'\"&lt;&gt;`;
+      const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
+      inputEle.value = inputEle.value.replace(reg, '');
+
+      // 过滤空格
+      inputEle.value = inputEle.value.replace(/\s+/g, '');
+    };
 
     return {
       text,
+      MAX_LENGTH,
+
+      handleInput,
     };
   },
 });
