@@ -119,3 +119,35 @@ export const floatDivide = (arg1: number, arg2: number) => {
   return floatMultiply(n1 / n2, Math.pow(10, r2 - r1))
   // return (n1 / n2) * Math.pow(10, r2 - r1);
 }
+
+// 全屏
+const requestFullScreen = (element: any) => {
+  const requestMethod =
+    element.requestFullscreen ||
+    element.webkitRequestFullscreen ||
+    element.mozRequestFullscreen ||
+    element.msRequestFullscreen
+  if (requestMethod) {
+    requestMethod.call(element)
+  } else if (typeof (window as any).ActiveXObject !== 'undefined') {
+    const wscript = new (window as any).ActiveXObject('WScript.Shell')
+    if (wscript !== null) {
+      wscript.SendKeys('{F11}')
+    }
+  }
+}
+
+/**
+ * 退出全屏
+ */
+const exitFullscreen = () => {
+  if (document.exitFullscreen) {
+    document.exitFullscreen()
+  } else if ((document as any).msExitFullscreen) {
+    ;(document as any).msExitFullscreen()
+  } else if ((document as any).mozCancelFullScreen) {
+    ;(document as any).mozCancelFullScreen()
+  } else if ((document as any).webkitExitFullscreen) {
+    ;(document as any).webkitExitFullscreen()
+  }
+}
