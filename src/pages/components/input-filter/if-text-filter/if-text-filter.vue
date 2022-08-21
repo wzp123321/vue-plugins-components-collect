@@ -1,6 +1,6 @@
 <template>
   <div class="if-text-filter">
-    <h5>文本过滤</h5>
+    <a-divider>文本过滤</a-divider>
     <div class="mb16 flex">
       <input maxlength="1" type="text" v-model="textFilter.symbolValue" />
       <button class="ml12" @click="textFilter.addSymbol">添加特殊符号</button>
@@ -12,7 +12,14 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { defineComponent } from 'vue';
 import TextFilterService from './if-text-filter.service.ts';
+import { Divider } from 'ant-design-vue';
+
+defineComponent({
+  'a-divider': Divider,
+});
+
 const textFilter = new TextFilterService();
 </script>
 <style lang="less" scoped>
