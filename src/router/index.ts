@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 import pluginRoutes from './modules/plugins';
-import componentRoutes from './modules/component';
+import componentRoutes from './modules/components';
+import echartRoutes from './modules/echarts';
 import animationRoutes from './modules/animation';
 
-const routes: RouteRecordRaw[] = [...componentRoutes, ...pluginRoutes, ...animationRoutes];
+const routes: RouteRecordRaw[] = [...componentRoutes, ...pluginRoutes, ...animationRoutes, ...echartRoutes];
 
 const router = createRouter({
   history: createWebHistory(),
