@@ -6,7 +6,7 @@ button {
 
   color: var(--color-primary);
   background-color: var(--color-default);
-  border: 1px solid;
+  border: 1px solid var(--color-text-border);
   border-radius: 3px;
   cursor: pointer;
 
@@ -23,7 +23,7 @@ button:active {
 button[primary] {
   color: var(--color-default);
   background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary) ;
 }
 button[primary]:enabled:hover {
   background-color: var(--color-primary-hover);

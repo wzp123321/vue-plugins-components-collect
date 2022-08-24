@@ -2,7 +2,7 @@ import { RouteRecordRaw } from 'vue-router';
 
 const components: RouteRecordRaw[] = [
   {
-    path: '/inputFilter',
+    path: '/component-inputFilter',
     meta: {
       name: '输入框过滤',
     },
