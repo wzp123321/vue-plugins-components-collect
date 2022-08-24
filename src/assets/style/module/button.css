@@ -1,0 +1,137 @@
+/* 按钮相关样式控制 */
+/* 普通按钮-次要（默认） */
+button {
+  height: 36px;
+  padding: 0px 15px;
+
+  color: var(--color-primary);
+  background-color: var(--color-default);
+  border: 1px solid;
+  border-radius: 3px;
+  cursor: pointer;
+
+  transition-duration: var(--param-transition-time);
+}
+button:hover {
+  color: var(--color-primary-hover);
+}
+button:active {
+  color: var(--color-primary-active);
+}
+
+/* 普通按钮-主要 */
+button[primary] {
+  color: var(--color-default);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+button[primary]:enabled:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+button[primary]:enabled:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* 文本按钮 */
+button[text] {
+  height: auto;
+  padding: 0px;
+
+  color: var(--color-primary);
+  background-color: transparent;
+  border: none;
+}
+button[text]:enabled:hover,
+button[text]:enabled:active {
+  color: var(--color-primary-active);
+  background-color: transparent;
+}
+
+/* 图标按钮 */
+button[icon] {
+  width: 36px;
+  padding: 0px;
+
+  color: var(--color-text-disable);
+  border-color: var(--color-text-border);
+}
+button[icon]:enabled:hover {
+  color: var(--color-primary);
+  border-color: unset;
+}
+button[icon]:enabled:active {
+  color: var(--color-primary-active);
+  border-color: unset;
+}
+
+/* 单选按钮 */
+button[radio] {
+  padding: 0px 13px;
+
+  color: var(--color-text-primary);
+  border-color: var(--color-text-border);
+}
+button[radio]:enabled:hover,
+button[radio]:not([selected='false']):enabled {
+  color: var(--color-primary);
+  border-color: unset;
+}
+
+/* 面板按钮 */
+button[panel] {
+  color: var(--color-text-primary);
+  border: none;
+}
+button[panel]:enabled:hover {
+  color: var(--color-primary);
+}
+button[panel]:enabled:active {
+  color: var(--color-primary);
+  background-color: var(--color-active);
+}
+
+/* 无框状态 */
+button[rimless]:not([rimless='false']) {
+  border: 1px transparent;
+}
+
+/* 危险状态 */
+button[danger]:not([danger='false']):not([radio]):enabled {
+  color: var(--color-danger);
+  border-color: unset;
+}
+button[danger]:not([danger='false']):not([radio]):enabled:hover {
+  background-color: var(--color-danger-hover);
+}
+button[danger]:not([danger='false']):not([radio]):enabled:active {
+  color: var(--color-default);
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+button[text][danger]:not([danger='false']):enabled:hover,
+button[text][danger]:not([danger='false']):enabled:active {
+  color: var(--color-danger-active);
+  background-color: transparent;
+}
+
+/* 禁用状态 */
+button:disabled {
+  background-color: var(--color-text-background);
+  border-color: var(--color-text-border);
+}
+
+button[text]:disabled {
+  background-color: transparent;
+}
+
+button[radio]:not([selected='false']):disabled {
+  color: var(--color-text-primary);
+}
+
+/* 按钮子元素 */
+button > * {
+  pointer-events: none;
+}

@@ -1,0 +1,39 @@
+/* 图标相关样式控制 */
+i {
+  line-height: 1;
+}
+i > * {
+  font-size: inherit;
+}
+
+/* 按钮图标 */
+i[button] {
+  color: var(--color-primary);
+  cursor: pointer;
+
+  font-size: 20px;
+}
+i[button]:hover {
+  color: var(--color-primary-hover);
+}
+i[button]:active {
+  color: var(--color-primary-active);
+}
+
+/* 信息图标 */
+i[info] {
+  color: var(--color-text-secondary);
+
+  font-size: 20px;
+}
+i[info]:hover {
+  color: var(--color-primary-hover);
+}
+
+/* 上标状态 */
+i[superscript] {
+  background-color: var(--color-default);
+  border-radius: 50%;
+
+  font-size: 16px;
+}
