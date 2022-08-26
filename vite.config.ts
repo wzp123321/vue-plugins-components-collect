@@ -19,6 +19,13 @@ export default ({ mode }) => {
       // 支持的后缀
       extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue', '.less'],
     },
+    css: {
+      preprocessorOptions: {
+        less: {
+          javascriptEnabled: true,
+        },
+      },
+    },
     // 开发选项
     server: {
       port: 9528,
