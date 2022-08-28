@@ -2,12 +2,18 @@ import { CD_CostDetailConvertVO } from './list.api';
 import { defineComponent, onMounted, ref } from 'vue';
 import { mock } from './utils';
 
+import { ElSelect } from 'element-plus';
+
 export default defineComponent({
   name: 'VueVirtualListContainer',
+  components: {
+    'el-select': ElSelect,
+    'el-option': ElSelect.Option,
+  },
   setup() {
-    const dataSource = mock(10000);
-    const itemSize = ref<number>(40);
-    const poolBuffer = ref<number>(50);
+    const dataSource = mock(1000);
+    const itemSize = ref<number>(20);
+    const poolBuffer = ref<number>(30);
 
     const root = ref<HTMLElement | null>(null);
     const pool = ref<CD_CostDetailConvertVO[]>([]);
@@ -42,12 +48,17 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      if (!root.value) return;
-      containerSize = root.value.clientHeight;
-      const contentLines = Math.ceil(containerSize / itemSize.value);
-      const totalLines = contentLines + poolBuffer.value;
-      const range = [0, totalLines];
-      pool.value = dataSource.slice(range[0], range[0] + range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
+      try {
+        if (!root.value) return;
+        containerSize = root.value.clientHeight;
+        const contentLines = Math.ceil(containerSize / itemSize.value);
+        const totalLines = contentLines + poolBuffer.value;
+        const range = [0, totalLines];
+        pool.value = dataSource.slice(range[0], range[0] + range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
+        console.log(pool.value.length);
+      } catch (error) {
+        console.log(error);
+      }
     });
 
     return {
