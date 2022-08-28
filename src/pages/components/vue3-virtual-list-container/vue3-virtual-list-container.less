@@ -1,0 +1,32 @@
+.list-container {
+  width: 800px;
+  height: 600px;
+  border: 2px solid #4caf50;
+  margin: 0 auto;
+}
+.item-container {
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+}
+.cell {
+  margin: 0 8px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  white-space: nowrap;
+  &.cell-index,
+  &.cell-img {
+    flex: none;
+    min-width: 60px;
+  }
+}
+.action-container {
+  margin-bottom: 16px;
+  button {
+    margin-left: 10px;
+  }
+}

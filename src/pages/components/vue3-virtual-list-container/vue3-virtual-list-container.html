@@ -1,0 +1,38 @@
+<div>
+  <div class="action-container">
+    <input v-model="dataCount" />
+    <button @click="updateDataSource">Update</button>
+  </div>
+  <div class="list-container">
+    <TableList :data="dataSource">
+      <template v-slot="{ item, index }">
+        <div class="item-container">
+          <div class="cell cell-index">{{ index + 1 }}</div>
+          <div class="cell">{{ item.projectNumber }}</div>
+          <div class="cell">{{ item.projectTaskName }}</div>
+          <div class="cell">{{ item.ledgerCode }}</div>
+          <div class="cell">{{ item.ledgerName }}</div>
+          <div class="cell">{{ item.costNode }}</div>
+          <div class="cell">{{ item.employeeCode }}</div>
+          <div class="cell">{{ item.employeeName }}</div>
+          <div class="cell">{{ item.employeeDepartment }}</div>
+          <div class="cell">{{ item.employeeType }}</div>
+          <div class="cell">{{ item.productCode }}</div>
+          <div class="cell">{{ item.productName }}</div>
+          <div class="cell">{{ item.productType }}</div>
+          <div class="cell">{{ item.billDate }}</div>
+          <div class="cell">{{ item.billYear }}</div>
+          <div class="cell">{{ item.billMonth }}</div>
+          <div class="cell">{{ item.billCode }}</div>
+          <div class="cell">{{ item.billTypeName }}</div>
+          <div class="cell">{{ item.billTitleContent }}</div>
+          <div class="cell">{{ item.billProjectContent }}</div>
+          <div class="cell">{{ item.recordTime }}</div>
+          <div class="cell">{{ item.balance }}</div>
+          <div class="cell">{{ item.amount }}</div>
+          <div class="cell">{{ item.costType }}</div>
+        </div>
+      </template>
+    </TableList>
+  </div>
+</div>
