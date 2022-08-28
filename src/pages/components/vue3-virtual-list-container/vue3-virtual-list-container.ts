@@ -11,13 +11,13 @@ export default defineComponent({
     'el-option': ElSelect.Option,
   },
   setup() {
-    const dataSource = mock(1000);
-    const itemSize = ref<number>(20);
-    const poolBuffer = ref<number>(30);
+    const dataSource = ref<CD_CostDetailConvertVO[]>(mock(300));
+    const itemSize = ref<number>(60);
+    const poolBuffer = ref<number>(10);
 
     const root = ref<HTMLElement | null>(null);
     const pool = ref<CD_CostDetailConvertVO[]>([]);
-    const scrollHeight = ref(dataSource.length * itemSize.value);
+    const scrollHeight = ref(dataSource.value.length * itemSize.value);
 
     let containerSize = 0;
     const paddingTop = ref(0);
@@ -35,16 +35,35 @@ export default defineComponent({
         range[0] = Math.floor(root.value.scrollTop / itemSize.value) - Math.floor(poolBuffer.value / 2);
         range[0] = Math.max(range[0], 0);
         range[1] = range[0] + Math.floor(root.value.clientHeight / itemSize.value) + poolBuffer.value;
-        range[1] = Math.min(range[1], dataSource.length);
+        range[1] = Math.min(range[1], dataSource.value.length);
         /**
          * 需要渲染的列表
          */
-        pool.value = dataSource.slice(range[0], range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
+        pool.value = dataSource.value.slice(range[0], range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
         paddingTop.value = range[0] * itemSize.value;
       });
     };
     const handleInsert = () => {
-      console.log('insert');
+      dataSource.value.splice(2, 0, ...mock(2, true));
+      pool.value = [];
+
+      if (!root.value) return;
+      const range: number[] = [];
+      range[0] = Math.floor(root.value.scrollTop / itemSize.value) - Math.floor(poolBuffer.value / 2);
+      range[0] = Math.max(range[0], 0);
+      range[1] = range[0] + Math.floor(root.value.clientHeight / itemSize.value) + poolBuffer.value;
+      range[1] = Math.min(range[1], dataSource.value.length);
+      /**
+       * 需要渲染的列表
+       */
+      pool.value = dataSource.value.slice(range[0], range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
+      paddingTop.value = range[0] * itemSize.value;
+
+      console.log(range, root.value.scrollTop, root.value.clientHeight);
+    };
+
+    const rowClick = (row: CD_CostDetailConvertVO, index: number) => {
+      console.log(row, index);
     };
 
     onMounted(() => {
@@ -54,7 +73,9 @@ export default defineComponent({
         const contentLines = Math.ceil(containerSize / itemSize.value);
         const totalLines = contentLines + poolBuffer.value;
         const range = [0, totalLines];
-        pool.value = dataSource.slice(range[0], range[0] + range[1]).map((v, i) => ({ ...v, _index: range[0] + i }));
+        pool.value = dataSource.value
+          .slice(range[0], range[0] + range[1])
+          .map((v, i) => ({ ...v, _index: range[0] + i }));
         console.log(pool.value.length);
       } catch (error) {
         console.log(error);
@@ -71,6 +92,7 @@ export default defineComponent({
 
       handleScroll,
       handleInsert,
+      rowClick,
     };
   },
 });

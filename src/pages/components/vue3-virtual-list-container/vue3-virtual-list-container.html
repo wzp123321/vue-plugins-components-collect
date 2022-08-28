@@ -1,8 +1,10 @@
 <div class="container">
+  <button @click="handleInsert">插入数据</button>
   <table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
     <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
       <thead>
         <tr>
+          <th class="cd-table-fixed" style="width: 60px">序号</th>
           <th class="cd-table-fixed" style="width: 211px">项目（项目任务（MD））</th>
           <th class="cd-table-fixed" style="width: 245px"></th>
           <th class="cd-table-fixed" style="width: 161px"></th>
@@ -35,110 +37,112 @@
           v-for="(item, index) in pool"
           :key="item.id"
           :style="`height: ${itemSize}px`"
+          @click="rowClick(item, index)"
         >
+          <td class="cell">{{ index + 1 }}</td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.projectNumber }}</span>
+            <span v-if="!item.editing">{{ item.projectNumber }}</span>
             <input type="text" v-model="item.projectNumber" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.projectNumber }}</span>
+            <span v-if="!item.editing">{{ item.projectNumber }}</span>
             <input type="text" v-model="item.projectNumber" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.projectTaskName }}</span>
+            <span v-if="!item.editing">{{ item.projectTaskName }}</span>
             <input type="text" v-model="item.projectTaskName" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.ledgerCode }}</span>
+            <span v-if="!item.editing">{{ item.ledgerCode }}</span>
             <input type="text" v-model="item.ledgerCode" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.ledgerName }}</span>
+            <span v-if="!item.editing">{{ item.ledgerName }}</span>
             <input type="text" v-model="item.ledgerName" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.costNode }}</span>
-            <el-select v-model="item.costNode">
+            <span v-if="!item.editing">{{ item.costNode }}</span>
+            <el-select v-else v-model="item.costNode">
               <el-option key="item.costNode" value="item.costNode">item.costNode</el-option>
             </el-select>
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.employeeCode }}</span>
+            <span v-if="!item.editing">{{ item.employeeCode }}</span>
             <input type="text" v-model="item.employeeCode" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.employeeName }}</span>
+            <span v-if="!item.editing">{{ item.employeeName }}</span>
             <input type="text" v-model="item.employeeName" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.employeeDepartment }}</span>
-            <el-select v-model="item.employeeDepartment">
+            <span v-if="!item.editing">{{ item.employeeDepartment }}</span>
+            <el-select v-else v-model="item.employeeDepartment">
               <el-option key="item.employeeDepartment" value="item.employeeDepartment">
                 item.employeeDepartment
               </el-option>
             </el-select>
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.employeeType }}</span>
-            <el-select v-model="item.employeeType">
+            <span v-if="!item.editing">{{ item.employeeType }}</span>
+            <el-select v-else v-model="item.employeeType">
               <el-option key="item.employeeType" value="item.employeeType">item.employeeType</el-option>
             </el-select>
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.productCode }}</span>
+            <span v-if="!item.editing">{{ item.productCode }}</span>
             <input type="text" v-model="item.productCode" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.productName }}</span>
+            <span v-if="!item.editing">{{ item.productName }}</span>
             <input type="text" v-model="item.productName" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.productType }}</span>
+            <span v-if="!item.editing">{{ item.productType }}</span>
             <input type="text" v-model="item.productType" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.productTypeName }}</span>
+            <span v-if="!item.editing">{{ item.productTypeName }}</span>
             <input type="text" v-model="item.productTypeName" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billDate }}</span>
+            <span v-if="!item.editing">{{ item.billDate }}</span>
             <input type="text" v-model="item.billDate" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billYear }}</span>
+            <span v-if="!item.editing">{{ item.billYear }}</span>
             <input type="text" v-model="item.billYear" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billMonth }}</span>
+            <span v-if="!item.editing">{{ item.billMonth }}</span>
             <input type="text" v-model="item.billMonth" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billCode }}</span>
+            <span v-if="!item.editing">{{ item.billCode }}</span>
             <input type="text" v-model="item.billCode" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billTitleContent }}</span>
+            <span v-if="!item.editing">{{ item.billTitleContent }}</span>
             <input type="text" v-model="item.billTitleContent" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.billProjectContent }}</span>
+            <span v-if="!item.editing">{{ item.billProjectContent }}</span>
             <input type="text" v-model="item.billProjectContent" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.recordTime }}</span>
+            <span v-if="!item.editing">{{ item.recordTime }}</span>
             <input type="text" v-model="item.recordTime" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.balance }}</span>
+            <span v-if="!item.editing">{{ item.balance }}</span>
             <input type="text" v-model="item.balance" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.amount }}</span>
+            <span v-if="!item.editing">{{ item.amount }}</span>
             <input type="text" v-model="item.amount" v-else />
           </td>
           <td class="cell">
-            <span v-if="item.editing">{{ item.costType }}</span>
-            <el-select v-model="item.costType">
+            <span v-if="!item.editing">{{ item.costType }}</span>
+            <el-select v-else v-model="item.costType">
               <el-option key="item.costType" value="item.costType">item.costType</el-option>
             </el-select>
           </td>
