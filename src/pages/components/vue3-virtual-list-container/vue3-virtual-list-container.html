@@ -1,65 +1,70 @@
-<table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
-  <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
-    <thead>
-      <tr>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-        <th class="cd-table-fixed">1</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="vue3-virtual-list-item-container"
-        v-for="(item, index) in pool"
-        :key="item.id"
-        :style="`height: ${itemSize}px`"
-      >
-        <td class="cell cell-index cd-table-fixed">{{ index + 1 }}</td>
-        <td class="cell">{{ item.projectNumber }}</td>
-        <td class="cell">{{ item.projectTaskName }}</td>
-        <td class="cell">{{ item.ledgerCode }}</td>
-        <td class="cell">{{ item.ledgerName }}</td>
-        <td class="cell">{{ item.costNode }}</td>
-        <td class="cell">{{ item.employeeCode }}</td>
-        <td class="cell">{{ item.employeeName }}</td>
-        <td class="cell">{{ item.employeeDepartment }}</td>
-        <td class="cell">{{ item.employeeType }}</td>
-        <td class="cell">{{ item.productCode }}</td>
-        <td class="cell">{{ item.productName }}</td>
-        <td class="cell">{{ item.productType }}</td>
-        <td class="cell">{{ item.billDate }}</td>
-        <td class="cell">{{ item.billYear }}</td>
-        <td class="cell">{{ item.billMonth }}</td>
-        <td class="cell">{{ item.billCode }}</td>
-        <td class="cell">{{ item.billTypeName }}</td>
-        <td class="cell">{{ item.billTitleContent }}</td>
-        <td class="cell">{{ item.billProjectContent }}</td>
-        <td class="cell">{{ item.recordTime }}</td>
-        <td class="cell">{{ item.balance }}</td>
-        <td class="cell">{{ item.amount }}</td>
-        <td class="cell">{{ item.costType }}</td>
-      </tr>
-    </tbody>
+<div>
+  <div>
+    <button @click="handleInsert">插入行</button>
   </div>
-</table>
+  <table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
+    <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
+      <thead>
+        <tr>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+          <th class="cd-table-fixed">1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="vue3-virtual-list-item-container"
+          v-for="(item, index) in pool"
+          :key="item.id"
+          :style="`height: ${itemSize}px`"
+        >
+          <td class="cell cell-index cd-table-fixed">{{ index + 1 }}</td>
+          <td class="cell">{{ item.projectNumber }}</td>
+          <td class="cell">{{ item.projectTaskName }}</td>
+          <td class="cell">{{ item.ledgerCode }}</td>
+          <td class="cell">{{ item.ledgerName }}</td>
+          <td class="cell">{{ item.costNode }}</td>
+          <td class="cell">{{ item.employeeCode }}</td>
+          <td class="cell">{{ item.employeeName }}</td>
+          <td class="cell">{{ item.employeeDepartment }}</td>
+          <td class="cell">{{ item.employeeType }}</td>
+          <td class="cell">{{ item.productCode }}</td>
+          <td class="cell">{{ item.productName }}</td>
+          <td class="cell">{{ item.productType }}</td>
+          <td class="cell">{{ item.billDate }}</td>
+          <td class="cell">{{ item.billYear }}</td>
+          <td class="cell">{{ item.billMonth }}</td>
+          <td class="cell">{{ item.billCode }}</td>
+          <td class="cell">{{ item.billTypeName }}</td>
+          <td class="cell">{{ item.billTitleContent }}</td>
+          <td class="cell">{{ item.billProjectContent }}</td>
+          <td class="cell">{{ item.recordTime }}</td>
+          <td class="cell">{{ item.balance }}</td>
+          <td class="cell">{{ item.amount }}</td>
+          <td class="cell">{{ item.costType }}</td>
+        </tr>
+      </tbody>
+    </div>
+  </table>
+</div>

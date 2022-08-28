@@ -37,6 +37,9 @@ export default defineComponent({
         paddingTop.value = range[0] * itemSize.value;
       });
     };
+    const handleInsert = () => {
+      console.log('insert');
+    };
 
     onMounted(() => {
       if (!root.value) return;
@@ -56,6 +59,7 @@ export default defineComponent({
       paddingTop,
 
       handleScroll,
+      handleInsert,
     };
   },
 });
