@@ -1,5 +1,10 @@
 <div class="container">
-  <button @click="handleInsert">插入数据</button>
+  <div class="flex" style="padding: 16px">
+    <input type="text" v-model="insertLine" />
+    <input class="ml16" type="text" v-model="insertStart" />
+    <button class="ml16" @click="handleInsert">插入数据</button>
+    <button class="ml16" @click="reset">重置</button>
+  </div>
   <table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
     <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
       <thead>

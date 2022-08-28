@@ -14,6 +14,8 @@ export default defineComponent({
     const dataSource = ref<CD_CostDetailConvertVO[]>(mock(300));
     const itemSize = ref<number>(60);
     const poolBuffer = ref<number>(10);
+    const insertLine = ref<number>(0);
+    const insertStart = ref<number>(0);
 
     const root = ref<HTMLElement | null>(null);
     const pool = ref<CD_CostDetailConvertVO[]>([]);
@@ -44,7 +46,7 @@ export default defineComponent({
       });
     };
     const handleInsert = () => {
-      dataSource.value.splice(2, 0, ...mock(2, true));
+      dataSource.value.splice(insertStart.value, 0, ...mock(insertLine.value, true));
       pool.value = [];
 
       if (!root.value) return;
@@ -60,6 +62,11 @@ export default defineComponent({
       paddingTop.value = range[0] * itemSize.value;
 
       console.log(range, root.value.scrollTop, root.value.clientHeight);
+    };
+
+    const reset = () => {
+      insertStart.value = 0;
+      insertLine.value = 0;
     };
 
     const rowClick = (row: CD_CostDetailConvertVO, index: number) => {
@@ -83,12 +90,15 @@ export default defineComponent({
     });
 
     return {
+      insertLine,
+      insertStart,
       itemSize,
       dataSource,
       pool,
       scrollHeight,
       root,
       paddingTop,
+      reset,
 
       handleScroll,
       handleInsert,
