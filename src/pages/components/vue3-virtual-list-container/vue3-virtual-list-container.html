@@ -1,0 +1,158 @@
+<div class="container">
+  <div class="flex" style="padding: 16px">
+    <input type="text" v-model="insertLine" />
+    <input class="ml16" type="text" v-model="insertStart" />
+    <button class="ml16" @click="handleInsert">插入数据</button>
+    <button class="ml16" @click="reset">重置</button>
+  </div>
+  <table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
+    <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
+      <thead>
+        <tr>
+          <th class="cd-table-fixed" style="width: 60px">序号</th>
+          <th class="cd-table-fixed" style="width: 211px">项目（项目任务（MD））</th>
+          <th class="cd-table-fixed" style="width: 245px"></th>
+          <th class="cd-table-fixed" style="width: 161px"></th>
+          <th class="cd-table-fixed" style="width: 169px">总账科目（来源）</th>
+          <th class="cd-table-fixed" style="width: 143px">成本明细</th>
+          <th class="cd-table-fixed" style="width: 199px">对应客户/供应商编号</th>
+          <th class="cd-table-fixed" style="width: 189px"></th>
+          <th class="cd-table-fixed" style="width: 144px">人员部门</th>
+          <th class="cd-table-fixed" style="width: 141px">人员类别</th>
+          <th class="cd-table-fixed" style="width: 120px">产品</th>
+          <th class="cd-table-fixed" style="width: 91px"></th>
+          <th class="cd-table-fixed" style="width: 120px">产品类别</th>
+          <th class="cd-table-fixed" style="width: 91px"></th>
+          <th class="cd-table-fixed" style="width: 126px">过账日期</th>
+          <th class="cd-table-fixed" style="width: 116px">年份</th>
+          <th class="cd-table-fixed" style="width: 116px">月份</th>
+          <th class="cd-table-fixed" style="width: 152px">日记账分录</th>
+          <th class="cd-table-fixed" style="width: 150px">日记账分录类</th>
+          <th class="cd-table-fixed" style="width: 205px">日记账分录抬头文本</th>
+          <th class="cd-table-fixed" style="width: 244px">日记账分录项目文本</th>
+          <th class="cd-table-fixed" style="width: 136px">创建时间</th>
+          <th class="cd-table-fixed" style="width: 157px">公司货币余额</th>
+          <th class="cd-table-fixed" style="width: 122px">评估数量</th>
+          <th class="cd-table-fixed" style="width: 131px">成本类型</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="vue3-virtual-list-item-container"
+          v-for="(item, index) in pool"
+          :key="item.id"
+          :style="`height: ${itemSize}px`"
+          @click="rowClick(item, index)"
+        >
+          <td class="cell">{{ index + 1 }}</td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.projectNumber }}</span>
+            <input type="text" v-model="item.projectNumber" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.projectNumber }}</span>
+            <input type="text" v-model="item.projectNumber" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.projectTaskName }}</span>
+            <input type="text" v-model="item.projectTaskName" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.ledgerCode }}</span>
+            <input type="text" v-model="item.ledgerCode" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.ledgerName }}</span>
+            <input type="text" v-model="item.ledgerName" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.costNode }}</span>
+            <el-select v-else v-model="item.costNode">
+              <el-option key="item.costNode" value="item.costNode">item.costNode</el-option>
+            </el-select>
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.employeeCode }}</span>
+            <input type="text" v-model="item.employeeCode" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.employeeName }}</span>
+            <input type="text" v-model="item.employeeName" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.employeeDepartment }}</span>
+            <el-select v-else v-model="item.employeeDepartment">
+              <el-option key="item.employeeDepartment" value="item.employeeDepartment">
+                item.employeeDepartment
+              </el-option>
+            </el-select>
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.employeeType }}</span>
+            <el-select v-else v-model="item.employeeType">
+              <el-option key="item.employeeType" value="item.employeeType">item.employeeType</el-option>
+            </el-select>
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.productCode }}</span>
+            <input type="text" v-model="item.productCode" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.productName }}</span>
+            <input type="text" v-model="item.productName" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.productType }}</span>
+            <input type="text" v-model="item.productType" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.productTypeName }}</span>
+            <input type="text" v-model="item.productTypeName" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billDate }}</span>
+            <input type="text" v-model="item.billDate" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billYear }}</span>
+            <input type="text" v-model="item.billYear" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billMonth }}</span>
+            <input type="text" v-model="item.billMonth" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billCode }}</span>
+            <input type="text" v-model="item.billCode" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billTitleContent }}</span>
+            <input type="text" v-model="item.billTitleContent" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.billProjectContent }}</span>
+            <input type="text" v-model="item.billProjectContent" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.recordTime }}</span>
+            <input type="text" v-model="item.recordTime" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.balance }}</span>
+            <input type="text" v-model="item.balance" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.amount }}</span>
+            <input type="text" v-model="item.amount" v-else />
+          </td>
+          <td class="cell">
+            <span v-if="!item.editing">{{ item.costType }}</span>
+            <el-select v-else v-model="item.costType">
+              <el-option key="item.costType" value="item.costType">item.costType</el-option>
+            </el-select>
+          </td>
+        </tr>
+      </tbody>
+    </div>
+  </table>
+</div>

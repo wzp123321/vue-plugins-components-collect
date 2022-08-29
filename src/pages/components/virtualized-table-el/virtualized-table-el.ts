@@ -4,13 +4,13 @@ import { ref } from 'vue';
  * @Author: wanzp
  * @Date: 2022-08-20 20:44:00
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2022-08-21 21:59:31
+ * @Last Modified time: 2022-08-28 13:05:42
  */
 import { defineComponent, onMounted } from 'vue';
 
 import { ElTableV2 } from 'element-plus';
 
-import { TableVO } from './virtualized-table.api';
+import { TableVO } from './virtualized-table-el.api';
 
 const column = [
   'id',
@@ -45,7 +45,7 @@ export default defineComponent({
       return {
         dataKey: item,
         key: 'column-' + index,
-        title: 'Column ' + index + item,
+        title: item,
         width: 150,
       };
     });
