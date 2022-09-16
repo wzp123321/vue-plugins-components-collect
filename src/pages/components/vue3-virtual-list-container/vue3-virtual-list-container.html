@@ -5,17 +5,28 @@
     <button class="ml16" @click="handleInsert">插入数据</button>
     <button class="ml16" @click="reset">重置</button>
   </div>
-  <table class="vue3-virtual-list-container" ref="root" @scroll.passive="handleScroll">
-    <div class="vue3-virtual-list-scroll" :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`">
+  <table
+    class="vue3-virtual-list-container"
+    ref="root"
+    @scroll.passive="handleScroll"
+  >
+    <div
+      class="vue3-virtual-list-scroll"
+      :style="`height: ${scrollHeight}px;padding-top: ${paddingTop}px`"
+    >
       <thead>
         <tr>
           <th class="cd-table-fixed" style="width: 60px">序号</th>
-          <th class="cd-table-fixed" style="width: 211px">项目（项目任务（MD））</th>
+          <th class="cd-table-fixed" style="width: 211px">
+            项目（项目任务（MD））
+          </th>
           <th class="cd-table-fixed" style="width: 245px"></th>
           <th class="cd-table-fixed" style="width: 161px"></th>
           <th class="cd-table-fixed" style="width: 169px">总账科目（来源）</th>
           <th class="cd-table-fixed" style="width: 143px">成本明细</th>
-          <th class="cd-table-fixed" style="width: 199px">对应客户/供应商编号</th>
+          <th class="cd-table-fixed" style="width: 199px">
+            对应客户/供应商编号
+          </th>
           <th class="cd-table-fixed" style="width: 189px"></th>
           <th class="cd-table-fixed" style="width: 144px">人员部门</th>
           <th class="cd-table-fixed" style="width: 141px">人员类别</th>
@@ -28,8 +39,12 @@
           <th class="cd-table-fixed" style="width: 116px">月份</th>
           <th class="cd-table-fixed" style="width: 152px">日记账分录</th>
           <th class="cd-table-fixed" style="width: 150px">日记账分录类</th>
-          <th class="cd-table-fixed" style="width: 205px">日记账分录抬头文本</th>
-          <th class="cd-table-fixed" style="width: 244px">日记账分录项目文本</th>
+          <th class="cd-table-fixed" style="width: 205px">
+            日记账分录抬头文本
+          </th>
+          <th class="cd-table-fixed" style="width: 244px">
+            日记账分录项目文本
+          </th>
           <th class="cd-table-fixed" style="width: 136px">创建时间</th>
           <th class="cd-table-fixed" style="width: 157px">公司货币余额</th>
           <th class="cd-table-fixed" style="width: 122px">评估数量</th>
@@ -67,9 +82,11 @@
           </td>
           <td class="cell">
             <span v-if="!item.editing">{{ item.costNode }}</span>
-            <el-select v-else v-model="item.costNode">
-              <el-option key="item.costNode" value="item.costNode">item.costNode</el-option>
-            </el-select>
+            <a-select v-else v-model="item.costNode">
+              <a-option key="item.costNode" value="item.costNode"
+                >item.costNode</a-option
+              >
+            </a-select>
           </td>
           <td class="cell">
             <span v-if="!item.editing">{{ item.employeeCode }}</span>
@@ -82,7 +99,10 @@
           <td class="cell">
             <span v-if="!item.editing">{{ item.employeeDepartment }}</span>
             <el-select v-else v-model="item.employeeDepartment">
-              <el-option key="item.employeeDepartment" value="item.employeeDepartment">
+              <el-option
+                key="item.employeeDepartment"
+                value="item.employeeDepartment"
+              >
                 item.employeeDepartment
               </el-option>
             </el-select>
@@ -90,7 +110,9 @@
           <td class="cell">
             <span v-if="!item.editing">{{ item.employeeType }}</span>
             <el-select v-else v-model="item.employeeType">
-              <el-option key="item.employeeType" value="item.employeeType">item.employeeType</el-option>
+              <el-option key="item.employeeType" value="item.employeeType"
+                >item.employeeType</el-option
+              >
             </el-select>
           </td>
           <td class="cell">
@@ -148,7 +170,9 @@
           <td class="cell">
             <span v-if="!item.editing">{{ item.costType }}</span>
             <el-select v-else v-model="item.costType">
-              <el-option key="item.costType" value="item.costType">item.costType</el-option>
+              <el-option key="item.costType" value="item.costType"
+                >item.costType</el-option
+              >
             </el-select>
           </td>
         </tr>

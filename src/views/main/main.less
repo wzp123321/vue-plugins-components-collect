@@ -1,0 +1,54 @@
+.main {
+  height: 100%;
+
+  &-header {
+    min-width: 1366px;
+    background-color: #2a2d34;
+    position: relative;
+    height: 56px;
+    z-index: 2033;
+    padding-right: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
+      'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    h6 {
+      height: 56px;
+      line-height: 56px;
+      font-weight: normal;
+      margin-left: 0.5em;
+      color: #fff;
+      font-size: 20px;
+    }
+  }
+
+  &-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+
+    .aside-box {
+      height: 100%;
+      background-color: var(--iot-bg-color-header-menu);
+
+      .ant-menu {
+        font-weight: 400;
+        background-color: var(--iot-bg-color-header-menu);
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none; // 兼容火狐
+      }
+
+      .ant-menu::-webkit-scrollbar {
+        width: 0px;
+        height: 8px;
+      }
+    }
+
+    &__content {
+      flex: 1;
+      height: 100%;
+      background-color: var(--iot-bg-color-container);
+    }
+  }
+}

@@ -1,0 +1,15 @@
+<a-layout class="main flex flex-column">
+  <!-- 头部 start -->
+  <a-layout-header class="main-header flex-row-justify-center">
+    <h6>组件&插件收集</h6>
+  </a-layout-header>
+  <!-- 头部 end -->
+  <a-layout-content class="main-container flex">
+    <!-- 侧边菜单 start -->
+    <ems-aside :menuList="menuList" :selectedMenu="selectedMenu"></ems-aside>
+    <!-- 侧边菜单 end -->
+    <a-layout-content class="main-container__content flex flex-column">
+      <router-view></router-view>
+    </a-layout-content>
+  </a-layout-content>
+</a-layout>

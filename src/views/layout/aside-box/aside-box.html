@@ -1,0 +1,29 @@
+<div
+  :class="['aside-box', isCollapse ? 'is-collapsed' : '', openSubMenuKeys?.length>0 ? 'is-open' : '', isHover ? 'is-hover' : '']"
+>
+  <div
+    class="menu-list flex-column-justify-end"
+    style="z-index: 2200; position: relative; height: 100%"
+    @mouseover="onMouseOver"
+    @mouseleave="onMouseOut"
+  >
+    <a-menu
+      mode="vertical"
+      :router="false"
+      v-model:selectedKeys="selectedMenu"
+      :subMenuOpenDelay="isHover ? 0.25 : 0"
+      @openChange="onSubMenuOpen"
+    >
+      <AsideMenuItem :dataSource="menuList"></AsideMenuItem>
+    </a-menu>
+    <div class="aside-box-expand" style="width: 100%">
+      <div class="collapse-btn operate-btn" @click="onCollapseChange">
+        <img
+          class="collapse-btn-img"
+          src="../../../assets/images/common/common-menu-action.png"
+          alt=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
