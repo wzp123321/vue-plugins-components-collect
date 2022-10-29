@@ -25,10 +25,8 @@ export default defineComponent({
     const menuStatus = ref(0)
     // 展开的二级菜单
     const openSubMenuKeys = ref<string[]>([])
-
     // 是否在悬浮
     const isHover = ref<boolean>(false)
-
     // 是否展开
     const onCollapseChange = () => {
       isCollapse.value = !isCollapse.value

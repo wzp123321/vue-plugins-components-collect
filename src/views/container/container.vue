@@ -1,13 +1,13 @@
-<template src="./main.html"> </template>
-<script lang="ts" src="./main"></script>
-<style lang="less" src="./main.less"></style>
+<template src="./container.html"></template>
+<script lang="ts" src="./container"></script>
+<style lang="less" src="./container.less"></style>
 <style lang="less">
 .el-popper.header-popper {
   z-index: 2050 !important;
-  background-color: var(--iot-bg-color-header-menu);
+  background-color: var(--color-menu-bg);
   border-radius: 4px;
   padding: 4px 0;
-  border-color: var(--iot-bg-color-header-menu);
+  border-color: var(--color-menu-bg);
 
   .area-popper {
     max-height: 500px;
@@ -69,9 +69,9 @@
 
 .el-popper.user-popper {
   z-index: 2050 !important;
-  background-color: var(--iot-bg-color-header-menu);
+  background-color: var(--color-menu-bg);
   border-radius: 4px;
-  border-color: var(--iot-bg-color-header-menu);
+  border-color: var(--color-menu-bg);
   padding: 4px 0;
 
   .logout {

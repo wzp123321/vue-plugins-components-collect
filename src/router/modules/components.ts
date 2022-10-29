@@ -19,13 +19,6 @@ const components: RouteRecordRaw[] = [
         '../../pages/components/vue3-virtual-list-container/vue3-virtual-list-container.vue'
       ),
   },
-  {
-    path: '/component-add-select',
-    meta: {
-      name: '可新增下拉框',
-    },
-    component: () => import('../../pages/components/add-select/add-select.vue'),
-  },
 ]
 
 export default components

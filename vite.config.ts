@@ -1,10 +1,14 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
-import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite'
+import { resolve } from 'path'
+import vue from '@vitejs/plugin-vue'
 
-import Components from 'unplugin-vue-components/vite';
-import AutoImport from 'unplugin-auto-import/vite';
-import { AntDesignVueResolver, ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite'
+import AutoImport from 'unplugin-auto-import/vite'
+import {
+  AntDesignVueResolver,
+  ElementPlusResolver,
+} from 'unplugin-vue-components/resolvers'
+import requireTransform from 'vite-plugin-require-transform'
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -40,9 +44,13 @@ export default ({ mode }) => {
       rollupOptions: {
         output: {
           // 最小化拆分包
-          manualChunks: id => {
+          manualChunks: (id) => {
             if (id.includes('node_modules')) {
-              return id.toString().split('node_modules/')[1].split('/')[0].toString();
+              return id
+                .toString()
+                .split('node_modules/')[1]
+                .split('/')[0]
+                .toString()
             }
           }, // 用于从入口点创建的块的打包输出格式[name]表示文件名,[hash]表示该文件内容hash值
           entryFileNames: 'js/[name].[hash].js', // 用于命名代码拆分时创建的共享块的输出命名
@@ -59,6 +67,9 @@ export default ({ mode }) => {
       Components({
         resolvers: [AntDesignVueResolver(), ElementPlusResolver()],
       }),
+      requireTransform({
+        fileRegex: /.ts$|.tsx$|.vue$/,
+      }),
     ],
-  });
-};
+  })
+}
