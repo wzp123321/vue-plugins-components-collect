@@ -1,3 +1,10 @@
+/*
+ * @Author: wanzp
+ * @Date: 2022-07-11 19:35:59
+ * @LastEditors: [you name]
+ * @LastEditTime: 2022-10-29 21:28:06
+ * @Description: 
+ */
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import vue from '@vitejs/plugin-vue'
@@ -33,7 +40,7 @@ export default ({ mode }) => {
     },
     // 开发选项
     server: {
-      port: 9528,
+      port: 9999,
       host: '0.0.0.0',
       fs: {
         strict: false, // 解决Unrestricted file system access  vite对根目录的访问做了限制
