@@ -9,19 +9,54 @@
       <a-switch v-model:checked="numberFilter.allowZero" />
       是否允许0
     </div>
-    <input type="text" v-model="numberFilter.value" @input="numberFilter.input" />
+    <input
+      type="text"
+      v-model="numberFilter.value"
+      @input="numberFilter.input"
+    />
   </div>
 </template>
 <script lang="ts" setup>
-import { defineComponent } from 'vue';
-import NumberFilterService from './if-number-filter.service.ts';
-import { Divider, Switch } from 'ant-design-vue';
+import { defineComponent, defineProps } from 'vue'
+import NumberFilterService from './if-number-filter.service'
+import { Divider, Switch } from 'ant-design-vue'
 
 defineComponent({
   'a-divider': Divider,
   'a-switch': Switch,
-});
-const numberFilter = new NumberFilterService();
+})
+defineProps({
+  /**
+   * 双向绑定数据
+   */
+  modelValue: {
+    type: String,
+    default: '',
+  },
+  /**
+   * 整数位
+   */
+  integer: {
+    type: Number,
+    default: 10,
+  },
+  /**
+   * 小数位
+   */
+  decimals: {
+    type: Number,
+    default: 10,
+  },
+  isNegative: {
+    type: Boolean,
+    default: false,
+  },
+  allowZero: {
+    type: Boolean,
+    default: false,
+  },
+})
+const numberFilter = new NumberFilterService()
 </script>
 <style lang="less" scoped>
 .if-number-filter {

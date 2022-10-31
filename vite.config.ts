@@ -3,7 +3,7 @@
  * @Date: 2022-07-11 19:35:59
  * @LastEditors: [you name]
  * @LastEditTime: 2022-10-29 21:28:06
- * @Description: 
+ * @Description:
  */
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
