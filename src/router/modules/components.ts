@@ -19,6 +19,14 @@ const components: RouteRecordRaw[] = [
         '../../pages/components/vue3-virtual-list-container/vue3-virtual-list-container.vue'
       ),
   },
+  {
+    path: '/virtual-card-load',
+    meta: {
+      name: '虚拟卡片加载',
+    },
+    component: () =>
+      import('../../pages/components/virtual-card-load/virtual-card-load.vue'),
+  },
 ]
 
 export default components

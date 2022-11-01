@@ -23,13 +23,10 @@
           <th class="cd-table-fixed" style="width: 245px"></th>
           <th class="cd-table-fixed" style="width: 161px"></th>
           <th class="cd-table-fixed" style="width: 169px">总账科目（来源）</th>
-          <th class="cd-table-fixed" style="width: 143px">成本明细</th>
           <th class="cd-table-fixed" style="width: 199px">
             对应客户/供应商编号
           </th>
           <th class="cd-table-fixed" style="width: 189px"></th>
-          <th class="cd-table-fixed" style="width: 144px">人员部门</th>
-          <th class="cd-table-fixed" style="width: 141px">人员类别</th>
           <th class="cd-table-fixed" style="width: 120px">产品</th>
           <th class="cd-table-fixed" style="width: 91px"></th>
           <th class="cd-table-fixed" style="width: 120px">产品类别</th>
@@ -48,7 +45,6 @@
           <th class="cd-table-fixed" style="width: 136px">创建时间</th>
           <th class="cd-table-fixed" style="width: 157px">公司货币余额</th>
           <th class="cd-table-fixed" style="width: 122px">评估数量</th>
-          <th class="cd-table-fixed" style="width: 131px">成本类型</th>
         </tr>
       </thead>
       <tbody>
@@ -81,39 +77,12 @@
             <input type="text" v-model="item.ledgerName" v-else />
           </td>
           <td class="cell">
-            <span v-if="!item.editing">{{ item.costNode }}</span>
-            <a-select v-else v-model="item.costNode">
-              <a-option key="item.costNode" value="item.costNode"
-                >item.costNode</a-option
-              >
-            </a-select>
-          </td>
-          <td class="cell">
             <span v-if="!item.editing">{{ item.employeeCode }}</span>
             <input type="text" v-model="item.employeeCode" v-else />
           </td>
           <td class="cell">
             <span v-if="!item.editing">{{ item.employeeName }}</span>
             <input type="text" v-model="item.employeeName" v-else />
-          </td>
-          <td class="cell">
-            <span v-if="!item.editing">{{ item.employeeDepartment }}</span>
-            <el-select v-else v-model="item.employeeDepartment">
-              <el-option
-                key="item.employeeDepartment"
-                value="item.employeeDepartment"
-              >
-                item.employeeDepartment
-              </el-option>
-            </el-select>
-          </td>
-          <td class="cell">
-            <span v-if="!item.editing">{{ item.employeeType }}</span>
-            <el-select v-else v-model="item.employeeType">
-              <el-option key="item.employeeType" value="item.employeeType"
-                >item.employeeType</el-option
-              >
-            </el-select>
           </td>
           <td class="cell">
             <span v-if="!item.editing">{{ item.productCode }}</span>
@@ -166,14 +135,6 @@
           <td class="cell">
             <span v-if="!item.editing">{{ item.amount }}</span>
             <input type="text" v-model="item.amount" v-else />
-          </td>
-          <td class="cell">
-            <span v-if="!item.editing">{{ item.costType }}</span>
-            <el-select v-else v-model="item.costType">
-              <el-option key="item.costType" value="item.costType"
-                >item.costType</el-option
-              >
-            </el-select>
           </td>
         </tr>
       </tbody>
