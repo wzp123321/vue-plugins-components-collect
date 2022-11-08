@@ -48,6 +48,7 @@ export default ({ mode }) => {
     },
     build: {
       sourcemap: false,
+      outDir: 'dist/pluginComponent-web',
       rollupOptions: {
         output: {
           // 最小化拆分包
