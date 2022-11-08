@@ -5,7 +5,7 @@
  * @Last Modified by: zpwan
  * @Last Modified time: 2022-06-06 16:47:36
  */
-import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
+import { defineComponent, onUnmounted, ref, onMounted } from 'vue'
 import { interval, Subject, takeUntil, timer } from 'rxjs'
 import ChartMapService from './chart-map.service'
 
@@ -34,9 +34,13 @@ export default defineComponent({
         })
     }
 
-    // onMounted(() => {
-    //   chartMapService.initCharts()
-    // })
+    onMounted(() => {
+      interval(60 * 60_000)
+        .pipe(takeUntil(_destroy$))
+        .subscribe(() => {
+          console.log('定时器')
+        })
+    })
 
     onUnmounted(() => {
       // 销毁订阅
