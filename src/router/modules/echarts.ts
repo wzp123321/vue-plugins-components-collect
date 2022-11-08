@@ -33,6 +33,14 @@ const components: RouteRecordRaw[] = [
         '../../pages/echarts/breakpoint-linechart/breakpoint-linechart.vue'
       ),
   },
+  {
+    path: '/echarts-rankr-BarCharts',
+    meta: {
+      name: '柱状图',
+    },
+    component: () =>
+      import('../../pages/echarts/rank-barCharts/rank-barCharts.vue'),
+  },
 ]
 
 export default components

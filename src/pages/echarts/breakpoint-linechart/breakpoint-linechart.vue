@@ -1,13 +1,10 @@
 <template>
   <div id="breakpoint-linechart" class="breakpoint-linechart">
     <div :id="customChartId" class="echarts-container"></div>
-    <p v-show="yaxisShowFlag && yaxisText" :style="{ ...yPosition }">
-      {{ yaxisText }}
-    </p>
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, computed, ref, onUnmounted } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { init } from 'echarts'
 
 import echartConfig from '../../../config/echarts/index'
@@ -17,12 +14,6 @@ const customChartId = computed(() => {
   return 'charts_' + (Math.random() * 1000).toFixed(0)
 })
 
-const yaxisText = ref<string>('')
-const yaxisShowFlag = ref<boolean>(false)
-const yPosition = ref<{ top: string; left: string }>({
-  top: '',
-  left: '',
-})
 let echartIns = ref<any>(null)
 
 function getXaxisData() {
@@ -253,57 +244,22 @@ function getEchartsOptions() {
   return options
 }
 function initEcharts() {
-  const ele = document.getElementById('breakpoint-linechart')
+  const ele = document.getElementById(customChartId.value)
   if (!ele) {
     return
   }
   echartIns.value = init(ele)
   echartIns.value.clear()
   echartIns.value.setOption(getEchartsOptions())
-
-  echartIns.value.on('click', (params: any) => {
-    console.log(params)
-  })
-  echartIns.value.on('mouseover', (e: any) => {
-    handleMouseOver(e)
-  })
-  echartIns.value.on('mouseout', (e: any) => {
-    handleMouseOut(e)
-  })
-}
-
-function handleMouseOver(item: any) {
-  console.log(item)
-  if (item.componentType === 'yAxis') {
-    const { event, value } = item
-    yaxisShowFlag.value = true
-    yaxisText.value = value
-    yPosition.value = {
-      top: `${event.offsetY + 30}px`,
-      left: `${event.offsetX}px`,
-    }
-  } else {
-    yaxisShowFlag.value = false
-  }
-}
-
-function handleMouseOut(e: any) {
-  yaxisShowFlag.value = false
 }
 
 onMounted(() => {
   initEcharts()
 })
-
-onUnmounted(() => {
-  if (echartIns.value) {
-    echartIns.value.off('mouseover', handleMouseOver)
-    echartIns.value.off('mouseout', handleMouseOut)
-  }
-})
 </script>
 <style lang="less" scoped>
 .breakpoint-linechart {
+  position: relative;
   width: 100%;
   height: 100%;
 
