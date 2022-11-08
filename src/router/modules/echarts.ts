@@ -1,4 +1,4 @@
-import { RouteRecordRaw } from 'vue-router';
+import { RouteRecordRaw } from 'vue-router'
 
 const components: RouteRecordRaw[] = [
   {
@@ -20,8 +20,19 @@ const components: RouteRecordRaw[] = [
     meta: {
       name: '水球',
     },
-    component: () => import('../../pages/echarts/water-ball-chart/water-ball-chart.vue'),
+    component: () =>
+      import('../../pages/echarts/water-ball-chart/water-ball-chart.vue'),
   },
-];
+  {
+    path: '/echarts-breakpoint-linechart',
+    meta: {
+      name: '断点折线图',
+    },
+    component: () =>
+      import(
+        '../../pages/echarts/breakpoint-linechart/breakpoint-linechart.vue'
+      ),
+  },
+]
 
-export default components;
+export default components
