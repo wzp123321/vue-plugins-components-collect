@@ -1,3 +1,14 @@
 <div class="chart-map">
-  <div class="charts-container" :id="chartMapService.customChartId"></div>
+  <video class="cm-background" autoplay muted @play="startAnimation">
+    <source src="@/assets/images/echarts/echarts-bg.webm" type="video/webm" />
+  </video>
+  <video ref="elLoopVideo" class="ch-background ghost" muted loop>
+    <source
+      src="@/assets/images/echarts/echarts-bg-loop.mp4"
+      type="video/mp4"
+    />
+  </video>
+  <div v-show="showMap" class="cm-container" placement="center">
+    <div class="cm-container-map" :id="chartMapService.customChartId"></div>
+  </div>
 </div>
