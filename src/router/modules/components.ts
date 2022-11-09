@@ -27,6 +27,20 @@ const components: RouteRecordRaw[] = [
     component: () =>
       import('../../pages/components/virtual-card-load/virtual-card-load.vue'),
   },
+  {
+    path: '/component-spreaJs-designer',
+    meta: {
+      name: 'Designer',
+    },
+    component: () => import('../../pages/spreadJs-designer/Designer.vue'),
+  },
+  {
+    path: '/component-spreaJs-sheet',
+    meta: {
+      name: 'DesignerSheet',
+    },
+    component: () => import('../../pages/spreadJs-designer/SpreadSheet.vue'),
+  },
 ]
 
 export default components
