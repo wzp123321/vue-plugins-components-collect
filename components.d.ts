@@ -7,8 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    ADivider: typeof import('ant-design-vue/es')['Divider']
-    ASwitch: typeof import('ant-design-vue/es')['Switch']
     Designer: typeof import('./src/components/Designer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
