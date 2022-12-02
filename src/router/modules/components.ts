@@ -41,6 +41,14 @@ const components: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/spreadJs-designer/SpreadSheet.vue'),
   },
+  {
+    path: '/component-searchbar',
+    meta: {
+      name: 'searchbar',
+    },
+    component: () =>
+      import('../../pages/components/common-searchbar/common-searchbar.vue'),
+  },
 ]
 
 export default components
