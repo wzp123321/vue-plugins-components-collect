@@ -1,4 +1,4 @@
-import { RouteRecordRaw } from 'vue-router'
+import { RouteRecordRaw } from 'vue-router';
 
 const pluginRoutes: RouteRecordRaw[] = [
   {
@@ -6,8 +6,7 @@ const pluginRoutes: RouteRecordRaw[] = [
     meta: {
       name: '语音播报',
     },
-    component: () =>
-      import('../../pages/plugins/video-broadcast/video-broacast.vue'),
+    component: () => import('../../pages/plugins/video-broadcast/video-broacast.vue'),
   },
   {
     path: '/plugins-crypto-js',
@@ -21,17 +20,29 @@ const pluginRoutes: RouteRecordRaw[] = [
     meta: {
       name: '文本框自适应',
     },
-    component: () =>
-      import('../../pages/plugins/autoheight-textarea/autoheight-textarea.vue'),
+    component: () => import('../../pages/plugins/autoheight-textarea/autoheight-textarea.vue'),
   },
   {
     path: '/vue3SlideVerify',
     meta: {
       name: '滑动验证',
     },
-    component: () =>
-      import('../../pages/plugins/vue3-slide-verify/vue3-slide-verify.vue'),
+    component: () => import('../../pages/plugins/vue3-slide-verify/vue3-slide-verify.vue'),
   },
-]
+  {
+    path: '/plugins-vue-virtual-scroller',
+    meta: {
+      name: 'vue-virtual-scroller',
+    },
+    component: () => import('../../pages/plugins/vue-virtual-scroller/vue-virtual-scroller.vue'),
+  },
+  {
+    path: '/plugins-vueuse',
+    meta: {
+      name: 'vueuse',
+    },
+    component: () => import('../../pages/plugins/vueuse/vueuse.vue'),
+  },
+];
 
-export default pluginRoutes
+export default pluginRoutes;

@@ -14,6 +14,10 @@ const routes: RouteRecordRaw[] = [
     path: '/grid',
     component: () => import('../pages/grid/grid.vue'),
   },
+  {
+    path: '/canvas',
+    component: () => import('../pages/canvas/canvas.vue'),
+  },
   ...componentRoutes,
   ...pluginRoutes,
   ...animationRoutes,
