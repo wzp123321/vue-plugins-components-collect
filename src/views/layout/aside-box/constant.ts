@@ -1,73 +1,34 @@
+import pluginRoutes from '../../../router/modules/plugins';
+import componentRoutes from '../../../router/modules/components';
+import echartRoutes from '../../../router/modules/echarts';
+import animationRoutes from '../../../router/modules/animation';
+
 export const menuList = [
   // 动画管理
   {
-    url: '',
-    name: '动画管理',
-    children: [
-      {
-        url: '/animation/countDown',
-        name: '倒计时动画',
-      },
-    ],
+    path: 'animation',
+    meta: { name: '动画管理' },
+    children: animationRoutes,
   },
 
   // 组件管理
   {
-    url: '',
-    name: '组件管理',
-    children: [
-      {
-        url: '/component-inputFilter',
-        name: '输入框过滤',
-      },
-      {
-        url: '/component-vue3-virtual-list',
-        name: '虚拟表格',
-      },
-      {
-        url: '/component-add-select',
-        name: '可新增下拉框',
-      },
-    ],
+    path: 'component',
+    meta: { name: '组件管理' },
+    children: componentRoutes,
   },
 
   // Echart管理
   {
-    url: '',
-    name: 'Echart管理',
-    children: [
-      {
-        url: '/echarts-map',
-        name: '地球',
-      },
-      {
-        url: '/echarts-line-mark',
-        name: '折线图',
-      },
-      {
-        url: '/echarts-water-ball',
-        name: '水球',
-      },
-    ],
+    path: 'echart',
+    meta: { name: 'Echart管理' },
+    children: echartRoutes,
   },
 
   // 插件管理
   {
-    url: '',
-    name: '插件管理',
-    children: [
-      {
-        url: '/plugins-video-broadcast',
-        name: '语音播报',
-      },
-      {
-        url: '/plugins-crypto-js',
-        name: 'CryptoJS加密解密',
-      },
-      {
-        url: '/plugins-textarea',
-        name: '文本框自适应',
-      },
-    ],
+    path: 'plugins',
+    meta: { name: '插件管理' },
+    children: pluginRoutes,
   },
-]
+];
