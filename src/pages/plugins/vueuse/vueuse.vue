@@ -2,7 +2,6 @@
   <div class="vueuse" id="vueuse">
     <MousePosition></MousePosition>
     <LongPress></LongPress>
-    {{ count }}
     <button @click="setPageTitle">设置网页标题</button>
     <button @click="handleLastChange">记录上一次值修改的时间戳</button>
 
@@ -29,6 +28,10 @@
     </div>
     <MouseInElement></MouseInElement>
     <MutationObserver></MutationObserver>
+    <ResizeObserver></ResizeObserver>
+    <WindowFocus></WindowFocus>
+    <WindowScroll></WindowScroll>
+    <ClipBoard></ClipBoard>
   </div>
 </template>
 <script lang="ts" setup>
@@ -42,10 +45,15 @@ import {
   useElementVisibility,
   useIntersectionObserver,
 } from '@vueuse/core';
+
 import MousePosition from './vueuse-mouseposition/vueuse-mouseposition.vue';
 import LongPress from './vueuse-longpress/vueuse-longpress.vue';
 import MouseInElement from './vueuse-mouseinElement/vueuse-mouseinElement.vue';
 import MutationObserver from './vueuse-mutationobserver/vueuse-mutationobserver.vue';
+import ResizeObserver from './vueuse-resizeobserver/vueuse-resizeobserver.vue';
+import WindowFocus from './vueuse-windowfocus/vueuse-windowfocus.vue';
+import WindowScroll from './vueuse-windowscroll/vueuse-windowscroll.vue';
+import ClipBoard from './vueuse-clipboard/vueuse-clipboard.vue';
 
 const outsideRef = ref(null);
 
@@ -96,20 +104,20 @@ const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isInter
   IntersectionObserverTargetIsVisible.value = isIntersecting;
 });
 
-let count = ref<number>(0);
-const MAX_COUNT = 100;
-let timer: any;
-function loadProgress() {
-  timer = setInterval(() => {
-    const pro = Number((Math.random() * 4).toFixed(0));
-    count.value += pro > MAX_COUNT - count.value ? MAX_COUNT - count.value : pro;
-    if (MAX_COUNT <= count.value) {
-      clearInterval(timer);
-    }
-  }, 1000);
-}
+// let count = ref<number>(0);
+// const MAX_COUNT = 100;
+// let timer: any;
+// function loadProgress() {
+//   timer = setInterval(() => {
+//     const pro = Number((Math.random() * 4).toFixed(0));
+//     count.value += pro > MAX_COUNT - count.value ? MAX_COUNT - count.value : pro;
+//     if (MAX_COUNT <= count.value) {
+//       clearInterval(timer);
+//     }
+//   }, 1000);
+// }
 
-loadProgress();
+// loadProgress();
 </script>
 <style lang="less" scoped>
 .vueuse {
