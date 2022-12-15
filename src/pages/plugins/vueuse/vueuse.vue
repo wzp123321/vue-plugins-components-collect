@@ -1,9 +1,9 @@
 <template>
   <div class="vueuse" id="vueuse">
-    <button @click="getMousePosition">获取鼠标位置</button>
+    <MousePosition></MousePosition>
+    <LongPress></LongPress>
+    {{ count }}
     <button @click="setPageTitle">设置网页标题</button>
-    <button @click="getThrottle">函数防抖</button>
-    <button ref="lonePressRef">实现长按</button>
     <button @click="handleLastChange">记录上一次值修改的时间戳</button>
 
     <div ref="elboundingRef">{{ ElementBoundingInfo }}</div>
@@ -27,14 +27,14 @@
       <h1>IntersectionObserverTarget</h1>
       <div ref="IntersectionObserverTarget">222222----{{ IntersectionObserverTargetIsVisible }}----{{ stop }}</div>
     </div>
+    <MouseInElement></MouseInElement>
+    <MutationObserver></MutationObserver>
   </div>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue';
 import {
-  useMouse,
   useTitle,
-  onLongPress,
   onClickOutside,
   useLastChanged,
   useDraggable,
@@ -42,25 +42,17 @@ import {
   useElementVisibility,
   useIntersectionObserver,
 } from '@vueuse/core';
+import MousePosition from './vueuse-mouseposition/vueuse-mouseposition.vue';
+import LongPress from './vueuse-longpress/vueuse-longpress.vue';
+import MouseInElement from './vueuse-mouseinElement/vueuse-mouseinElement.vue';
+import MutationObserver from './vueuse-mutationobserver/vueuse-mutationobserver.vue';
 
 const outsideRef = ref(null);
-const lonePressRef = ref(null);
-const mouse = useMouse();
 
-function getMousePosition() {
-  console.log('mouseX--------------------', mouse.x.value);
-  console.log('mouseY--------------------', mouse.y.value);
-  console.log('mousesourceType--------------------', mouse.sourceType.value);
-}
 function setPageTitle() {
   useTitle(`title_${(Math.random() * 10000).toFixed(0)}`);
 }
-function getThrottle() {
-  // const throttle = throttleFilter(500);
-  // throttle(() => {
-  //   console.log(1231312312);
-  // }, 400);
-}
+
 // 点击区域外部(会触发当前回调)
 onClickOutside(
   outsideRef,
@@ -69,23 +61,7 @@ onClickOutside(
   },
   {},
 );
-// 实现长按dom
-onLongPress(
-  lonePressRef,
-  (e: Event) => {
-    console.log('long-presss', e);
-  },
-  {
-    delay: 4000,
-    modifiers: {
-      stop: true,
-      once: true,
-      prevent: true,
-      capture: true,
-      self: true,
-    },
-  },
-);
+
 // 获取变量上一次修改的时间戳
 const lastValue = ref<string>('');
 const last = useLastChanged(lastValue);
@@ -119,6 +95,21 @@ const IntersectionObserverTargetIsVisible = ref(false);
 const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isIntersecting }], observerElement) => {
   IntersectionObserverTargetIsVisible.value = isIntersecting;
 });
+
+let count = ref<number>(0);
+const MAX_COUNT = 100;
+let timer: any;
+function loadProgress() {
+  timer = setInterval(() => {
+    const pro = Number((Math.random() * 4).toFixed(0));
+    count.value += pro > MAX_COUNT - count.value ? MAX_COUNT - count.value : pro;
+    if (MAX_COUNT <= count.value) {
+      clearInterval(timer);
+    }
+  }, 1000);
+}
+
+loadProgress();
 </script>
 <style lang="less" scoped>
 .vueuse {
@@ -139,6 +130,7 @@ const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isInter
   }
 
   &-drag {
+    cursor: move;
     user-select: none;
     position: fixed;
     padding: 24px;
