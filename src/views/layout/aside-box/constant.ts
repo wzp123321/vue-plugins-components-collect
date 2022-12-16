@@ -8,6 +8,8 @@ export const menuList = [
   {
     path: 'animation',
     meta: { name: '动画管理' },
+    icons: 'icon-library',
+    hasIcon: true,
     children: animationRoutes,
   },
 
@@ -15,6 +17,8 @@ export const menuList = [
   {
     path: 'component',
     meta: { name: '组件管理' },
+    icons: 'icon-library',
+    hasIcon: true,
     children: componentRoutes,
   },
 
@@ -22,6 +26,8 @@ export const menuList = [
   {
     path: 'echart',
     meta: { name: 'Echart管理' },
+    icons: 'icon-library',
+    hasIcon: true,
     children: echartRoutes,
   },
 
@@ -29,6 +35,16 @@ export const menuList = [
   {
     path: 'plugins',
     meta: { name: '插件管理' },
+    icons: 'icon-library',
+    hasIcon: true,
     children: pluginRoutes,
+  },
+
+  // threejs
+  {
+    path: '/threejs',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'threejs' },
   },
 ];

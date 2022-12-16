@@ -2,6 +2,7 @@
   <div class="vueuse" id="vueuse">
     <MousePosition></MousePosition>
     <LongPress></LongPress>
+    <UseImage></UseImage>
     <button @click="setPageTitle">设置网页标题</button>
     <button @click="handleLastChange">记录上一次值修改的时间戳</button>
 
@@ -32,6 +33,8 @@
     <WindowFocus></WindowFocus>
     <WindowScroll></WindowScroll>
     <FileDialog></FileDialog>
+    <FullScreen></FullScreen>
+    <UseMediaContrlls></UseMediaContrlls>
   </div>
 </template>
 <script lang="ts" setup>
@@ -54,6 +57,9 @@ import ResizeObserver from './vueuse-resizeobserver/vueuse-resizeobserver.vue';
 import WindowFocus from './vueuse-windowfocus/vueuse-windowfocus.vue';
 import WindowScroll from './vueuse-windowscroll/vueuse-windowscroll.vue';
 import FileDialog from './vueuse-fileDialog/vueuse-fileDialog.vue';
+import FullScreen from './vueuse-fullscreen/vueuse-fullscreen.vue';
+import UseImage from './vueuse-useimage/vueuse-useimage.vue';
+import UseMediaContrlls from './vue-usevmediacontrolls/vue-usevmediacontrolls.vue';
 
 const outsideRef = ref(null);
 
@@ -67,14 +73,18 @@ onClickOutside(
   (e: Event) => {
     console.log('点击区域外部', e);
   },
-  {},
+  {
+    ignore: [],
+    capture: false,
+    detectIframe: false,
+  },
 );
 
 // 获取变量上一次修改的时间戳
-const lastValue = ref<string>('');
+const lastValue = ref<{ name: string }>({ name: '' });
 const last = useLastChanged(lastValue);
 const handleLastChange = () => {
-  lastValue.value = `${Math.random() * 100000}-------`;
+  lastValue.value.name = `${Math.random() * 100000}-------`;
   console.log(last.value, new Date().getTime());
 };
 // 实现拖拽
