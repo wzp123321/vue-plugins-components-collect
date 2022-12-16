@@ -31,7 +31,7 @@
     <ResizeObserver></ResizeObserver>
     <WindowFocus></WindowFocus>
     <WindowScroll></WindowScroll>
-    <ClipBoard></ClipBoard>
+    <FileDialog></FileDialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -53,7 +53,7 @@ import MutationObserver from './vueuse-mutationobserver/vueuse-mutationobserver.
 import ResizeObserver from './vueuse-resizeobserver/vueuse-resizeobserver.vue';
 import WindowFocus from './vueuse-windowfocus/vueuse-windowfocus.vue';
 import WindowScroll from './vueuse-windowscroll/vueuse-windowscroll.vue';
-import ClipBoard from './vueuse-clipboard/vueuse-clipboard.vue';
+import FileDialog from './vueuse-fileDialog/vueuse-fileDialog.vue';
 
 const outsideRef = ref(null);
 
