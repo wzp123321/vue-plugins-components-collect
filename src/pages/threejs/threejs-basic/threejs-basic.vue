@@ -1,10 +1,20 @@
 <template>
-  <div class="threejs" id="threejs">threejs</div>
+  <div class="threejs-basic" id="threejs-basic">threejs-basic</div>
 </template>
 
 <script lang="ts" setup>
 import { MeshPhongMaterial } from 'three';
-import { Scene, PerspectiveCamera, WebGLRenderer, Color, Mesh, BoxGeometry, DirectionalLight } from 'three';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  Color,
+  Mesh,
+  BoxGeometry,
+  DirectionalLight,
+  SphereGeometry,
+  MeshBasicMaterial,
+} from 'three';
 import { onMounted } from 'vue';
 
 function initThree() {
@@ -19,6 +29,11 @@ function initThree() {
   const cube = new Mesh(box, boxMaterial);
   // 添加到场景中
   scene.add(cube);
+
+  const geometry = new SphereGeometry(15, 2, 16);
+  const material = new MeshBasicMaterial({ color: 0xffff00 });
+  const sphere = new Mesh(geometry, material);
+  scene.add(sphere);
 
   // 设置灯光
   const color = 0xffffff;
@@ -39,7 +54,7 @@ function initThree() {
   camera.position.z = 30;
   camera.lookAt(scene.position);
 
-  const threeEle = document.getElementById('threejs');
+  const threeEle = document.getElementById('threejs-basic');
   if (threeEle) {
     threeEle.appendChild(renderer.domElement);
     renderer.render(scene, camera);
@@ -52,7 +67,7 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
-#threejs {
+#threejs-basic {
   width: 100%;
   height: 100%;
 }

@@ -2,6 +2,7 @@ import pluginRoutes from '../../../router/modules/plugins';
 import componentRoutes from '../../../router/modules/components';
 import echartRoutes from '../../../router/modules/echarts';
 import animationRoutes from '../../../router/modules/animation';
+import threejsRoutes from '../../../router/modules/threejs';
 
 export const menuList = [
   // 动画管理
@@ -46,5 +47,6 @@ export const menuList = [
     icons: 'icon-library',
     hasIcon: true,
     meta: { name: 'threejs' },
+    children: threejsRoutes,
   },
 ];

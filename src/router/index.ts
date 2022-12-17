@@ -4,6 +4,7 @@ import pluginRoutes from './modules/plugins';
 import componentRoutes from './modules/components';
 import echartRoutes from './modules/echarts';
 import animationRoutes from './modules/animation';
+import threejsRoutes from './modules/threejs';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -26,6 +27,7 @@ const routes: RouteRecordRaw[] = [
   ...pluginRoutes,
   ...animationRoutes,
   ...echartRoutes,
+  ...threejsRoutes,
 ];
 
 const router = createRouter({
