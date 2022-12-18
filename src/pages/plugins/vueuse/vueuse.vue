@@ -32,6 +32,7 @@
     <ResizeObserver></ResizeObserver>
     <WindowFocus></WindowFocus>
     <WindowScroll></WindowScroll>
+    <FileDialog></FileDialog>
     <FullScreen></FullScreen>
     <UseMediaContrlls></UseMediaContrlls>
   </div>
@@ -55,6 +56,7 @@ import MutationObserver from './vueuse-mutationobserver/vueuse-mutationobserver.
 import ResizeObserver from './vueuse-resizeobserver/vueuse-resizeobserver.vue';
 import WindowFocus from './vueuse-windowfocus/vueuse-windowfocus.vue';
 import WindowScroll from './vueuse-windowscroll/vueuse-windowscroll.vue';
+import FileDialog from './vueuse-fileDialog/vueuse-fileDialog.vue';
 import FullScreen from './vueuse-fullscreen/vueuse-fullscreen.vue';
 import UseImage from './vueuse-useimage/vueuse-useimage.vue';
 import UseMediaContrlls from './vue-usevmediacontrolls/vue-usevmediacontrolls.vue';
