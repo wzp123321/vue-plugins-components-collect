@@ -15,6 +15,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/threejs/threejs-scene/threejs-scene.vue'),
   },
+  {
+    path: '/threejs-sun',
+    meta: {
+      name: '太阳地球',
+    },
+    component: () => import('../../pages/threejs/threejs-sun/threejs-sun.vue'),
+  },
 ];
 
 export default pluginRoutes;

@@ -35,6 +35,7 @@
     <FileDialog></FileDialog>
     <FullScreen></FullScreen>
     <UseMediaContrlls></UseMediaContrlls>
+    <UseDebounceThrottle></UseDebounceThrottle>
   </div>
 </template>
 <script lang="ts" setup>
@@ -47,6 +48,11 @@ import {
   useElementBounding,
   useElementVisibility,
   useIntersectionObserver,
+  useUrlSearchParams,
+  useDeviceMotion,
+  useNow,
+  useDateFormat,
+  useTimeAgo,
 } from '@vueuse/core';
 
 import MousePosition from './vueuse-mouseposition/vueuse-mouseposition.vue';
@@ -60,9 +66,23 @@ import FileDialog from './vueuse-fileDialog/vueuse-fileDialog.vue';
 import FullScreen from './vueuse-fullscreen/vueuse-fullscreen.vue';
 import UseImage from './vueuse-useimage/vueuse-useimage.vue';
 import UseMediaContrlls from './vue-usevmediacontrolls/vue-usevmediacontrolls.vue';
+import UseDebounceThrottle from './vue-useDebounce-throttle/vue-useDebounce-throttle.vue';
+
+const { acceleration, accelerationIncludingGravity, rotationRate, interval } = useDeviceMotion();
 
 const outsideRef = ref(null);
+const params = useUrlSearchParams('history');
 
+console.log('地址栏参数--------------会丢失特殊字符----', params);
+console.log(
+  '获取设备位置----------------------------',
+  acceleration.value,
+  accelerationIncludingGravity.value,
+  rotationRate.value,
+  interval.value,
+);
+console.log('格式化当前时间---------', useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss').value);
+console.log('距离当前时间差---------', useTimeAgo(new Date(2021, 0, 1)).value);
 function setPageTitle() {
   useTitle(`title_${(Math.random() * 10000).toFixed(0)}`);
 }
