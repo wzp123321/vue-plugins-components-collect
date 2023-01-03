@@ -20,8 +20,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../pages/canvas/canvas.vue'),
   },
   {
-    path: '/threejs',
-    component: () => import('../pages/threejs/threejs.vue'),
+    path: '/g6',
+    component: () => import('../pages/antv-g6/antv-g6.vue'),
   },
   ...componentRoutes,
   ...pluginRoutes,

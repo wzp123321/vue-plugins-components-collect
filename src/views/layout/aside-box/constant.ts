@@ -49,4 +49,13 @@ export const menuList = [
     meta: { name: 'threejs' },
     children: threejsRoutes,
   },
+
+  // G6
+  {
+    path: '/g6',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'G6' },
+    children: [],
+  },
 ];

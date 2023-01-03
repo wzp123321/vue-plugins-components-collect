@@ -31,7 +31,7 @@ function initThree() {
 
   // 相机
   camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight);
-  camera.position.set(0, 50, 0);
+  camera.position.set(0, 20, 0);
   camera.up.set(0, 0, 1);
   camera.lookAt(0, 0, 0);
 
@@ -70,10 +70,9 @@ function initThree() {
     emissive: 0x112244,
   });
   earthMesh = new Mesh(sphere, earthMaterial);
-  earthMesh.position.x = 60;
+  earthMesh.position.x = 990;
   scene.add(earthMesh);
   objects.push(earthMesh);
-
 
   // 创建聚光灯光源创建添加
   const dirLight = new SpotLight(0xffffff);
