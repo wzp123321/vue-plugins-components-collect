@@ -2,15 +2,59 @@
   <div class="antv-g6" id="antv-g6"></div>
 </template>
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import G6, { registerNode, TreeGraph } from '@antv/g6';
 import { dataSource, Antv_ITreeData } from './antv-g6.api';
+import { fromEvent, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
+const destroy$ = new Subject<void>();
 let chart: TreeGraph;
-const WIDTH = 132;
-const HEIGHT = 72;
 const isVertical = ref<boolean>(true);
 const collapseIconSize = 20;
+const WIDTH = 270 + (isVertical.value ? 0 : collapseIconSize);
+const HEIGHT = 152 + (isVertical.value ? collapseIconSize : 0);
+// 生成样式、事件
+const iconStateStyles: { [key: string]: any } = {};
+const iconEvents: { [key: string]: any } = {};
+const iconTypes = ['negative', 'difference', 'increase', 'decrease', 'unauthorized'];
+const textStateStyles: { [key: string]: any } = {};
+const textEvents: { [key: string]: any } = {};
+const textTypes = ['title', 'value1', 'value2', 'mark1', 'mark2'];
+iconTypes.forEach((ele) => {
+  iconStateStyles[`mouseover:${ele}`] = {
+    [`icon-${ele}-tooltip-arrow`]: {
+      opacity: 0.85,
+    },
+    [`icon-${ele}-tooltip-rect`]: {
+      opacity: 0.85,
+      stroke: 'rgba(0, 0, 0, .65)',
+    },
+    [`icon-${ele}-tooltip-text`]: {
+      opacity: 0.85,
+    },
+  };
+  iconEvents[`icon-${ele}-bg:mouseover`] = 'onMouseover';
+  iconEvents[`icon-${ele}:mouseover`] = 'onMouseover';
+  iconEvents[`icon-${ele}-bg:mouseout`] = 'onMouseout';
+  iconEvents[`icon-${ele}:mouseout`] = 'onMouseout';
+});
+textTypes.forEach((ele) => {
+  textStateStyles[`mouseover:${ele}`] = {
+    [`text-${ele}-tooltip-arrow`]: {
+      opacity: 0.85,
+    },
+    [`text-${ele}-tooltip-rect`]: {
+      opacity: 0.85,
+      stroke: 'rgba(0, 0, 0, 0.65)',
+    },
+    [`text-${ele}-tooltip-text`]: {
+      opacity: 0.85,
+    },
+  };
+  textEvents[`text-${ele}:mouseover`] = 'onMouseover';
+  textEvents[`text-${ele}:mouseout`] = 'onMouseout';
+});
 
 function initG6() {
   const container = document.querySelector('#antv-g6') as HTMLElement;
@@ -20,16 +64,20 @@ function initG6() {
   const width = container.scrollWidth;
   const height = container.scrollHeight;
 
+  if (chart && !chart.destroyed) {
+    chart.destroy();
+  }
+
   chart = new G6.TreeGraph({
     container,
     width,
     height,
-    fitView: true, // 适应容器
+    // fitView: true, // 适应容器
     fitViewPadding: [20],
     minZoom: 0.5,
     maxZoom: 2, // 放大视图
     modes: {
-      default: ['drag-canvas', 'zoom-canvas'],
+      default: ['drag-canvas', 'zoom-canvas', 'drag-node'],
     },
     defaultNode: {
       type: 'emperor-card',
@@ -42,54 +90,29 @@ function initG6() {
         lineWidth: 1,
       },
     },
-
     layout: {
       type: 'compactBox',
+      preventOverlap: true, // 防止节点重叠
       direction: isVertical.value ? 'TB' : 'LR',
       getVGap() {
         // 每个节点的垂直间隔
-        return isVertical.value ? 20 + collapseIconSize : 15;
+        return isVertical.value ? 80 + collapseIconSize : 65;
       },
       getHGap() {
         // 每个节点的水平间隔
-        return isVertical.value ? 65 : 50;
+        return isVertical.value ? 135 : 180;
       },
     },
-  });
-
-  G6.registerEdge('flow-line', {
-    draw(cfg: any, group: any) {
-      const startPoint = cfg.startPoint;
-      const endPoint = cfg.endPoint;
-
-      const { style } = cfg;
-      const shape = group.addShape('path', {
-        attrs: {
-          stroke: style.stroke,
-          endArrow: style.endArrow,
-          path: [
-            ['M', startPoint.x, startPoint.y],
-            ['L', startPoint.x, (startPoint.y + endPoint.y) / 2],
-            ['L', endPoint.x, (startPoint.y + endPoint.y) / 2],
-            ['L', endPoint.x, endPoint.y],
-          ],
-        },
-      });
-
-      return shape;
+    // 不同状态下节点样式
+    nodeStateStyles: {
+      ...iconStateStyles,
+      ...textStateStyles,
     },
   });
 
   chart.data(convert(dataSource));
   chart.render();
-  chart.fitCenter();
-
-  if (typeof window !== 'undefined')
-    window.onresize = () => {
-      if (!chart || chart.get('destroyed')) return;
-      if (!container || !container.scrollWidth || !container.scrollHeight) return;
-      chart.changeSize(container.scrollWidth, container.scrollHeight);
-    };
+  chart.fitView();
 }
 
 /**
@@ -124,6 +147,11 @@ function register() {
     },
     draw: (config, group) => {
       const shape = group!.addShape('rect', {
+        options: {
+          size: [270 + (isVertical.value ? 0 : collapseIconSize), 152 + (isVertical.value ? collapseIconSize : 0)],
+          stroke: '#91d5ff',
+          fill: '#91d5ff',
+        },
         attrs: {
           ...getRightPosition({ x: 0, y: 0 }, WIDTH, HEIGHT),
           width: WIDTH,
@@ -139,15 +167,33 @@ function register() {
         },
         draggable: true,
       });
+      // 背景
+      const img = new Image();
+      img.src = require('../../assets/images/g6/g6-card-background.svg');
+      group?.addShape('image', {
+        attrs: {
+          ...getRightPosition({ x: 0, y: 0 }, WIDTH, HEIGHT),
+          img,
+          width: WIDTH,
+          height: HEIGHT,
+          shadowOffsetX: 0, // 阴影
+          shadowOffsetY: 3,
+          shadowColor: '#E9F0F6',
+          shadowBlur: 10,
+          draggable: true,
+          cursor: 'pointer',
+        },
+        name: 'card',
+      });
       // 文本
       group?.addShape('text', {
         attrs: {
-          ...getRightPosition({ x: 0, y: 0 }, 100, 22),
+          ...getRightPosition({ x: 72, y: 20 }, WIDTH, HEIGHT),
           text: config?.label,
           fill: 'rgba(0, 0, 0, 0.65)',
-          lineHeight: 20,
-          fontSize: 18,
-          textAlign: 'center',
+          lineHeight: 22,
+          fontSize: 16,
+          textAlign: 'left',
           textBaseline: 'middle',
         },
       });
@@ -156,16 +202,19 @@ function register() {
         name: 'cover-image-shape',
         attrs: {
           ...getRightPosition({ x: 0, y: 0 }, WIDTH, HEIGHT),
-          width: HEIGHT,
-          height: HEIGHT,
+          width: 64,
+          height: 64,
           img: config?.coverUrl,
+          radius: 100,
         },
       });
+
       return shape;
     },
+    // 节点的连接点 anchorPoint
     getAnchorPoints: () => [
-      [0, 0.5],
-      [1, 0.5],
+      [0.5, 0],
+      [0.5, 1],
     ],
   });
 }
@@ -216,6 +265,20 @@ function getRightPosition({ x, y }: { x: number; y: number }, w: number, h: numb
 onMounted(() => {
   register();
   initG6();
+
+  fromEvent(window, 'resize')
+    .pipe(takeUntil(destroy$))
+    .subscribe(() => {
+      const container = document.querySelector('#antv-g6') as HTMLElement;
+      if (!container) {
+        return;
+      }
+      chart.changeSize(container.scrollWidth, container.scrollHeight);
+    });
+});
+onUnmounted(() => {
+  destroy$.next();
+  destroy$.complete();
 });
 </script>
 <style lang="less" scoped>
