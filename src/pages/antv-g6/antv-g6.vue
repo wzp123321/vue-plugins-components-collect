@@ -55,6 +55,9 @@ textTypes.forEach((ele) => {
   textEvents[`text-${ele}:mouseover`] = 'onMouseover';
   textEvents[`text-${ele}:mouseout`] = 'onMouseout';
 });
+const textConfig = {
+  fontFamily: 'PingFangSC-Regular',
+};
 
 function initG6() {
   const container = document.querySelector('#antv-g6') as HTMLElement;
@@ -112,7 +115,7 @@ function initG6() {
 
   chart.data(convert(dataSource));
   chart.render();
-  chart.fitView();
+  chart.fitCenter();
 }
 
 /**
@@ -208,7 +211,51 @@ function register() {
           radius: 100,
         },
       });
-
+      // 朝代
+      if (config?.isRoot) {
+        const tipIconSize = 24;
+        const fill = 'rgba(250, 140, 22)';
+        const position = {
+          x: WIDTH - tipIconSize - (isVertical.value ? 0 : collapseIconSize),
+          y: 0,
+        };
+        group?.addShape('rect', {
+          attrs: {
+            ...getRightPosition(position, WIDTH, HEIGHT),
+            width: tipIconSize,
+            height: tipIconSize,
+            radius: [2, 8, 2, 2],
+            fill,
+            cursor: 'pointer',
+          },
+          name: 'dynasty-icon',
+        });
+        group?.addShape('text', {
+          attrs: {
+            ...getRightPosition(
+              {
+                x: position.x + 12,
+                y: position.y + 20,
+              },
+              WIDTH,
+              HEIGHT,
+            ),
+            textAlign: 'center',
+            ...textConfig,
+            width: tipIconSize,
+            height: tipIconSize,
+            fontSize: 16,
+            text: config?.dynasty,
+            fill: '#fff',
+            shadowOffsetX: 0, // 阴影
+            shadowOffsetY: 2,
+            shadowColor: 'rgba(0, 0, 0, 0.2)',
+            shadowBlur: 4,
+            cursor: 'pointer',
+          },
+          name: 'dynasty-text',
+        });
+      }
       return shape;
     },
     // 节点的连接点 anchorPoint
@@ -220,13 +267,15 @@ function register() {
 }
 
 function convert(data: Antv_ITreeData, deep = 0, color = '#128BED'): any {
-  const { children, label, position, coverUrl } = data;
+  const { children, label, position, coverUrl, isRoot, dynasty } = data;
   return {
     id: data.id,
     color,
     label,
     collapsed: false,
     coverUrl,
+    isRoot,
+    dynasty,
     size: [mapLabelWidth(label) + (deep % 2 ? 0 : 32), 37, ...mapPaddingWidth(deep, position), 0],
     children: children?.map((item) => convert(item, deep + 1)),
   };
