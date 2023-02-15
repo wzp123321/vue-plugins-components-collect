@@ -3,6 +3,7 @@ import componentRoutes from '../../../router/modules/components';
 import echartRoutes from '../../../router/modules/echarts';
 import animationRoutes from '../../../router/modules/animation';
 import threejsRoutes from '../../../router/modules/threejs';
+import cssRoutes from '../../../router/modules/css';
 
 export const menuList = [
   // 动画管理
@@ -57,5 +58,14 @@ export const menuList = [
     hasIcon: true,
     meta: { name: 'G6' },
     children: [],
+  },
+
+  // css
+  {
+    path: '/css',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'CSS' },
+    children: cssRoutes
   },
 ];

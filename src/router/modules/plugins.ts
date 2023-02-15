@@ -43,6 +43,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/vueuse/vueuse.vue'),
   },
+  {
+    path: '/plugins-jspreadsheet',
+    meta: {
+      name: 'jspreadsheet',
+    },
+    component: () => import('../../pages/plugins/jspreadsheet-ce-vue/jspreadsheet-ce-vue.vue'),
+  },
 ];
 
 export default pluginRoutes;
