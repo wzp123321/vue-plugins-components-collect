@@ -19,7 +19,8 @@
     "echarts": "^5.3.3",
     "echarts-liquidfill": "^3.1.0",
     "element-plus": "^2.2.19",
-    "jspreadsheet-ce": "^4.10.7",
+    "jspreadsheet-ce": "^4.11.1",
+    "jsuites": "^4.17.5",
     "pinia": "^2.0.21",
     "rxjs": "^7.5.7",
     "three": "^0.147.0",
@@ -29,6 +30,7 @@
     "vue3-slide-verify": "^1.1.4"
   },
   "devDependencies": {
+    "@types/jspreadsheet-ce": "^4.7.3",
     "@types/lodash": "^4.14.186",
     "@types/node": "^18.7.14",
     "@types/three": "^0.146.0",
