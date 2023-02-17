@@ -33,11 +33,11 @@ export default defineComponent({
 
     const data = [
       ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
-      ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
-      ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
-      ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
-      ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
-      ['Mazda', 2001, '2023-01-01', '', 'New', 'red', 'true'],
+      ['Mazda1', 2001, '2023-01-01', '', 'New', 'red', 'true'],
+      ['Mazda2', 2001, '2023-01-01', '', 'New', 'red', 'true'],
+      ['Mazd3a', 2001, '2023-01-01', '', 'New', 'red', 'true'],
+      ['Mazda4', 2001, '2023-01-01', '', 'New', 'red', 'true'],
+      ['Maz5da', 2001, '2023-01-01', '', 'New', 'red', 'true'],
     ];
 
     function getTableData() {
@@ -122,6 +122,7 @@ export default defineComponent({
           editable: true, // 启用行内编辑
           copyCompatibility: true, // 启用复制粘贴
           tableOverflow: true, // 表格超过滚动
+          filters: true,
           columns: [
             { title: 'Model', width: 300, minWidth: 200, type: 'text' },
             { title: 'Price', width: 80, type: 'numeric' },
