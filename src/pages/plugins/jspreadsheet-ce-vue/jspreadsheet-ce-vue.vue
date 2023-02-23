@@ -94,8 +94,8 @@ export default defineComponent({
       return items;
     }
     // 选择单元格
-    function handleColumnSelect(instance: HTMLElement, x1: number, y1: number, x2: number, y2: number, origin: number) {
-      console.log('选择单元格------------------------', instance, x1, x2, y1, y2, origin, jspreadsheetInstance.value);
+    function handleColumnSelect(instance: HTMLElement, x1: number, y1: number, x2: number, y2: number) {
+      console.log('选择单元格------------------------', instance, x1, x2, y1, y2, jspreadsheetInstance.value);
     }
     // 插入行
     function handleInsertRow(instance: HTMLElement) {
@@ -122,9 +122,8 @@ export default defineComponent({
           editable: true, // 启用行内编辑
           copyCompatibility: true, // 启用复制粘贴
           tableOverflow: true, // 表格超过滚动
-          filters: true,
           columns: [
-            { title: 'Model', width: 300, minWidth: 200, type: 'text' },
+            { title: 'Model', width: 300, type: 'text' },
             { title: 'Price', width: 80, type: 'numeric' },
             { title: 'Date', width: 100, type: 'calendar', options: { format: 'DD/MM/YYYY' } },
             { title: 'Photo', width: 150, type: 'image' },
@@ -132,7 +131,6 @@ export default defineComponent({
             { title: 'Color', width: 80, type: 'color' },
             { title: 'Available', width: 80, type: 'checkbox' },
           ],
-          theme: 'dark',
           rowResize: true,
           contextMenu: handleContextMenu, // 右击事件
           onselection: handleColumnSelect, // 选择单元格

@@ -1,26 +1,18 @@
 <template>
   <div id="demo">
-    {{ text }}
-    <button @click="test">测试</button>
-    <VNode :content="renderTable"></VNode>
+    <button @click="close">关闭</button>
+    <ParentComp v-if="visible"></ParentComp>
   </div>
 </template>
 <script lang="ts" setup>
-import { h, ref } from 'vue';
-import { VNode } from './vnode';
+import { ref } from 'vue';
+import ParentComp from './parent-comp/parent-comp.vue';
 
-let renderTable = ref<any>(h('div', {}, '132'));
-const text = ref<string>('2133');
+const visible = ref<boolean>(true)
 
-const test = () => {
-  console.log(1321);
-  renderTable.value = h('input', {
-    value: text.value,
-    oninput: (e: InputEvent) => {
-      console.log(123123);
-      (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value?.replaceAll(' ', '');
-    },
-  });
-};
+function  close (){
+  visible.value = false;
+}
+
 </script>
 <style lang="less" scoped></style>
