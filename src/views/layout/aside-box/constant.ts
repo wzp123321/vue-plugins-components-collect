@@ -68,4 +68,12 @@ export const menuList = [
     meta: { name: 'CSS' },
     children: cssRoutes
   },
+   // css
+   {
+    path: '/demo',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'Demo' },
+    children: []
+  },
 ];

@@ -1,3 +1,10 @@
+/*
+ * @Author: wanzp
+ * @Date: 2023-02-10 22:13:43
+ * @LastEditors: wanzp
+ * @LastEditTime: 2023-02-24 19:06:25
+ * @Description: 
+ */
 import { RouteRecordRaw } from 'vue-router';
 
 const cssComponents: RouteRecordRaw[] = [
@@ -28,6 +35,13 @@ const cssComponents: RouteRecordRaw[] = [
       name: 'CSS-伪元素伪类',
     },
     component: () => import('../../pages/css/css-pseudo-element/css-pseudo-element.vue'),
+  },
+  {
+    path: '/css-backdrop',
+    meta: {
+      name: 'CSS-毛玻璃',
+    },
+    component: () => import('../../pages/css/css-filter/css-filter.vue'),
   },
 ];
 
