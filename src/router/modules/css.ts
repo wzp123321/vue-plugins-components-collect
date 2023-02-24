@@ -15,6 +15,20 @@ const cssComponents: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/css/css-whitespace-wordbreak-wordwrap/css-whitespace-wordbreak-wordwrap.vue'),
   },
+  {
+    path: '/css-zindex',
+    meta: {
+      name: 'CSS-zIndex',
+    },
+    component: () => import('../../pages/css/css-zindex/css-zindex.vue'),
+  },
+  {
+    path: '/css-pseudo-element',
+    meta: {
+      name: 'CSS-伪元素伪类',
+    },
+    component: () => import('../../pages/css/css-pseudo-element/css-pseudo-element.vue'),
+  },
 ];
 
 export default cssComponents;
