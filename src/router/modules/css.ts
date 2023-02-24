@@ -15,6 +15,13 @@ const cssComponents: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/css/css-whitespace-wordbreak-wordwrap/css-whitespace-wordbreak-wordwrap.vue'),
   },
+  {
+    path: '/css-backdrop',
+    meta: {
+      name: 'CSS-毛玻璃',
+    },
+    component: () => import('../../pages/css/css-filter/css-filter.vue'),
+  },
 ];
 
 export default cssComponents;
