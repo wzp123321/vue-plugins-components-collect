@@ -6,6 +6,7 @@ import echartRoutes from './modules/echarts';
 import animationRoutes from './modules/animation';
 import threejsRoutes from './modules/threejs';
 import cssRoutes from './modules/css';
+import babyRoutes from './modules/babylon';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -29,7 +30,8 @@ const routes: RouteRecordRaw[] = [
   ...animationRoutes,
   ...echartRoutes,
   ...threejsRoutes,
-  ...cssRoutes
+  ...cssRoutes,
+  ...babyRoutes,
 ];
 
 const router = createRouter({

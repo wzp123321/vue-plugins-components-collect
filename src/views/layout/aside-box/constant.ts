@@ -4,6 +4,7 @@ import echartRoutes from '../../../router/modules/echarts';
 import animationRoutes from '../../../router/modules/animation';
 import threejsRoutes from '../../../router/modules/threejs';
 import cssRoutes from '../../../router/modules/css';
+import babyRoutes from '../../../router/modules/babylon';
 
 export const menuList = [
   // 动画管理
@@ -51,6 +52,15 @@ export const menuList = [
     children: threejsRoutes,
   },
 
+  // babylon
+  {
+    path: '/babylon',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'babylon' },
+    children: babyRoutes,
+  },
+
   // G6
   {
     path: '/g6',
@@ -66,14 +76,14 @@ export const menuList = [
     icons: 'icon-library',
     hasIcon: true,
     meta: { name: 'CSS' },
-    children: cssRoutes
+    children: cssRoutes,
   },
-   // css
-   {
+  // demo
+  {
     path: '/demo',
     icons: 'icon-library',
     hasIcon: true,
     meta: { name: 'Demo' },
-    children: []
+    children: [],
   },
 ];
