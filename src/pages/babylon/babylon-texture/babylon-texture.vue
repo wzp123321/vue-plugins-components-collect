@@ -1,3 +1,10 @@
+<!--
+ * @Author: wanzp
+ * @Date: 2023-03-22 20:42:43
+ * @LastEditors: wanzp
+ * @LastEditTime: 2023-03-22 21:22:41
+ * @Description: 
+-->
 <template>
   <div class="babylon-texture" id="babylon-texture">
     <canvas id="babylon-texture-canvas"></canvas>
@@ -19,6 +26,8 @@ function initBaBy() {
   // 摄像头
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 2, 6, BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
+
+  scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
   // 灯光
   const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
@@ -56,8 +65,35 @@ function initBaBy() {
   planeMaterial.ambientTexture = new BABYLON.Texture('../../../ASSETS/IMAGES/BABYLON/GRASS101.PNG', scene);
   // 透明度
   planeMaterial.alpha = 0.5;
+  // 背景消除 不绘制立方体或其他对象的背面，这是一种在二维屏幕上有效绘制三维模型的渲染方法，因为默认背面都会被正面所遮挡，所以你肯定猜到了，在巴比伦JS中，默认设置背面消除backFaceCulling为true。
+  planeMaterial.backFaceCulling = false;
   planeShape.material = planeMaterial;
   planeShape.position.y = 1;
+
+  const light = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(-1, 1, 0), scene);
+  light.diffuse = new BABYLON.Color3(1, 0, 0);
+  light.specular = new BABYLON.Color3(0, 1, 0);
+  light.groundColor = new BABYLON.Color3(0, 1, 0);
+
+  const redMat = new BABYLON.StandardMaterial('redMat', scene);
+  redMat.ambientColor = new BABYLON.Color3(1, 0, 0);
+
+  const greenMat = new BABYLON.StandardMaterial('redMat', scene);
+  greenMat.ambientColor = new BABYLON.Color3(0, 1, 0);
+
+  //No ambient color
+  const sphere0 = BABYLON.MeshBuilder.CreateSphere('sphere0', {}, scene);
+  sphere0.position.x = 2.5;
+
+  //Red Ambient
+  const sphere1 = BABYLON.MeshBuilder.CreateSphere('sphere1', {}, scene);
+  sphere1.material = redMat;
+  sphere0.position.x = 3.5;
+
+  //Green Ambient
+  const sphere2 = BABYLON.MeshBuilder.CreateSphere('sphere2', {}, scene);
+  sphere2.material = greenMat;
+  sphere2.position.x = 4.5;
 
   engine.runRenderLoop(function () {
     scene.render();
