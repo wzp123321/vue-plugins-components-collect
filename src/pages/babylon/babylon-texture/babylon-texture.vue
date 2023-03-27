@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-03-22 20:42:43
  * @LastEditors: wanzp
- * @LastEditTime: 2023-03-22 21:22:41
+ * @LastEditTime: 2023-03-27 22:40:22
  * @Description: 
 -->
 <template>
@@ -41,6 +41,7 @@ function initBaBy() {
     },
     scene,
   );
+  boxShape.position.x = -3;
   const myMaterial = new BABYLON.StandardMaterial('myMaterial', scene); //创建一个材质
   myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1); //漫反射颜色
   myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87); //镜面颜色
@@ -56,6 +57,8 @@ function initBaBy() {
     },
     scene,
   );
+  planeShape.position.y = 3;
+  planeShape.position.x = 3;
   // 材质
   const planeMaterial = new BABYLON.StandardMaterial('planeMaterial', scene);
   //PATH TO IMAGE，表示图片的路径，其实也可以使用base64格式的图片。
