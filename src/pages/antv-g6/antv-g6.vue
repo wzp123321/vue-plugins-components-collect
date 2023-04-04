@@ -1,19 +1,26 @@
 <template>
-  <div class="antv-g6" id="antv-g6"></div>
+  <div class="antv-g6" id="antv-g6">
+    <!-- 切换方向按钮 -->
+    <div class="antv-g6-toolbar">
+      <span @click="setDirection" :class="{ checked: isVertical }">纵向</span>
+      <span @click="setDirection" :class="{ checked: !isVertical }">横向</span>
+    </div>
+  </div>
 </template>
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from 'vue';
-import G6, { registerNode, TreeGraph } from '@antv/g6';
-import { dataSource, Antv_ITreeData } from './antv-g6.api';
+import G6, { registerNode, TreeGraph, IG6GraphEvent } from '@antv/g6';
+import { dataSource, Antv_ITreeData, tooltipStyle } from './antv-g6.api';
 import { fromEvent, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 const destroy$ = new Subject<void>();
 let chart: TreeGraph;
-const isVertical = ref<boolean>(true);
 const collapseIconSize = 20;
-const WIDTH = 270 + (isVertical.value ? 0 : collapseIconSize);
-const HEIGHT = 152 + (isVertical.value ? collapseIconSize : 0);
+// toolbar
+const isVertical = ref<boolean>(true);
+const WIDTH = 240 + (isVertical.value ? 0 : collapseIconSize);
+const HEIGHT = 48 + (isVertical.value ? collapseIconSize : 0);
 // 生成样式、事件
 const iconStateStyles: { [key: string]: any } = {};
 const iconEvents: { [key: string]: any } = {};
@@ -59,6 +66,34 @@ const textConfig = {
   fontFamily: 'PingFangSC-Regular',
 };
 
+function setDirection() {
+  isVertical.value = !isVertical.value;
+  register();
+  initG6();
+}
+
+const tooltip = new G6.Tooltip({
+  offsetX: 10,
+  offsetY: 10,
+  fixToNode: [1, 0.5],
+  // the types of items that allow the tooltip show up
+  // 允许出现 tooltip 的 item 类型
+  itemTypes: ['node'],
+  // custom the tooltip's content
+  // 自定义 tooltip 内容
+  getContent: (e: any) => {
+    const outDiv = document.createElement('div');
+    outDiv.style.width = 'fit-content';
+    outDiv.style.height = 'fit-content';
+    const model = e.item.getModel();
+    console.log('object,n', model, e.item.getType());
+    if (e.item.getType() === 'node') {
+      outDiv.innerHTML = `<div style=${tooltipStyle}>${model.description}</div>`;
+    }
+    return outDiv;
+  },
+});
+
 function initG6() {
   const container = document.querySelector('#antv-g6') as HTMLElement;
   if (!container) {
@@ -75,7 +110,7 @@ function initG6() {
     container,
     width,
     height,
-    // fitView: true, // 适应容器
+    fitView: true, // 适应容器
     fitViewPadding: [20],
     minZoom: 0.5,
     maxZoom: 2, // 放大视图
@@ -99,11 +134,11 @@ function initG6() {
       direction: isVertical.value ? 'TB' : 'LR',
       getVGap() {
         // 每个节点的垂直间隔
-        return isVertical.value ? 80 + collapseIconSize : 65;
+        return isVertical.value ? 36 + collapseIconSize : 40;
       },
       getHGap() {
         // 每个节点的水平间隔
-        return isVertical.value ? 135 : 180;
+        return isVertical.value ? 118 : 120;
       },
     },
     // 不同状态下节点样式
@@ -111,6 +146,7 @@ function initG6() {
       ...iconStateStyles,
       ...textStateStyles,
     },
+    plugins: [tooltip], // 插件
   });
 
   chart.data(convert(dataSource));
@@ -151,7 +187,7 @@ function register() {
     draw: (config, group) => {
       const shape = group!.addShape('rect', {
         options: {
-          size: [270 + (isVertical.value ? 0 : collapseIconSize), 152 + (isVertical.value ? collapseIconSize : 0)],
+          size: [240 + (isVertical.value ? 0 : collapseIconSize), 48 + (isVertical.value ? collapseIconSize : 0)],
           stroke: '#91d5ff',
           fill: '#91d5ff',
         },
@@ -216,7 +252,7 @@ function register() {
         const tipIconSize = 24;
         const fill = 'rgba(250, 140, 22)';
         const position = {
-          x: WIDTH - tipIconSize - (isVertical.value ? 0 : collapseIconSize),
+          x: WIDTH - tipIconSize - (isVertical.value ? 0 : 0),
           y: 0,
         };
         group?.addShape('rect', {
@@ -259,15 +295,21 @@ function register() {
       return shape;
     },
     // 节点的连接点 anchorPoint
-    getAnchorPoints: () => [
-      [0.5, 0],
-      [0.5, 1],
-    ],
+    getAnchorPoints: () =>
+      !isVertical.value
+        ? [
+            [0, 0.5],
+            [1, 0.5],
+          ]
+        : [
+            [0.5, 0.5],
+            [1, 0.5],
+          ],
   });
 }
 
 function convert(data: Antv_ITreeData, deep = 0, color = '#128BED'): any {
-  const { children, label, position, coverUrl, isRoot, dynasty } = data;
+  const { children, label, position, coverUrl, isRoot, dynasty, description } = data;
   return {
     id: data.id,
     color,
@@ -276,6 +318,7 @@ function convert(data: Antv_ITreeData, deep = 0, color = '#128BED'): any {
     coverUrl,
     isRoot,
     dynasty,
+    description,
     size: [mapLabelWidth(label) + (deep % 2 ? 0 : 32), 37, ...mapPaddingWidth(deep, position), 0],
     children: children?.map((item) => convert(item, deep + 1)),
   };
@@ -334,5 +377,31 @@ onUnmounted(() => {
 #antv-g6 {
   width: 100%;
   height: 100%;
+  position: relative;
+
+  .antv-g6-toolbar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+
+    span {
+      cursor: pointer;
+      display: inline-block;
+      padding: 7px 16px;
+      border: 1px solid var(--color-text-border);
+
+      &:first-child {
+        border-right: none;
+      }
+
+      &.checked {
+        border: 1px solid var(--color-primary);
+        color: var(--color-primary);
+
+        transition: all 233ms;
+      }
+    }
+  }
 }
 </style>
