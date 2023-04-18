@@ -2,11 +2,16 @@
  * @Author: wanzp
  * @Date: 2022-10-31 21:20:45
  * @LastEditors: wanzp
- * @LastEditTime: 2023-02-28 22:27:49
+ * @LastEditTime: 2023-04-18 22:04:50
  * @Description: 
 -->
 <template>
   <div id="demo">
+    <input
+      type="text"
+      v-model="filterText"
+      v-inputFilter:text="{ regExp: reg, allowSpace: false, allowChinese: false }"
+    />
     <button @click="close">关闭</button>
     <ParentComp v-if="visible"></ParentComp>
   </div>
@@ -16,6 +21,11 @@ import { ref, onMounted } from 'vue';
 import ParentComp from './parent-comp/parent-comp.vue';
 
 const visible = ref<boolean>(true);
+const filterText = ref<string>('');
+
+const characters: string = '';
+const defaultStr = String.raw`\`\\;\'\"<>`;
+const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
 
 function close() {
   visible.value = false;
