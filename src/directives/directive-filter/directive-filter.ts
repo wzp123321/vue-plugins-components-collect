@@ -53,6 +53,8 @@ const registerInputFilter = (app: App) => {
       console.log('beforeMount---el, binding----------------------', el, binding);
     },
     mounted(el, binding) {
+      // v-filter="list"
+      // binding.value = el.value;
       //   const type = binding.arg;
       //   // 普通搜索框
       //   switch (type) {
@@ -65,6 +67,9 @@ const registerInputFilter = (app: App) => {
       //   }
     },
     beforeUpdate(el, binding) {
+      console.log('beforeUpdate---el, binding----------------------', el, binding);
+    },
+    updated(el, binding) {
       const type = binding.arg;
       // 普通搜索框
       switch (type) {
@@ -75,9 +80,6 @@ const registerInputFilter = (app: App) => {
           handleNumberFilter(el, binding);
           break;
       }
-      console.log('beforeUpdate---el, binding----------------------', el, binding);
-    },
-    updated(el, binding) {
       console.log('updated---el, binding----------------------', el, binding);
     },
     beforeUnmount(el, binding) {
