@@ -2,11 +2,14 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:48:05
  * @LastEditors: wanzp
- * @LastEditTime: 2023-04-18 22:18:42
+ * @LastEditTime: 2023-04-26 22:48:46
  * @Description:
  */
 import { App, DirectiveBinding } from 'vue';
 import { EDirectiveType, IDirectiveTextBindingVO, IDirectiveNumberBindingVO } from './directive-filter.api';
+import { onCompositionEnd } from './directive-filter.utils';
+
+import { throttle } from 'lodash';
 
 function handleTextFilter(el: HTMLElement, binding: DirectiveBinding<IDirectiveTextBindingVO>) {
   const target: HTMLInputElement | HTMLTextAreaElement =
@@ -31,15 +34,12 @@ function handleTextFilter(el: HTMLElement, binding: DirectiveBinding<IDirectiveT
     if (!binding.value.allowSpace) {
       target.value = target.value.replace(/\s+/g, '');
     }
-
-    // target.dispatchEvent(new Event('input'));
+    target.dispatchEvent(new Event('input'));
   };
   target.oninput = handleInput;
   target.onblur = handleInput;
   // 解决输入中文的问题
-  target.addEventListener('compositionend', (ev: Event) => {
-    handleInput(ev);
-  });
+  target.addEventListener('compositionend', onCompositionEnd);
 }
 
 function handleNumberFilter(el: HTMLElement, binding: DirectiveBinding<IDirectiveNumberBindingVO>) {}
@@ -53,23 +53,9 @@ const registerInputFilter = (app: App) => {
       console.log('beforeMount---el, binding----------------------', el, binding);
     },
     mounted(el, binding) {
-      // v-filter="list"
-      // binding.value = el.value;
-      //   const type = binding.arg;
-      //   // 普通搜索框
-      //   switch (type) {
-      //     case EDirectiveType.文本:
-      //       handleTextFilter(el, binding);
-      //       break;
-      //     case EDirectiveType.数字:
-      //       handleNumberFilter(el, binding);
-      //       break;
-      //   }
+      // el.target.value = binding.value?.value == null ? '' : binding.value?.value;
     },
     beforeUpdate(el, binding) {
-      console.log('beforeUpdate---el, binding----------------------', el, binding);
-    },
-    updated(el, binding) {
       const type = binding.arg;
       // 普通搜索框
       switch (type) {
@@ -80,6 +66,9 @@ const registerInputFilter = (app: App) => {
           handleNumberFilter(el, binding);
           break;
       }
+      console.log('beforeUpdate---el, binding----------------------', el, binding);
+    },
+    updated(el, binding) {
       console.log('updated---el, binding----------------------', el, binding);
     },
     beforeUnmount(el, binding) {

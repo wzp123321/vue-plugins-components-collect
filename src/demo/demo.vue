@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2022-10-31 21:20:45
  * @LastEditors: wanzp
- * @LastEditTime: 2023-04-18 22:04:50
+ * @LastEditTime: 2023-04-26 21:10:41
  * @Description: 
 -->
 <template>
@@ -10,7 +10,7 @@
     <input
       type="text"
       v-model="filterText"
-      v-inputFilter:text="{ regExp: reg, allowSpace: false, allowChinese: false }"
+      v-inputFilter:text="{ regExp: reg, allowSpace: false, allowChinese: false, value: filterText }"
     />
     <button @click="close">关闭</button>
     <ParentComp v-if="visible"></ParentComp>

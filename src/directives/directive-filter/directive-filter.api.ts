@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:47:57
  * @LastEditors: wanzp
- * @LastEditTime: 2023-04-18 22:20:18
+ * @LastEditTime: 2023-04-26 21:05:44
  * @Description:
  */
 export enum EDirectiveType {
@@ -14,6 +14,7 @@ export interface IDirectiveTextBindingVO {
   allowChinese: boolean;
   allowSpace: boolean;
   regExp: RegExp;
+  value: string;
 }
 
 export interface IDirectiveNumberBindingVO {
@@ -22,4 +23,15 @@ export interface IDirectiveNumberBindingVO {
   negative: boolean;
   min: number | null;
   max: number | null;
+}
+
+export interface ThrottleSettings {
+  /**
+   * @see _.leading
+   */
+  leading?: boolean | undefined;
+  /**
+   * @see _.trailing
+   */
+  trailing?: boolean | undefined;
 }
