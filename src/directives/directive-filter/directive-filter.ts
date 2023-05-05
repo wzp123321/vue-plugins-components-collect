@@ -2,81 +2,152 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:48:05
  * @LastEditors: wanzp
- * @LastEditTime: 2023-04-26 22:48:46
+ * @LastEditTime: 2023-05-05 21:23:22
  * @Description:
  */
 import { App, DirectiveBinding } from 'vue';
 import { EDirectiveType, IDirectiveTextBindingVO, IDirectiveNumberBindingVO } from './directive-filter.api';
-import { onCompositionEnd } from './directive-filter.utils';
+import { getModelAssigner, addEventListener, deduplicate, looseToNumber } from './directive-filter.utils';
 
-import { throttle } from 'lodash';
-
-function handleTextFilter(el: HTMLElement, binding: DirectiveBinding<IDirectiveTextBindingVO>) {
-  const target: HTMLInputElement | HTMLTextAreaElement =
-    el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
-      ? (el as HTMLInputElement)
-      : (el.querySelector('input') as HTMLInputElement) || (el.querySelector('textarea') as HTMLTextAreaElement);
-  if (!target) {
-    console.warn('指令绑定元素不包含输入框');
-    return;
+/**
+ * 过滤文本
+ * @param domValue 文本内容
+ * @param binding 指令传参
+ * @returns
+ */
+function handleTextFilter(domValue: string, binding: DirectiveBinding<IDirectiveTextBindingVO>) {
+  const { regExp, allowSpace } = binding.value;
+  const characters: string = '';
+  const defaultStr = String.raw`\`\\;\'\"<>`;
+  const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
+  domValue = domValue.replace(regExp instanceof RegExp ? regExp : reg, '');
+  // 过滤空格
+  if (!allowSpace) {
+    domValue = domValue.replace(/\s+/g, '');
   }
 
-  const handleInput = (ev: Event) => {
-    // 是否在剪切板
-    if ((ev as InputEvent).isComposing) {
-      return;
-    }
-    const characters: string = '';
-    const defaultStr = String.raw`\`\\;\'\"<>`;
-    const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
-    target.value = target.value.replace(binding.value.regExp instanceof RegExp ? binding.value.regExp : reg, '');
-    // 过滤空格
-    if (!binding.value.allowSpace) {
-      target.value = target.value.replace(/\s+/g, '');
-    }
-    target.dispatchEvent(new Event('input'));
-  };
-  target.oninput = handleInput;
-  target.onblur = handleInput;
-  // 解决输入中文的问题
-  target.addEventListener('compositionend', onCompositionEnd);
+  return domValue;
 }
 
-function handleNumberFilter(el: HTMLElement, binding: DirectiveBinding<IDirectiveNumberBindingVO>) {}
+/**
+ * 数字过滤
+ * @param domValue 文本内容
+ * @param binding 指令传参
+ * @returns
+ */
+function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirectiveNumberBindingVO>) {
+  const { decimal, negative, integral, min, max } = binding.value;
+  const reg = new RegExp(String.raw`[^0-9${Math.ceil(decimal ?? 0) > 0 ? '.' : ''}${negative ? '-' : ''}]`, 'g');
+  console.log('decimal------------------------------------------------------', decimal);
+  console.log('negative-----------------------------------------------------', negative);
+  console.log('integral-----------------------------------------------------', integral);
+  domValue = domValue.replace(reg, '');
+  let symbol = '';
+  // 处理符号
+  if (domValue.substring(0, 1) === '-') {
+    symbol = '-';
+    domValue = domValue.substring(1);
+  }
+  domValue = domValue.replace(/[^0-9\.]/g, '');
+
+  // 处理首位小数点
+  if (domValue.substring(0, 1) === '.') {
+    domValue = `0${domValue}`;
+  }
+
+  // 禁止头部连续输入0
+  if (domValue.length > 1 && domValue.substring(0, 1) === '0' && domValue.substring(1, 2) !== '.') {
+    domValue = domValue.substring(1);
+  }
+
+  // 处理小数点及小数位数
+  if (domValue.includes('.')) {
+    domValue = deduplicate(domValue, '.');
+    const temp = domValue.split('.');
+    domValue = `${temp[0]}.${
+      temp[1]?.substring(0, (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number) ?? ''
+    }`;
+  }
+
+  // 处理头部多余的0
+  if (domValue.length > 1) {
+    domValue = domValue.replace(/^0+(?!\.)/, '');
+  }
+
+  // 限制整数长度
+  const temp = domValue.split('.');
+  temp[0] = temp[0].substring(0, Math.ceil(integral ?? 10));
+  domValue = temp.length === 2 ? `${symbol}${temp[0]}.${temp[1]}` : `${symbol}${temp[0]}`;
+
+  // 限制最大最小
+  if (
+    Object.prototype.toString.call(min) !== '[object Undefined]' &&
+    Object.prototype.toString.call(min) !== '[object Null]' &&
+    min &&
+    domValue !== '' &&
+    looseToNumber(domValue) < min
+  ) {
+    domValue = min + '';
+  }
+  if (
+    Object.prototype.toString.call(max) !== '[object Undefined]' &&
+    Object.prototype.toString.call(max) !== '[object Null]' &&
+    max &&
+    domValue !== '' &&
+    looseToNumber(domValue) > max
+  ) {
+    domValue = max + '';
+  }
+
+  console.log('domValue-------------------------------', domValue);
+  return domValue;
+}
 
 const registerInputFilter = (app: App) => {
   app.directive('inputFilter', {
-    created(el, binding) {
-      console.log('created---el, binding----------------------', el, binding);
-    },
-    beforeMount(el, binding) {
-      console.log('beforeMount---el, binding----------------------', el, binding);
-    },
-    mounted(el, binding) {
-      // el.target.value = binding.value?.value == null ? '' : binding.value?.value;
-    },
-    beforeUpdate(el, binding) {
+    created(el, binding, vnode) {
+      el._assign = getModelAssigner(vnode);
       const type = binding.arg;
-      // 普通搜索框
+      addEventListener(el, 'input', (e) => {
+        if ((e.target as any).composing) return;
+        let domValue: string = el.value;
+        switch (type) {
+          case EDirectiveType.文本:
+            domValue = handleTextFilter(domValue, binding);
+            break;
+          case EDirectiveType.数字:
+            domValue = handleNumberFilter(domValue, binding);
+            break;
+        }
+        el._assign(domValue);
+      });
+    },
+    // beforeMount(el, binding) {},
+    mounted(el, binding) {
+      const type = binding.arg;
+      let domValue: string = el.value;
       switch (type) {
         case EDirectiveType.文本:
-          handleTextFilter(el, binding);
+          domValue = handleTextFilter(domValue, binding);
           break;
         case EDirectiveType.数字:
-          handleNumberFilter(el, binding);
+          domValue = handleNumberFilter(domValue, binding);
           break;
       }
-      console.log('beforeUpdate---el, binding----------------------', el, binding);
+      el.value = domValue;
     },
-    updated(el, binding) {
-      console.log('updated---el, binding----------------------', el, binding);
-    },
-    beforeUnmount(el, binding) {
-      console.log('beforeUnmount---el, binding----------------------', el, binding);
-    },
-    unmounted(el, binding) {
-      console.log('unmounted---el, binding----------------------', el, binding);
-    },
+    // beforeUpdate(el, binding, vnode) {
+    //   console.log('beforeUpdate---el, binding----------------------', el, binding);
+    // },
+    // updated(el, binding) {
+    //   console.log('updated---el, binding----------------------', el, binding);
+    // },
+    // beforeUnmount(el, binding) {
+    //   console.log('beforeUnmount---el, binding----------------------', el, binding);
+    // },
+    // unmounted(el, binding) {
+    //   console.log('unmounted---el, binding----------------------', el, binding);
+    // },
     deep: false,
   });
 };

@@ -7,4 +7,5 @@ declare module '*.vue' {
   export default component;
 }
 
+declare var __COMPAT__: boolean;
 declare module 'crypto-js';

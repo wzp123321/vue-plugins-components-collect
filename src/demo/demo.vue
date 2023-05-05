@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2022-10-31 21:20:45
  * @LastEditors: wanzp
- * @LastEditTime: 2023-04-26 21:10:41
+ * @LastEditTime: 2023-05-05 20:42:36
  * @Description: 
 -->
 <template>
@@ -10,7 +10,14 @@
     <input
       type="text"
       v-model="filterText"
-      v-inputFilter:text="{ regExp: reg, allowSpace: false, allowChinese: false, value: filterText }"
+      v-inputFilter:number="{ regExp: reg, allowSpace: false, allowChinese: false }"
+    />
+
+    <input
+      type="text"
+      placeholder="请输入数字"
+      v-model="filterNumber"
+      v-inputFilter:number="{ integral: 6, decimal: 3, negative: true, min: 2, max: 66666 }"
     />
     <button @click="close">关闭</button>
     <ParentComp v-if="visible"></ParentComp>
@@ -21,7 +28,8 @@ import { ref, onMounted } from 'vue';
 import ParentComp from './parent-comp/parent-comp.vue';
 
 const visible = ref<boolean>(true);
-const filterText = ref<string>('');
+const filterText = ref<string>('<>12321321');
+const filterNumber = ref<string>('');
 
 const characters: string = '';
 const defaultStr = String.raw`\`\\;\'\"<>`;
