@@ -2,16 +2,16 @@
  * @Author: wanzp
  * @Date: 2022-10-31 21:20:45
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-18 22:21:40
+ * @LastEditTime: 2023-05-20 16:46:27
  * @Description: 
 -->
 <template>
   <div id="demo">
-    <!-- <input
+    <input
       type="text"
       v-model="filterText"
       v-inputFilter:text="{ regExp: reg, allowSpace: true, allowChinese: false }"
-    /> -->
+    />
 
     <input
       type="text"

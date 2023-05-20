@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:48:05
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-18 22:27:21
+ * @LastEditTime: 2023-05-20 16:47:28
  * @Description:
  */
 import { App, DirectiveBinding } from 'vue';
@@ -106,9 +106,9 @@ function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirecti
 const registerInputFilter = (app: App) => {
   app.directive('inputFilter', {
     created(el, binding, vnode) {
-      console.log('el-----------', el);
+      console.log('el-----------', el, vnode);
       // https://juejin.cn/post/7115655868267364366
-      // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；
+      // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
       el._assign = getModelAssigner(vnode);
       console.log('el---------2--', el, getModelAssigner(vnode));
       const type = binding.arg;
