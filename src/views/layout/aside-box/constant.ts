@@ -28,7 +28,7 @@ export const menuList = [
   // Echart管理
   {
     path: 'echart',
-    meta: { name: 'Echart管理' },
+    meta: { name: 'Echarts管理' },
     icons: 'icon-library',
     hasIcon: true,
     children: echartRoutes,

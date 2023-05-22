@@ -1,9 +1,5 @@
-import { echartsUtils } from './utils'
-import { echartsConstant } from './constant'
-import { echartsOption } from './option'
+import echartsUtils from './utils';
+import echartsConstant from './constant';
+import echartsOption from './option';
 
-export default {
-  echartsUtils,
-  echartsConstant,
-  echartsOption,
-}
+export { echartsUtils, echartsConstant, echartsOption };

@@ -16,11 +16,11 @@ const components: RouteRecordRaw[] = [
     component: () => import('../../pages/echarts/chart-province/chart-province.vue'),
   },
   {
-    path: '/echarts-line-mark',
+    path: '/echarts-line',
     meta: {
       name: '折线图',
     },
-    component: () => import('../../pages/echarts/alarm-chart/alarm-chart.vue'),
+    component: () => import('../../pages/echarts/line-charts/line-charts.vue'),
   },
   {
     path: '/echarts-water-ball',
@@ -29,19 +29,13 @@ const components: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/echarts/water-ball-chart/water-ball-chart.vue'),
   },
+
   {
-    path: '/echarts-breakpoint-linechart',
-    meta: {
-      name: '断点折线图',
-    },
-    component: () => import('../../pages/echarts/breakpoint-linechart/breakpoint-linechart.vue'),
-  },
-  {
-    path: '/echarts-rank-BarCharts',
+    path: '/echarts-bar',
     meta: {
       name: '柱状图',
     },
-    component: () => import('../../pages/echarts/rank-barCharts/rank-barCharts.vue'),
+    component: () => import('../../pages/echarts/bar-charts/bar-charts.vue'),
   },
   {
     path: '/echarts-charts-graphic',

@@ -1,18 +1,15 @@
-import { format } from 'echarts'
-import { CommonObject } from '../../services/common.api'
+import { format } from 'echarts';
+import { CommonObject } from '../../services/common.api';
 /**
  * echarts工具函数模块
  */
-export const echartsUtils = {
+const echartsUtils = {
   /**
    * 折线图 鼠标悬浮拐点
    * @param color 颜色
    * @returns
    */
-  resetLineChartSeriesEmphasisItemStyle(
-    color: string,
-    scale: boolean = false
-  ): CommonObject {
+  resetLineChartSeriesEmphasisItemStyle(color: string, scale: boolean = false): CommonObject {
     const itemStyle = {
       color: {
         type: 'radial',
@@ -55,17 +52,17 @@ export const echartsUtils = {
         ],
         globalCoord: false, // 缺省为 false
       },
-    }
+    };
     const emphasis = {
       scale,
       itemStyle,
       lineStyle: {
         width: 2,
       },
-    }
+    };
     return {
       emphasis,
-    }
+    };
   },
   /**
    * 重置name 为name后面添加后缀避免出现同样的name
@@ -74,11 +71,11 @@ export const echartsUtils = {
    * @returns
    */
   resetName(count: number, name: string) {
-    let resetName = name
+    let resetName = name;
     for (let i = 0; i < count; i++) {
-      resetName += '\uFEFF'
+      resetName += '\uFEFF';
     }
-    return resetName
+    return resetName;
   },
   /**
    * 格式化
@@ -87,24 +84,21 @@ export const echartsUtils = {
    */
   formatter(value: string) {
     if (Math.abs(Number(value)) >= 1000 && Math.abs(Number(value)) < 1000000) {
-      value = `${(Number(value) / 1000).toFixed(0)}k`
+      value = `${(Number(value) / 1000).toFixed(0)}k`;
     } else if (Math.abs(Number(value)) >= 1000000) {
-      value = `${(Number(value) / 1000000).toFixed(0)}M`
+      value = `${(Number(value) / 1000000).toFixed(0)}M`;
     }
-    return value
+    return value;
   },
   /**
    * get series style of dashed line chart
    * @param seriesDatum data
    * @param color custom dashed line color
    */
-  getCommonDashedLineSeriesStyleOption(
-    seriesDatum: CommonObject,
-    color: string
-  ) {
-    const isSingleData: boolean = seriesDatum.data.length <= 1
-    const symbol = isSingleData ? 'circle' : 'none'
-    const showSymbol = isSingleData
+  getCommonDashedLineSeriesStyleOption(seriesDatum: CommonObject, color: string) {
+    const isSingleData: boolean = seriesDatum.data.length <= 1;
+    const symbol = isSingleData ? 'circle' : 'none';
+    const showSymbol = isSingleData;
     const itemStyle = isSingleData
       ? {
           normal: {
@@ -119,7 +113,7 @@ export const echartsUtils = {
               type: 'dashed',
             },
           },
-        }
+        };
 
     return {
       name: seriesDatum.name,
@@ -130,23 +124,21 @@ export const echartsUtils = {
       smooth: false,
       itemStyle,
       cursor: 'default',
-    }
+    };
   },
   /**
    * 是否显示点
    */
-  getDataIsShowDot(data: (number | null | string)[], color: string) {
+  getDataIsShowDot(data: string[] | (number | null)[], color: string) {
     if (data && data.length && data.length > 0) {
-      let arrItem = {}
-      const arrData: CommonObject[] = []
+      let arrItem = {};
+      const arrData: CommonObject[] = [];
       data.forEach((item: any, index: number) => {
         if (
           index === 0 &&
           item !== '--' &&
           Object.prototype.toString.call(item) !== '[object Null]' &&
-          ((data.length > 1 &&
-            (data[1] === '--' ||
-              Object.prototype.toString.call(data[1]) === '[object Null]')) ||
+          ((data.length > 1 && (data[1] === '--' || Object.prototype.toString.call(data[1]) === '[object Null]')) ||
             data.length === 1)
         ) {
           arrItem = {
@@ -154,50 +146,48 @@ export const echartsUtils = {
             itemStyle: {
               color,
             },
-          }
-          arrData.push(arrItem)
+          };
+          arrData.push(arrItem);
         } else if (
           item !== '--' &&
           Object.prototype.toString.call(item) !== '[object Null]' &&
           data.length > 1 &&
           index === data.length - 1 &&
-          (data[data.length - 2] === '--' ||
-            Object.prototype.toString.call(data[data.length - 2]) ===
-              '[object Null]')
+          (data[data.length - 2] === '--' || Object.prototype.toString.call(data[data.length - 2]) === '[object Null]')
         ) {
           arrItem = {
             value: item,
             itemStyle: {
               color,
             },
-          }
-          arrData.push(arrItem)
+          };
+          arrData.push(arrItem);
         } else if (
           item !== '--' &&
           Object.prototype.toString.call(item) !== '[object Null]' &&
-          Object.prototype.toString.call(data[index - 1]) === '[object Null]' &&
-          Object.prototype.toString.call(data[index + 1]) === '[object Null]'
+          (Object.prototype.toString.call(data[index - 1]) === '[object Null]' || data[index - 1] === '--') &&
+          (Object.prototype.toString.call(data[index + 1]) === '[object Null]' || data[index + 1] === '--')
         ) {
           arrItem = {
             value: item,
             itemStyle: {
               color,
             },
-          }
-          arrData.push(arrItem)
+          };
+          arrData.push(arrItem);
         } else {
           arrItem = {
             value: item,
             itemStyle: {
               color: 'transparent',
             },
-          }
-          arrData.push(arrItem)
+          };
+          arrData.push(arrItem);
         }
-      })
-      return arrData
+      });
+      return arrData;
     } else {
-      return data
+      return data;
     }
   },
   // 获取symbolStyle
@@ -251,7 +241,7 @@ export const echartsUtils = {
           },
         ],
       },
-    }
+    };
   },
   /**
    * 格式化文本
@@ -259,9 +249,9 @@ export const echartsUtils = {
    * @returns
    */
   formatterText: (name: string) => {
-    return format.truncateText(name, 100, '14px Microsoft Yahei', '…', {})
+    return format.truncateText(name, 100, '14px Microsoft Yahei', '…', {});
   },
-}
+};
 
 /**
  * 格式化横纵轴 -- 处理数字简写
@@ -270,9 +260,11 @@ export const echartsUtils = {
  */
 export const formatter = (value: string) => {
   if (Math.abs(Number(value)) >= 1000 && Math.abs(Number(value)) < 1000000) {
-    value = `${(Number(value) / 1000).toFixed(0)}k`
+    value = `${(Number(value) / 1000).toFixed(0)}k`;
   } else if (Math.abs(Number(value)) >= 1000000) {
-    value = `${(Number(value) / 1000000).toFixed(0)}M`
+    value = `${(Number(value) / 1000000).toFixed(0)}M`;
   }
-  return value
-}
+  return value;
+};
+
+export default echartsUtils;

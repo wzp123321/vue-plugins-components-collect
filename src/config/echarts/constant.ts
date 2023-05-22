@@ -1,20 +1,7 @@
-import { CommonObject } from '../../services/common.api'
-
-export const echartsConstant: CommonObject = {
-  // 通用悬浮框背景色
-  CHARTS_TOOLTIP_BG_COLOR: 'rgba(24, 144, 255, 0.8)',
-  // 悬浮框字体颜色
-  CHARTS_TOOLTIP_TEXT_COLOR: 'rgba(255, 255, 255, 1)',
-  // 轴文本颜色
-  CHARTS_AXIS_TEXT_COLOR: 'rgba(0, 0, 0, 0.65)',
-  // 轴线颜色
-  CHARTS_AXIS_LINE_COLOR: 'rgba(0, 0, 0, 0.15)',
-  // 分割线颜色
-  CHARTS_SPLIT_LINE_COLOR: 'rgba(0, 0, 0, 0.15)',
-  // 环形图中间文本颜色
-  GAUGE_MIDDLE_TEXT_COLOR: '#000',
-  // 饼状图title颜色
-  PIE_TITLE_TEXT_COLOR: '#000',
+/**
+ * echarts通用变量
+ */
+const echartsConstant: GlobalModule.CommonObject = {
   // 饼状图色卡顺序(10个一循环)
   CHARTS_PIE_MAIN_COLOR: [
     '#00B261',
@@ -68,6 +55,22 @@ export const echartsConstant: CommonObject = {
     ['#C378FF', '#A83BFF'],
     ['#FF6262', '#B90000'],
   ],
+  // 通用悬浮框背景色
+  CHARTS_TOOLTIP_BG_COLOR: 'rgba(24, 144, 255, 0.8)',
+  // 悬浮框字体颜色
+  CHARTS_TOOLTIP_TEXT_COLOR: 'rgba(255, 255, 255, 1)',
+  // 轴文本颜色
+  CHARTS_AXIS_TEXT_COLOR: 'rgba(0, 0, 0, 0.65)',
+  // 轴文本颜色-浅色
+  CHARTS_AXIS_TEXT_SHADOW_COLOR: 'rgba(0, 0, 0, 0.45)',
+  // 轴线颜色
+  CHARTS_AXIS_LINE_COLOR: '#CDD0D6',
+  // 分割线颜色
+  CHARTS_SPLIT_LINE_COLOR: 'rgba(0, 0, 0, 0.15)',
+  // 环形图中间文本颜色
+  GAUGE_MIDDLE_TEXT_COLOR: '#000',
+  // 饼状图title颜色
+  PIE_TITLE_TEXT_COLOR: '#000',
   // 文本字体大小
   CHARTS_FONT_SIZE_14: 14,
   // legend图标---虚线
@@ -87,4 +90,6 @@ export const echartsConstant: CommonObject = {
   CHARTS_TOOLTIP_BOX_SHADOW_OFFSETX: '4px',
   // tooltip boxshadow offsety
   CHARTS_TOOLTIP_BOX_SHADOW_OFFSETY: '8px',
-}
+};
+
+export default echartsConstant;
