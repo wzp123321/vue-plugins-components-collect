@@ -7,6 +7,7 @@ import animationRoutes from './modules/animation';
 import threejsRoutes from './modules/threejs';
 import cssRoutes from './modules/css';
 import babyRoutes from './modules/babylon';
+import directiveRoutes from './modules/directive';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -32,6 +33,7 @@ const routes: RouteRecordRaw[] = [
   ...threejsRoutes,
   ...cssRoutes,
   ...babyRoutes,
+  ...directiveRoutes,
 ];
 
 const router = createRouter({

@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:48:05
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-20 16:47:28
+ * @LastEditTime: 2023-05-22 22:20:12
  * @Description:
  */
 import { App, DirectiveBinding } from 'vue';
@@ -16,16 +16,27 @@ import { getModelAssigner, addEventListener, deduplicate, looseToNumber } from '
  * @returns
  */
 function handleTextFilter(domValue: string, binding: DirectiveBinding<IDirectiveTextBindingVO>) {
-  const { regExp, allowSpace } = binding.value;
+  const regExp = binding?.value?.regExp;
+  const allowSpace =
+    Object.prototype.toString.call(binding?.value?.allowSpace) === '[object Boolean]'
+      ? binding?.value?.allowSpace
+      : true;
+  const allowChinese =
+    Object.prototype.toString.call(binding?.value?.allowChinese) === '[object Boolean]'
+      ? binding?.value?.allowChinese
+      : true;
+
   const characters: string = '';
   const defaultStr = String.raw`\`\\;\'\"<>`;
   const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
-  domValue = domValue.replace(regExp instanceof RegExp ? regExp : reg, '');
+  domValue = domValue.replace(regExp && regExp instanceof RegExp ? regExp : reg, '');
   // 过滤空格
   if (!allowSpace) {
     domValue = domValue.replace(/\s+/g, '');
   }
-
+  if (!allowChinese) {
+    domValue = domValue.replace(/[^\x00-\xff]/g, '');
+  }
   return domValue;
 }
 
@@ -36,7 +47,11 @@ function handleTextFilter(domValue: string, binding: DirectiveBinding<IDirective
  * @returns
  */
 function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirectiveNumberBindingVO>) {
-  const { decimal, negative, integral, min, max } = binding.value;
+  const decimal = binding?.value?.decimal;
+  const negative = binding?.value?.negative;
+  const integral = binding?.value?.integral;
+  const min = binding?.value?.min;
+  const max = binding?.value?.max;
   const reg = new RegExp(String.raw`[^0-9${Math.ceil(decimal ?? 0) > 0 ? '.' : ''}${negative ? '-' : ''}]`, 'g');
   console.log('decimal------------------------------------------------------', decimal);
   console.log('negative-----------------------------------------------------', negative);
@@ -99,10 +114,10 @@ function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirecti
     domValue = max + '';
   }
 
-  console.log('domValue-------------------------------', domValue);
   return domValue;
 }
 
+// https://www.bilibili.com/video/BV1td4y1r76e/?spm_id_from=333.337.search-card.all.click&vd_source=0f5e2a21dd6833ba3d8d41c10053181d
 const registerInputFilter = (app: App) => {
   app.directive('inputFilter', {
     created(el, binding, vnode) {
@@ -141,9 +156,28 @@ const registerInputFilter = (app: App) => {
       }
       el.value = domValue;
     },
-    // beforeUpdate(el, binding, vnode) {
-    //   console.log('beforeUpdate---el, binding----------------------', el, binding);
-    // },
+    beforeUpdate(el, binding, vnode) {
+      console.log('el-----------', el, vnode);
+      // https://juejin.cn/post/7115655868267364366
+      // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
+      el._assign = getModelAssigner(vnode);
+      console.log('el---------2--', el, getModelAssigner(vnode));
+      const type = binding.arg;
+      addEventListener(el, 'input', (e) => {
+        if ((e.target as any).composing) return;
+        let domValue: string = el.value;
+        switch (type) {
+          case EDirectiveType.文本:
+            domValue = handleTextFilter(domValue, binding);
+            break;
+          case EDirectiveType.数字:
+            domValue = handleNumberFilter(domValue, binding);
+            break;
+        }
+        // 调用 el._assign 方法更新数据
+        el._assign(domValue);
+      });
+    },
     // updated(el, binding) {
     //   console.log('updated---el, binding----------------------', el, binding);
     // },

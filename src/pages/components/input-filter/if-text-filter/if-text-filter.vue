@@ -1,3 +1,10 @@
+<!--
+ * @Author: wanzp
+ * @Date: 2022-08-20 20:44:44
+ * @LastEditors: wanzp
+ * @LastEditTime: 2023-05-22 22:21:07
+ * @Description: 
+-->
 <template>
   <div class="if-text-filter">
     <a-divider>文本过滤</a-divider>
@@ -13,7 +20,7 @@
 </template>
 <script lang="ts" setup>
 import { defineComponent } from 'vue';
-import TextFilterService from './if-text-filter.service.ts';
+import TextFilterService from './if-text-filter.service';
 import { Divider } from 'ant-design-vue';
 
 defineComponent({

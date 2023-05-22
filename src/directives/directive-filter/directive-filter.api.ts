@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:47:57
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-05 20:20:49
+ * @LastEditTime: 2023-05-22 22:07:27
  * @Description:
  */
 export enum EDirectiveType {
@@ -18,7 +18,7 @@ export enum EDirectiveType {
 export interface IDirectiveTextBindingVO {
   allowChinese: boolean;
   allowSpace: boolean;
-  regExp: RegExp;
+  regExp: RegExp | null;
 }
 
 /**
