@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-26 21:15:54
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-05 20:22:19
+ * @LastEditTime: 2023-05-18 22:06:52
  * @Description:
  */
 import { VNode } from 'vue';
@@ -25,6 +25,7 @@ export const invokeArrayFns = (fns: Function[], arg?: any) => {
 
 export const getModelAssigner = (vnode: VNode): AssignerFn => {
   const fn = vnode.props!['onUpdate:modelValue'] || (__COMPAT__ && vnode.props!['onModelCompat:input']);
+  console.log('vnode-------------', vnode, fn);
   return Array.isArray(fn) ? (value) => invokeArrayFns(fn, value) : fn;
 };
 
