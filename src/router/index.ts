@@ -8,23 +8,20 @@ import threejsRoutes from './modules/threejs';
 import cssRoutes from './modules/css';
 import babyRoutes from './modules/babylon';
 import directiveRoutes from './modules/directive';
+import semantizationRoutes from './modules/semantization';
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    redirect: '/demo',
+  },
   {
     path: '/demo',
     component: () => import('../demo/demo.vue'),
   },
   {
-    path: '/grid',
-    component: () => import('../pages/grid/grid.vue'),
-  },
-  {
     path: '/canvas',
     component: () => import('../pages/canvas/canvas.vue'),
-  },
-  {
-    path: '/g6',
-    component: () => import('../pages/antv-g6/antv-g6.vue'),
   },
   ...componentRoutes,
   ...pluginRoutes,
@@ -34,6 +31,7 @@ const routes: RouteRecordRaw[] = [
   ...cssRoutes,
   ...babyRoutes,
   ...directiveRoutes,
+  ...semantizationRoutes,
 ];
 
 const router = createRouter({

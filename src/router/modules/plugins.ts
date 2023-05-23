@@ -50,6 +50,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/jspreadsheet-ce-vue/jspreadsheet-ce-vue.vue'),
   },
+  {
+    path: '/plugins-g6',
+    meta: {
+      name: 'G6',
+    },
+    component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
+  },
 ];
 
 export default pluginRoutes;

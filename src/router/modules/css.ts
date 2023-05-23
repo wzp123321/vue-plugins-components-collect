@@ -3,7 +3,7 @@
  * @Date: 2023-02-10 22:13:43
  * @LastEditors: wanzp
  * @LastEditTime: 2023-02-24 19:06:25
- * @Description: 
+ * @Description:
  */
 import { RouteRecordRaw } from 'vue-router';
 
@@ -14,6 +14,13 @@ const cssComponents: RouteRecordRaw[] = [
       name: 'Flex布局-骰子',
     },
     component: () => import('../../pages/css/css-flex/cf-dice.vue'),
+  },
+  {
+    path: '/css-grid-dice',
+    meta: {
+      name: 'Grid布局',
+    },
+    component: () => import('../../pages/css/css-grid/css-grid.vue'),
   },
   {
     path: '/css-whitespace-wordbreak-wordwrap',

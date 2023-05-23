@@ -1,5 +1,5 @@
 <template>
-  <div id="grid" class="grid">
+  <div id="css-grid" class="css-grid">
     <h1>Grid1</h1>
     <div class="grid-warpper grid-1">
       <div class="one item">One</div>
@@ -28,7 +28,7 @@
  */
 </script>
 <style lang="less" scoped>
-.grid {
+.css-grid {
   width: 100%;
   height: 100%;
   overflow-y: auto;
