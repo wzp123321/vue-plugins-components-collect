@@ -57,6 +57,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
   },
+  {
+    path: '/plugins-canvas',
+    meta: {
+      name: 'Canvas',
+    },
+    component: () => import('../../pages/plugins/plugins-canvas/plugins-canvas.vue'),
+  },
 ];
 
 export default pluginRoutes;

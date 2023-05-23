@@ -19,10 +19,6 @@ const routes: RouteRecordRaw[] = [
     path: '/demo',
     component: () => import('../demo/demo.vue'),
   },
-  {
-    path: '/canvas',
-    component: () => import('../pages/canvas/canvas.vue'),
-  },
   ...componentRoutes,
   ...pluginRoutes,
   ...animationRoutes,

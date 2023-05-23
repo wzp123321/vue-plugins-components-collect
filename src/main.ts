@@ -18,7 +18,8 @@ import 'jspreadsheet-ce/dist/jspreadsheet.css';
 import 'jsuites/dist/jsuites.css';
 
 import registerInputFilter from './directives/directive-filter/directive-filter';
+import dragDirectiveRegister from './directives/directive-drag/directive-drag';
 
 const app = createApp(App);
 
-app.use(createPinia()).use(registerInputFilter).use(router).mount('#app');
+app.use(createPinia()).use(registerInputFilter).use(dragDirectiveRegister).use(router).mount('#app');

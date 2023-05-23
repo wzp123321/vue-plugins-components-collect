@@ -7,36 +7,30 @@
 -->
 <template>
   <div id="demo">
-    <input
-      type="text"
-      v-model="filterText"
-      v-inputFilter:text="{ regExp: reg, allowSpace: true, allowChinese: false }"
-    />
-
-    <input
-      type="text"
-      placeholder="请输入数字"
-      v-model="filterNumber"
-      v-inputFilter:number="{ integral: 6, decimal: 3, negative: true, min: 2, max: 66666 }"
-    />
-    <button @click="close">关闭</button>
-    <ParentComp v-if="visible"></ParentComp>
+    <div class="demo-drag-container">
+      <div class="ddc-item"></div>
+    </div>
   </div>
 </template>
-<script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import ParentComp from './parent-comp/parent-comp.vue';
+<script lang="ts" setup></script>
+<style lang="less" scoped>
+.demo {
+  width: 100%;
+  height: 100%;
 
-const visible = ref<boolean>(true);
-const filterText = ref<string>('<>12321321');
-const filterNumber = ref<string>('');
+  .demo-drag-container {
+    width: 90%;
+    height: 90%;
+    margin: 5% 5%;
 
-const characters: string = '';
-const defaultStr = String.raw`\`\\;\'\"<>`;
-const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
+    border: 1px dashed var(--color-text-divider);
+    border-radius: 4px;
 
-function close() {
-  visible.value = false;
+    .ddc-item {
+      width: 360px;
+      height: 360px;
+      border: 1px solid var(--color-text-divider);
+    }
+  }
 }
-</script>
-<style lang="less" scoped></style>
+</style>
