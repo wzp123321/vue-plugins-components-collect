@@ -3,7 +3,7 @@ const canvasBaseUtils = {
    * 绘制矩形
    */
   drawRectangular() {
-    const canvas = document.getElementById('canvas-rectangular') as HTMLCanvasElement;
+    const canvas = document.getElementById('plugins-canvas-rectangular') as HTMLCanvasElement;
     if (canvas.getContext) {
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
@@ -17,7 +17,7 @@ const canvasBaseUtils = {
    * 绘制三角形
    */
   drawTriangle() {
-    const canvas = document.getElementById('canvas-triangle') as HTMLCanvasElement;
+    const canvas = document.getElementById('plugins-canvas-triangle') as HTMLCanvasElement;
     if (canvas && canvas?.getContext) {
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
