@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-04-18 20:48:05
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-22 22:20:12
+ * @LastEditTime: 2023-05-25 22:41:46
  * @Description:
  */
 import { App, DirectiveBinding } from 'vue';
@@ -121,11 +121,10 @@ function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirecti
 const registerInputFilter = (app: App) => {
   app.directive('inputFilter', {
     created(el, binding, vnode) {
-      console.log('el-----------', el, vnode);
+      console.log('created-------------------', el, vnode);
       // https://juejin.cn/post/7115655868267364366
       // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
       el._assign = getModelAssigner(vnode);
-      console.log('el---------2--', el, getModelAssigner(vnode));
       const type = binding.arg;
       addEventListener(el, 'input', (e) => {
         if ((e.target as any).composing) return;
@@ -142,8 +141,11 @@ const registerInputFilter = (app: App) => {
         el._assign(domValue);
       });
     },
-    // beforeMount(el, binding) {},
+    beforeMount(el, binding) {
+      console.log('beforeMount----------------------------------------');
+    },
     mounted(el, binding) {
+      console.log('mounted----------------------------------------');
       const type = binding.arg;
       let domValue: string = el.value;
       switch (type) {
@@ -157,11 +159,10 @@ const registerInputFilter = (app: App) => {
       el.value = domValue;
     },
     beforeUpdate(el, binding, vnode) {
-      console.log('el-----------', el, vnode);
+      console.log('beforeUpdate-----------', el, binding, vnode, binding?.instance as any);
       // https://juejin.cn/post/7115655868267364366
       // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
       el._assign = getModelAssigner(vnode);
-      console.log('el---------2--', el, getModelAssigner(vnode));
       const type = binding.arg;
       addEventListener(el, 'input', (e) => {
         if ((e.target as any).composing) return;
@@ -178,15 +179,15 @@ const registerInputFilter = (app: App) => {
         el._assign(domValue);
       });
     },
-    // updated(el, binding) {
-    //   console.log('updated---el, binding----------------------', el, binding);
-    // },
-    // beforeUnmount(el, binding) {
-    //   console.log('beforeUnmount---el, binding----------------------', el, binding);
-    // },
-    // unmounted(el, binding) {
-    //   console.log('unmounted---el, binding----------------------', el, binding);
-    // },
+    updated(el, binding) {
+      console.log('updated---el, binding----------------------', el, binding);
+    },
+    beforeUnmount(el, binding) {
+      console.log('beforeUnmount---el, binding----------------------', el, binding);
+    },
+    unmounted(el, binding) {
+      console.log('unmounted---el, binding----------------------', el, binding);
+    },
     deep: false,
   });
 };

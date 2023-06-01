@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2023-05-22 21:24:52
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-22 22:18:59
+ * @LastEditTime: 2023-05-25 22:36:10
  * @Description: 
 -->
 <template>
@@ -29,7 +29,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { IDirectiveTextBindingVO } from '../../../directives/directive-filter/directive-filter.api';
 
 const testText = ref<string>('');
@@ -44,6 +44,10 @@ const characters: string = '';
 function handleTextClear() {
   testText.value = '';
 }
+
+onMounted(() => {
+  console.log('mounted');
+});
 </script>
 <style lang="less" scoped>
 .input-directive {
