@@ -81,7 +81,7 @@
     padding-left: 14px;
     cursor: pointer;
 
-    .iconfont {
+    .ems-iconfont {
       font-size: 14px;
     }
 
