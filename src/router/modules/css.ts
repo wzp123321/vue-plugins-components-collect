@@ -2,18 +2,18 @@
  * @Author: wanzp
  * @Date: 2023-02-10 22:13:43
  * @LastEditors: wanzp
- * @LastEditTime: 2023-02-24 19:06:25
+ * @LastEditTime: 2023-06-04 19:19:31
  * @Description:
  */
 import { RouteRecordRaw } from 'vue-router';
 
 const cssComponents: RouteRecordRaw[] = [
   {
-    path: '/css-flex-dice',
+    path: '/css-home',
     meta: {
-      name: 'Flex布局-骰子',
+      name: 'CSS',
     },
-    component: () => import('../../pages/css/css-flex/cf-dice.vue'),
+    component: () => import('../../pages/css/index.vue'),
   },
   {
     path: '/css-grid-dice',

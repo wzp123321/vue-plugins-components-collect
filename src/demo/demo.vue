@@ -2,17 +2,23 @@
  * @Author: wanzp
  * @Date: 2022-10-31 21:20:45
  * @LastEditors: wanzp
- * @LastEditTime: 2023-05-20 16:46:27
+ * @LastEditTime: 2023-06-04 20:28:33
  * @Description: 
 -->
 <template>
   <div id="demo">
     <div class="demo-drag-container">
-      <div class="ddc-item"></div>
+      <button class="ddc-item" v-repeat-click="test">1234123213</button>
     </div>
   </div>
 </template>
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { vRepeatClick } from '../directives/directive-repeatClick/index';
+
+function test() {
+  console.log(111);
+}
+</script>
 <style lang="less" scoped>
 .demo {
   width: 100%;

@@ -1,12 +1,12 @@
 <template>
-  <div class="cf-dice">
-    <div class="cf-dice-item dice-first">
+  <div class="css-dice">
+    <div class="css-dice-item dice-first">
       <div class="dice-container">
         <span class="dice-circle"></span>
       </div>
     </div>
 
-    <div class="cf-dice-item dice-second">
+    <div class="css-dice-item dice-second">
       <div class="dice-container">
         <div>
           <span class="dice-circle"></span>
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="cf-dice-item dice-third">
+    <div class="css-dice-item dice-third">
       <div class="dice-container">
         <div>
           <span class="dice-circle"></span>
@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <div class="cf-dice-item dice-four">
+    <div class="css-dice-item dice-four">
       <div class="dice-container">
         <div>
           <span class="dice-circle"></span>
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div class="cf-dice-item dice-five">
+    <div class="css-dice-item dice-five">
       <div class="dice-container">
         <div>
           <span class="dice-circle"></span>
@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <div class="cf-dice-item dice-six">
+    <div class="css-dice-item dice-six">
       <div class="dice-container">
         <div>
           <span class="dice-circle"></span>
@@ -80,17 +80,16 @@
 </template>
 <script lang="ts" setup></script>
 <style lang="less" scoped>
-.cf-dice {
+.css-dice {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+  background-image: linear-gradient(90deg, #04182c, #000c17, #04182c);
 
   display: flex;
-  flex-direction: column;
   row-gap: 24px;
+  flex-wrap: wrap;
 
-  .cf-dice-item {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  .css-dice-item {
     padding: 16px;
 
     &.dice-first .dice-container {
@@ -150,7 +149,7 @@
     width: 120px;
     height: 120px;
 
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 4px;
 
     .dice-circle {
@@ -158,7 +157,7 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background-color: rgba(0, 0, 0, 0.65);
+      background-color: #fff;
     }
   }
 }

@@ -2,7 +2,7 @@
 @import '../style/global.less';
 @import url('../iconfont/index.less');
 
-each(range(50), {
+each(range(999), {
     .font@{value} {
       font-size: @value * 1px;
     }
@@ -21,6 +21,10 @@ each(range(50), {
     .ml@{value} {
       margin-left: @value * 1px;
     }
+
+    .h@{value} {
+      height: @value * 1px;
+    }
   });
 
 .module {
@@ -33,4 +37,23 @@ each(range(50), {
 ul,
 li {
   list-style: none;
+}
+
+.common-container {
+  width: calc(100% + 4px);
+  margin-left: -2px;
+  margin-right: -2px;
+
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(auto-fill, 50%);
+  grid-template-rows: auto;
+
+  .cc-item {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 2px;
+    border: 1px solid var(--color-text-divider);
+    border-radius: 4px;
+  }
 }
