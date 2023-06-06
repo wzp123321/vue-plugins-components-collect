@@ -1,5 +1,10 @@
 export const DEFAULT_WIDTH = 540;
 
+export enum YRP_EPosition {
+  左 = 'left',
+  右 = 'right',
+}
+
 /**
  * @param value 值
  * @param isToday 是否是今天

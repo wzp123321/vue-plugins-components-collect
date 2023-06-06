@@ -4,11 +4,11 @@
       <template #reference>
         <div class="yrp-trigger">
           <div class="yrp-input start-year">
-            <input type="text" size="12" :placeholder="props.placeholders[0]" autocomplete="off" />
+            <input type="text" size="12" :placeholder="props.placeholders[0]" autocomplete="off" :value="leftValue" />
           </div>
           <span class="yrp-separator">~</span>
           <div class="yrp-input start-year">
-            <input type="text" size="12" :placeholder="props.placeholders[1]" autocomplete="off" />
+            <input type="text" size="12" :placeholder="props.placeholders[1]" autocomplete="off" :value="rightValue" />
           </div>
           <i class="ems-iconfont icon-rili1"></i>
         </div>
@@ -18,11 +18,23 @@
       <div class="yrp-panel">
         <!-- 左 -->
         <ul class="yrp-panel-table left-table">
-          <li v-for="(item, index) in leftTableList" :key="index">{{ item.value }}</li>
+          <li
+            v-for="(item, index) in leftTableList"
+            :key="index"
+            :class="{ 'yrp-panel-table-td': true, 'out-view': item.isOutOfView }"
+          >
+            <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
+          </li>
         </ul>
         <!-- 右 -->
         <ul class="yrp-panel-table right-table">
-          <li v-for="(item, index) in leftTableList" :key="index">{{ item.value }}</li>
+          <li
+            v-for="(item, index) in rightTableList"
+            :key="index"
+            :class="{ 'yrp-panel-table-td': true, 'out-view': item.isOutOfView }"
+          >
+            <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
+          </li>
         </ul>
       </div>
     </el-popover>
@@ -31,7 +43,7 @@
 </template>
 <script lang="ts" setup name="YearRangePicker">
 import { onMounted, PropType, ref } from 'vue';
-import { DEFAULT_WIDTH, YRP_IYearVO } from './year-range-picker.api';
+import { DEFAULT_WIDTH, YRP_IYearVO, YRP_EPosition } from './year-range-picker.api';
 
 const props = defineProps({
   modelValue: {
@@ -49,6 +61,8 @@ const props = defineProps({
 // 左右列表
 const leftTableList = ref<YRP_IYearVO[]>([]);
 const rightTableList = ref<YRP_IYearVO[]>([]);
+const leftValue = ref<string>('2019');
+const rightValue = ref<string>('2023');
 /**
  * 用于计算两边表格数据，
  * minYear~(minYear+12-1)    (minYear+10)~(minYear+10+12-1)
@@ -63,12 +77,12 @@ function initMinYear() {
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
   minYear.value = sYear === 0 ? cYear - (cYear % 10) - 1 : sYear - (sYear % 10) - 1;
 }
-function initYearTableList(minYear: number) {
+function initYearTableList(minYearValue: number, position: YRP_EPosition) {
   const cYear = new Date().getFullYear();
   let list: YRP_IYearVO[] = [];
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
   const eYear = props?.modelValue?.length === 2 ? props?.modelValue?.[1]?.getFullYear() : 0;
-  for (let i = minYear; i < minYear + 12; i++) {
+  for (let i = minYearValue; i < minYearValue + 12; i++) {
     list.push({
       value: i,
       isToday: cYear === i,
@@ -76,10 +90,11 @@ function initYearTableList(minYear: number) {
       isEnd: eYear === i,
       isInRange: props?.modelValue?.length === 2 && i >= sYear && i <= eYear,
       isDisabled: props?.disabledDate ? props?.disabledDate(new Date(i)) : false,
-      isOutOfView: minYear === i || minYear + 12 - 1 === i,
+      isOutOfView:
+        (position === YRP_EPosition.左 && (i === minYear.value || i === minYear.value + 12 - 1)) ||
+        (position === YRP_EPosition.右 && (i === minYear.value + 10 || i === minYear.value + 10 + 12 - 1)),
     });
   }
-
   return list;
 }
 
@@ -87,11 +102,16 @@ function initYearTableList(minYear: number) {
 function handleClear() {
   console.log('clear');
 }
-
+function mapDateSelected(value: number) {
+  return (
+    (leftValue.value !== '' && value === Number(leftValue.value)) ||
+    (rightValue.value !== '' && value === Number(rightValue.value))
+  );
+}
 onMounted(() => {
   initMinYear();
-  leftTableList.value = initYearTableList(minYear.value);
-  rightTableList.value = initYearTableList(minYear.value + 10);
+  leftTableList.value = initYearTableList(minYear.value, YRP_EPosition.左);
+  rightTableList.value = initYearTableList(minYear.value + 10, YRP_EPosition.右);
   console.log('minYear.value --------------------', minYear.value);
   console.log('leftTableList.value --------------------', leftTableList.value);
   console.log('rightTableList.value --------------------', rightTableList.value);
@@ -183,8 +203,22 @@ onMounted(() => {
       li {
         cursor: pointer;
         display: inline-block;
-        padding: 16px 20px;
-        color: var(--color-text-primary);
+        padding: 16px 0;
+
+        .date-label {
+          display: inline-block;
+          padding: 0 20px;
+          color: var(--color-text-primary);
+        }
+      }
+
+      li.yrp-panel-table-td {
+        > span {
+          color: var(--color-text-primary);
+        }
+        &.out-view > span {
+          color: var(--color-text-disable);
+        }
       }
     }
   }
