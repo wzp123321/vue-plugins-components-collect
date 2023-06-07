@@ -21,40 +21,46 @@
         </div>
       </template>
 
-      <!-- body -->
+      <!-- header -->
       <div class="yrp-panel">
-        <!-- 左 -->
-        <ul class="yrp-panel-table left-table">
-          <li
-            v-for="(item, index) in leftTableList"
-            :key="index"
-            :class="{
-              'yrp-panel-table-td': true,
-              'out-view': item.isOutOfView,
-              'start-date': item.isStart,
-              'end-date': item.isEnd,
-              'in-range': item.isInRange,
-            }"
-          >
-            <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
-          </li>
-        </ul>
-        <!-- 右 -->
-        <ul class="yrp-panel-table right-table">
-          <li
-            v-for="(item, index) in rightTableList"
-            :key="index"
-            :class="{
-              'yrp-panel-table-td': true,
-              'out-view': item.isOutOfView,
-              'start-date': item.isStart,
-              'end-date': item.isEnd,
-              'in-range': item.isInRange,
-            }"
-          >
-            <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
-          </li>
-        </ul>
+        <div class="yrp-panel-header">
+          <div class="start-scope">2222</div>
+          <div class="end-scope">3333</div>
+        </div>
+        <div class="yrp-panel-body">
+          <!-- 左 -->
+          <ul class="yrp-panel-table left-table">
+            <li
+              v-for="(item, index) in leftTableList"
+              :key="index"
+              :class="{
+                'yrp-panel-table-td': true,
+                'out-view': item.isOutOfView,
+                'start-date': item.isStart,
+                'end-date': item.isEnd,
+                'in-range': item.isInRange,
+              }"
+            >
+              <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
+            </li>
+          </ul>
+          <!-- 右 -->
+          <ul class="yrp-panel-table right-table">
+            <li
+              v-for="(item, index) in rightTableList"
+              :key="index"
+              :class="{
+                'yrp-panel-table-td': true,
+                'out-view': item.isOutOfView,
+                'start-date': item.isStart,
+                'end-date': item.isEnd,
+                'in-range': item.isInRange,
+              }"
+            >
+              <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </el-popover>
     <i class="ems-iconfont icon-qingkong" @click="handleClear"></i>
@@ -239,63 +245,89 @@ onMounted(() => {
     }
   }
 
-  .yrp-panel {
-    display: flex;
-    gap: 24px;
-    min-height: 184px;
+  :deep(.el-popper) {
+    padding: 0 !important;
 
-    ul.yrp-panel-table {
-      margin-bottom: 0;
-      flex: auto;
-      height: 100%;
-
+    .yrp-panel {
       display: flex;
-      flex-wrap: wrap;
-      row-gap: 32px;
+      flex-direction: column;
+      // min-height: 184px;
 
-      li {
-        cursor: pointer;
-        display: inline-block;
-        padding: 0 16px;
+      .yrp-panel-header {
+        padding: 10px 16px;
+        display: flex;
+        border-bottom: 1px solid var(--color-text-divider);
 
-        .date-label {
-          display: inline-block;
-          padding: 0 8px;
-          color: var(--color-text-primary);
+        .start-scope,
+        .end-scope {
+          flex: auto;
+          text-align: center;
         }
       }
 
-      li.yrp-panel-table-td {
-        > span {
-          color: var(--color-text-primary);
-        }
+      .yrp-panel-body {
+        display: flex;
+        flex-direction: row;
 
-        &.in-range:not(.out-view) {
-          background-color: var(--color-active);
-        }
+        ul.yrp-panel-table {
+          padding: 16px;
+          margin-bottom: 0;
+          flex: auto;
+          height: 100%;
 
-        &.start-date {
-          padding-left: 0;
-          margin-right: 16px;
-        }
+          display: flex;
+          flex-wrap: wrap;
+          row-gap: 32px;
 
-        &.end-date {
-          padding-right: 0;
-          margin-right: 16px;
-        }
-
-        &.start-date,
-        &.end-date {
-          background-color: var(--color-active);
-
-          > span {
-            color: var(--color-default);
-            background-color: var(--color-primary);
+          &.left-table {
+            border-right: 1px solid var(--color-text-divider);
           }
-        }
 
-        &.out-view > span {
-          color: var(--color-text-disable);
+          li {
+            cursor: pointer;
+            display: inline-block;
+            padding: 0 16px;
+
+            .date-label {
+              display: inline-block;
+              padding: 0 8px;
+              color: var(--color-text-primary);
+            }
+          }
+
+          li.yrp-panel-table-td {
+            > span {
+              color: var(--color-text-primary);
+            }
+
+            &.in-range:not(.out-view) {
+              background-color: var(--color-active);
+            }
+
+            &.start-date {
+              padding-left: 0;
+              margin-right: 16px;
+            }
+
+            &.end-date {
+              padding-right: 0;
+              margin-right: 16px;
+            }
+
+            &.start-date,
+            &.end-date {
+              background-color: var(--color-active);
+
+              > span {
+                color: var(--color-default);
+                background-color: var(--color-primary);
+              }
+            }
+
+            &.out-view > span {
+              color: var(--color-text-disable);
+            }
+          }
         }
       }
     }
