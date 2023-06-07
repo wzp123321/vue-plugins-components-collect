@@ -1,6 +1,13 @@
 <template>
   <div class="year-range-picker can-clear" id="year-range-picker">
-    <el-popover :teleported="false" placement="bottom" :showArrow="false" :width="DEFAULT_WIDTH" trigger="click">
+    <el-popover
+      :teleported="false"
+      placement="bottom"
+      :showArrow="false"
+      :width="DEFAULT_WIDTH"
+      trigger="click"
+      @show="handleShow"
+    >
       <template #reference>
         <div class="yrp-trigger">
           <div class="yrp-input start-year">
@@ -21,7 +28,13 @@
           <li
             v-for="(item, index) in leftTableList"
             :key="index"
-            :class="{ 'yrp-panel-table-td': true, 'out-view': item.isOutOfView }"
+            :class="{
+              'yrp-panel-table-td': true,
+              'out-view': item.isOutOfView,
+              'start-date': item.isStart,
+              'end-date': item.isEnd,
+              'in-range': item.isInRange,
+            }"
           >
             <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
           </li>
@@ -31,7 +44,13 @@
           <li
             v-for="(item, index) in rightTableList"
             :key="index"
-            :class="{ 'yrp-panel-table-td': true, 'out-view': item.isOutOfView }"
+            :class="{
+              'yrp-panel-table-td': true,
+              'out-view': item.isOutOfView,
+              'start-date': item.isStart,
+              'end-date': item.isEnd,
+              'in-range': item.isInRange,
+            }"
           >
             <span class="date-label" :title="item.value + ''">{{ item.value }}</span>
           </li>
@@ -42,9 +61,10 @@
   </div>
 </template>
 <script lang="ts" setup name="YearRangePicker">
-import { onMounted, PropType, ref } from 'vue';
+import { onMounted, PropType, ref, watch } from 'vue';
 import { DEFAULT_WIDTH, YRP_IYearVO, YRP_EPosition } from './year-range-picker.api';
 
+const emits = defineEmits(['update:modelValue', 'change']);
 const props = defineProps({
   modelValue: {
     type: Array as PropType<Date[]>,
@@ -75,46 +95,77 @@ const minYear = ref<number>(0);
 function initMinYear() {
   const cYear = new Date().getFullYear();
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
+  console.log(sYear);
   minYear.value = sYear === 0 ? cYear - (cYear % 10) - 1 : sYear - (sYear % 10) - 1;
 }
+/**
+ * 生成左右两侧表格
+ * @param minYearValue
+ * @param position
+ */
 function initYearTableList(minYearValue: number, position: YRP_EPosition) {
   const cYear = new Date().getFullYear();
   let list: YRP_IYearVO[] = [];
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
   const eYear = props?.modelValue?.length === 2 ? props?.modelValue?.[1]?.getFullYear() : 0;
   for (let i = minYearValue; i < minYearValue + 12; i++) {
+    const isOutOfView =
+      (position === YRP_EPosition.左 && (i === minYear.value || i === minYear.value + 12 - 1)) ||
+      (position === YRP_EPosition.右 && (i === minYear.value + 10 || i === minYear.value + 10 + 12 - 1));
     list.push({
       value: i,
       isToday: cYear === i,
-      isStart: sYear === i,
-      isEnd: eYear === i,
+      isStart: sYear === i && !isOutOfView,
+      isEnd: eYear === i && !isOutOfView,
       isInRange: props?.modelValue?.length === 2 && i >= sYear && i <= eYear,
       isDisabled: props?.disabledDate ? props?.disabledDate(new Date(i)) : false,
-      isOutOfView:
-        (position === YRP_EPosition.左 && (i === minYear.value || i === minYear.value + 12 - 1)) ||
-        (position === YRP_EPosition.右 && (i === minYear.value + 10 || i === minYear.value + 10 + 12 - 1)),
+      isOutOfView,
     });
   }
   return list;
 }
-
+function initInputValue() {
+  leftValue.value = '';
+  rightValue.value = '';
+  if (props.modelValue?.length) {
+    leftValue.value = props.modelValue?.[0]?.getFullYear() + '';
+    rightValue.value = props.modelValue?.[1]?.getFullYear() + '';
+  }
+}
 // 清空
 function handleClear() {
-  console.log('clear');
+  leftValue.value = '';
+  rightValue.value = '';
+  leftTableList.value = [];
+  rightTableList.value = [];
+  emits('update:modelValue', []);
+  emits('change', []);
 }
-function mapDateSelected(value: number) {
-  return (
-    (leftValue.value !== '' && value === Number(leftValue.value)) ||
-    (rightValue.value !== '' && value === Number(rightValue.value))
-  );
-}
-onMounted(() => {
+/**
+ * 打开弹出层
+ */
+function handleShow() {
   initMinYear();
   leftTableList.value = initYearTableList(minYear.value, YRP_EPosition.左);
   rightTableList.value = initYearTableList(minYear.value + 10, YRP_EPosition.右);
-  console.log('minYear.value --------------------', minYear.value);
-  console.log('leftTableList.value --------------------', leftTableList.value);
-  console.log('rightTableList.value --------------------', rightTableList.value);
+}
+watch(
+  () => props.modelValue,
+  () => {
+    initInputValue();
+  },
+  {
+    immediate: true,
+  },
+);
+onMounted(() => {
+  // console.log('onMounted---props.modelValue-----------', props.modelValue);
+  // initMinYear();
+  // leftTableList.value = initYearTableList(minYear.value, YRP_EPosition.左);
+  // rightTableList.value = initYearTableList(minYear.value + 10, YRP_EPosition.右);
+  // console.log('minYear.value --------------------', minYear.value);
+  // console.log('leftTableList.value --------------------', leftTableList.value);
+  // console.log('rightTableList.value --------------------', rightTableList.value);
 });
 </script>
 <style lang="less" scoped>
@@ -191,23 +242,25 @@ onMounted(() => {
   .yrp-panel {
     display: flex;
     gap: 24px;
+    min-height: 184px;
 
     ul.yrp-panel-table {
+      margin-bottom: 0;
       flex: auto;
       height: 100%;
 
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      row-gap: 32px;
 
       li {
         cursor: pointer;
         display: inline-block;
-        padding: 16px 0;
+        padding: 0 16px;
 
         .date-label {
           display: inline-block;
-          padding: 0 20px;
+          padding: 0 8px;
           color: var(--color-text-primary);
         }
       }
@@ -216,6 +269,31 @@ onMounted(() => {
         > span {
           color: var(--color-text-primary);
         }
+
+        &.in-range:not(.out-view) {
+          background-color: var(--color-active);
+        }
+
+        &.start-date {
+          padding-left: 0;
+          margin-right: 16px;
+        }
+
+        &.end-date {
+          padding-right: 0;
+          margin-right: 16px;
+        }
+
+        &.start-date,
+        &.end-date {
+          background-color: var(--color-active);
+
+          > span {
+            color: var(--color-default);
+            background-color: var(--color-primary);
+          }
+        }
+
         &.out-view > span {
           color: var(--color-text-disable);
         }
