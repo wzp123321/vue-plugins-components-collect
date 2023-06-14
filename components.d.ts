@@ -8,7 +8,6 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     Designer: typeof import('./src/components/Designer.vue')['default']
-    ElPopover: typeof import('element-plus/es')['ElPopover']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SpreadSheets: typeof import('./src/components/SpreadSheets.vue')['default']
