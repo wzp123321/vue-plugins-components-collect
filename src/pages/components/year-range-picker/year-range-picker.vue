@@ -22,10 +22,18 @@
       </template>
 
       <!-- header -->
-      <div class="yrp-panel">
+      <div class="yrp-panel" :style="{ height: `${DEFAULT_HEIGHT}px` }">
         <div class="yrp-panel-header">
-          <div class="start-scope">2222</div>
-          <div class="end-scope">3333</div>
+          <div class="start-scope">
+            <i class="ems-iconfont"></i>
+            <span>2222</span>
+            <i class="ems-iconfont"></i>
+          </div>
+          <div class="end-scope">
+            <i class="ems-iconfont"></i>
+            <span>2222</span>
+            <i class="ems-iconfont"></i>
+          </div>
         </div>
         <div class="yrp-panel-body">
           <!-- 左 -->
@@ -68,7 +76,7 @@
 </template>
 <script lang="ts" setup name="YearRangePicker">
 import { onMounted, PropType, ref, watch } from 'vue';
-import { DEFAULT_WIDTH, YRP_IYearVO, YRP_EPosition } from './year-range-picker.api';
+import { DEFAULT_WIDTH, DEFAULT_HEIGHT, YRP_IYearVO, YRP_EPosition } from './year-range-picker.api';
 
 const emits = defineEmits(['update:modelValue', 'change']);
 const props = defineProps({
@@ -251,17 +259,21 @@ onMounted(() => {
     .yrp-panel {
       display: flex;
       flex-direction: column;
-      // min-height: 184px;
 
       .yrp-panel-header {
-        padding: 10px 16px;
+        padding: 9px 16px 8px;
         display: flex;
         border-bottom: 1px solid var(--color-text-divider);
 
         .start-scope,
         .end-scope {
           flex: auto;
-          text-align: center;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+
+          color: var(--color-text-title);
         }
       }
 
@@ -270,7 +282,7 @@ onMounted(() => {
         flex-direction: row;
 
         ul.yrp-panel-table {
-          padding: 16px;
+          padding: 32px;
           margin-bottom: 0;
           flex: auto;
           height: 100%;
@@ -279,20 +291,28 @@ onMounted(() => {
           flex-wrap: wrap;
           row-gap: 32px;
 
-          &.left-table {
-            border-right: 1px solid var(--color-text-divider);
-          }
-
           li {
             cursor: pointer;
             display: inline-block;
-            padding: 0 16px;
+            padding: 0 16px 0 15px;
 
             .date-label {
               display: inline-block;
-              padding: 0 8px;
+              padding: 1px 8px;
               color: var(--color-text-primary);
             }
+
+            &:nth-child(3n + 1) {
+              padding-left: 0;
+            }
+
+            &:nth-child(3n) {
+              padding-right: 0;
+            }
+          }
+
+          li:not(.in-range):not(.out-view):not(.start-date):not(.end-date):hover > span {
+            background-color: var(--color-active);
           }
 
           li.yrp-panel-table-td {
@@ -307,11 +327,26 @@ onMounted(() => {
             &.start-date {
               padding-left: 0;
               margin-right: 16px;
+              border-top-left-radius: 3px;
+              border-bottom-left-radius: 3px;
+
+              > span {
+                border-top-left-radius: 3px;
+                border-bottom-left-radius: 3px;
+              }
             }
 
             &.end-date {
               padding-right: 0;
               margin-right: 16px;
+
+              border-top-right-radius: 3px;
+              border-bottom-right-radius: 3px;
+
+              > span {
+                border-top-right-radius: 3px;
+                border-bottom-right-radius: 3px;
+              }
             }
 
             &.start-date,
