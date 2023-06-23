@@ -5,9 +5,15 @@
  * @LastEditTime: 2023-05-25 22:41:46
  * @Description:
  */
-import { App, DirectiveBinding } from 'vue';
+import { App, DirectiveBinding, VNode } from 'vue';
 import { EDirectiveType, IDirectiveTextBindingVO, IDirectiveNumberBindingVO } from './directive-filter.api';
-import { getModelAssigner, addEventListener, deduplicate, looseToNumber } from './directive-filter.utils';
+import {
+  getModelAssigner,
+  addEventListener,
+  deduplicate,
+  looseToNumber,
+  removeEventListener,
+} from './directive-filter.utils';
 
 /**
  * 过滤文本
@@ -117,29 +123,34 @@ function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirecti
   return domValue;
 }
 
+function addEventByType(el: HTMLInputElement, binding: DirectiveBinding<any>, vnode: VNode) {
+  // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
+  (el as any)._assign = getModelAssigner(vnode);
+  const type = binding.arg;
+
+  const onInput = (e: Event) => {
+    if ((e.target as any).composing) return;
+    let domValue: string = el.value;
+    switch (type) {
+      case EDirectiveType.文本:
+        domValue = handleTextFilter(domValue, binding);
+        break;
+      case EDirectiveType.数字:
+        domValue = handleNumberFilter(domValue, binding);
+        break;
+    }
+    // 调用 el._assign 方法更新数据
+    (el as any)._assign(domValue);
+  };
+  removeEventListener(el, 'input', onInput);
+  addEventListener(el, 'input', onInput);
+}
+
 // https://www.bilibili.com/video/BV1td4y1r76e/?spm_id_from=333.337.search-card.all.click&vd_source=0f5e2a21dd6833ba3d8d41c10053181d
 const registerInputFilter = (app: App) => {
   app.directive('inputFilter', {
     created(el, binding, vnode) {
-      console.log('created-------------------', el, vnode);
-      // https://juejin.cn/post/7115655868267364366
-      // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
-      el._assign = getModelAssigner(vnode);
-      const type = binding.arg;
-      addEventListener(el, 'input', (e) => {
-        if ((e.target as any).composing) return;
-        let domValue: string = el.value;
-        switch (type) {
-          case EDirectiveType.文本:
-            domValue = handleTextFilter(domValue, binding);
-            break;
-          case EDirectiveType.数字:
-            domValue = handleNumberFilter(domValue, binding);
-            break;
-        }
-        // 调用 el._assign 方法更新数据
-        el._assign(domValue);
-      });
+      addEventByType(el, binding, vnode);
     },
     beforeMount(el, binding) {
       console.log('beforeMount----------------------------------------');
@@ -159,8 +170,6 @@ const registerInputFilter = (app: App) => {
       el.value = domValue;
     },
     beforeUpdate(el, binding, vnode) {
-      console.log('beforeUpdate-----------', el, binding, vnode, binding?.instance as any);
-      // https://juejin.cn/post/7115655868267364366
       // 通过 getModelAssigner 方法获取 props 中的 onUpdate:modelValue 属性对应的函数，赋值给 el._assign 属性；_assign可任意命名
       el._assign = getModelAssigner(vnode);
       const type = binding.arg;
