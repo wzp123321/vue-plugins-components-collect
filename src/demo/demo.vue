@@ -1,40 +1,30 @@
-<!--
- * @Author: wanzp
- * @Date: 2022-10-31 09:22:34
- * @LastEditors: wanzp
- * @LastEditTime: 2023-07-04 14:05:43
- * @Description: Description
--->
 <template>
   <div id="demo">
-    <div class="demo-drag-container">
-      <svg>
-        <use xlink:href="#icon-shangsheng"></use>
-      </svg>
-    </div>
+    <span :style="{ fontSize: fontSize, fontWeight: fontWeight }">{{ text }}</span>
   </div>
 </template>
 <script lang="ts" setup>
-import { vRepeatClick } from '../directives/directive-repeatClick/index';
+const text = '我在测试()%!^#jiq我发货哦';
+const fontSize = '14px';
+const fontWeight = '700';
+
+function getTextWidth(str: string, fontSize: string, fontWeight: string) {
+  var width = 0;
+  var html = document.createElement('span');
+  html.innerText = str;
+  html.className = 'getTextWidth';
+  html.style.fontSize = fontSize;
+  html.style.fontWeight = fontWeight;
+  document.querySelector('body')?.appendChild(html);
+  width = (document.querySelector('.getTextWidth') as HTMLElement).offsetWidth;
+  document.querySelector('.getTextWidth')?.remove();
+  return width;
+}
+
 </script>
 <style lang="less" scoped>
 .demo {
   width: 100%;
   height: 100%;
-
-  .demo-drag-container {
-    width: 90%;
-    height: 90%;
-    margin: 5% 5%;
-
-    border: 1px dashed var(--color-text-divider);
-    border-radius: 4px;
-
-    .ddc-item {
-      width: 360px;
-      height: 360px;
-      border: 1px solid var(--color-text-divider);
-    }
-  }
 }
 </style>

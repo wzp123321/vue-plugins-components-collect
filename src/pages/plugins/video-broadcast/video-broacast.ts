@@ -11,7 +11,7 @@ export default defineComponent({
   name: 'VideoBroadCast',
   setup() {
     const text1 = ref<string>(
-      '仆去月谢病，还觅薜萝。梅溪之西，有石门山者，森壁争霞，孤峰限日；幽岫含云，深溪蓄翠；蝉吟鹤唳，水响猿啼，英英相杂，绵绵成韵。既素重幽居，遂葺宇其上。幸富菊花，偏饶竹实。山谷所资，于斯已办。仁智之乐，岂徒语哉！'
+      '仆去月谢病，还觅薜萝。梅溪之西，有石门山者，森壁争霞，孤峰限日；幽岫含云，深溪蓄翠；蝉吟鹤唳，水响猿啼，英英相杂，绵绵成韵。既素重幽居，遂葺宇其上。幸富菊花，偏饶竹实。山谷所资，于斯已办。仁智之乐，岂徒语哉！',
     );
     const audioContext = new AudioContext({ latencyHint: 'balanced' });
     const videoBroadCast = async () => {
@@ -38,7 +38,7 @@ export default defineComponent({
      * @returns {ArrayBuffer}
      */
     const getMp3ArrayBuffer = async (url: string) => {
-      return fetch(url).then(r => r.arrayBuffer());
+      return fetch(url).then((r) => r.arrayBuffer());
     };
 
     /**
@@ -51,7 +51,7 @@ export default defineComponent({
 
     const speak = () => {
       const speechSynthesis = window.speechSynthesis;
-      const speechUtterance = new SpeechSynthesisUtterance('支付宝到账1万元');
+      const speechUtterance = new SpeechSynthesisUtterance(text1.value);
       // speechUtterance.text = '支付宝到账1万元'; // 文字内容
       // speechUtterance.lang = 'zh-CN'; // 使用的语言:中文-zh-CN
       // speechUtterance.volume = 1; // 声音音量：1
