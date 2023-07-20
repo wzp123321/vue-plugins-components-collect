@@ -1,23 +1,21 @@
 <!--
  * @Author: wanzp
- * @Date: 2022-10-31 21:20:45
+ * @Date: 2022-10-31 09:22:34
  * @LastEditors: wanzp
- * @LastEditTime: 2023-06-04 20:28:33
- * @Description: 
+ * @LastEditTime: 2023-07-04 14:05:43
+ * @Description: Description
 -->
 <template>
   <div id="demo">
     <div class="demo-drag-container">
-      <button class="ddc-item" v-repeat-click="test">1234123213</button>
+      <svg>
+        <use xlink:href="#icon-shangsheng"></use>
+      </svg>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import { vRepeatClick } from '../directives/directive-repeatClick/index';
-
-function test() {
-  console.log(111);
-}
 </script>
 <style lang="less" scoped>
 .demo {

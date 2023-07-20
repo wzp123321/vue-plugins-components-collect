@@ -2,7 +2,7 @@
  * @Author: wanzp
  * @Date: 2022-07-11 19:35:59
  * @LastEditors: wanzp
- * @LastEditTime: 2023-06-20 13:54:18
+ * @LastEditTime: 2023-07-04 14:02:13
  * @Description:
  */
 import { createApp } from 'vue';
@@ -16,6 +16,8 @@ import './assets/style/global.less';
 import 'element-plus/dist/index.css';
 import 'jspreadsheet-ce/dist/jspreadsheet.css';
 import 'jsuites/dist/jsuites.css';
+
+import './assets/test-color.js'
 
 import registerInputFilter from './directives/directive-filter/directive-filter';
 import dragDirectiveRegister from './directives/directive-drag/directive-drag';
