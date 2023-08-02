@@ -21,7 +21,6 @@ function getTextWidth(str: string, fontSize: string, fontWeight: string) {
   return width;
 }
 
-console.log(getTextWidth(text, fontSize, fontWeight));
 </script>
 <style lang="less" scoped>
 .demo {

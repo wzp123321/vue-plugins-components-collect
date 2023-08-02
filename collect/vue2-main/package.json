@@ -57,18 +57,6 @@
     "release": "node scripts/release.js",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
-  "gitHooks": {
-    "pre-commit": "lint-staged",
-    "commit-msg": "node scripts/verify-commit-msg.js"
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier --write"
-    ],
-    "*.ts": [
-      "prettier --parser=typescript --write"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vuejs/vue.git"
@@ -109,7 +97,6 @@
     "karma-cli": "^2.0.0",
     "karma-esbuild": "^2.2.4",
     "karma-jasmine": "^5.0.1",
-    "lint-staged": "^12.5.0",
     "lodash": "^4.17.21",
     "marked": "^4.0.16",
     "minimist": "^1.2.6",
