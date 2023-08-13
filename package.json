@@ -32,8 +32,7 @@
     "vue": "^3.2.38",
     "vue-router": "^4.1.5",
     "vue-virtual-scroller": "^2.0.0-beta.5",
-    "vue3-slide-verify": "^1.1.4",
-    "web-core": "^1.3.9"
+    "vue3-slide-verify": "^1.1.4"
   },
   "devDependencies": {
     "@types/jspreadsheet-ce": "^4.7.3",
