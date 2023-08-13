@@ -1,6 +1,6 @@
 <template>
   <h1>圣杯布局</h1>
-  <div class="css-grid-grail">
+  <div class="ce-grid-grail">
     <header>header</header>
     <aside>aside-left</aside>
     <article>article</article>
@@ -10,7 +10,7 @@
 </template>
 <script lang="ts" setup></script>
 <style lang="less" scoped>
-.css-grid-grail {
+.ce-grid-grail {
   display: grid;
   grid-template-columns: 150px auto 150px;
   grid-auto-rows: minmax(150px, auto);

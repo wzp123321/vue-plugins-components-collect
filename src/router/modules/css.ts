@@ -16,7 +16,7 @@ const cssComponents: RouteRecordRaw[] = [
     component: () => import('../../pages/css/index.vue'),
   },
   {
-    path: '/css-grid-dice',
+    path: '/css-grid',
     meta: {
       name: 'Grid布局',
     },

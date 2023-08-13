@@ -1,6 +1,6 @@
 <template>
   <h1>水平垂直居中</h1>
-  <div class="css-grid-center">
+  <div class="ce-grid-center">
     <main class="one"></main>
   </div>
 </template>
@@ -8,7 +8,7 @@
 <style lang="less" scoped>
 @import (once) './style.css';
 
-.css-grid-center {
+.ce-grid-center {
   display: grid;
   place-content: center;
   min-height: 300px;

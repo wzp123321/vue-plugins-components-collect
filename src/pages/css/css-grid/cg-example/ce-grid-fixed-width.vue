@@ -1,7 +1,7 @@
 <template>
-  <h1>水平等分</h1>
-  <div class="css-grid-halve">
-    <div class="one item"><h1>1211111111111111111111111111111111111111111111111111111111111111111111111111</h1></div>
+  <h1>固定宽度</h1>
+  <div class="ce-grid-fixed-width">
+    <div class="one item">One</div>
     <div class="two item">Two</div>
     <div class="three item">Three</div>
     <div class="four item">Four</div>
@@ -12,14 +12,12 @@
 <script lang="ts" setup></script>
 <style lang="less" scoped>
 @import (once) './style.css';
-
-.css-grid-halve {
+.ce-grid-fixed-width {
   display: grid;
-
-  grid-template-columns: repeat(auto-fill, 400px);
+  grid-template-columns: 500px 300px 400px;
   /*  声明行间距和列间距  */
   grid-gap: 20px;
   /*  声明行的高度  */
-  grid-auto-rows: 160px;
+  grid-template-rows: 100px 200px;
 }
 </style>

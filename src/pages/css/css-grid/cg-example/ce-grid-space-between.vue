@@ -1,6 +1,6 @@
 <template>
   <h1>两端对齐-宽度固定</h1>
-  <div class="css-grid-space-between-fix-width">
+  <div class="ce-grid-space-between-fix-width">
     <div class="item one">1</div>
     <div class="item two">2</div>
     <div class="item three">3</div>
@@ -13,7 +13,7 @@
     <div class="item ten">10</div>
   </div>
   <h1>两端对齐-宽度不固定</h1>
-  <div class="css-grid-space-between-auto-width">
+  <div class="ce-grid-space-between-auto-width">
     <div class="item one">11111111111111111111111111111111111111</div>
     <div class="item two">2</div>
     <div class="item three">3</div>
@@ -40,7 +40,7 @@
 <style lang="less" scoped>
 @import (once) './style.css';
 
-.css-grid-space-between-fix-width {
+.ce-grid-space-between-fix-width {
   display: grid;
   grid-template-columns: repeat(auto-fill, 200px);
   justify-content: space-between;
@@ -56,7 +56,7 @@
   }
 }
 
-.css-grid-space-between-auto-width {
+.ce-grid-space-between-auto-width {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   grid-auto-rows: minmax(100px, auto);
