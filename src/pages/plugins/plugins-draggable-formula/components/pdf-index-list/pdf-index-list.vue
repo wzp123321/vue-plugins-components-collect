@@ -8,6 +8,7 @@
       :sort="false"
       animation="300"
       @start="handleDragStart"
+      @end="handleDragEnd"
     >
       <template #item="{ element }">
         <div class="pil-drag-container-item" :style="mapIndexStyle(element.indexType)">
@@ -18,10 +19,14 @@
   </div>
 </template>
 <script lang="ts" setup>
+import dragStore from '../../../../../store/modules/drag';
+
 import draggable from 'vuedraggable';
-import { PDF_IFieldVO, PIL_EFieldStyle, mockList } from './pdf-index-list.api';
-import { PDF_EFieldType } from '../../plugins-draggable-formula.api';
+import { PIL_EFieldStyleMap, mockList } from './pdf-index-list.api';
+import { PDF_EFieldType, PDF_IFieldVO } from '../../plugins-draggable-formula.api';
 import { ref } from 'vue';
+
+const store = dragStore();
 
 // 指标列表
 const indexList = ref<PDF_IFieldVO[]>(mockList);
@@ -29,7 +34,7 @@ const indexList = ref<PDF_IFieldVO[]>(mockList);
  * 指标样式
  */
 const mapIndexStyle = (type: PDF_EFieldType) => {
-  return PIL_EFieldStyle[type];
+  return PIL_EFieldStyleMap.get(type);
 };
 
 /**
@@ -37,11 +42,19 @@ const mapIndexStyle = (type: PDF_EFieldType) => {
  */
 const handleDragStart = (event: Event) => {
   console.log(event);
+
+  store.setDragFlag(true);
+};
+/**
+ * 拖拽结束
+ */
+const handleDragEnd = () => {
+  store.setDragFlag(false);
 };
 </script>
 <style lang="less" scoped>
 .pdf-index-list {
-  height: 100;
+  height: 100%;
   background-color: #f5f7fa;
   padding: 16px;
 

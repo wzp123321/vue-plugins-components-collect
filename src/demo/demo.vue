@@ -1,26 +1,31 @@
 <template>
   <div id="demo">
-    <span :style="{ fontSize: fontSize, fontWeight: fontWeight }">{{ text }}</span>
+    <draggable v-model="myArray" group="people" animation="1000" @start="onStart" @end="onEnd">
+      <template #item="{ element }">
+        <div class="item">{{ element.name }}</div>
+      </template>
+    </draggable>
   </div>
 </template>
 <script lang="ts" setup>
-const text = '我在测试()%!^#jiq我发货哦';
-const fontSize = '14px';
-const fontWeight = '700';
+import { ref } from 'vue';
+import draggable from 'vuedraggable';
 
-function getTextWidth(str: string, fontSize: string, fontWeight: string) {
-  var width = 0;
-  var html = document.createElement('span');
-  html.innerText = str;
-  html.className = 'getTextWidth';
-  html.style.fontSize = fontSize;
-  html.style.fontWeight = fontWeight;
-  document.querySelector('body')?.appendChild(html);
-  width = (document.querySelector('.getTextWidth') as HTMLElement).offsetWidth;
-  document.querySelector('.getTextWidth')?.remove();
-  return width;
+const myArray = ref([
+  { people: 'cn', id: 1, name: '张三' },
+  { people: 'cn', id: 2, name: '李四' },
+  { people: 'cn', id: 3, name: '王五' },
+  { people: 'cn', id: 4, name: '钟馗' },
+]);
+
+// 开始拖拽事件
+function onStart() {
+  // to do
 }
-
+// 拖拽结束事件
+function onEnd() {
+  // to do
+}
 </script>
 <style lang="less" scoped>
 .demo {

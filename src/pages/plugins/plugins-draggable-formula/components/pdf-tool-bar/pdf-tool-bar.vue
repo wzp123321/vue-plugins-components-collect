@@ -11,6 +11,7 @@
         :sort="false"
         animation="300"
         @start="handleDragStart"
+        @end="handleDragEnd"
       >
         <template #item="{ element }">
           <span>{{ element.name }}</span>
@@ -26,6 +27,7 @@
         :sort="false"
         animation="300"
         @start="handleDragStart"
+        @end="handleDragEnd"
       >
         <template #item="{ element }">
           <span>{{ element.name }}</span>
@@ -41,6 +43,7 @@
         :sort="false"
         animation="300"
         @start="handleDragStart"
+        @end="handleDragEnd"
       >
         <template #item="{ element }">
           <span>{{ element.name }}</span>
@@ -56,6 +59,7 @@
         :sort="false"
         animation="300"
         @start="handleDragStart"
+        @end="handleDragEnd"
       >
         <template #item="{ element }">
           <span>{{ element.name }}</span>
@@ -66,14 +70,24 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { timeList, operatorList, deciderList, numberList } from './pdf-tool-bar.api';
 import draggable from 'vuedraggable';
+import dragStore from '../../../../../store/modules/drag';
+
+import { timeList, operatorList, deciderList, numberList } from './pdf-tool-bar.api';
+
+const store = dragStore();
 
 /**
  * 拖拽开始
  */
 const handleDragStart = (event: Event) => {
-  console.log(event);
+  store.setDragFlag(true);
+};
+/**
+ * 拖拽结束
+ */
+const handleDragEnd = () => {
+  store.setDragFlag(false);
 };
 </script>
 <style lang="less" scoped>
