@@ -28,7 +28,8 @@
     "vue": "^3.2.38",
     "vue-router": "^4.1.5",
     "vue-virtual-scroller": "^2.0.0-beta.5",
-    "vue3-slide-verify": "^1.1.4"
+    "vue3-slide-verify": "^1.1.4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.186",

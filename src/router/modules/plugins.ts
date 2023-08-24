@@ -57,6 +57,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-canvas/plugins-canvas.vue'),
   },
+  {
+    path: '/plugins-draggable-formula',
+    meta: {
+      name: 'draggableFormula',
+    },
+    component: () => import('../../pages/plugins/plugins-draggable-formula/plugins-draggable-formula.vue'),
+  },
 ];
 
 export default pluginRoutes;
