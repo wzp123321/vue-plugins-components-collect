@@ -14,7 +14,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span>{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -30,7 +30,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span>{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -46,7 +46,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span>{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -62,7 +62,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span>{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
         </template>
       </draggable>
     </div>
@@ -74,6 +74,7 @@ import draggable from 'vuedraggable';
 import dragStore from '../../../../../store/modules/drag';
 
 import { timeList, operatorList, deciderList, numberList } from './pdf-tool-bar.api';
+import { PDF_DRAGGABLE_CLASS } from '../../plugins-draggable-formula.api';
 
 const store = dragStore();
 
@@ -96,12 +97,13 @@ const handleDragEnd = () => {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
+  border: 1px solid rgba(220, 223, 230, 1);
+  border-left: none;
   padding: 8px 16px;
   background-color: #f5f7fa;
 
   .ptb-add {
-    padding: 5px 16px;
+    padding: 4px 15px;
     color: rgba(0, 0, 0, 0.65);
     border-radius: 4px;
     border: 1px solid rgba(220, 223, 230, 1);

@@ -2,7 +2,10 @@
   <div class="pdf-judgement-condition">
     <pdf-tool-bar></pdf-tool-bar>
     <div class="pjc-container">
-      <pdf-expression-container></pdf-expression-container>
+      <h1>拖拽区域1</h1>
+      <pdf-expression-container identify="test1"></pdf-expression-container>
+      <h1>拖拽区域2</h1>
+      <pdf-expression-container identify="test2"></pdf-expression-container>
     </div>
   </div>
 </template>

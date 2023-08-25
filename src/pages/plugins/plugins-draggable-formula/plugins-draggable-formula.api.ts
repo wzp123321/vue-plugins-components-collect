@@ -1,3 +1,5 @@
+// 可拖拽的唯一标识
+export const PDF_DRAGGABLE_CLASS = 'pdf-draggable';
 // 指标类型
 export enum PDF_EFieldType {
   基础,
