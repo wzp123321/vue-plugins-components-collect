@@ -1,15 +1,15 @@
 <template>
-  <a-dropdown :trigger="['contextmenu']" placement="bottom">
-    <div class="pdf-tag" :style="style">
-      <span>{{ name }}</span>
-      <i class="ems-iconfont icon-fork" title="删除" @click="handleDelete"></i>
-    </div>
-    <template #overlay>
+  <!-- <a-dropdown :trigger="['contextmenu']" placement="bottom"> -->
+  <div class="pdf-tag" :style="style">
+    <span>{{ name }}</span>
+    <i class="ems-iconfont icon-fork" title="删除" @click="handleDelete"></i>
+  </div>
+  <!-- <template #overlay>
       <a-menu>
         <a-menu-item key="1" @click="handleDelete">删除</a-menu-item>
       </a-menu>
     </template>
-  </a-dropdown>
+  </a-dropdown> -->
 </template>
 <script lang="ts" setup>
 import { computed } from 'vue';
