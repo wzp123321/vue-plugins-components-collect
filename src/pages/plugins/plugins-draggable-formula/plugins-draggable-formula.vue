@@ -1,6 +1,7 @@
 <template>
   <div class="plugins-draggable-formula">
     <!-- vuedraggable插件 -->
+    <!-- 参考https://segmentfault.com/a/1190000021376720 -->
     <pdf-index-list></pdf-index-list>
     <pdf-judgement-condition></pdf-judgement-condition>
   </div>
