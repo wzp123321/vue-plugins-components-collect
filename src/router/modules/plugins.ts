@@ -60,7 +60,7 @@ const pluginRoutes: RouteRecordRaw[] = [
   {
     path: '/plugins-draggable-formula',
     meta: {
-      name: 'draggableFormula',
+      name: '拖拽公式',
     },
     component: () => import('../../pages/plugins/plugins-draggable-formula/plugins-draggable-formula.vue'),
   },

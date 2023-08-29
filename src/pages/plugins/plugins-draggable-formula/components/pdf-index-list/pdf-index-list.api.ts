@@ -50,4 +50,10 @@ export const mockList: PDF_IFieldVO[] = Array.from({ length: 10 }, (item, index)
   name: `测试-${index}`,
   id: index + '',
   serialNumber: `${index}`,
+  unit: '',
+  configureDataFlag: false,
+  editable: false,
+  prefabricateFlag: (Math.random() * 2).toFixed(0) === '1',
+  configureFormulaFlag: (Math.random() * 2).toFixed(0) === '1',
+  value: '',
 }));

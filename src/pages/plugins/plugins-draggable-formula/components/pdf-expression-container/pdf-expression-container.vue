@@ -8,8 +8,10 @@
     :sort="true"
     animation="300"
     @add="addFormula"
-    @dragenter.native="handleDragEnter"
-    @drop.native="handleDrop"
+    @drag="handleDrag"
+    @dragenter="handleDragEnter"
+    @dragleave="handleDrop"
+    @drop="handleDrop"
     :move="handleMove"
   >
     <template #item="{ element }">
@@ -17,6 +19,9 @@
         :name="element.name"
         :index-type="element.indexType"
         :id="element.id"
+        :editable="element.editable"
+        :value="element.value"
+        @valueChange="handleTagValueChange($event, element)"
         @deleteItem="handleItemDelete"
       ></PdfTag>
     </template>
@@ -70,16 +75,24 @@ const addFormula = () => {
     },
   );
 };
+const handleDrag = (e: Event) => {
+  // .sortable-chosen---如果这个元素左边没有元素，则在右边第一个元素左侧添加“光标”
+  // console.log('----------------------------------------------------', e.target);
+};
 /**
  * 拖拽移入
  */
-const handleDragEnter = () => {
+const handleDragEnter = (e: Event) => {
+  e.stopPropagation();
+  e.preventDefault();
   mouseEnterFlag.value = true;
 };
 /**
  * 拖拽释放
  */
-const handleDrop = () => {
+const handleDrop = (e: Event) => {
+  e.stopPropagation();
+  e.preventDefault();
   mouseEnterFlag.value = false;
 };
 /**
@@ -89,8 +102,16 @@ const handleDrop = () => {
 const handleMove = (e: any) => {
   const to = e.to?.className;
   const from = e.from?.className;
-  console.log(e, '----------------', to, '------------', from);
+  // console.log(e, '----------------', to, '------------', from);
   return to === from;
+};
+/**
+ * 修改tag数据
+ * @param value
+ * @param element
+ */
+const handleTagValueChange = (value: string, element: PDF_IFieldVO) => {
+  element.value = value;
 };
 /**
  * 删除
@@ -117,6 +138,10 @@ const handleItemDelete = (id: string) => {
   &.is-dragging {
     border-color: rgba(24, 144, 255, 1);
   }
+
+  // :deep(.sortable-chosen) {
+  //   visibility: hidden;
+  // }
 
   p.pec-placeholder {
     width: 100%;

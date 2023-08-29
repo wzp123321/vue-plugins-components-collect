@@ -1,18 +1,15 @@
 <template>
-  <!-- <a-dropdown :trigger="['contextmenu']" placement="bottom"> -->
   <div class="pdf-tag" :style="style">
-    <span>{{ name }}</span>
+    <!-- 普通标签 -->
+    <span v-if="!props.editable">{{ props.name }}</span>
+    <!-- 可编辑 -->
+    <input v-if="props.editable" class="pt-input" type="text" :value="value" @input="handleInput" />
+    <!-- 图标 -->
     <i class="ems-iconfont icon-fork" title="删除" @click="handleDelete"></i>
   </div>
-  <!-- <template #overlay>
-      <a-menu>
-        <a-menu-item key="1" @click="handleDelete">删除</a-menu-item>
-      </a-menu>
-    </template>
-  </a-dropdown> -->
 </template>
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, toRef, watch } from 'vue';
 import { PDF_EFieldType } from '../../plugins-draggable-formula.api';
 import { mapTagStyle } from '../pdf-index-list/pdf-index-list.api';
 
@@ -20,13 +17,20 @@ interface Props {
   indexType: PDF_EFieldType;
   name: string;
   id: string;
+  editable: boolean;
+  value: string;
 }
 const props = withDefaults(defineProps<Props>(), {
   indexType: PDF_EFieldType.数字,
   name: '',
   id: '',
+  editable: false,
+  value: '',
 });
-const emits = defineEmits(['deleteItem']);
+const emits = defineEmits(['deleteItem', 'valueChange']);
+
+// 输入框
+const value = toRef<string>(props.value);
 
 const style = computed(() => {
   return mapTagStyle(props.indexType);
@@ -38,6 +42,20 @@ const style = computed(() => {
 const handleDelete = () => {
   emits('deleteItem', props.id);
 };
+/**
+ * 输入事件
+ * @param e
+ */
+const handleInput = (e: Event) => {
+  emits('valueChange', (e.target as HTMLInputElement).value);
+};
+
+watch(
+  () => props.value,
+  (newVal) => {
+    value.value = newVal;
+  },
+);
 </script>
 <style lang="less" scoped>
 .pdf-tag {
@@ -45,6 +63,17 @@ const handleDelete = () => {
   padding: 3px 12px;
   border-radius: 4px;
   box-sizing: border-box;
+
+  .pt-input {
+    width: 72px;
+    height: 22px;
+    line-height: 22px;
+    border: none;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
 
   span {
     line-height: 22px;
