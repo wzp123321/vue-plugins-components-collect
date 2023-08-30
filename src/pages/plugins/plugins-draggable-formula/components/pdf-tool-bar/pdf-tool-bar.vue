@@ -1,6 +1,6 @@
 <template>
   <div class="pdf-tool-bar">
-    <div class="ptb-add">+ 新增条件组</div>
+    <div class="ptb-add" @click="handleGroupAdd">+ 新增条件组</div>
     <div class="ptb-operator">
       <label>时间</label>
       <draggable
@@ -14,7 +14,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS" :style="mapTagStyle(element.indexType)">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -30,7 +30,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS" :style="mapTagStyle(element.indexType)">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -46,7 +46,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS" :style="mapTagStyle(element.indexType)">{{ element.name }}</span>
         </template>
       </draggable>
 
@@ -62,7 +62,7 @@
         @end="handleDragEnd"
       >
         <template #item="{ element }">
-          <span :class="PDF_DRAGGABLE_CLASS">{{ element.name }}</span>
+          <span :class="PDF_DRAGGABLE_CLASS" :style="mapTagStyle(element.indexType)">{{ element.name }}</span>
         </template>
       </draggable>
     </div>
@@ -72,8 +72,10 @@
 <script lang="ts" setup>
 import draggable from 'vuedraggable';
 import dragStore from '../../../../../store/modules/drag';
+import draggableFormulaService from '../../plugins-draggable-formula.service';
 
 import { timeList, operatorList, deciderList, numberList } from './pdf-tool-bar.api';
+import { mapTagStyle } from '../pdf-index-list/pdf-index-list.api';
 import { PDF_DRAGGABLE_CLASS } from '../../plugins-draggable-formula.api';
 
 const store = dragStore();
@@ -90,6 +92,10 @@ const handleDragStart = (event: Event) => {
 const handleDragEnd = () => {
   store.setDragFlag(false);
 };
+
+const handleGroupAdd = () => {
+  draggableFormulaService.addGroup();
+};
 </script>
 <style lang="less" scoped>
 .pdf-tool-bar {
@@ -98,8 +104,8 @@ const handleDragEnd = () => {
   justify-content: space-between;
   align-items: center;
   border: 1px solid rgba(220, 223, 230, 1);
-  border-left: none;
   padding: 8px 16px;
+  height: 48px;
   background-color: #f5f7fa;
 
   .ptb-add {

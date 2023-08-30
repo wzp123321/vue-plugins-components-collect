@@ -1,14 +1,16 @@
 <template>
   <div class="plugins-draggable-formula">
-    <!-- vuedraggable插件 -->
     <!-- 参考https://segmentfault.com/a/1190000021376720 -->
+    <pdf-tool-bar></pdf-tool-bar>
     <pdf-index-list></pdf-index-list>
-    <pdf-judgement-condition></pdf-judgement-condition>
+    <!-- 内容区 -->
+    <pdf-home></pdf-home>
   </div>
 </template>
 <script lang="ts" setup>
 import PdfIndexList from './components/pdf-index-list/pdf-index-list.vue';
-import PdfJudgementCondition from './components/pdf-judgement-condition/pdf-judgement-condition.vue';
+import PdfHome from './components/pdf-home/pdf-home.vue';
+import PdfToolBar from './components/pdf-tool-bar/pdf-tool-bar.vue';
 </script>
 <style lang="less" scoped>
 .plugins-draggable-formula {
@@ -18,5 +20,14 @@ import PdfJudgementCondition from './components/pdf-judgement-condition/pdf-judg
   background-color: #fff;
   display: grid;
   grid-template-columns: 200px auto;
+  grid-template-rows: 48px auto;
+
+  .pdf-tool-bar {
+    grid-column: 1/4;
+  }
+
+  .pdf-home {
+    grid-column: 2/4;
+  }
 }
 </style>

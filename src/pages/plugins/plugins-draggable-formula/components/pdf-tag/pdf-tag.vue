@@ -10,18 +10,18 @@
 </template>
 <script lang="ts" setup>
 import { computed, toRef, watch } from 'vue';
-import { PDF_EFieldType } from '../../plugins-draggable-formula.api';
+import { PGS_ESymbolType } from '../../plugins-draggable-formula.api';
 import { mapTagStyle } from '../pdf-index-list/pdf-index-list.api';
 
 interface Props {
-  indexType: PDF_EFieldType;
+  indexType: PGS_ESymbolType;
   name: string;
   id: string;
   editable: boolean;
   value: string;
 }
 const props = withDefaults(defineProps<Props>(), {
-  indexType: PDF_EFieldType.数字,
+  indexType: PGS_ESymbolType.数字,
   name: '',
   id: '',
   editable: false,

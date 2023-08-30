@@ -1,10 +1,10 @@
-import { PDF_EFieldType, PDF_IFieldVO } from '../../plugins-draggable-formula.api';
+import { PGS_ESymbolType, GPS_IIndexVO } from '../../plugins-draggable-formula.api';
 
-export const timeList: PDF_IFieldVO[] = [
+export const timeList: GPS_IIndexVO[] = [
   {
     id: '1',
     name: '截至上月(所在托管期)',
-    indexType: PDF_EFieldType.时间,
+    indexType: PGS_ESymbolType.时间,
     serialNumber: '1',
     unit: '',
     configureDataFlag: false,
@@ -16,7 +16,7 @@ export const timeList: PDF_IFieldVO[] = [
   {
     id: '2',
     name: '累计(所在托管期)',
-    indexType: PDF_EFieldType.时间,
+    indexType: PGS_ESymbolType.时间,
     serialNumber: '1',
     unit: '',
     configureDataFlag: false,
@@ -27,11 +27,11 @@ export const timeList: PDF_IFieldVO[] = [
   },
 ];
 
-export const numberList: PDF_IFieldVO[] = [
+export const numberList: GPS_IIndexVO[] = [
   {
     id: '1',
     name: '%',
-    indexType: PDF_EFieldType.数字,
+    indexType: PGS_ESymbolType.数字,
     serialNumber: '1',
     unit: '%',
     configureDataFlag: false,
@@ -43,7 +43,7 @@ export const numberList: PDF_IFieldVO[] = [
   {
     id: '2',
     name: '123',
-    indexType: PDF_EFieldType.数字,
+    indexType: PGS_ESymbolType.数字,
     serialNumber: '2',
     unit: '',
     configureDataFlag: false,
@@ -54,11 +54,11 @@ export const numberList: PDF_IFieldVO[] = [
   },
 ];
 
-export const operatorList: PDF_IFieldVO[] = [
+export const operatorList: GPS_IIndexVO[] = [
   {
     name: '+',
     id: '1',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '1',
     unit: '',
     configureDataFlag: false,
@@ -70,7 +70,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: '-',
     id: '2',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '2',
     unit: '',
     configureDataFlag: false,
@@ -82,7 +82,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: 'x',
     id: '3',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '3',
     unit: '',
     configureDataFlag: false,
@@ -94,7 +94,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: '/',
     id: '4',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '4',
     unit: '',
     configureDataFlag: false,
@@ -106,7 +106,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: '=',
     id: '5',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '5',
     unit: '',
     configureDataFlag: false,
@@ -118,7 +118,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: '(',
     id: '6',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '6',
     unit: '',
     configureDataFlag: false,
@@ -130,7 +130,7 @@ export const operatorList: PDF_IFieldVO[] = [
   {
     name: ')',
     id: '7',
-    indexType: PDF_EFieldType.运算符,
+    indexType: PGS_ESymbolType.运算符,
     serialNumber: '7',
     unit: '',
     configureDataFlag: false,
@@ -141,11 +141,11 @@ export const operatorList: PDF_IFieldVO[] = [
   },
 ];
 
-export const deciderList: PDF_IFieldVO[] = [
+export const deciderList: GPS_IIndexVO[] = [
   {
     name: '>',
     id: '1',
-    indexType: PDF_EFieldType.判断符,
+    indexType: PGS_ESymbolType.判断符,
     serialNumber: '1',
     unit: '',
     configureDataFlag: false,
@@ -156,7 +156,7 @@ export const deciderList: PDF_IFieldVO[] = [
   },
   {
     id: '2',
-    indexType: PDF_EFieldType.判断符,
+    indexType: PGS_ESymbolType.判断符,
     serialNumber: '2',
     name: '≥',
     unit: '',
@@ -168,7 +168,7 @@ export const deciderList: PDF_IFieldVO[] = [
   },
   {
     id: '3',
-    indexType: PDF_EFieldType.判断符,
+    indexType: PGS_ESymbolType.判断符,
     serialNumber: '3',
     name: '<',
     unit: '',
@@ -180,7 +180,7 @@ export const deciderList: PDF_IFieldVO[] = [
   },
   {
     id: '4',
-    indexType: PDF_EFieldType.判断符,
+    indexType: PGS_ESymbolType.判断符,
     serialNumber: '4',
     name: '≤',
     unit: '',
@@ -193,7 +193,7 @@ export const deciderList: PDF_IFieldVO[] = [
   {
     name: '=',
     id: '5',
-    indexType: PDF_EFieldType.判断符,
+    indexType: PGS_ESymbolType.判断符,
     serialNumber: '5',
     unit: '',
     configureDataFlag: false,

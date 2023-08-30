@@ -1,6 +1,6 @@
 <template>
   <draggable
-    v-model="expressionList"
+    :model-value="compExpressionList"
     :class="['pdf-expression-container', mouseEnterFlag && dragFlag ? 'is-dragging' : '', identify]"
     :style="{ minWidth: `${props.minWidth}px` }"
     item-key="serialNumber"
@@ -33,20 +33,25 @@
   </draggable>
 </template>
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref ,PropType} from 'vue';
 import { cloneDeep } from 'lodash';
 import { storeToRefs } from 'pinia';
 import draggable from 'vuedraggable';
 import dragStore from '../../../../../store/modules/drag';
-import { PDF_IFieldVO } from '../../plugins-draggable-formula.api';
+import { GPS_IIndexVO } from '../../plugins-draggable-formula.api';
 
 import PdfTag from '../pdf-tag/pdf-tag.vue';
 
+const emits = defineEmits(['update:modelValue']);
 const props = defineProps({
   minWidth: {
     type: Number,
     default: 180,
   },
+  expressionList:{
+    type: Array as PropType<GPS_IIndexVO[]>,
+    default: []
+  }
 });
 
 const identify = `${(Math.random() * 10000000000).toFixed(0)}-${(Math.random() * 10000000000).toFixed(0)}-${(
@@ -56,7 +61,7 @@ const identify = `${(Math.random() * 10000000000).toFixed(0)}-${(Math.random() *
 // store
 const store = storeToRefs(dragStore());
 // 公式列表
-const expressionList = ref<PDF_IFieldVO[]>([]);
+const compExpressionList = ref<GPS_IIndexVO[]>(props.expressionList);
 // 鼠标移入
 const mouseEnterFlag = ref<boolean>(false);
 
@@ -66,14 +71,17 @@ const dragFlag = computed(() => {
 /**
  * 新增
  */
-const addFormula = () => {
-  expressionList.value = expressionList.value.map(
-    (item, index): PDF_IFieldVO => {
+const addFormula = (value: any) => {
+  compExpressionList.value = compExpressionList.value.map(
+    (item, index): GPS_IIndexVO => {
       let res = cloneDeep(item);
       res.id = `front${index}`;
       return res;
     },
   );
+
+  console.log(value);
+  emits('update:modelValue', compExpressionList.value)
 };
 const handleDrag = (e: Event) => {
   // .sortable-chosen---如果这个元素左边没有元素，则在右边第一个元素左侧添加“光标”
@@ -110,7 +118,7 @@ const handleMove = (e: any) => {
  * @param value
  * @param element
  */
-const handleTagValueChange = (value: string, element: PDF_IFieldVO) => {
+const handleTagValueChange = (value: string, element: GPS_IIndexVO) => {
   element.value = value;
 };
 /**
@@ -118,7 +126,7 @@ const handleTagValueChange = (value: string, element: PDF_IFieldVO) => {
  * @param id
  */
 const handleItemDelete = (id: string) => {
-  expressionList.value = expressionList.value?.filter((item) => item.id !== id);
+  compExpressionList.value =compExpressionList.value?.filter((item) => item.id !== id);
 };
 </script>
 <style lang="less" scoped>
