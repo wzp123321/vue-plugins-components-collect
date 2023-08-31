@@ -1,18 +1,18 @@
 <template>
   <draggable
-    :model-value="compExpressionList"
-    :class="['pdf-expression-container', mouseEnterFlag && dragFlag ? 'is-dragging' : '', identify]"
+    v-model="compExpressionList"
+    :class="['pdf-drag-container', mouseEnterFlag && dragFlag ? 'is-dragging' : '', identify]"
     :style="{ minWidth: `${props.minWidth}px` }"
     item-key="serialNumber"
     :group="{ name: 'people' }"
     :sort="true"
     animation="300"
     @add="addFormula"
-    @drag="handleDrag"
     @dragenter="handleDragEnter"
     @dragleave="handleDrop"
     @drop="handleDrop"
-    :move="handleMove"
+    :move="mapMove"
+    @change="handleChange"
   >
     <template #item="{ element }">
       <PdfTag
@@ -26,14 +26,17 @@
       ></PdfTag>
     </template>
     <template #footer>
-      <p v-show="(!dragFlag || (!mouseEnterFlag && dragFlag)) && expressionList?.length === 0" class="pec-placeholder">
+      <p
+        v-show="(!dragFlag || (!mouseEnterFlag && dragFlag)) && compExpressionList?.length === 0"
+        class="pec-placeholder"
+      >
         请拖拽标签到此处
       </p>
     </template>
   </draggable>
 </template>
 <script lang="ts" setup>
-import { computed, ref ,PropType} from 'vue';
+import { computed, ref, PropType } from 'vue';
 import { cloneDeep } from 'lodash';
 import { storeToRefs } from 'pinia';
 import draggable from 'vuedraggable';
@@ -48,10 +51,10 @@ const props = defineProps({
     type: Number,
     default: 180,
   },
-  expressionList:{
+  modelValue: {
     type: Array as PropType<GPS_IIndexVO[]>,
-    default: []
-  }
+    default: [],
+  },
 });
 
 const identify = `${(Math.random() * 10000000000).toFixed(0)}-${(Math.random() * 10000000000).toFixed(0)}-${(
@@ -61,7 +64,7 @@ const identify = `${(Math.random() * 10000000000).toFixed(0)}-${(Math.random() *
 // store
 const store = storeToRefs(dragStore());
 // 公式列表
-const compExpressionList = ref<GPS_IIndexVO[]>(props.expressionList);
+const compExpressionList = ref<GPS_IIndexVO[]>(props.modelValue ?? []);
 // 鼠标移入
 const mouseEnterFlag = ref<boolean>(false);
 
@@ -71,7 +74,7 @@ const dragFlag = computed(() => {
 /**
  * 新增
  */
-const addFormula = (value: any) => {
+const addFormula = (a: any, b: any) => {
   compExpressionList.value = compExpressionList.value.map(
     (item, index): GPS_IIndexVO => {
       let res = cloneDeep(item);
@@ -80,12 +83,10 @@ const addFormula = (value: any) => {
     },
   );
 
-  console.log(value);
-  emits('update:modelValue', compExpressionList.value)
+  emits('update:modelValue', compExpressionList.value);
 };
-const handleDrag = (e: Event) => {
-  // .sortable-chosen---如果这个元素左边没有元素，则在右边第一个元素左侧添加“光标”
-  // console.log('----------------------------------------------------', e.target);
+const handleChange = (a: any, b: any) => {
+  console.log('-handleChange----------------', a, b);
 };
 /**
  * 拖拽移入
@@ -107,7 +108,7 @@ const handleDrop = (e: Event) => {
  * 元素移动
  * 只有内部才能拖动
  */
-const handleMove = (e: any) => {
+const mapMove = (e: any) => {
   const to = e.to?.className;
   const from = e.from?.className;
   // console.log(e, '----------------', to, '------------', from);
@@ -126,15 +127,15 @@ const handleTagValueChange = (value: string, element: GPS_IIndexVO) => {
  * @param id
  */
 const handleItemDelete = (id: string) => {
-  compExpressionList.value =compExpressionList.value?.filter((item) => item.id !== id);
+  compExpressionList.value = compExpressionList.value?.filter((item) => item.id !== id);
 };
 </script>
 <style lang="less" scoped>
-.pdf-expression-container {
+.pdf-drag-container {
   position: relative;
   width: fit-content;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: no-wrap;
   cursor: pointer;
 
   min-height: 48px;

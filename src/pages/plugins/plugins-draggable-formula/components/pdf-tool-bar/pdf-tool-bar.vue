@@ -109,6 +109,7 @@ const handleGroupAdd = () => {
   background-color: #f5f7fa;
 
   .ptb-add {
+    cursor: pointer;
     padding: 4px 15px;
     color: rgba(0, 0, 0, 0.65);
     border-radius: 4px;
