@@ -177,3 +177,13 @@ export const thousandSeparation = (value: number, returnType?: string) => {
     return returnType ? returnType : '--'
   }
 }
+
+/**
+ * 生成颜色
+ * @param index 
+ * @returns 
+ */
+export const mapColor = (index: number)=>{
+  const colors = ['#19caad', '#8cc7b5', '#d1ba74', '#bee7e9', '#e6ceac', '#ecad9e']
+  return colors[index%colors.length]
+}
