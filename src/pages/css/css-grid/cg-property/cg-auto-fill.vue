@@ -1,11 +1,11 @@
 <template>
   <div class="cg-auto-fill">
     <div class="caf-fill">
-      <div v-for="item in 6" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
+      <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
     <a-divider />
     <div class="caf-fit">
-      <div v-for="item in 6" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
+      <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
   </div>
 </template>
@@ -22,14 +22,14 @@ import { mapColor } from '../../../../utils';
     gap: 24px;
     height: 100px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, 100px);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 
   .caf-fit {
     gap: 24px;
     height: 100px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, 100px);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 </style>
