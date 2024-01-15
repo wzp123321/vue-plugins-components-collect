@@ -1,6 +1,5 @@
 <template>
   <div class="cp-display">
-    <h1>Display-grid属性</h1>
     <div class="cd-diplay">
       <span>1111111111</span>
       <div class="cd-display-container">
@@ -10,7 +9,7 @@
       </div>
       <span>22222222</span>
     </div>
-    <h1>Display-inline-grid属性</h1>
+    <a-divider />
     <div class="cd-inline-diplay">
       <span>1111111111</span>
       <div class="cd-inline-display-container">

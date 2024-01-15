@@ -1,11 +1,10 @@
 <template>
   <a-tabs v-model:activeKey="activeKey" class="css-grid">
-    <a-tab-pane tab="示例" key="example">
-      <CgExample></CgExample>
-      >
-    </a-tab-pane>
     <a-tab-pane tab="属性" key="property">
       <CgProperty></CgProperty>
+    </a-tab-pane>
+    <a-tab-pane tab="示例" key="example">
+      <CgExample></CgExample>
     </a-tab-pane>
   </a-tabs>
 </template>
@@ -14,7 +13,7 @@ import { ref } from 'vue';
 import CgExample from './cg-example/cg-example.vue';
 import CgProperty from './cg-property/cg-property.vue';
 
-const activeKey = ref<string>('example');
+const activeKey = ref<string>('property');
 </script>
 <style lang="less" scoped>
 .css-grid {
