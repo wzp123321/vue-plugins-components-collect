@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="32px" viewBox="0 0 40 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 59.1 (86144) - https://sketch.com -->
+    <title>形状结合</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M24,4 C30.627417,4 36,9.372583 36,16 C36,22.627417 30.627417,28 24,28 C19.7032646,28 11.2418808,22.3851261 3.99897056,22.0197026 L3.99925951,9.98645323 C12.4706656,9.67231693 19.6813215,4 24,4 Z" id="path-1"></path>
+        <filter x="-18.8%" y="-25.0%" width="137.5%" height="150.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+<!--            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>-->
+            <feColorMatrix values="0 0 0 0 0.729166667   0 0 0 0 0.729166667   0 0 0 0 0.729166667  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="负荷预测" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="形状结合">
+<!--            <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>-->
+            <use fill="#FFA100" fill-rule="evenodd" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

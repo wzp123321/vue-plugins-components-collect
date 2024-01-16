@@ -1,0 +1,200 @@
+<div class="rg-statement" v-loading="loading">
+  <div class="rg-statement__list flex-wrap" v-if="!showNoData && !loading">
+    <div class="rg-statement-group" v-for="(item, index) in stateMentList" :class="{'mt16': index > 0}">
+      <div class="rg-statement-group-label">
+        <span class="rg-statement-group-label-img"
+          ><img src="../../../../../assets/img/report-generation/rg-classifi.svg"
+        /></span>
+        <span class="rg-statement-group-label-text">{{ item.groupName }}</span>
+      </div>
+
+      <div class="rg-statement-group-content">
+        <RgCard :dataSource="list" v-for="(list, index) in item.reportList" :key="'card_'+index">
+          <div class="rg-statement-group-content-item-footer">
+            <!-- <div class="re-report-box-content-item-month">月</div> -->
+            <!-- <el-tooltip
+              v-if="list.followFlag === '1'"
+              class="box-item"
+              effect="dark"
+              content="取消关注"
+              placement="bottom"
+              :show-after="500"
+            >
+              <img
+                src="../../../../../assets/img/report-generation/rg-follow.svg"
+                alt=""
+                @click.stop="updateFollowStatus(list)"
+              />
+            </el-tooltip>
+            <el-tooltip
+              v-if="list.followFlag === '0'"
+              class="box-item"
+              effect="dark"
+              content="关注"
+              placement="bottom"
+              :show-after="500"
+            >
+              <img
+                src="../../../../../assets/img/report-generation/rg-nofollow.svg"
+                alt=""
+                style="opacity: 0.25;"
+                @click.stop="updateFollowStatus(list)"
+              />
+            </el-tooltip> -->
+            <i class="ems-iconfont icon-xiazai" @click.stop="downloadExport(item, list)" title="下载"></i>
+          </div>
+        </RgCard>
+      </div>
+    </div>
+  </div>
+  <no-data v-show="showNoData && !loading" :title="errorMessage"></no-data>
+
+  <el-dialog title="导出" v-model="dialogFormVisible" :close-on-click-modal="false" width="480px" @close="handleClose">
+    <el-form :model="pageForm" :rules="rules" label-width="80px" ref="pageFormRef">
+      <el-form-item
+        label="能源类型"
+        prop="energyCode"
+        v-if="currentGroupName !== '节能报表' && currentGroupName !== '能耗分摊报表'"
+      >
+        <tree-select
+          :placeholder="'请选择能源类型'"
+          v-model:modelValue="pageForm.energyCode"
+          v-model:treeData="computedEnergyCodeList"
+          :defaultExpandAll="true"
+          :nodeKey="'code'"
+          :autoWidth="true"
+          :multiple="currentGroupName === '能耗分摊报表'"
+          :defaultProps="{ children: 'childEnergyCode', label: 'name' }"
+          @select-change="selectChange"
+        ></tree-select>
+      </el-form-item>
+
+      <!-- 能耗分摊报表下载能源类型平铺 -->
+      <el-form-item
+        label="能源类型"
+        class="formitem-energycode"
+        prop="energyCode"
+        v-if="currentGroupName === '能耗分摊报表' && !downloading"
+      >
+        <el-checkbox-group v-model="pageForm.energyCode">
+          <el-checkbox v-for="(item, index) in computedEnergyCodeList" :key="'energycode_' + index" :label="item.code">
+            {{ item.name }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+
+      <el-form-item label="时间颗粒" prop="timeUnit" v-if="currentGroupName !== '能耗分摊报表'">
+        <el-select
+          style="width: 100%"
+          placeholder="请选择时间颗粒"
+          :model-value="pageForm.timeUnit"
+          @change="onTimeUnitChange"
+        >
+          <el-option
+            v-for="(item, index) in timeUnitData"
+            :key="'timeunit_'+index"
+            :value="item.code"
+            :label="item.name"
+          >
+          </el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="对象" prop="treeIds" v-if="currentGroupName === '能耗报表'">
+        <common-transfer
+          v-model:modelValue="pageForm.treeIds"
+          type="tree"
+          ref="rgSelectRef"
+          :tabDataList="tabDataList"
+          :radioValue="pageForm.radioValue"
+          :loading="treeLoading"
+          :dataList="treeIdList"
+          :nodeNum="treeNumber"
+          :maxTags="2"
+          :maxLength="maxLength"
+          :defaultProps="FGetElTreeDefaultProps()"
+          :expanedKeys="treeIdExpanedKeys"
+          @tabChange="treeRaidoChange"
+          @updateTreeType="updateTreeType"
+          @changeValidate="changeValidate"
+        ></common-transfer>
+      </el-form-item>
+
+      <el-form-item label="设备" prop="deviceIds" v-if="currentGroupName === '设备能耗报表'" class="device-form-item">
+        <common-transfer
+          ref="rgSelectRef"
+          v-model:modelValue="pageForm.deviceIds"
+          :loading="deviceLoading"
+          :dataList="device"
+          :maxLength="maxLength"
+          type="list"
+          :nodeNum="device.length ?? 0"
+        ></common-transfer>
+
+        <!-- <te-select-v2
+          :filterable="true"
+          clearable
+          v-model="pageForm.deviceIds"
+          :options="device"
+          :collapse-tags="true"
+          placeholder="请选择设备"
+          style="width: 344px"
+          multiple
+          :teleported="false"
+        >
+          <template v-slot:empty>
+            <div class="device-data-none">
+              <img src="../../../../../assets/img/common/common-data-none.svg" alt="" />
+              <p>暂无数据</p>
+            </div>
+          </template>
+        </te-select-v2> -->
+        <!-- <tree-select
+          :placeholder="'请选择设备'"
+          v-model:modelValue="pageForm.deviceIds"
+          :treeData="device"
+          :loading="deviceLoading"
+          :autoWidth="true"
+          :multiple="true"
+          :maxLength="999999999"
+          :nameSpace="'请选择设备'"
+          :defaultProps="{ children: 'childTree', label: 'treeName' }"
+          :showSearch="true"
+        ></tree-select> -->
+      </el-form-item>
+      <el-form-item label="日期" v-if="!(currentGroupName === '能耗分摊报表' && downloading)">
+        <date-range-picker
+          style="width: 100%"
+          :clearable="true"
+          v-model:value="pageForm.date"
+          :timeUnit="pageForm.timeUnit"
+          :format="format"
+          :mode="mode"
+          :default-time="defaultTime"
+          :disableDateCb="currentGroupName === '能耗分摊报表' ? mapApportionReportDateDisabled : ''"
+        >
+        </date-range-picker>
+      </el-form-item>
+
+      <el-form-item label="导出格式" v-if="currentGroupName !== '能耗分摊报表'">
+        <el-radio v-model="pageForm.exportType" label="excel"> excel </el-radio>
+        <el-radio v-model="pageForm.exportType" label="pdf"> pdf </el-radio>
+      </el-form-item>
+
+      <!-- 下载进度条 -->
+      <el-form-item
+        class="mt40 formitem-progress"
+        label="导出进度"
+        v-if="currentGroupName === '能耗分摊报表' && downloading"
+      >
+        <el-progress :percentage="progress" :format="mapProgressText" :color="mapProgressBack" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <button @click="handleClose">取消</button>
+        <button primary @click="onDownloadSubmit(pageFormRef)">{{ !downloading ? '导出' : '导出中' }}</button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

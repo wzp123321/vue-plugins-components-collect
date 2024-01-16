@@ -1,0 +1,33 @@
+@import '../common.less';
+
+.ea-dc-cost-anomaly {
+  &-data {
+    .anomaly-ico {
+      top: 8px;
+    }
+
+    &__num {
+      line-height: 26px;
+
+      .bold {
+        margin: 0 6px;
+      }
+    }
+
+    img {
+      position: relative;
+      top: 6px;
+    }
+  }
+
+  &-over {
+    border-radius: 12px;
+    background: var(--iot-anomaly-rank-value-bg-color);
+    padding: 4px 12px;
+
+    .bold {
+      margin-left: 6px;
+      color: var(--iot-anomaly-card-count-bg-color);
+    }
+  }
+}

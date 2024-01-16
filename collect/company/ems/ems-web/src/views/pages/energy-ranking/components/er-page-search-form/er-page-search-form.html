@@ -1,0 +1,78 @@
+<div class="er-page-search-form">
+  <div class="search-form">
+    <el-form :inline="true" :model="formSearch" @submit.native.prevent>
+      <el-form-item label="能耗模型">
+        <el-select class="energy-model" v-model="treeType" placeholder="请选择能耗模型" @change="onTreeTypeChange">
+          <el-option
+            v-for="(item, index) in treeTypeList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="能源类型">
+        <tree-select
+          :placeholder="'请选择能源类型'"
+          v-model:modelValue="formSearch.energyCode"
+          :treeData="codeList"
+          :defaultProps="defaultTypeProps"
+          :defaultExpandAll="true"
+          :nodeKey="nodeKey"
+          width="144px"
+          @select-change="onEnergyCodeChange"
+        >
+        </tree-select>
+      </el-form-item>
+      <el-form-item label="分析对象">
+        <tree-select
+          v-model:modelValue="formSearch.treeIdList"
+          :loading="loading"
+          :expanedKeys="expanedKeys"
+          :placeholder="'请选择分析对象'"
+          :multiple="true"
+          :showSearch="true"
+          width="418px"
+          :defaultProps="FGetElTreeDefaultProps()"
+          :disabledProps="disabledProps"
+          :treeData="treeDataList"
+        ></tree-select>
+      </el-form-item>
+      <el-form-item label="能源指标">
+        <el-select v-model="formSearch.valueMean" placeholder="请选择能源指标">
+          <el-option
+            v-for="(item, index) in energyIndicators"
+            :key="index"
+            :label="item.name"
+            :value="item.code"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="快捷选时">
+        <radio-select-button
+          v-model="formSearch.dateScope"
+          :switchItems="dateScopeList"
+          @switch-click="switchShortTime"
+        ></radio-select-button>
+      </el-form-item>
+      <el-form-item label="日期">
+        <el-date-picker
+          v-model="formSearch.date"
+          :type="'daterange'"
+          :range-separator="'~'"
+          :start-placeholder="'开始日期'"
+          :end-placeholder="'结束日期'"
+          :disabledDate="disabledDate"
+          prefix-icon="iconfont icon-Calendar"
+          clear-icon="iconfont icon-Close-Circle-Fill"
+          @change="onDateChange"
+        >
+        </el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <button primary @click.stop="onSubmit">查询</button>
+        <button @click.stop="onReset">重置</button>
+      </el-form-item>
+    </el-form>
+  </div>
+</div>

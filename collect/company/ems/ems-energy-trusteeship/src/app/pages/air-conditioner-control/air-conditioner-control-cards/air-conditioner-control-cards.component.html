@@ -1,0 +1,95 @@
+<div id="air-conditioner-control-cards">
+  <nz-spin style="height: 100%" [nzSpinning]="isLoading">
+    <div class="card-list">
+      <div class="card-container">
+        <ng-container
+          *ngTemplateOutlet="templateCardContent; context: { card: radioCard, anchor: radioCardAnchor }"
+        ></ng-container>
+        <div #radioCardAnchor class="card-anchor"></div>
+      </div>
+      <div class="card-container">
+        <ng-container
+          *ngTemplateOutlet="templateCardContent; context: { card: temperatureCard, anchor: temperatureCardAnchor }"
+        ></ng-container>
+        <div #temperatureCardAnchor class="card-anchor"></div>
+      </div>
+      <div class="card-container">
+        <ng-container
+          *ngTemplateOutlet="templateCardContent; context: { card: loadCard, anchor: loadCardAnchor }"
+        ></ng-container>
+        <div #loadCardAnchor class="card-anchor"></div>
+      </div>
+
+      <div class="card-container">
+        <nz-carousel [nzEnableSwipe]="false">
+          <div nz-carousel-content>
+            <ng-container
+              *ngTemplateOutlet="templateCardContent; context: { card: hostCard, anchor: hostCardAnchor }"
+            ></ng-container>
+          </div>
+          <div *ngFor="let card of childCards" nz-carousel-content>
+            <ng-container
+              *ngTemplateOutlet="templateCardContent; context: { card: card, anchor: hostCardAnchor }"
+            ></ng-container>
+          </div>
+        </nz-carousel>
+        <div #hostCardAnchor class="card-anchor" primary></div>
+      </div>
+    </div>
+  </nz-spin>
+
+  <div *ngIf="canShowPanel" style="z-index: 1" class="backdrop" (click)="closePanel($event)">
+    <ems-air-conditioner-control-cards-chart
+      [anchor]="mapAnchor()"
+      [primary]="panelOption.primary"
+      [code]="panelOption.code"
+      (onCloseClick)="closePanel()"
+    ></ems-air-conditioner-control-cards-chart>
+  </div>
+</div>
+
+<ng-template #templateCardContent let-card="card" let-anchor="anchor">
+  <div class="card-content-container">
+    <div class="card-content-title-container">
+      <label nz-tooltip nzTooltipPlacement="bottomLeft" [nzTooltipTitle]="card?.name">{{ card?.name ?? '--' }}</label>
+      <button *ngIf="card?.code != null" (click)="openPanel(anchor, card.code)">
+        <span>近1月</span>
+        <i nz-icon nzType="right" nzTheme="outline"></i>
+      </button>
+    </div>
+
+    <div class="card-content-item-container">
+      <span
+        class="card-content-item-value"
+        nz-tooltip
+        nzTooltipPlacement="bottomLeft"
+        [nzTooltipTitle]="card?.value | numberSeparator: 3"
+      >
+        {{ (card?.value | numberSeparator: 3) ?? '--' }}
+      </span>
+      <span *ngIf="card?.unit" class="card-content-item-unit mb4">{{ card.unit }}</span>
+      <span *ngIf="card?.rank" class="mb4" [style.color]="mapRankColor(card.rank)">{{ mapRank(card.rank) }}</span>
+    </div>
+
+    <div *ngIf="card?.rank && card?.thresholds?.length" class="card-content-chart-container mt4" flexible="true">
+      <div class="card-content-chart-bar-container">
+        <div
+          class="card-content-chart-bar"
+          [style.width.%]="mapAxisWidth(card?.value)"
+          [style.color]="mapRankColor(card?.rank)"
+          [style.background-image]="mapAxisBarColor(card?.rank)"
+        ></div>
+      </div>
+      <div class="card-content-chart-axis-container">
+        <span
+          *ngFor="let threshold of card.thresholds; index as i"
+          class="card-content-chart-axis-split"
+          [style.width.%]="mapAxisWidth(threshold)"
+          [style.z-index]="100 - i"
+          [style.color]="mapAxisWidth(threshold) ? colors[i] : null"
+        ></span>
+        <span class="card-content-chart-axis-split" [style.color]="colors[3]"></span>
+      </div>
+    </div>
+  </div>
+</ng-template>

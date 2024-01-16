@@ -1,0 +1,47 @@
+.ea-set-hideday-dialog {
+  &__shortcut {
+    margin-bottom: 24px;
+
+    .label {
+      line-height: 33px;
+    }
+
+    .options {
+      width: 210px;
+
+      span {
+        border-radius: 3px;
+        padding: 6px 15px;
+        background: rgba(0, 0, 0, 0.04);
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        cursor: pointer;
+      }
+
+      .selected-option {
+        background-color: #e6f7ff;
+        color: #1890ff;
+      }
+    }
+  }
+
+  &__self {
+    :deep(.el-input__inner) {
+      width: 210px;
+    }
+  }
+
+  .label {
+    padding-right: 24px;
+    max-width: 80px;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  :deep(.el-dialog) {
+    &__footer {
+      text-align: right !important;
+    }
+  }
+}

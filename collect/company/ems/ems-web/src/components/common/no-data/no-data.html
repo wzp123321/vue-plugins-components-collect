@@ -1,0 +1,7 @@
+<div class="no-data flex-column-center-center">
+  <img :src="imgUrl" alt="" :style="{ width: `${width}px`, height: `${height}px` }" />
+  <span v-if="!hasSlot" :style="{ fontSize: `${fontSize}px`, marginTop: `${marginTop}px` }">{{ title }}</span>
+  <span v-else :style="{ fontSize: `${fontSize}px`, marginTop: `${marginTop}px` }">
+    <slot></slot>
+  </span>
+</div>

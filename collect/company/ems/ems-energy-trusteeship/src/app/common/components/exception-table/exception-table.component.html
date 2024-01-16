@@ -1,0 +1,42 @@
+<div id="exception-table">
+  <table style="width: 100%" scroll-y>
+    <thead [ngStyle]="{ 'padding-right.px': isOverflow ? 8 : 0 }">
+      <tr>
+        <th style="width: 60px">序号</th>
+        <th style="width: 280px">模板位置</th>
+        <th>详细信息</th>
+      </tr>
+    </thead>
+    <tbody #elementTableBody [style.max-height.px]="height" cdkScrollable>
+      <tr *ngFor="let item of list; index as i">
+        <td style="width: 60px">{{ i + 1 }}</td>
+        <td
+          style="width: 280px"
+          ellipsis
+          nz-tooltip
+          nzTooltipPlacement="bottom"
+          nzTooltipOverlayClassName="tooltip-table"
+          [nzTooltipArrowPointAtCenter]="true"
+          [nzTooltipTitle]="item.position"
+        >
+          {{ item.position ?? '--' }}
+        </td>
+        <td
+          ellipsis
+          nz-tooltip
+          nzTooltipPlacement="bottom"
+          nzTooltipOverlayClassName="tooltip-table"
+          [nzTooltipArrowPointAtCenter]="true"
+          [nzTooltipTitle]="item.detail"
+        >
+          {{ item.detail ?? '--' }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="empty-table" [class.none]="list?.length">
+    <img src="assets/img/common/common-data-none.svg" alt="暂无数据" />
+    <span>暂无数据</span>
+  </div>
+</div>

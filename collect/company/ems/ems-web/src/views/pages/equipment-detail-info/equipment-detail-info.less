@@ -1,0 +1,88 @@
+.equipment-detail-info {
+  position: relative;
+  height: 100%;
+
+  :deep(.page-common__search) {
+    padding-top: 0;
+  }
+
+  .info-header {
+    h5 {
+      padding: 22px 0 20px;
+      text-align: center;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.85);
+      font-weight: 700;
+    }
+
+    &__base {
+      .base-list {
+        padding: 0 12px 16px;
+
+        .base-item {
+          width: 33%;
+          padding-top: 12px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  .info-content {
+    padding-bottom: 16px;
+    height: 100%;
+
+    &__charts {
+      position: relative;
+      padding-top: 42px;
+      height: 442px;
+
+      &-select {
+        position: absolute;
+        top: 6px;
+        right: 0;
+        width: 178px;
+      }
+    }
+
+    &__table {
+      :deep(.el-table) {
+        .el-table__fixed::before {
+          height: 0;
+        }
+
+        &.overflow-table {
+          .el-table__header-wrapper {
+            background-color: rgba(237, 245, 252, 1);
+          }
+
+          thead > tr > th {
+            border-right: none;
+          }
+        }
+      }
+
+      &-btn {
+        display: flex;
+        flex-direction: row-reverse;
+        padding: 30px 0 14px;
+      }
+    }
+  }
+
+  :deep(.el-dialog) {
+    &__body {
+      padding: 20px;
+
+      .ant-picker {
+        width: 100%;
+      }
+    }
+
+    &__footer {
+      padding: 10px;
+      text-align: right;
+    }
+  }
+}

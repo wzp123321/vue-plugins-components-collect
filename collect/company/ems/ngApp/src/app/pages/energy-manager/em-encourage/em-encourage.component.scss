@@ -1,0 +1,75 @@
+@import 'common';
+ion-backdrop {
+    --ion-backdrop-color: #000;
+    opacity: .7;
+    z-index: 99;
+}
+.em__encourage {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    @extend %flex--column--align-center;
+    justify-content: center;
+    ion-icon {
+        margin-top: 17px;
+        font-size: 32px; 
+        opacity: .4;
+    }
+    .measure-icon {
+        color: #BFD7FF;
+    }
+    .service-days-icon {
+        color: #E9DBFF;
+    }
+    .all-finished-icon {
+        color: #FEF5E0;
+    }
+    .encourage__tip {
+        @extend %flex--column--align-center;
+        justify-content: center;
+        aside {
+            position: absolute;
+            top: 50%;
+            text-align: center;
+            max-width: 180px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        &.encourage__tip--days {
+            color: #14CF3A;
+            position: relative;
+            aside {
+                transform: translateY(25px);
+                p {
+                    margin-bottom: 8px;
+                }
+                .font--big {
+                    margin-right: 5px;              
+                    font-size: 20px;
+                    line-height: 1;
+                }
+            }
+        }
+        &.encourage__tip--measure {
+            position: relative;
+            color: #0C18A9;
+            img {
+                width: 300px;
+            }
+            aside {
+                transform: translateY(-8px);
+            }
+            
+            & ~ ion-icon {
+                margin-top: 0;
+                position: absolute;
+                top: 50%;
+                transform: translateY(80px);
+            }
+          
+        }
+    }
+}

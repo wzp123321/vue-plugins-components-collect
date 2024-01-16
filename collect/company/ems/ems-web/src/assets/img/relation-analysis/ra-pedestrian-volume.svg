@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100px" height="85px" viewBox="0 0 100 85" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>人流量</title>
+    <defs>
+        <linearGradient x1="69.7127942%" y1="39.2057796%" x2="34.6541717%" y2="66.8606679%" id="linearGradient-1">
+            <stop stop-color="#ACA8FF" offset="0%"></stop>
+            <stop stop-color="#463DFF" offset="100%"></stop>
+        </linearGradient>
+        <path d="M33.9965437,40.4932476 C61.4451325,40.4932476 67.7077971,62.4341238 67.7077971,68.9368399 C67.7775284,79.2289466 61.0462468,84.375 47.5139524,84.375 L16.8599637,84.375 L16.8599637,84.375 C11.2592708,83.7209199 6.99251489,82.0488711 4.059696,79.3588538 C1.12687711,76.6688364 -0.216889306,73.1948318 0.028396759,68.9368399 C-0.339532338,62.4341238 6.54795502,40.4932476 33.9965437,40.4932476 Z M33.4162426,7.29166667 C41.327133,7.29166667 47.7401768,13.6804361 47.7401768,21.5613827 C47.7401768,29.4423292 41.327133,35.8310987 33.4162426,35.8310987 C25.5053521,35.8310987 19.0923083,29.4423292 19.0923083,21.5613827 C19.0923083,13.6804361 25.5053521,7.29166667 33.4162426,7.29166667 Z" id="path-2"></path>
+        <filter x="-14.8%" y="-13.0%" width="129.5%" height="125.9%" filterUnits="objectBoundingBox" id="filter-3">
+            <feGaussianBlur stdDeviation="10" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="0" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.121568627   0 0 0 0 0.494117647   0 0 0 0 0.941176471  0 0 0 0.124618424 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="关联分析-关联参数点击效果" transform="translate(-76.000000, -391.000000)">
+            <g id="人流量" transform="translate(76.000000, 391.000000)">
+                <path d="M67.8441392,32.3567708 C94.0258699,32.3567708 99.9994885,53.1575521 99.9994885,59.3223731 C100.066001,69.0796799 93.6453944,73.9583333 80.7376674,73.9583333 L51.4984782,73.9583333 L51.4984782,73.9583333 C46.1562788,73.3382406 42.0864501,71.7530751 39.2889921,69.2028368 C36.4915341,66.6525985 35.2097876,63.3591106 35.4437528,59.3223731 C35.0928051,53.1575521 41.6624084,32.3567708 67.8441392,32.3567708 Z M67.7085865,0 C75.3518728,0 81.5479807,6.20855132 81.5479807,13.8671875 C81.5479807,21.5258237 75.3518728,27.734375 67.7085865,27.734375 C60.0653001,27.734375 53.8691923,21.5258237 53.8691923,13.8671875 C53.8691923,6.20855132 60.0653001,0 67.7085865,0 Z" id="形状结合" fill="url(#linearGradient-1)"></path>
+                <g id="形状结合">
+                    <use fill-opacity="0.152668133" fill="#463DFF" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-2"></use>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

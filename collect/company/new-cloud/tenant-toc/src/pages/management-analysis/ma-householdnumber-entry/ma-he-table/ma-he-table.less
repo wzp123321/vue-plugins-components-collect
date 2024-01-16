@@ -1,0 +1,115 @@
+.ma-he-table {
+  flex: 1 1 auto;
+
+  table > tbody > tr > td > span[ellipsis] {
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :deep(.el-form) {
+    &-item.is-error {
+      input {
+        border-color: var(--color-error);
+      }
+    }
+    .el-form-item__content {
+      position: relative;
+      i.toc-iconfont.icon-toc-wenhao {
+        font-size: 20px;
+        padding-left: 11px;
+        color: var(--color-text-secondary);
+        &:hover {
+          color: var(--color-primary);
+        }
+      }
+      .suffix {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+      }
+      .file-container {
+        padding: 0 10px;
+        margin-top: 12px;
+        background-color: var(--color-text-background);
+        .file-item {
+          height: 48px;
+          line-height: 48px;
+          font-size: 14px;
+          border-bottom: 1px solid var(--color-text-divider);
+          img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+          }
+          .file-name {
+            flex: 1 1 auto;
+            height: 20px;
+            line-height: 20px;
+            color: var(--color-text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .toc-iconfont.icon-toc-qingkong {
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--color-error);
+            &:hover {
+              opacity: 0.8;
+            }
+          }
+        }
+        .file-item:last-child {
+          border: none;
+        }
+      }
+    }
+    .el-select,
+    .el-date-editor,
+    input {
+      width: 100%;
+    }
+    button {
+      line-height: 36px;
+    }
+  }
+
+  :deep(.el-dialog.file-dialog) {
+    .el-dialog__body {
+      min-height: 180px !important;
+    }
+    .file-item {
+      width: 100%;
+      height: 48px;
+      line-height: 48px;
+      padding: 0 16px;
+      .file-name {
+        flex: 1 1 auto;
+        height: 20px;
+        line-height: 22px;
+      }
+      img {
+        width: 20px;
+        height: 20px;
+      }
+      i {
+        color: var(--color-primary-hover);
+        margin-left: 24px;
+      }
+      &:hover {
+        background-color: var(--color-text-background);
+      }
+    }
+  }
+}
+
+:deep(.el-dialog) {
+  .el-dialog__footer {
+    justify-content: flex-end !important;
+    text-align: right !important;
+  }
+}

@@ -1,0 +1,40 @@
+.ea-line-bar-chart {
+  position: relative;
+
+  :deep(.iot-echarts-container) {
+    z-index: 1;
+
+    * {
+      z-index: 1;
+    }
+  }
+
+  &-thb {
+    position: absolute;
+    top: 4px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .thb-item {
+      margin: 0 12px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      z-index: 9;
+
+      &-legend {
+        display: inline-block;
+        width: 20px;
+        height: 2px;
+      }
+
+      &-name {
+        font-size: 14px;
+        line-height: 22px;
+        margin-left: 4px;
+      }
+    }
+  }
+}

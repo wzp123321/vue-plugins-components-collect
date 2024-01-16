@@ -1,0 +1,88 @@
+<page-common title="对标指标" :showSearch="true" :isSubHead="true" class="benchmarking-index">
+  <template v-slot:pageSearch>
+    <!-- 头部 -->
+    <el-form :inline="true" :model="formInline" class="demo-form-inline" @submit.native.prevent>
+      <el-form-item>
+        <el-input
+          v-inputFilter:search
+          placeholder="输入对标指标名称"
+          v-model="formInline.search"
+          :maxlength="100"
+          @keyup.enter="onSearch"
+          style="width: 240px"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSearch">查询</el-button>
+        <el-button @click="onReset">重置</el-button>
+      </el-form-item>
+    </el-form>
+  </template>
+  <template v-slot:pageSubHead>
+    <el-button type="primary" @click="onAddDialogShow" size="small">新 增</el-button>
+  </template>
+  <template v-slot:pageContent>
+    <div class="benchmarkingTable" v-loading="loading">
+      <el-table
+        v-if="!loading"
+        :header-cell-style="{ background: '#edf5fc', color: 'rgba(0, 0, 0, 0.85)' }"
+        :data="tableData"
+        stripe
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        ref="multipleTable"
+      >
+        <el-table-column prop="index" label="序号" width="80" align="center">
+          <template #default="scope"> {{ (pageNum - 1) * pageSize + scope.$index + 1 }} </template>
+        </el-table-column>
+        <el-table-column prop="name" label="指标名称" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="unit" label="单位" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="correlationIndexName" label="关联指标" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="energyName" label="能耗指标" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="address" label="操作" width="220" align="center">
+          <template #default="scope">
+            <span v-if="scope.row.fixed === '0'" @click="onEnergyCodeUpdate(scope.row)" class="operate-span mr16"
+              >编辑</span
+            >
+            <el-popconfirm
+              v-if="scope.row.fixed === '0'"
+              title="确认删除该条数据吗?"
+              confirmButtonText="确定"
+              cancelButtonText="取消"
+              cancelButtonType="default"
+              @confirm="queryBenchmarkingIsDataById(scope.row.id)"
+            >
+              <template #reference>
+                <span v-if="scope.row.fixed === '0'" class="delete-span">删除</span>
+              </template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+      <ems-pagination
+        v-show="!loading && total > 0"
+        :current-page="pageNum"
+        :page-sizes="pageSizes"
+        @size-change="onPageSizeChange"
+        @current-change="onCurrentChange"
+        :page-size="pageSize"
+        :total="total"
+      >
+      </ems-pagination>
+    </div>
+  </template>
+</page-common>
+
+<AddAndEditBenchmarkingIndexDialog
+  v-drag
+  :rows="rows"
+  :Correlation="Correlation"
+  :HospitalLevel="HospitalLevel"
+  :key="nums"
+  :dialogAdd="dialogAdd"
+  @addOK="getList"
+  :isDisabled="isDisabled"
+  :isData="isData"
+  @dialogClose="isData = []"
+></AddAndEditBenchmarkingIndexDialog>

@@ -1,0 +1,8 @@
+ ::-webkit-scrollbar,
+* ::-webkit-scrollbar {
+  display: none !important;
+  background-color:transparent;
+}
+.scroll-bar-indicator {
+    opacity: 0;
+}

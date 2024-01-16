@@ -1,0 +1,35 @@
+.ra-st-add-update-dialog {
+  :deep(.el-form) {
+    .el-input {
+      width: 100%;
+    }
+
+    .el-form-item__content {
+      display: flex;
+
+      .el-date-editor.el-range-editor {
+        flex-grow: 1;
+      }
+
+      .el-input.is-disabled.el-date-editor--date {
+        .el-input__prefix {
+          right: 8px;
+          left: auto;
+        }
+
+        .el-input__prefix-inner {
+          position: relative;
+        }
+
+        .el-icon.el-input__icon {
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+    }
+
+    input.el-range-input[readonly] {
+      cursor: pointer;
+    }
+  }
+}

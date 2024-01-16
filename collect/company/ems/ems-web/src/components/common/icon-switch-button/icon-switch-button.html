@@ -1,0 +1,36 @@
+<div class="icon-switch-button">
+    <span class="icon-switch-item" :class="{
+        'icon-switch-item-selected': itemSelected === switchItems[0].code
+      }" @click="onSwitchItem(switchItems[0])">
+        <img v-if="
+          switchItems.length > 1 &&
+            switchItems[0].imgs &&
+            switchItems[0].imgs.length > 1 &&
+            switchItems[0].imgs[0] &&
+            switchItems[0].imgs[1]
+        " :src="
+          itemSelected === switchItems[0].code
+            ? switchItems[0].imgs[0]
+            : theme === 'light'
+            ? switchItems[0].imgs[1]
+            : switchItems[0].imgs[2]
+        " />
+    </span>
+    <span class="icon-switch-item" :class="{
+        'icon-switch-item-selected': itemSelected === switchItems[1].code
+      }" @click="onSwitchItem(switchItems[1])">
+        <img v-if="
+          switchItems.length > 1 &&
+            switchItems[1].imgs &&
+            switchItems[1].imgs.length > 1 &&
+            switchItems[1].imgs[0] &&
+            switchItems[1].imgs[1]
+        " :src="
+          itemSelected === switchItems[1].code
+            ? switchItems[1].imgs[0]
+            : theme === 'light'
+            ? switchItems[1].imgs[1]
+            : switchItems[1].imgs[2]
+        " />
+    </span>
+</div>

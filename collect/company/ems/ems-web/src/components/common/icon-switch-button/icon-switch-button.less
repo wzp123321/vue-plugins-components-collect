@@ -1,0 +1,28 @@
+.icon-switch-button {
+    height: 32px;
+    padding: 0 2px;
+    background-color: var(--icon-switch-bg);
+    color: var(--icon-switch-sort-icon-color);
+    display: flex;
+    align-items: center;
+    border-radius: 16px;
+    user-select: none;
+    z-index: 1000;
+    width: fit-content;
+
+    .icon-switch-item {
+        height: 28px;
+        line-height: 28px;
+        padding: 0 15px;
+        cursor: pointer;
+        border-radius: 16px;
+        transition: color 0.2s ease-in-out;
+        display: flex;
+        align-items: center;
+    }
+
+    .icon-switch-item-selected {
+        color: rgba(24, 144, 255, 1);
+        background-color: var(--icon-switch-selected-bg);
+    }
+}

@@ -1,0 +1,27 @@
+.aba-sub-container {
+    padding: 16px 0;
+
+    &-title {
+        position: relative;
+        height: 22px;
+        line-height: 22px;
+        font-size: 14px;
+        color: var(--iot-font-color-deep);
+        font-weight: 600;
+        padding-left: 12px;
+    }
+
+    &-title::before {
+        content: '';
+        width: 0;
+        height: 16px;
+        border-left: 4px solid var(--iot-color-active);
+        position: absolute;
+        top: 3px;
+        left: 0;
+    }
+
+    &-container {
+        padding: 10px 0;
+    }
+}

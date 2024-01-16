@@ -1,0 +1,50 @@
+.energy-analysis {
+  height: 100%;
+
+  .ea-query-wrap {
+    text-align: left;
+  }
+
+  .module-wrap {
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  }
+
+  .data-drilling-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .data-drilling-head-title {
+      width: auto;
+      height: 23px;
+      line-height: 23px;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.85);
+      background-color: rgba(0, 0, 0, 0.04);
+      border-radius: 2px;
+      font-weight: 600;
+      padding: 0 8px;
+    }
+  }
+
+  .data-drilling-crumbs {
+    cursor: pointer;
+    height: 40px;
+    line-height: 40px;
+    white-space: normal;
+    overflow-y: auto;
+
+    & > span > svg {
+      position: relative;
+      top: 1px;
+      margin-top: 6px;
+    }
+
+    .dd-crumbs-name {
+      font-size: 14px;
+      color: #1890ff;
+      margin-left: 8px;
+    }
+  }
+}

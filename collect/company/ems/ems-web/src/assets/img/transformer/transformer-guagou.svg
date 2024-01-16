@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="6px" height="16px" viewBox="0 0 6 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>画板</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#35526E" offset="0%"></stop>
+            <stop stop-color="#94D0FF" offset="18.6680507%"></stop>
+            <stop stop-color="#B8DDFF" offset="47.6098121%"></stop>
+            <stop stop-color="#73BCFF" offset="80.4906031%"></stop>
+            <stop stop-color="#496782" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="画板" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="编组-44">
+            <circle id="椭圆形" fill="#4D5D6C" cx="3" cy="3" r="3"></circle>
+            <circle id="椭圆形备份" fill="#4D5D6C" cx="3" cy="13" r="3"></circle>
+            <rect id="矩形" fill="url(#linearGradient-1)" x="1" y="1" width="4" height="14" rx="2"></rect>
+        </g>
+    </g>
+</svg>

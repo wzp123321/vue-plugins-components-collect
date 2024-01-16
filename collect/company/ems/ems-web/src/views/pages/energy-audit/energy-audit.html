@@ -1,0 +1,69 @@
+<div class="energy-audit">
+  <page-common title="能源审计" :showSearch="true">
+    <template v-slot:pageSearch>
+      <el-form
+        :inline="true"
+        :model="formInline"
+        style="padding: 16px 0"
+        @submit.native.prevent
+      >
+        <el-form-item label="起始年份">
+          <el-date-picker
+            :disabledDate="onDisableDateCb"
+            v-model="formInline.yearDate"
+            type="year"
+            :clearable="false"
+            placeholder="请选择起始年份"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item>
+          <button primary @click="onSubmit">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <el-row class="module-wrap">
+        <el-col :span="24">
+          <div
+            style="display: flex; justify-content: space-between; margin-bottom: 19px"
+          >
+            <module-subhead :title="yearObj.title"></module-subhead>
+            <div>
+              <button primary @click="exportData">导出</button>
+            </div>
+          </div>
+          <!-- 列表数据 -->
+          <div v-if="abnormal" style="min-height: 200px">
+            <el-table
+              :data="yearObj.data"
+              :stripe="lightOrDark"
+              style="width: 100%"
+              v-loading="tableDataLoading"
+            >
+              <el-table-column
+                v-for="(item, index) in yearObj.colName"
+                :key="index"
+                align="center"
+                show-overflow-tooltip
+              >
+                <template #header>
+                  <div v-html="item"></div>
+                </template>
+                <template #default="scope">
+                  <span v-if="index == 0">{{ scope.row[index] }}</span>
+                  <span v-else>{{ thousandSeparation(scope.row[index]) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <div v-else>
+            <no-data></no-data>
+          </div>
+        </el-col>
+      </el-row>
+      <div class="border"></div>
+      <MonthData></MonthData>
+    </template>
+  </page-common>
+</div>

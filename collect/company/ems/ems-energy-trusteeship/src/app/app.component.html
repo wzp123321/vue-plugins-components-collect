@@ -1,0 +1,8 @@
+<div id="app" cdkScrollable>
+  <header *ngIf="title" flexible="false">
+    <h2>{{ title }}</h2>
+  </header>
+  <main [ngStyle]="{ 'min-height.px': fix }" flexible="true">
+    <router-outlet></router-outlet>
+  </main>
+</div>

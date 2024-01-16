@@ -1,0 +1,80 @@
+.ea-dc-ratio-dnomaly {
+  position: relative;
+  padding-left: 20px;
+
+  .ea-dc-rd-container {
+    width: 0;
+    display: grid;
+    grid-template-columns: 42px auto 29px;
+    row-gap: 16px;
+    column-gap: 8px;
+
+    > span,
+    > label {
+      white-space: nowrap;
+      display: inline-block;
+      height: 24px;
+      line-height: 24px;
+    }
+
+    label {
+      width: 42px;
+    }
+  }
+
+  span.count {
+    text-align: right;
+    word-break: normal;
+    white-space: nowrap;
+  }
+
+  .ea-dc-rd-ico {
+    position: absolute;
+
+    left: 0;
+    top: 5px;
+  }
+
+  .ea-dc-rd-deviation {
+    position: absolute;
+    top: 36px;
+    right: 0;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    padding: 4px 12px;
+    border-radius: 13px;
+
+    > span {
+      white-space: nowrap;
+    }
+
+    &.general {
+      background-color: rgba(245, 77, 66, 0.04);
+      line-height: 17px;
+      color: var(--color-text-primary);
+
+      .num {
+        margin-left: 8px;
+        color: rgba(244, 76, 65, 1);
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+
+    &.serious {
+      background-color: var(--iot-anomaly-serious-bg-color);
+      line-height: 17px;
+      color: #fff;
+
+      .num {
+        margin-left: 8px;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+  }
+}

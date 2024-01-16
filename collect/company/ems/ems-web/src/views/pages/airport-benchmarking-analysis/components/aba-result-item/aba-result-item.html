@@ -1,0 +1,6 @@
+<div class="aba-result-item flex-row-start-center">
+    <img v-if="status === BENCH_STATUS.NORMAL" src="../../../../../assets/img/airport-benchmarking/ab-normal.svg" alt="" />
+    <img v-if="status === BENCH_STATUS.HIGH" src="../../../../../assets/img/airport-benchmarking/ab-high.svg" alt="" />
+    <img v-if="status === BENCH_STATUS.LOW" src="../../../../../assets/img/airport-benchmarking/ab-low.svg" alt="" />
+    <span class="title text-overflow" :title="text">{{ text }}</span>
+</div>

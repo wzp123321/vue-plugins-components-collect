@@ -1,0 +1,21 @@
+<div id="air-conditioner-control-list">
+  <div class="air-conditioner-control-list-header">
+    <h3 class="acclh-title">
+      <span class="acclh-title-text">空调运行优化策略</span>
+      <span class="acclh-title-text">{{ date }} </span>
+    </h3>
+    <ems-air-conditioner-control-list-more></ems-air-conditioner-control-list-more>
+  </div>
+  <div class="air-conditioner-control-list-content">
+    <nz-spin nzTip="Loading..." class="acclc-loading" [nzSpinning]="loading">
+      <ems-air-conditioner-control-list-strategy
+        *ngIf="!isEmpty"
+        [todayStrategyData]="todayOptimizationStrategyData"
+      ></ems-air-conditioner-control-list-strategy>
+      <div class="empty-module" [class.none]="!isEmpty">
+        <img src="assets/img/common/common-data-unset.svg" alt="暂无数据" />
+        <span>暂无数据</span>
+      </div>
+    </nz-spin>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<div class="data-abnomal-alarm-rules">
+  <page-common title="异常告警管理" :showSearch="false" :isSubHead="false">
+    <template v-slot:pageContent>
+      <el-tabs v-model="activePageTab">
+        <el-tab-pane label="能耗分析" :name="EDaarPageModule.能耗分析">
+          <template v-if="activePageTab === EDaarPageModule.能耗分析">
+            <!-- 异常阈值区间设置 -->
+            <daar-analyse-thresholdvalue-configure></daar-analyse-thresholdvalue-configure>
+            <!-- 颜色标记设置 -->
+            <daar-datasign-configure></daar-datasign-configure>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="实时异常" :name="EDaarPageModule.实时异常">
+          <!-- 实时异常 -->
+          <template v-if="activePageTab === EDaarPageModule.实时异常">
+            <daar-min-abnormal-value-configure
+              :configureType="EDaarAbnormalTab.实时异常"
+              @loaded="handleLoaded($event, EDaarAbnormalType.用能异常)"
+            ></daar-min-abnormal-value-configure>
+            <daar-calculate-nodelevel-configure></daar-calculate-nodelevel-configure>
+
+            <daar-abnormal-thresholdvalue-configure
+              ref="realtimeAbnormal"
+              :abnormalType="EDaarAbnormalType.用能异常"
+            ></daar-abnormal-thresholdvalue-configure>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="昨日异常" :name="EDaarPageModule.昨日异常">
+          <!-- 昨日异常 -->
+          <template v-if="activePageTab === EDaarPageModule.昨日异常">
+            <daar-min-abnormal-value-configure
+              :configureType="EDaarAbnormalTab.昨日异常"
+            ></daar-min-abnormal-value-configure>
+            <daar-yesterday-thresholdvalue-configure></daar-yesterday-thresholdvalue-configure>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="边界异常" :name="EDaarPageModule.边界异常">
+          <!-- 边界异常 -->
+          <template v-if="activePageTab === EDaarPageModule.边界异常">
+            <daar-min-abnormal-value-configure
+              :configureType="EDaarAbnormalTab.边界异常"
+              @loaded="handleLoaded($event, EDaarAbnormalType.边界异常)"
+            >
+            </daar-min-abnormal-value-configure>
+            <daar-abnormal-thresholdvalue-configure
+              ref="boundaryAbnormal"
+              :abnormalType="EDaarAbnormalType.边界异常"
+            ></daar-abnormal-thresholdvalue-configure>
+          </template>
+        </el-tab-pane>
+      </el-tabs>
+    </template>
+  </page-common>
+</div>

@@ -1,0 +1,12 @@
+.benchmarking-system {
+  height: 100%;
+  .benchmarkingTable{
+    height: calc(100% - 68px);
+  }
+  .benchmarkingTable::after {
+    display: block;
+    content: '';
+    height: 0;
+    clear: both;
+  }
+}

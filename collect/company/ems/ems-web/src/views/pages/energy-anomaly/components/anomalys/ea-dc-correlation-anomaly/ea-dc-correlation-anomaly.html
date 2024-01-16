@@ -1,0 +1,43 @@
+<div
+  class="ea-dc-correlation-anomaly flex-row-justify-end"
+  v-for="(item, index) in abnormalCorrelationDataList"
+  :key="'ea-dc-correlation-anomaly_' + index"
+>
+  <div class="ea-dc-correlation-anomaly-data flex">
+    <img
+      class="anomaly-ico"
+      src="../../../../../../assets/img/energy-anomaly/ea-abnormal.png"
+      alt="图标"
+    />
+    <div class="num">
+      <div class="alignL font14">
+        <span class="label">关 联 项</span>
+        <span class="font16">{{ item.paramName }}</span>
+      </div>
+      <div class="alignL font14 ea-dc-correlation-anomaly-data__value mt12">
+        <span class="label">常见区间</span>
+        <span class="font24 bold"
+          >{{ item.lowCoefficient }}～{{ item.highCoefficient }}</span
+        >
+      </div>
+    </div>
+  </div>
+  <div class="flex-column-justify-end" style="align-items: end;">
+    <div
+      class="flex-row-start-center"
+      v-if="abnormalCorrelationDataList?.length > 1"
+    >
+      <span class="font12 deal" @click="onAlarmDeal(item.alarmId)"
+        >异常处理</span
+      >
+      <el-divider direction="vertical" style="margin:0 16px"></el-divider>
+      <span class="font12 deal" @click="onToDetailPage(item)">详情</span>
+    </div>
+    <div
+      class="ea-dc-correlation-anomaly-coefficient flex-row-start-center font12 mt8"
+    >
+      当前系数
+      <span class="bold font16">{{ item.coefficient }}</span>
+    </div>
+  </div>
+</div>

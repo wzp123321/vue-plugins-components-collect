@@ -1,0 +1,198 @@
+<div :class="['ea-detail-container', typeAnomalyDetail.typeId === AbnormalType.BOUNDARY ? 'boundary' : '']">
+  <!-- 头部 -->
+  <div
+    class="ea-detail-container__header flex-row-justify-center"
+    v-if="typeAnomalyDetail.typeId !== AbnormalType.BOUNDARY"
+  >
+    <div class="font14 flex-row-start-center">
+      <img src="../../../../../assets/img/energy-anomaly/ea-exception-flag.svg" />
+      <span class="bold">{{ typeAnomalyDetail.typeName }}</span>
+      <span class="energy-code" v-if="typeAnomalyDetail.typeId === AbnormalType.COST">
+        {{ typeAnomalyDetail.energyCodeName }}
+      </span>
+    </div>
+    <span class="font12">{{ typeAnomalyDetail.description || '' }}</span>
+  </div>
+  <!-- 详情 -->
+  <div class="ea-detail-container__detail">
+    <!-- 隐藏按钮 -->
+    <div class="hide-icon" @click="onSetDayDialogShow">
+      <i class="ems-iconfont icon-yincang" :title="'隐藏'"></i>
+    </div>
+    <div class="title flex-row-justify-center">
+      <span class="bold font14">异常详情</span>
+      <!-- 类型不等于排名变化、能耗对比、关联分析 或者等于这三个时数据只有一条 -->
+      <div
+        class="operate-span flex-row-center-center"
+        v-if="
+            (typeAnomalyDetail.typeId !== AbnormalType.RANK &&
+              typeAnomalyDetail.typeId !== AbnormalType.CONTRAST &&
+              typeAnomalyDetail.typeId !== AbnormalType.CORRELATION) ||
+              (typeAnomalyDetail.typeId === AbnormalType.RANK &&
+                typeAnomalyDetail?.abnormalRankDataList?.length === 1) ||
+              (typeAnomalyDetail.typeId === AbnormalType.CONTRAST &&
+                typeAnomalyDetail?.abnormalContrastDataList?.length === 1) ||
+              (typeAnomalyDetail.typeId === AbnormalType.CORRELATION &&
+                typeAnomalyDetail?.abnormalCorrelationDataList?.length === 1)
+          "
+      >
+        <span class="font14" v-if="typeAnomalyDetail.typeId !== AbnormalType.BOUNDARY" @click="onProcessInputShow()"
+          >异常处理
+        </span>
+        <el-divider
+          v-if="typeAnomalyDetail.typeId !== AbnormalType.BOUNDARY"
+          direction="vertical"
+          style="margin:0 16px"
+        ></el-divider>
+        <span class="detail font14" @click="lintToDetailPage()">详情</span>
+      </div>
+    </div>
+    <div class="ea-detail-container__result">
+      <!-- 展开 -->
+      <div class="expand">
+        <!-- 异常详情 -->
+        <div class="content">
+          <!-- 能流平衡异常 -->
+          <BalanceAnomdaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.BALANCE"
+            :total-value="typeAnomalyDetail.totalValue"
+            :branch-value="typeAnomalyDetail.branchValue"
+            :unit="typeAnomalyDetail.unit"
+            :level="typeAnomalyDetail.abnormalLevel"
+            :differenceRatio="typeAnomalyDetail.differenceRatio"
+          ></BalanceAnomdaly>
+          <!-- 同比异常 -->
+          <BasisAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.BASIS"
+            :currentValue="typeAnomalyDetail.currentValue"
+            :abnormalLevel="typeAnomalyDetail.abnormalLevel"
+            :unit="typeAnomalyDetail.unit"
+            :isIncreaseOrReduce="typeAnomalyDetail.isIncreaseOrReduce"
+            :differenceRatio="typeAnomalyDetail.differenceRatio"
+          >
+            <RelationParameter :dataList="typeAnomalyDetail.abnormalCorrelationDataList"> </RelationParameter>
+          </BasisAnomaly>
+          <!-- 能耗对比异常 -->
+          <ContrastAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.CONTRAST"
+            :abnormal-contrast-data-list="
+                typeAnomalyDetail.abnormalContrastDataList
+              "
+            :treeType="treeType"
+            :energyCode="energyCode"
+            :treeId="treeId"
+            v-model:alarmId="alarmId"
+            :typeAnomalyDetail="typeAnomalyDetail"
+          >
+            <RelationParameter :dataList="typeAnomalyDetail.abnormalCorrelationDataList"> </RelationParameter>
+          </ContrastAnomaly>
+          <!-- 成本异常 -->
+          <CostAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.COST"
+            :currentValue="typeAnomalyDetail.currentValue"
+            :differenceRatio="typeAnomalyDetail.differenceRatio"
+            :targetValue="typeAnomalyDetail.targetValue"
+            :unit="typeAnomalyDetail.unit"
+          ></CostAnomaly>
+          <!-- 节能考核 -->
+          <KpiAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.KPI"
+            :quotaValue="typeAnomalyDetail.quotaValue"
+            :currentValue="typeAnomalyDetail.currentValue"
+            :differenceRatio="typeAnomalyDetail.differenceRatio"
+            :quotaAbnormalType="typeAnomalyDetail.quotaAbnormalType"
+            :trendAbnormalTime="typeAnomalyDetail.trendAbnormalTime"
+            :unit="typeAnomalyDetail.unit"
+            :level="typeAnomalyDetail.abnormalLevel"
+          ></KpiAnomaly>
+          <!-- 峰值异常 -->
+          <PeakAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.PEAK"
+            :value="typeAnomalyDetail.val"
+            :peakTimes="typeAnomalyDetail.peakTimes"
+            :unit="typeAnomalyDetail.unit"
+          ></PeakAnomaly>
+          <!-- 关联分析 -->
+          <CorrelationAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.CORRELATION"
+            :abnormalCorrelationDataList="
+                typeAnomalyDetail.abnormalCorrelationDataList
+              "
+            :treeId="treeId"
+            :treeType="treeType"
+            :energyCode="energyCode"
+            v-model:alarmId="alarmId"
+            :typeAnomalyDetail="typeAnomalyDetail"
+          ></CorrelationAnomaly>
+          <!-- 排名变化 -->
+          <RankAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.RANK"
+            :treeType="treeType"
+            :energyCode="energyCode"
+            v-model:alarmId="alarmId"
+            :typeAnomalyDetail="typeAnomalyDetail"
+            :abnormalRankDataList="typeAnomalyDetail.abnormalRankDataList"
+          >
+            <RelationParameter :dataList="typeAnomalyDetail.abnormalCorrelationDataList"> </RelationParameter>
+          </RankAnomaly>
+          <!-- 用能异常 -->
+          <RatioAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.RATIO"
+            :predictValue="typeAnomalyDetail.predictValue"
+            :actualValue="typeAnomalyDetail.actualValue"
+            :currentTimestamp="typeAnomalyDetail.currentTimestamp"
+            :predictTimestamp="typeAnomalyDetail.predictTimestamp"
+            :unit="typeAnomalyDetail.unit"
+            :abnormalLevel="typeAnomalyDetail.abnormalLevel"
+            :isIncreaseOrReduce="typeAnomalyDetail.isIncreaseOrReduce"
+            :deviationRate="typeAnomalyDetail.deviationRate"
+          >
+            <RelationParameter :dataList="typeAnomalyDetail.abnormalCorrelationDataList"> </RelationParameter>
+          </RatioAnomaly>
+          <!-- 边界异常 -->
+          <BoundaryAnomaly
+            v-if="typeAnomalyDetail.typeId === AbnormalType.BOUNDARY"
+            :id="id"
+            :typeAnomalyDetail="typeAnomalyDetail"
+          ></BoundaryAnomaly>
+        </div>
+        <!-- 处理异常输入框 -->
+        <div class="process-remark flex flex-column mt12" v-show="alarmId !== 0">
+          <textarea
+            v-inputFilter:search
+            v-model="processDescription"
+            :maxlength="100"
+            placeholder="请输入异常处理的备注信息"
+          />
+          <div class="flex-row-end-end process-remark__btn">
+            <button text @click="onCancel">取消</button>
+            <button text primary @click="onSubmit">确定</button>
+          </div>
+        </div>
+        <!-- 诊断结果 -->
+        <AnomalyResult
+          v-show="isExpanded && typeAnomalyDetail?.causeSet?.length"
+          title="诊断结果"
+          :type="ANOMALY_RESULT_TYPE.RESULT"
+          :data-source="typeAnomalyDetail.causeSet"
+        ></AnomalyResult>
+        <AnomalyResult
+          v-show="isExpanded && typeAnomalyDetail?.solutionList?.length"
+          title="操作建议"
+          :type="ANOMALY_RESULT_TYPE.TIPS"
+          :data-source="typeAnomalyDetail.solutionList"
+        ></AnomalyResult>
+      </div>
+    </div>
+  </div>
+  <!-- 未展开 -->
+  <div
+    class="ea-detail-container__unexpand"
+    @click="onExpandOrNot"
+    v-if="typeAnomalyDetail?.solutionList?.length || typeAnomalyDetail?.causeSet?.length"
+  >
+    <i :class="['ems-iconfont', 'icon-xiangxia', isExpanded ? 'rotate' : '']"></i>
+  </div>
+  <!-- 置数弹框 -->
+  <EnergyAnomalySetHideDayDialog ref="setHideDay" :hideDayParams="hideDayParams"></EnergyAnomalySetHideDayDialog>
+</div>

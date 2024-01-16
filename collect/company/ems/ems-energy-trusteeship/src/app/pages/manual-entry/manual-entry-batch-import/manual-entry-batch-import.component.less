@@ -1,0 +1,191 @@
+@import url(../../../../assets/style/me-modal.less);
+
+.me-batch-import {
+  display: flex;
+  justify-content: flex-start;
+  align-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.me-file-content {
+  max-height: 258px;
+  overflow-y: auto;
+  margin: 0px 5px 0px 20px;
+  padding-right: 15px;
+}
+.error-txt {
+  color: #f5222d;
+}
+
+.mt16 {
+  margin-top: 16px;
+}
+.me-file-item:hover {
+  background-color: #e6f7ff;
+}
+.me-file-item {
+  height: 36px;
+  line-height: 36px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.04);
+  margin-bottom: 12px;
+  margin-top: 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 8px;
+  &-text {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.65);
+  }
+  &-close {
+    font-size: 8px;
+    font-weight: 500;
+    height: 14px;
+    width: 14px;
+    line-height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1.5px solid #f5222d;
+    color: #f5222d;
+    transform: none;
+    opacity: 1;
+    cursor: pointer;
+  }
+}
+.pr20 {
+  padding-right: 20px;
+}
+.scroll-y-tbody {
+  max-height: 258px;
+  overflow-y: auto;
+  width: 100%;
+  table {
+    width: 100%;
+  }
+}
+button[disabled],
+button[disabled]:hover,
+button[disabled]:active {
+  color: rgba(0, 0, 0, 0.25);
+  background-color: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 1px 16px !important;
+  border-radius: 3px !important;
+}
+::ng-deep .ant-tooltip .ant-tooltip-content .ant-tooltip-inner {
+  padding: 8px 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+::ng-deep .mbim-upload-list .ant-upload-select .ant-upload {
+  display: inline-flex;
+  align-items: center;
+  margin: 0px 20px;
+}
+::ng-deep .upload-tip-style.ant-tooltip {
+  max-width: 370px !important;
+}
+
+::ng-deep .me-batch-import-modal-add .mbim-upload-list .ant-upload-list {
+  display: block;
+  max-height: 240px;
+  overflow-y: auto;
+  .ant-upload-list-item {
+    height: 36px;
+    line-height: 36px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.65);
+    background-color: rgba(0, 0, 0, 0.04);
+    margin-bottom: 12px;
+    margin-top: 0px;
+
+    .ant-upload-list-item-info {
+      padding: 0 24px 0 4px;
+      .anticon-paper-clip {
+        display: none;
+      }
+      .ant-upload-list-item-card-actions {
+        display: flex;
+        button {
+          width: 0px;
+          border: 0px;
+          opacity: 1;
+          height: 20px;
+          line-height: 1;
+          background-color: transparent;
+          .anticon-delete {
+            font-size: 8px;
+            font-weight: 500;
+            top: 11px;
+            right: 11px;
+            height: 14px;
+            width: 14px;
+            line-height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            border: 1.5px solid #f5222d;
+            color: #f5222d;
+            transform: none;
+            opacity: 1;
+          }
+        }
+      }
+    }
+
+    .ant-upload-list-item-name {
+      width: calc(100% - 14px);
+      padding-left: 8px;
+    }
+    .anticon-close {
+      font-size: 8px;
+      font-weight: 500;
+      top: 11px;
+      right: 11px;
+      height: 14px;
+      width: 14px;
+      line-height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      border: 1.5px solid #f5222d;
+      color: #f5222d;
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+.error-list {
+  .error-list-item {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.65);
+    height: 34px;
+    line-height: 34px;
+  }
+  .list-done {
+    color: #1890ff;
+  }
+  .list-error {
+    color: #f5222d;
+    cursor: pointer;
+  }
+}
+::ng-deep .me-batch-import-modal-add .ant-modal-body {
+  padding: 0px !important;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+::ng-deep .ant-modal .ant-modal-content .ant-modal-body {
+  overflow: hidden !important;
+  margin: 0px !important;
+  max-height: 348px !important;
+}

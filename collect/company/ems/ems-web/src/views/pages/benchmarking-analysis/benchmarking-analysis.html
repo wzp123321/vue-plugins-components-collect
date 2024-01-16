@@ -1,0 +1,457 @@
+<div class="benchmarking-analysis">
+  <page-common :title="'对标分析'" :showSearch="true" @scroll.native="onScroll">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="queryParams" @submit.native.prevent>
+        <el-form-item label="建筑名称">
+          <el-input
+            placeholder="请输入建筑名称"
+            v-inputFilter:search="{allowSpace: true}"
+            :maxlength="20"
+            v-model="queryParams.name"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="父体系">
+          <el-select v-model="queryParams.parentId" @change="getChildList" class="form-select">
+            <el-option
+              v-for="(item, index) in parentList"
+              :key="'parent_'+index"
+              :value="item.parentId"
+              :label="item.parentName"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="子体系">
+          <el-select v-model="queryParams.sonId" class="form-select">
+            <el-option
+              v-for="(item, index) in childList"
+              :key="'son_'+index"
+              :value="item.sonId"
+              :label="item.sonName"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标杆类型">
+          <el-select v-model="queryParams.timeType" class="timetype-select" @change="onTimeTypeChange">
+            <el-option
+              v-for="(item, index) in timeTypes"
+              :key="'son_'+index"
+              :value="item.value"
+              :label="item.label"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="日期">
+          <date-range-picker
+            :mode="queryParams.timeType === 1 ? 'monthrange' : 'yearrange'"
+            :format="queryParams.timeType === 1 ? 'YYYY-MM' : 'YYYY'"
+            v-model:value="queryParams.date"
+          >
+          </date-range-picker>
+        </el-form-item>
+        <el-form-item>
+          <button primary @click="onSearch">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div class="benchmarking-analysis-container" v-loading="loading">
+        <div class="container-header mt6 mb13">
+          <button @click="toConfigurePage">配置快捷入口</button>
+          <button class="ml12" primary @click="onExport" v-if="buildList && buildList.length>0">
+            {{ exportLoading ? '正在导出' : '导出'}}
+          </button>
+        </div>
+        <div class="container-data" v-if="!showNoData && buildList && buildList.length">
+          <!-- 表格 -->
+          <table class="container-data-table" style="width: 100%">
+            <thead :class="{'overflow-thead': buildList?.length>5}">
+              <tr>
+                <th style="width: 60px">序号</th>
+                <th>建筑名称</th>
+                <th>对标体系</th>
+                <th style="width: 150px">标杆值</th>
+                <th style="width: 150px">实际值</th>
+                <th style="width: 150px">单位</th>
+                <th>对标评价</th>
+                <th style="width: 150px">操作</th>
+              </tr>
+            </thead>
+            <tbody @scroll="onScroll">
+              <tr v-for="(item, index) in buildList" :key="index">
+                <td style="width: 60px">
+                  {{ (queryParams.pageNum -1) * queryParams.pageSize + index + 1}}
+                </td>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :show-after="500"
+                  :content="item.buildName || '--'"
+                  placement="bottom"
+                  :offset="-4"
+                >
+                  <td>{{ item.buildName }}</td>
+                </el-tooltip>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :show-after="500"
+                  :content="item.archName || '--'"
+                  placement="bottom"
+                  :offset="-4"
+                >
+                  <td>{{ item.archName }}</td>
+                </el-tooltip>
+                <td style="width: 150px">
+                  <span v-if="Object.prototype.toString.call(item.benchmarkValue) === '[object Null]'">--</span>
+                  <el-tooltip
+                    v-else
+                    class="item"
+                    effect="dark"
+                    :show-after="500"
+                    :content="thousandSeparation(item.benchmarkValue) ?? '--'"
+                    placement="bottom"
+                  >
+                    <span>{{ thousandSeparation(item.benchmarkValue) }}</span>
+                  </el-tooltip>
+                </td>
+                <td style="width: 150px">
+                  <span v-if="Object.prototype.toString.call(item.actualValue) === '[object Null]'">--</span>
+                  <el-tooltip
+                    v-else
+                    class="item"
+                    effect="dark"
+                    :show-after="500"
+                    :content="thousandSeparation(item.actualValue) ?? '--'"
+                    placement="bottom"
+                  >
+                    <span>{{ thousandSeparation(item.actualValue) }}</span>
+                  </el-tooltip>
+                </td>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :content="item.unit || '--'"
+                  :show-after="500"
+                  placement="bottom"
+                  :offset="-4"
+                >
+                  <td style="width: 150px">{{ item.unit || '--' }}</td>
+                </el-tooltip>
+                <td>
+                  <el-tooltip
+                    v-if="item.evaluate"
+                    class="item"
+                    effect="dark"
+                    :show-after="500"
+                    :content="item.actualValue ? String(item.evaluate) : '--'"
+                    placement="bottom"
+                  >
+                    <span> {{ item.evaluate }}</span>
+                  </el-tooltip>
+                  <span v-else>--</span>
+                </td>
+                <td style="width: 150px" class="operate-span" @click="onQueryBuildDetail(item.buildId, item.buildName)">
+                  详情
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <el-pagination
+            :pager-count="6"
+            :current-page="queryParams.pageNum"
+            :page-sizes="pageSizes"
+            @size-change="onPageSizeChange"
+            @current-change="onPageChange"
+            :page-size="queryParams.pageSize"
+            layout="total, prev, pager, next, sizes, jumper"
+            :total="total"
+          >
+          </el-pagination>
+          <hr />
+          <!-- 建筑对标分析 -->
+          <div class="container-data-detail">
+            <module-subhead :title="`${buildName}对标分析`"></module-subhead>
+            <div class="container-data-detail-btn" v-if="compDetailTableList?.length">
+              <icon-switch-button v-model="dataType" :switchItems="compTableChartSwitchIcons"> </icon-switch-button>
+              <button primary v-show="dataType === 1" class="ml17" @click="onExportBuildDetailTable">
+                {{ detailExportLoading ? '正在导出' : '导出' }}
+              </button>
+            </div>
+            <div class="flex" v-if="compDetailTableList?.length">
+              <div class="container-data-detail-img">
+                <div class="flex-column-center-center" style="height:100%">
+                  <img
+                    :src="require(`../../../assets/img/benchmarking-analysis/${getBuildingAvatar(benchMarkingBuildDetail.benchmarkingBuildingDetailVO.buildingType)}`)"
+                    alt=""
+                  />
+                  <span class="build-name" :title="buildName">{{ buildName || '--'}}</span>
+                </div>
+                <div class="container-data-detail-img-tooltip">
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.name"
+                  >
+                    <span class="key mr36">建筑名称：</span
+                    ><span class="value">{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.name || '--' }}</span>
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.buildingYear"
+                  >
+                    <span class="key mr36">建筑年代：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.buildingYear || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.layers"
+                  >
+                    <span class="key mr36">建筑层数：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.layers || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.buildingTypeText"
+                  >
+                    <span class="key mr36">建筑类型：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.buildingTypeText || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if=" benchMarkingBuildDetail.benchmarkingBuildingDetailVO.treeName"
+                  >
+                    <span class="key mr36">关联节点：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.treeName || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.address"
+                  >
+                    <span class="key mr36">建筑地点：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.address || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.airConditionedArea"
+                  >
+                    <span class="key mr36">空调面积：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.airConditionedArea || '--' }}㎡</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.area"
+                  >
+                    <span class="key mr36">区域面积：</span
+                    ><span class="value">{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.area || '--' }}㎡</span>
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.coolingMode"
+                  >
+                    <span class="key mr36">制冷模式：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.coolingMode || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.curtainType"
+                  >
+                    <span class="key mr36">建筑外帘类型：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.curtainType || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.glassType"
+                  >
+                    <span class="key mr36">建筑玻璃面积：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.glassType || '--' }}㎡</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.heatingArea"
+                  >
+                    <span class="key mr36">建筑面积：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.heatingArea || '--' }}㎡</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.heatingMode"
+                  >
+                    <span class="key mr36">建筑模式：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.heatingMode || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.structure"
+                  >
+                    <span class="key mr36">建筑结构形式：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.structure || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.wallMaterial"
+                  >
+                    <span class="key mr36">建筑外墙材料：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.wallMaterial || '--'}}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.wallWarmMode"
+                  >
+                    <span class="key mr36">建筑外墙保温形式：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.wallWarmMode || '--' }}</span
+                    >
+                  </div>
+                  <div
+                    class="flex-row-start-start mb10"
+                    v-if="benchMarkingBuildDetail.benchmarkingBuildingDetailVO.windowMaterialType"
+                  >
+                    <span class="key mr36">窗框材料类型：</span
+                    ><span class="value"
+                      >{{ benchMarkingBuildDetail.benchmarkingBuildingDetailVO.windowMaterialType || '--' }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="container-data-detail-chartstable mb16">
+                <table v-if="dataType === 1" style="width: 100%">
+                  <thead>
+                    <tr>
+                      <th style="width: 60px">序号</th>
+                      <th>日期</th>
+                      <th>关联区域节点</th>
+                      <th>实际值</th>
+                      <th>平均值</th>
+                      <th>标杆值</th>
+                      <th>单位</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in compDetailTableList" :key="index">
+                      <td style="width: 60px">
+                        {{ (detailPageNum - 1)* detailPageSize + index + 1}}
+                      </td>
+                      <el-tooltip
+                        class="item"
+                        effect="dark"
+                        :content="item.date || '--'"
+                        :show-after="500"
+                        placement="bottom"
+                        :offset="-4"
+                      >
+                        <td>{{ item.date }}</td>
+                      </el-tooltip>
+                      <el-tooltip
+                        class="item"
+                        effect="dark"
+                        :show-after="500"
+                        :content="item.treeName || '--'"
+                        placement="bottom"
+                        :offset="-4"
+                      >
+                        <td>{{ item.treeName }}</td>
+                      </el-tooltip>
+                      <td>
+                        <el-tooltip
+                          v-if="Object.prototype.toString.call(item.actualValue) !== '[object Null]'"
+                          class="item"
+                          effect="dark"
+                          :show-after="500"
+                          :content="thousandSeparation(item.actualValue) ?? '--'"
+                          placement="bottom"
+                        >
+                          <span>{{ thousandSeparation(item.actualValue) }}</span>
+                        </el-tooltip>
+                        <span v-else>--</span>
+                      </td>
+                      <td>
+                        <el-tooltip
+                          v-if="Object.prototype.toString.call(item.averageValue) !== '[object Null]'"
+                          class="item"
+                          effect="dark"
+                          :show-after="500"
+                          :content="thousandSeparation(item.averageValue) ?? '--'"
+                          placement="bottom"
+                        >
+                          <span>{{ thousandSeparation(item.averageValue) }}</span>
+                        </el-tooltip>
+                        <span v-else>--</span>
+                      </td>
+                      <td>
+                        <el-tooltip
+                          v-if="Object.prototype.toString.call(item.benchmarkValue) !== '[object Null]'"
+                          class="item"
+                          effect="dark"
+                          :show-after="500"
+                          :content="thousandSeparation(item.benchmarkValue) ?? '--'"
+                          placement="bottom"
+                        >
+                          <span>{{ thousandSeparation(item.benchmarkValue) }}</span>
+                        </el-tooltip>
+                        <span v-else>--</span>
+                      </td>
+                      <el-tooltip
+                        class="item"
+                        effect="dark"
+                        :show-after="500"
+                        :content="item.unit || '--'"
+                        placement="bottom"
+                      >
+                        <td>{{item.unit }}</td>
+                      </el-tooltip>
+                    </tr>
+                  </tbody>
+                </table>
+                <el-pagination
+                  v-if="dataType === 1"
+                  :current-page="detailPageNum"
+                  :page-sizes="pageSizes"
+                  @size-change="onDetailPageSizeChange"
+                  @current-change="onDetailPageChange"
+                  :page-size="detailPageSize"
+                  layout="total, prev, pager, next, sizes, jumper"
+                  :total="benchMarkingBuildDetail.benchmarkingBuildingDetailListVOTreeList.length"
+                >
+                </el-pagination>
+                <div v-if="dataType === 2" class="charts-container mt19">
+                  <iot-echarts-container :height="300" :useEchartsOptions="onInitCharts"> </iot-echarts-container>
+                  <!-- <div :id="compEchartId" style="width:100%;height:300px"></div> -->
+                </div>
+              </div>
+            </div>
+            <no-data :title="errorMessage" v-if="compDetailTableList?.length === 0 && !loading"></no-data>
+          </div>
+        </div>
+        <no-data :title="errorMessage" v-show="showNoData" :hasSlot="showRedirection">
+          <span class="redirection-span" @click="onLinkTo">{{ errorMessage }}</span>
+        </no-data>
+      </div>
+    </template>
+  </page-common>
+</div>

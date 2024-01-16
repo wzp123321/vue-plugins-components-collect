@@ -1,0 +1,33 @@
+<div class="ea-energy-code-select-box flex">
+  <div class="ea-energy-code-select-box__scroll">
+    <div class="list" :style="{ transform: `translateX(${translateX}px)` }">
+      <span
+        v-for="(item, index) in list"
+        :key="'check_' + index"
+        :title="item.name"
+        :class="{ 'active-select': item.code === selectId }"
+        @click="onSelectBoxItemClick(index, item.code)"
+      >
+        {{ item.name }}
+      </span>
+    </div>
+  </div>
+  <div class="ea-energy-code-select-box__btn flex-row-start-center" v-if="isMoreBtnShow">
+    <div class="shelter-block"></div>
+    <el-dropdown trigger="click" placement="bottom-end">
+      <i class="ems-iconfont icon-caidan"></i>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item
+            v-for="(item, index) in list"
+            :key="'check_' + index"
+            :class="{ 'active-select': item.code === selectId }"
+            :title="item.name"
+            @click="onSelectBoxItemClick(index, item.code)"
+            >{{ item.name }}</el-dropdown-item
+          >
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </div>
+</div>

@@ -1,0 +1,560 @@
+@import url(./color.less);
+
+// 修改NG-ZORRO全局样式
+// 加载状态
+nz-spin {
+  & > .ant-spin-container {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// 按钮
+button[nz-button].ant-btn {
+  height: 36px;
+  padding: 6px 15px;
+
+  color: @color-primary;
+  background-color: @color-default;
+  border: 1px solid;
+  border-radius: 3px;
+
+  line-height: 22px;
+  font-size: 14px;
+  font-weight: 400;
+
+  transition-duration: 233ms;
+
+  &:focus {
+    color: @color-primary;
+    border-color: @color-primary;
+  }
+  &:hover {
+    color: @color-primary-hover;
+  }
+  &:active {
+    color: @color-primary-active;
+  }
+
+  &-primary {
+    color: @color-default;
+    background-color: @color-primary;
+    border-color: @color-primary;
+
+    &:focus {
+      color: @color-default;
+      background-color: @color-primary;
+      border-color: @color-primary;
+    }
+    &:hover {
+      color: @color-default;
+      background-color: @color-primary-hover;
+      border-color: @color-primary-hover;
+    }
+    &:active {
+      color: @color-default;
+      background-color: @color-primary-active;
+      border-color: @color-primary-active;
+    }
+  }
+}
+
+// 单选按钮
+.ant-radio-wrapper,
+.ant-radio {
+  color: fade(black, 65%);
+
+  input {
+    display: none;
+  }
+}
+
+nz-radio-group.ant-radio-group {
+  & > .ant-radio-wrapper:last-child {
+    margin-right: 0px;
+  }
+}
+
+// 复选框
+.ant-checkbox-wrapper,
+.ant-checkbox {
+  color: fade(black, 65%);
+
+  & > input {
+    display: none;
+  }
+}
+
+// 下拉选择框
+.ant-select-single.ant-select,
+.ant-select-multiple.ant-select {
+  height: 36px;
+
+  .ant-select-selector {
+    height: 100%;
+
+    border: 1px solid @color-text-border;
+    border-radius: 3px;
+
+    .ant-select-selection-search .ant-select-selection-search-input {
+      height: 100%;
+
+      &:focus {
+        box-shadow: none;
+      }
+    }
+    .ant-select-selection-item {
+      margin: auto 0px;
+
+      color: @color-text-primary;
+    }
+    .ant-select-selection-placeholder {
+      margin: auto 0px;
+
+      color: @color-text-disable;
+    }
+  }
+
+  &:not(.ant-select-disabled):hover {
+    .ant-select-selector {
+      border-color: @color-primary;
+    }
+  }
+  &.ant-select-focused {
+    .ant-select-selector {
+      border-color: @color-primary;
+      box-shadow: 0px 0px 0px 2px @color-box-focus;
+    }
+  }
+  &.ant-select-disabled {
+    .ant-select-selector {
+      background-color: @color-text-background;
+      border-color: @color-text-border;
+
+      .ant-select-selection-placeholder {
+        color: transparent;
+      }
+    }
+  }
+
+  &[error]:not([error="false"]):not(.ant-select-disabled) {
+    .ant-select-selector {
+      color: @color-error;
+      border-color: unset;
+    }
+
+    input {
+      caret-color: @color-error;
+    }
+  }
+}
+
+.ant-select-multiple.ant-select {
+  .ant-select-selector {
+    overflow-y: auto;
+
+    position: unset;
+
+    .ant-select-selection-item {
+      margin: 4px;
+    }
+  }
+}
+
+// 输入框
+nz-input-group.ant-input-affix-wrapper {
+  height: 36px;
+  padding: 0px 9px 0px 11px;
+
+  border-radius: 3px;
+
+  & > input {
+    height: 34px;
+    padding: 0px;
+
+    background-color: transparent !important;
+  }
+
+  & > .ant-input-suffix {
+    margin-left: 8px;
+
+    color: fade(black, 65%);
+  }
+
+  &-focused:not(&-disabled),
+  &:hover:not(&-disabled) {
+    border-color: @color-primary;
+  }
+  &-disabled {
+    background-color: fade(black, 4%) !important;
+    border-color: fade(black, 15%) !important;
+  }
+
+  &[error]:not([error="false"]) {
+    border-color: @color-danger !important;
+  }
+}
+
+// 下拉选择框
+nz-select.ant-select {
+  height: 36px;
+
+  border-radius: 3px;
+  box-shadow: none;
+
+  nz-select-top-control {
+    height: 100% !important;
+
+    border-radius: 3px !important;
+
+    nz-select-placeholder {
+      margin: auto 0px;
+    }
+
+    nz-select-item.ant-select-selection-item {
+      margin: auto 0px;
+
+      color: fade(black, 65%) !important;
+    }
+  }
+
+  &.ant-select-focused:not(.ant-select-disabled),
+  &:hover:not(.ant-select-disabled) {
+    nz-select-top-control {
+      border-color: @color-primary !important;
+    }
+  }
+  &.ant-select-disabled {
+    nz-select-top-control {
+      background-color: fade(black, 4%) !important;
+      border-color: fade(black, 15%) !important;
+
+      nz-select-placeholder {
+        color: transparent !important;
+      }
+
+      nz-select-item.ant-select-selection-item {
+        color: fade(black, 25%) !important;
+      }
+    }
+  }
+
+  &[error]:not([error="false"]) {
+    nz-select-top-control {
+      border-color: @color-danger !important;
+    }
+  }
+
+  nz-select-arrow {
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+
+    right: 10px;
+
+    color: fade(black, 65%) !important;
+
+    & > .anticon {
+      vertical-align: inherit;
+    }
+  }
+  &.ant-select-disabled nz-select-arrow,
+  nz-select-top-control:not(nz-select-top-control[ng-reflect-list-of-top-item*="object"])
+    + nz-select-arrow {
+    color: fade(black, 25%) !important;
+  }
+
+  nz-select-clear {
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+
+    right: 10px;
+
+    font-size: 14px;
+  }
+}
+
+nz-option-container.ant-select-dropdown {
+  padding: 0px;
+
+  border-radius: 3px;
+
+  nz-option-item.ant-select-item {
+    min-height: 36px;
+    padding: 7px 10px;
+
+    font-weight: 400;
+
+    &.ant-select-item-option {
+      background-color: @color-default;
+      color: fade(black, 65%);
+
+      &:hover {
+        background-color: @color-hover;
+      }
+
+      &-selected {
+        background-color: fade(black, 2%);
+        color: @color-primary;
+      }
+      &-disabled {
+        background-color: @color-default;
+        color: fade(black, 25%);
+
+        &:hover {
+          background-color: @color-default;
+        }
+      }
+    }
+  }
+}
+
+// 日期选择框、时间选择框
+
+nz-range-picker.ant-picker-range,
+nz-date-picker.ant-picker,
+nz-time-picker.ant-picker {
+  height: 36px;
+  padding: 0px 9px 0px 0px;
+
+  color: fade(black, 65%);
+  background-color: @color-default;
+  border-color: fade(black, 15%);
+  border-radius: 3px;
+
+  transition-duration: 233ms;
+
+  &:hover {
+    border-color: @color-primary;
+  }
+
+  & > .ant-picker-input {
+    & > input {
+      height: auto !important;
+
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+
+      text-align: center;
+    }
+  }
+
+  & > .ant-picker-range-separator {
+    & > .ant-picker-separator {
+      color: fade(black, 65%);
+    }
+  }
+
+  & > .ant-picker-active-bar {
+    margin: 0px;
+
+    display: none;
+
+    background-color: @color-primary-active;
+  }
+
+  & > .ant-picker-clear {
+    right: 9px;
+  }
+
+  &.ant-picker-focused {
+    border-color: @color-primary;
+  }
+
+  &.ant-picker-disabled {
+    color: fade(black, 25%);
+    background-color: fade(black, 4%);
+    border-color: fade(black, 15%);
+
+    & > .ant-picker-range-separator {
+      & > .ant-picker-separator {
+        color: fade(black, 25%);
+      }
+    }
+  }
+
+  &[error]:not([error="false"]) {
+    border-color: @color-danger !important;
+  }
+}
+
+.ant-picker-panel,
+nz-time-picker-panel.ant-picker-time-panel {
+  .ant-picker-footer {
+    display: none;
+  }
+}
+
+// 气泡提示框
+.ant-tooltip {
+  max-width: 400px;
+
+  & > &-content {
+    // .ant-tooltip-arrow .ant-tooltip-arrow-content {
+    // width: 7px;
+    // height: 7px;
+
+    // background-color: @color-tooltip-background;
+    // }
+
+    .ant-tooltip-inner {
+      min-width: 30px;
+      min-height: 36px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 7px 15px;
+
+      color: @color-default;
+      background-color: @color-tooltip-background;
+      border-radius: 4px;
+
+      word-break: break-all;
+      white-space: pre-wrap;
+
+      &::-webkit-scrollbar-thumb {
+        background-color: @color-tooltip-scrollbar;
+      }
+    }
+  }
+
+  &.tooltip-table {
+    &.ant-tooltip-placement-top {
+      transform: translateY(13px);
+    }
+    &.ant-tooltip-placement-bottom {
+      transform: translateY(-13px);
+    }
+  }
+}
+
+// 气泡确认框
+.ant-popover {
+  min-width: 265px;
+
+  & > &-content {
+    .ant-popover-arrow .ant-popover-arrow-content {
+      background-color: @color-default;
+    }
+
+    .ant-popover-inner {
+      background-color: @color-default;
+      border-radius: 4px;
+      box-shadow: 0px 10px 32px 0px rgba(38, 38, 38, 0.18);
+
+      .ant-popover-inner-content {
+        padding: 20px;
+
+        .ant-popover-message {
+          padding: 0px;
+
+          .anticon {
+            top: 1px;
+
+            font-size: 20px;
+          }
+
+          .ant-popover-message-title {
+            padding-left: 28px;
+
+            color: fade(black, 65%);
+          }
+        }
+
+        .ant-popover-buttons {
+          margin: 16px 0px 0px;
+
+          .ant-btn {
+            margin: 0px;
+
+            &:not(:first-child) {
+              margin-left: 12px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 模态弹窗
+.ant-modal-mask {
+  background-color: fade(black, 30%);
+}
+nz-modal-container {
+  .ant-modal-content {
+    background-color: @color-default;
+    border-radius: 3px;
+    box-shadow: 0px 12px 42px 0px rgba(38, 38, 38, 0.24);
+
+    & > .ant-modal-close {
+      width: 20px;
+      height: 20px;
+
+      top: 14px;
+      right: 20px;
+
+      color: fade(black, 45%);
+
+      &:focus {
+        color: fade(black, 45%);
+      }
+      &:hover {
+        color: @color-primary-hover;
+      }
+      &:active {
+        color: @color-primary-active;
+      }
+
+      & > .ant-modal-close-x {
+        width: 20px;
+        height: 20px;
+
+        line-height: 20px;
+        font-size: 20px;
+      }
+    }
+
+    & > .ant-modal-header {
+      height: 48px;
+      padding: 12px 20px;
+
+      background-color: rgba(237, 245, 252, 1);
+      border: none;
+      border-radius: 3px 3px 0px 0px;
+
+      & > .ant-modal-title {
+        color: @color-primary;
+
+        line-height: 24px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+
+    & > .ant-modal-body {
+      padding: 20px 20px 16px;
+    }
+
+    & > .ant-modal-footer {
+      height: 69px;
+      padding: 16px 20px;
+
+      border-radius: 0px 0px 3px 3px;
+      border-color: fade(black, 15%);
+
+      & > .ant-btn + .ant-btn:not(.ant-dropdown-trigger) {
+        margin: 0px 0px 0px 12px;
+      }
+
+      .ant-btn {
+        margin: 0px;
+
+        &:not(:first-child) {
+          margin-left: 12px;
+        }
+      }
+    }
+  }
+}

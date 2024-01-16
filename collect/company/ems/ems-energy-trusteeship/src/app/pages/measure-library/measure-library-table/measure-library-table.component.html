@@ -1,0 +1,155 @@
+<div id="measure-library-table">
+  <nz-spin [nzSpinning]="isLoading">
+    <table style="width: 100%">
+      <thead>
+        <tr>
+          <th style="width: 60px">序号</th>
+          <!-- <th style="width: 160px">措施编码</th> -->
+          <th>措施名称</th>
+          <th>措施描述</th>
+          <th style="width: 110px">所属系统</th>
+          <th style="width: 160px">建议执行周期</th>
+          <th style="width: 80px">措施状态</th>
+          <th style="width: 110px">关联功能</th>
+          <th style="width: 110px">措施来源</th>
+          <th style="width: 110px">录入时间</th>
+          <th style="width: 150px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of list">
+          <td>{{ item.index }}</td>
+          <!-- <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.code"
+          >
+            {{ item.code }}
+          </td> -->
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.name"
+          >
+            {{ item.name }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.description"
+          >
+            {{ item.description || "--" }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapSystem(item.system)"
+          >
+            {{ mapSystem(item.system) }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapPeriod(item.period)"
+          >
+            {{ mapPeriod(item.period) }}
+          </td>
+          <td
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapState(item.state)"
+          >
+            {{ mapState(item.state) }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapRelation(item.relation)"
+          >
+            {{ mapRelation(item.relation) || "--" }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapOrigin(item.origin)"
+          >
+            {{ mapOrigin(item.origin) }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.entryTime"
+          >
+            {{ item.entryTime }}
+          </td>
+          <td>
+            <div class="button-group">
+              <button
+                text
+                [disabled]="isLoading"
+                (click)="presentMeasureModal(item)"
+              >
+                详情
+              </button>
+              <button
+                text
+                [disabled]="isLoading"
+                (click)="presentUpdateMeasureModal(item)"
+              >
+                编辑
+              </button>
+              <button
+                text
+                danger
+                [disabled]="isLoading || !item.canDelete"
+                nz-popconfirm
+                nzPopconfirmPlacement="topRight"
+                [nzPopconfirmOverlayStyle]="{ transform: 'translateX(7px)' }"
+                [nzPopconfirmArrowPointAtCenter]="true"
+                [nzPopconfirmBackdrop]="true"
+                nzPopconfirmTitle="确认删除该措施？"
+                nzOkText="确定"
+                (nzOnConfirm)="toDelete(item)"
+              >
+                删除
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </nz-spin>
+
+  <div class="empty-table" [class.none]="list?.length || isLoading">
+    <img src="assets/img/common/common-data-none.svg" alt="暂无数据" />
+    <span>暂无数据</span>
+  </div>
+
+  <ems-pagination class="mt12"></ems-pagination>
+</div>

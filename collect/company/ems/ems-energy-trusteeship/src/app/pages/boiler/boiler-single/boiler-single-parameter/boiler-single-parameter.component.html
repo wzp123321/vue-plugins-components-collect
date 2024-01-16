@@ -1,0 +1,74 @@
+<div id="boiler-single-parameter">
+  <h5>参数水平</h5>
+
+  <nz-spin flexible="true" [nzSpinning]="isLoading">
+    <div [class.none]="isEmpty">
+      <table style="width: 100%" scroll-y>
+        <thead [ngStyle]="{ 'padding-right.px': isOverflow ? 8 : 0 }">
+          <tr>
+            <th>参数</th>
+            <th>实际平均值</th>
+            <th>合理区间上限</th>
+            <th>合理区间下限</th>
+          </tr>
+        </thead>
+
+        <tbody #elementTableBody style="max-height: 232px" cdkScrollable>
+          <tr *ngFor="let item of list">
+            <td
+              ellipsis
+              nz-tooltip
+              nzTooltipPlacement="bottom"
+              nzTooltipOverlayClassName="tooltip-table"
+              [nzTooltipArrowPointAtCenter]="true"
+              [nzTooltipTitle]="item.name"
+            >
+              {{ item.name }}
+            </td>
+            <td
+              [attr.danger]="mapIsOutOfRange(item)"
+              ellipsis
+              nz-tooltip
+              nzTooltipPlacement="bottom"
+              nzTooltipOverlayClassName="tooltip-table"
+              [nzTooltipArrowPointAtCenter]="true"
+              [nzTooltipTitle]="item.average | numberSeparator: 3"
+            >
+              {{ (item.average | numberSeparator: 3) ?? '--' }}
+            </td>
+            <td
+              ellipsis
+              nz-tooltip
+              nzTooltipPlacement="bottom"
+              nzTooltipOverlayClassName="tooltip-table"
+              [nzTooltipArrowPointAtCenter]="true"
+              [nzTooltipTitle]="item.max | numberSeparator: 3"
+            >
+              {{ (item.max | numberSeparator: 3) ?? '--' }}
+            </td>
+            <td
+              ellipsis
+              nz-tooltip
+              nzTooltipPlacement="bottom"
+              nzTooltipOverlayClassName="tooltip-table"
+              [nzTooltipArrowPointAtCenter]="true"
+              [nzTooltipTitle]="item.min | numberSeparator: 3"
+            >
+              {{ (item.min | numberSeparator: 3) ?? '--' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-table" [class.none]="list?.length">
+        <img src="assets/img/common/common-data-none.svg" alt="暂无数据" />
+        <span>暂无数据</span>
+      </div>
+    </div>
+
+    <div class="empty-module" [class.none]="!isEmpty || isLoading">
+      <img src="assets/img/common/common-config-unset.svg" alt="尚未配置" />
+      <span>尚未配置锅炉参数</span>
+    </div>
+  </nz-spin>
+</div>

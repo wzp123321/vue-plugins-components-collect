@@ -1,0 +1,82 @@
+<div class="ec-search">
+  <el-form :inline="true" :model="formSearch" class="demo-form-inline" @submit.native.prevent>
+    <el-form-item class="ec-search-typeselect" label="对比类型">
+      <el-select v-model="contrastTypeValue" placeholder="请选择" @change="handleContrastTypeChange">
+        <el-option
+          v-for="item in contrastTypeOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        ></el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="能耗模型">
+      <el-select
+        class="energy-model"
+        v-model="formSearch.radioValue"
+        placeholder="请选择能耗模型"
+        @change="handleTreeTypeChange"
+      >
+        <el-option
+          v-for="(item, index) in treeTypeList"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        ></el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="能源类型">
+      <tree-select
+        :placeholder="'请选择能源类型'"
+        :defaultProps="defaultProps"
+        nodeKey="code"
+        :defaultExpandAll="true"
+        v-model:modelValue="formSearch.energyCode"
+        v-model:treeData="computedEnergyTreeData"
+        @select-change="onEnergyCodeChange"
+      ></tree-select>
+    </el-form-item>
+    <el-form-item label="分析对象">
+      <tree-select
+        :placeholder="'请选择分析对象'"
+        v-model:modelValue="formSearch.treeIds"
+        :loading="treeLoading"
+        width="290px"
+        :treeData="analysisObjectData"
+        :showSearch="true"
+        :multiple="mapMultiObjectFlag(contrastTypeValue)"
+        :defaultProps="FGetElTreeDefaultProps()"
+        :disabledProps="disabledProps"
+        :expanedKeys="contrastExpandKeys"
+      >
+      </tree-select>
+    </el-form-item>
+    <el-form-item label="能源指标">
+      <el-select v-model="energyValueMean" placeholder="请选择">
+        <el-option v-for="item in valueMeanList" :key="item.code" :label="item.name" :value="item.code"> </el-option>
+      </el-select>
+    </el-form-item>
+
+    <!-- 多对象 -->
+    <DateTimeUnitPicker
+      v-if="mapMultiObjectFlag(contrastTypeValue)"
+      :timeUnitList="timeUnitList"
+      v-model:timeUnit="formSearch.timeUnit"
+      v-model:value="formSearch.queryTimeList"
+    ></DateTimeUnitPicker>
+
+    <!-- 多时间 -->
+    <MultipleDatePicker
+      v-if="mapMultiTimeFlag(contrastTypeValue)"
+      :timeUnitList="timeUnitList"
+      v-model:dateScopeAll="formSearch.dateScopeAll"
+      v-model:timeUnit="formSearch.timeUnit"
+      v-model:dateList="chooseTimeList"
+    ></MultipleDatePicker>
+
+    <el-form-item>
+      <button primary @click="onSubmit">查询</button>
+      <button @click="onReset">重置</button>
+    </el-form-item>
+  </el-form>
+</div>

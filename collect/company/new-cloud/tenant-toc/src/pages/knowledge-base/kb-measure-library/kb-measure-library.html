@@ -1,0 +1,281 @@
+<div class="kb-measure-library">
+  <page-container title="节能措施库">
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <el-form :inline="true" :model="formInline" class="kb-measure-library-search-from" @submit.native.prevent>
+        <el-form-item label="措施名称">
+          <input
+            v-textInputFilter
+            placeholder="请输入措施名称"
+            v-model="formInline.measuresName"
+            @keyup.enter="onSearch"
+            style="width: 240px"
+          />
+        </el-form-item>
+        <el-form-item label="措施编码">
+          <input
+            v-textInputFilter
+            placeholder="请输入措施编码"
+            v-model="formInline.measuresCode"
+            @keyup.enter="onSearch"
+            style="width: 240px"
+          />
+        </el-form-item>
+        <el-form-item label="所属系统">
+          <el-select v-model="formInline.system">
+            <el-option
+              v-for="item in formInline.systemList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+              :title="item.name"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="措施状态">
+          <el-select v-model="formInline.measuresStatus">
+            <el-option
+              v-for="item in formInline.measureStatusList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+              :title="item.name"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div class="kb-measure-library-content">
+        <div class="measure-library-btn">
+          <el-button :disabled="exportLoading" @click="onExport" style="margin-right: 12px">
+            {{ exportLoading ? '导出中' : '导出'}}</el-button
+          >
+          <input
+            type="file"
+            ref="clearFile"
+            @change="getFile($event)"
+            class="measure-library-btn-upload"
+            :accept="['.xlsx']"
+          />
+          <el-button :disabled="uploadLoading" @click="onUpload"> {{ uploadLoading ? '导入中' : '导入'}}</el-button>
+          <el-button :disabled="downLoadLoading" @click="onDownload">
+            {{ downLoadLoading ? '正在下载' : '下载模板'}}</el-button
+          >
+          <el-button type="primary" size="small" @click="onAdd">新 增</el-button>
+        </div>
+        <div class="measure-library-table" v-loading="loading">
+          <table v-if="!loading" style="width: 100%">
+            <thead>
+              <tr>
+                <th style="width: 70px">序号</th>
+                <th title="措施编码">措施编码</th>
+                <th title="措施名称">措施名称</th>
+                <th title="措施描述" style="width: 300px">措施描述</th>
+                <th title="所属系统" style="width: 150px">所属系统</th>
+                <th title="建议执行周期" style="width: 180px">建议执行周期</th>
+                <th title="措施状态" style="width: 110px">措施状态</th>
+                <th title="措施来源" style="width: 110px">措施来源</th>
+                <th title="录入时间" style="width: 110px">录入时间</th>
+                <th style="width: 180px" title="操作">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in tableData" :key="'benchmarking_library_'+index">
+                <td>{{ (pageNum - 1) * pageSize + index + 1 }}</td>
+                <td ellipsis>
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.measureCode === null ? '--' : item.measureCode"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.measureCode === null ? '--' : item.measureCode }}</div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis>
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.measureName === null ? '--' : item.measureName"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.measureName === null ? '--' : item.measureName }}</div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 300px">
+                  <div v-if="item.description === null || item.description === ''">--</div>
+                  <el-tooltip
+                    v-else
+                    popper-class="tips-dialog-tip"
+                    effect="dark"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <template v-slot:content>
+                      <div class="tips-dialog-tip-content">{{ item.description }}</div>
+                    </template>
+                    <div class="text">{{ item.description }}</div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 150px">
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.systemId === null ? '--' : queryNameByCode(item.systemId, systemList)"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">
+                      {{ item.systemId === null ? '--' : queryNameByCode(item.systemId, systemList) }}
+                    </div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 180px">
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.executionCycle === null ? '--' : queryNameByCode(item.executionCycle, executionCycleList)"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">
+                      {{ item.executionCycle === null ? '--' : queryNameByCode(item.executionCycle, executionCycleList)
+                      }}
+                    </div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 110px">
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.measureStatus === null ? '--' : queryNameByCode(item.measureStatus, measureStatusList)"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">
+                      {{ item.measureStatus === null ? '--' : queryNameByCode(item.measureStatus, measureStatusList) }}
+                    </div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 110px">
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.measureSource === null ? '--' : item.measureSource"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.measureSource === null ? '--' : item.measureSource }}</div>
+                  </el-tooltip>
+                </td>
+                <td ellipsis style="width: 110px">
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.updateTime === null ? '--' : item.updateTime"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.updateTime === null ? '--' : item.updateTime }}</div>
+                  </el-tooltip>
+                </td>
+                <td style="width: 180px">
+                  <span class="operate-span" @click="onDetails(item)">详情</span>
+                  <span class="operate-span" @click="onBlUpdate(item)" style="margin: 0 16px">编辑</span>
+                  <el-popconfirm title="确认删除该措施吗?" @confirm="onBlDelete(item.id)">
+                    <template #reference>
+                      <span class="delete-span">删除</span>
+                    </template>
+                  </el-popconfirm>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-nodata flex-column-center-center" v-if="tableData?.length === 0 && !loading">
+            <img src="../../../assets/images/common/common-data-none.svg" alt="" />
+            <p>暂无数据</p>
+          </div>
+          <el-pagination
+            v-show="total > 0"
+            :current-page="pageNum"
+            :page-sizes="pageSizesArray"
+            @size-change="onPageSizeChange"
+            @current-change="onCurrentChange"
+            :page-size="pageSize"
+            layout="total, prev, pager, next, sizes, jumper"
+            :total="total"
+          >
+          </el-pagination>
+        </div>
+      </div>
+    </template>
+  </page-container>
+</div>
+<!-- 新增编辑详情弹框 -->
+<MlAddEditDetailsDialog
+  :num="num"
+  :systemList="systemList"
+  :measureStatusList="measureStatusList"
+  :executionCycleList="executionCycleList"
+  :isType="isType"
+  :rows="rows"
+  @operationOK="getList"
+></MlAddEditDetailsDialog>
+
+<!-- 导入模板错误数据 -->
+<el-dialog
+  custom-class="import-error-dialog"
+  v-model="importErrorVisible"
+  title="错误原因"
+  width="800px"
+  :before-close="errorDialogClose"
+  :close-on-click-modal="false"
+>
+  <table style="width: 100%" scroll-y>
+    <thead :style="{ 'width': errorDataList?.length > 10 ? 'calc(100% - 8px)' : '100%' }">
+      <tr>
+        <th style="width: 50px">序号</th>
+        <th>模板位置</th>
+        <th>详细信息</th>
+      </tr>
+    </thead>
+    <tbody style="height: 480px" @scroll="onScroll">
+      <tr v-for="(item, index) in errorDataList" :key="index">
+        <td style="width: 50px">{{ index +1 }}</td>
+        <td ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.position }}</div>
+            </template>
+            <span>{{ item.position }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.detail }}</div>
+            </template>
+            <span>{{ item.detail }}</span>
+          </el-tooltip>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</el-dialog>

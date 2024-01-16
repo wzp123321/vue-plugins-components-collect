@@ -1,0 +1,38 @@
+<div id="work-plan-form-basic">
+  <div>
+    <h5 tag>基础信息</h5>
+  </div>
+
+  <div class="form-item-container mt12">
+    <label>计划名称</label>
+    <input
+      style="width: 400px"
+      placeholder="请输入计划名称"
+      maxlength="20"
+      [attr.error]="isInvalid && !item.name"
+      [readonly]="isReadonly"
+      [(ngModel)]="item.name"
+      emsInputFilter_Special
+      emsInputFilterCharacters=" "
+      [(emsInputFilterModel)]="item.name"
+    />
+
+    <label *ngIf="item.code">计划编码</label>
+    <input *ngIf="item.code" style="width: 400px" readonly [value]="item.code" />
+
+    <label class="form-textarea-label">计划描述</label>
+    <div class="form-textarea-container">
+      <textarea
+        style="height: 88px"
+        placeholder="请输入计划描述（选填）"
+        maxlength="2000"
+        [readonly]="isReadonly"
+        [(ngModel)]="item.description"
+        emsInputFilter_Special
+        [(emsInputFilterModel)]="item.description"
+        (input)="autoScroll($event)"
+      ></textarea>
+      <span class="textarea-counter" [attr.data-count]="descriptionCount"></span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,186 @@
+<div class="global-parameter">
+  <page-common title="全局参数配置" :showSearch="true">
+    <template v-slot:pageSubTitle>
+      <el-tooltip style="margin-left: 8px" effect="dark" placement="right">
+        <template #content>
+          <div style="white-space: normal; word-break: break-all">适用于全部能耗节点的参数，如天气温湿度。</div>
+        </template>
+        <img
+          class="question_mark"
+          style="height: 16px"
+          title="全局参数配置"
+          src="../../../assets/img/common/common-question-mark.svg"
+        />
+      </el-tooltip>
+    </template>
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <div class="global-parameter-header flex-row-justify-center">
+        <div class="global-parameter-header-form">
+          <input
+            v-inputFilter:search
+            class="mr16"
+            type="text"
+            :maxlength="100"
+            v-model.trim="queryParams.keyword"
+            placeholder="请输入查询关键字"
+          />
+          <button primary @click="onSearch">查询</button>
+          <button @click="onReset">重置</button>
+        </div>
+        <button primary @click="onAddDialogShow">新增</button>
+      </div>
+    </template>
+    <template v-slot:pageContent>
+      <div style="height: 100%" v-loading="loading">
+        <el-table v-if="!loading" :data="dataSource" style="width: 100%">
+          <el-table-column prop="index" label="序号" width="80" align="center">
+            <template #default="scope">
+              {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="参数名称" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column prop="typeName" label="参数类型" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column prop="unit" label="单位" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column label="时间颗粒度">
+            <template #default="scope"> {{ resetTimeUnit(scope.row.timeTypes) }} </template>
+          </el-table-column>
+          <el-table-column label="设备名称" :show-overflow-tooltip="true">
+            <template #default="scope"> {{ scope.row.deviceName ?? '--' }} </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200" align="left">
+            <template #default="scope">
+              <button text @click="onUpdateDialogShow(scope.row)">修改</button>
+              <button text danger @click="onDeleteConfirm(scope.row.id, scope.row.paramType)">删除</button>
+              <button
+                text
+                v-if="scope.row.paramType !== PARAM_TYPES.DEVICE_ACQUISITION 
+                            && scope.row.paramType !== PARAM_TYPES.TIMETABLE "
+                @click="onPageTo(scope.row.id, scope.row.paramType, scope.row.name, scope.row.timeTypes,
+                                 scope.row.standardPointCode, null)"
+              >
+                去配置
+              </button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <ems-pagination
+          v-show="!loading && total > 0"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+          :current-page="queryParams.pageNum"
+          :page-sizes="pageSizes"
+          :page-size="queryParams.pageSize"
+          :total="total"
+        >
+        </ems-pagination>
+      </div>
+    </template>
+  </page-common>
+  <!-- 新增 编辑弹框 -->
+  <div v-drag="" dialogVisible>
+    <el-dialog
+      :close-on-click-modal="false"
+      :title="isAddFlag ? '新增参数' : '编辑参数'"
+      v-model="dialogVisible"
+      width="600px"
+      :before-close="onbeforeClose"
+    >
+      <el-form
+        :model="pageForm"
+        :rules="rules"
+        ref="form"
+        label-position="right"
+        :label-width="90"
+        v-loading="queryLoading"
+        @submit.native.prevent
+      >
+        <el-form-item label="参数名称" prop="name">
+          <el-input
+            v-inputFilter:search="{ allowSpace: false }"
+            v-model="pageForm.name"
+            autocomplete="off"
+            placeholder="请输入参数名称"
+            :maxlength="FORM_CHECK_RULES.NORMAL_INPUT_LENGTH"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="单位" prop="unit">
+          <el-input
+            v-inputFilter:search="{ allowSpace: false }"
+            v-model.trim="pageForm.unit"
+            autocomplete="off"
+            placeholder="请输入单位"
+            :maxlength="FORM_CHECK_RULES.NORMAL_INPUT_LENGTH"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="参数类型" prop="paramTypes">
+          <el-cascader
+            :showArrow="false"
+            placeholder="请选择参数类型"
+            :disabled="pageForm.id !== -1"
+            :options="parameterTypeList"
+            :show-all-levels="false"
+            v-model="pageForm.paramTypes"
+            @change="onCascaderChange"
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item
+          label="能源名称:"
+          v-if="pageForm.paramTypes.length> 0 && pageForm.paramTypes[pageForm.paramTypes.length - 1] == PARAM_TYPES.DEVICE_ACQUISITION"
+          prop="energyCode"
+        >
+          <el-select
+            :disabled="pageForm.id !== -1"
+            v-model="pageForm.energyCode"
+            v-if="pageForm.paramTypes && pageForm.paramTypes.length"
+            @change="onEnergyCodeChange"
+          >
+            <el-option
+              v-for="item in energyCodeList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+          <el-input disabled v-model="pageForm.standardPointName" v-else></el-input>
+        </el-form-item>
+        <el-form-item
+          label="关联设备:"
+          v-if="pageForm.paramTypes.length> 0 && pageForm.paramTypes[pageForm.paramTypes.length - 1] == PARAM_TYPES.DEVICE_ACQUISITION"
+          prop="deviceId"
+        >
+          <el-select
+            v-model="pageForm.deviceId"
+            v-if="pageForm.paramTypes && pageForm.paramTypes.length"
+            :clearable="true"
+          >
+            <el-option
+              v-for="item in deviceList"
+              :key="item.deviceId+'_'+ item.pointNumber"
+              :label="item.deviceName"
+              :value="item.deviceId+'_'+ item.pointNumber"
+            ></el-option>
+          </el-select>
+          <el-input disabled v-model="pageForm.standardPointName" v-else></el-input>
+        </el-form-item>
+        <el-form-item label="时间颗粒度" prop="timeTypes">
+          <el-select placeholder="请选择时间颗粒度" v-model="pageForm.timeTypes" multiple>
+            <el-option
+              v-for="(item, index) in timeUnits"
+              :key="'time_'+ index"
+              :label="item.label"
+              :value="item.value"
+              :disabled="disabledList[index]"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="onbeforeClose">取消</el-button>
+        <el-button type="primary" @click="onAddUpdateDialogSubmit" :loading="reqLoading">确定</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</div>

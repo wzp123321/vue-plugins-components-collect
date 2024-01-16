@@ -1,0 +1,47 @@
+.ra-timetable-manage {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--iot-bg-color-component);
+
+  :deep(.page-common) {
+    &__container {
+      overflow: hidden;
+
+      &-detail {
+        padding: 0;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .el-divider {
+    margin: 50px 0;
+  }
+
+  .el-divider:first-child {
+    margin: 16px 0;
+  }
+
+  &--tree {
+    width: 26%;
+    height: 100%;
+    padding: 16px;
+    border-right: 1px solid var(--iot-border-color);
+    overflow: auto;
+
+    :deep(.el-tree) {
+      .el-tree-node {
+        width: fit-content;
+        min-width: 100%;
+      }
+    }
+  }
+
+  &--data {
+    padding: 16px;
+    flex-grow: 1;
+    height: 100%;
+    overflow-y: auto;
+  }
+}

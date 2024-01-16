@@ -1,0 +1,34 @@
+<div id="air-conditioner-control-overview">
+  <img class="overview-flag" src="assets/img/air-conditioner-control/acco-card-flag.svg" alt="" />
+  <img class="overview-background" src="assets/img/air-conditioner-control/acco-card-bg.svg" alt="" />
+
+  <nz-spin style="height: 100%" [nzSpinning]="isLoading">
+    <div class="overview-card-content-container">
+      <span class="overview-card-title">{{ range }}</span>
+      <div class="overview-card-item-container">
+        <img
+          style="background-color: rgba(82, 196, 26, 1)"
+          src="assets/icon/air-conditioner-control/acco-item-space.svg"
+          alt=""
+        />
+        <label>{{ space.title }}</label>
+        <div style="grid-column: span 2">
+          <span class="overview-card-item-value">{{ (space.value | numberSeparator: 3) ?? '--' }}</span>
+          <span class="overview-card-item-unit ml4">{{ space.unit }}</span>
+        </div>
+      </div>
+      <div class="overview-card-item-container">
+        <img
+          style="background-color: rgba(249, 219, 21, 1)"
+          src="assets/icon/air-conditioner-control/acco-item-cost.svg"
+          alt=""
+        />
+        <label>{{ cost.title }}</label>
+        <div style="grid-column: span 2">
+          <span class="overview-card-item-value">{{ (cost.value | numberSeparator: 3) ?? '--' }}</span>
+          <span class="overview-card-item-unit ml4">{{ cost.unit }}</span>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>

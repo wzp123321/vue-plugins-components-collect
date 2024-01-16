@@ -1,0 +1,34 @@
+.home-kpi {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  color: var(--iot-font-color-shadow);
+  // word-break:normal;
+  word-break: break-all !important;
+  white-space: normal !important;
+
+  .kpi--left {
+    height: 100%;
+    flex: 1;
+  }
+
+  .kpi--right {
+    height: 100%;
+    flex-basis: 48%;
+    // word-break:normal;
+    word-break: break-all !important;
+
+    .kpi-switch--wrap {
+      padding: 16px 20px 20px 0px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .kpi-detail--wrap {
+      width: 100%;
+      margin-top: 35px;
+      height: calc(100% - 68px);
+    }
+  }
+}

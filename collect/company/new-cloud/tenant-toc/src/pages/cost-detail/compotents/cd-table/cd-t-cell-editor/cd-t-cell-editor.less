@@ -1,0 +1,28 @@
+textarea.cd-t-cell-editor {
+  position: absolute;
+  z-index: 99;
+
+  line-height: 22px;
+  min-height: 32px;
+  font-size: 14px;
+
+  padding: 4px 8px;
+  border: 1px solid var(--color-text-border);
+  border-radius: 4px;
+  resize: none;
+
+  word-break: break-all;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+.cd-t-cell-text-hidden {
+  position: absolute;
+  top: 0;
+
+  opacity: 0;
+}

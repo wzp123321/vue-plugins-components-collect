@@ -1,0 +1,142 @@
+@import url(../../../../assets/style/color.less);
+
+#energy-event-form {
+  width: 100%;
+
+  .form-container {
+    display: grid;
+    grid-template-columns: 56px auto;
+    place-content: stretch;
+    place-items: center stretch;
+    gap: 16px 8px;
+
+    & > label {
+      text-align: right;
+    }
+
+    & > .form-relation-list {
+      display: grid;
+      grid-template-columns: 264px 1fr;
+      place-content: stretch;
+      place-items: stretch;
+      gap: 16px;
+
+      & > .form-relation-item {
+        overflow: hidden;
+        margin: -2px 0px;
+        padding: 2px 0px;
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+
+        & > .form-relation-item-unit {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    & > .form-upload-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 8px;
+    }
+
+    & > .form-upload-card {
+      padding: 16px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 12px;
+
+      background-color: @color-text-background;
+      border-radius: 4px;
+
+      & > .form-upload-photo-list {
+        padding: 8px 0px;
+
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 24px;
+
+        & > .form-upload-photo-item {
+          position: relative;
+
+          & > img {
+            width: 60px;
+            height: 60px;
+
+            border-radius: 4px;
+          }
+          & > i {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+          }
+        }
+      }
+
+      & > .form-upload-file-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 8px;
+
+        & > .form-upload-file-item {
+          padding-right: 12px;
+
+          display: grid;
+          grid-template-columns: 20px 1fr 20px;
+          place-content: stretch;
+          place-items: center stretch;
+          gap: 8px;
+
+          & > img {
+            width: 20px;
+            height: 20px;
+          }
+
+          &:not(:first-child) {
+            padding-top: 16px;
+
+            border-top: 1px solid @color-text-divider;
+          }
+        }
+      }
+    }
+
+    & > .form-textarea {
+      &-label {
+        align-self: flex-start;
+      }
+      &-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+
+        & > .textarea-counter {
+          align-self: flex-end;
+          height: 0px;
+
+          transform: translate(-10px, -22px);
+
+          &::after {
+            content: attr(data-count);
+
+            height: 22px;
+
+            color: @color-text-disable;
+          }
+        }
+      }
+    }
+  }
+}

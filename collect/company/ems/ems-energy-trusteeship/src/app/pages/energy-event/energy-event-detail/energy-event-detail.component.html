@@ -1,0 +1,161 @@
+<div id="energy-event-detail">
+  <nz-spin [nzSpinning]="isLoading">
+    <section *ngIf="item.type">
+      <h5>基本信息</h5>
+      <div class="info-container mt12 ml22">
+        <label>事件类型：</label>
+        <label>{{ mapEventType(item.type) }}</label>
+
+        <label>事件标题：</label>
+        <label>{{ item.title }}</label>
+
+        <!-- 用能区域变化 -->
+        <ng-container *ngIf="canShowAreaAddition">
+          <label>开始时间：</label>
+          <label>{{ item.from }}</label>
+
+          <label>选择区域：</label>
+          <label>{{ item.select }}</label>
+        </ng-container>
+
+        <!-- 大功率用能设备变更 -->
+        <ng-container *ngIf="canShowEquipmentAddition">
+          <label>开始时间：</label>
+          <label>{{ item.from }}</label>
+
+          <label>变更性质：</label>
+          <label>{{ mapChangeType(item.changeType) }}</label>
+
+          <label>录入方式：</label>
+          <label>{{ mapEquipmentEntryMode(item.mode) }}</label>
+
+          <label *ngIf="!canShowRelationList">选择设备：</label>
+          <label *ngIf="!canShowRelationList">{{ item.select }}</label>
+
+          <div *ngIf="canShowRelationList" style="grid-column: span 2" class="info-relation-container">
+            <ng-container *ngFor="let relation of item.relations">
+              <ng-container *ngTemplateOutlet="templateRelation; context: { relation: relation }"></ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <!-- 区域业务调整 -->
+        <ng-container *ngIf="canShowBusinessAddition">
+          <label>开始时间：</label>
+          <label>{{ item.from }}</label>
+
+          <label>录入方式：</label>
+          <label>{{ mapAreaEntryMode(item.mode) }}</label>
+
+          <label *ngIf="!canShowRelationList">选择区域：</label>
+          <label *ngIf="!canShowRelationList">{{ item.select }}</label>
+
+          <div *ngIf="canShowRelationList" style="grid-column: span 2" class="info-relation-container">
+            <ng-container *ngFor="let relation of item.relations">
+              <ng-container *ngTemplateOutlet="templateRelation; context: { relation: relation }"></ng-container>
+            </ng-container>
+          </div>
+
+          <label>结束时间：</label>
+          <label>{{ item.to }}</label>
+        </ng-container>
+
+        <!-- 空调供应时段调整 -->
+        <ng-container *ngIf="canShowConditionerAddition">
+          <label>调整方式：</label>
+          <label>{{ mapAdjustType(item.adjustType) }}</label>
+
+          <label>原定时间：</label>
+          <label>{{ item.from }}</label>
+
+          <label>调整时间：</label>
+          <label>{{ item.to }}</label>
+
+          <label>录入方式：</label>
+          <label>{{ mapNodeEntryMode(item.mode) }}</label>
+
+          <label *ngIf="!canShowRelationList">调整节点：</label>
+          <label *ngIf="!canShowRelationList">{{ item.select }}</label>
+
+          <div *ngIf="canShowRelationList" style="grid-column: span 2" class="info-relation-container">
+            <ng-container *ngFor="let relation of item.relations">
+              <ng-container *ngTemplateOutlet="templateRelation; context: { relation: relation }"></ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <!-- 其他调整 -->
+        <ng-container *ngIf="canShowOtherAddition">
+          <label>开始时间：</label>
+          <label>{{ item.from }}</label>
+
+          <div *ngIf="item.relations?.length" style="grid-column: span 2" class="info-relation-container">
+            <ng-container *ngFor="let relation of item.relations">
+              <ng-container *ngTemplateOutlet="templateRelation; context: { relation: relation }"></ng-container>
+            </ng-container>
+          </div>
+
+          <label>结束时间：</label>
+          <label>{{ item.to }}</label>
+        </ng-container>
+
+        <label>附件信息：</label>
+        <div class="info-attach-card">
+          <nz-image-group *ngIf="item.photos?.length" class="info-attach-photo-list">
+            <img *ngFor="let photo of item.photos" nz-image [nzSrc]="photo.src" alt="" />
+          </nz-image-group>
+
+          <div *ngIf="item.files?.length" class="info-attach-file-list">
+            <div *ngFor="let file of item.files" class="info-attach-file-item">
+              <img [src]="mapFileTypeIcon(file.name)" alt="" />
+              <label flexible="true">{{ file.name }}</label>
+              <button text (click)="toDownload(file)">下载</button>
+            </div>
+          </div>
+        </div>
+
+        <label>事件详情：</label>
+        <label class="info-description">{{ item.description }}</label>
+
+        <label>录入人员：</label>
+        <label>{{ item.person }}</label>
+      </div>
+    </section>
+
+    <section *ngIf="table.header?.length">
+      <h5>能耗明细</h5>
+      <div class="consumption-container mt12 ml22">
+        <table style="width: 100%">
+          <thead>
+            <tr>
+              <th *ngFor="let title of table.header">{{ title }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of table.body">
+              <td *ngFor="let col of row">{{ col }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-table" [class.none]="table.body?.length">
+          <img src="assets/img/common/common-data-none.svg" alt="暂无数据" />
+          <span>暂无数据</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="empty-module" [class.none]="item.type || table.header?.length">
+      <img src="assets/img/common/common-data-unset.svg" alt="暂无数据" />
+      <span>暂无数据</span>
+    </div>
+  </nz-spin>
+</div>
+
+<ng-template #templateRelation let-relation="relation">
+  <label>能源类型：</label>
+  <label class="mr16">{{ relation.name }}</label>
+
+  <label>能源用量：</label>
+  <label>{{ relation.value }}</label>
+</ng-template>

@@ -1,0 +1,57 @@
+<div class="ra-timetable-manage" :style="{height : containerWidth}">
+  <page-common title="作息时间" :showSearch="false">
+    <template v-slot:pageContent>
+      <div class="flex-row-justify-start" style="overflow: hidden; height: 100%">
+        <div class="ra-timetable-manage--tree" v-loading="treeLoading">
+          <el-tree
+            v-if="treeList && treeList.length && !treeLoading"
+            ref="treeRef"
+            :highlight-current="!isSettingFlag"
+            :show-checkbox="isSettingFlag"
+            :data="treeList"
+            nodeKey="id"
+            :props="defaultProps"
+            :default-expand-all="false"
+            :default-checked-keys="treeId"
+            :expand-on-click-node="false"
+            :check-strictly="true"
+            @check="onTreeCheck"
+            @node-click="onNodeClick"
+            :default-expanded-keys="expandedKeys"
+          >
+          </el-tree>
+          <no-data v-if="treeList?.length ===0 && !treeLoading"></no-data>
+        </div>
+        <div class="ra-timetable-manage--data" v-loading="treeLoading">
+          <div class="flex-row-end-end" v-show="!treeLoading">
+            <button @click="onSettingFlagChange">{{isSettingFlag ? '取消配置' : '去配置' }}</button>
+          </div>
+          <el-tabs v-model="activeTab" @tab-click="onTabChange" v-show="!treeLoading">
+            <el-tab-pane label="周作息时间" name="week">
+              <WeekTimeTable
+                v-if="activeTab ==='week'"
+                ref="weekRef"
+                :treeId="queryTreeId"
+                :settingTreeList="settingTreeList"
+                :isSettingFlag="isSettingFlag"
+                @onSaveSuccess="onSaveSuccess"
+              >
+              </WeekTimeTable>
+            </el-tab-pane>
+            <el-tab-pane label="特殊作息时间" name="special">
+              <SpecialTimeTable
+                v-if="activeTab ==='special'"
+                ref="specialRef"
+                :isSettingFlag="isSettingFlag"
+                :settingTreeList="settingTreeList"
+                :treeId="queryTreeId"
+                @onSaveSuccess="onSaveSuccess"
+              >
+              </SpecialTimeTable>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+      </div>
+    </template>
+  </page-common>
+</div>

@@ -1,0 +1,137 @@
+<!-- <ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button  >
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </ion-back-button>
+        </ion-buttons> 
+    </ion-toolbar>
+   
+</ion-header> -->
+<div class="ems-record-meaures">
+  <app-common-head title="措施记录" (back)="goBack(isRecordShow)"></app-common-head>
+
+  <!-- <div class="ems-record-meaures-header">  
+          <button 
+            nz-button 
+            nzType="link" 
+            class="header-go-back"
+            (click)="goBack()"
+            >
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          
+          <div class="header-title">
+              措施记录
+          </div>
+     </div> -->
+  <div class="ems-record-meaures-content">
+    <!-- <ion-content   [scrollEvents]="true" (ionScroll)="divScrolling($event)" class="meaures-content" delegate-handle="small"> -->
+    <ion-content class="meaures-content" slot="fixed" no-bounce>
+      <div class="ems-record-group-list">
+        <div class="ems-record-group">
+          <label class="label-header">措施名称</label>
+          <div class="mt10" [ngClass]="{ errorBorder: measureNamError }">
+            <input
+              id="measureNameID"
+              mode="md"
+              placeholder="请输入（必填）"
+              class="label-input"
+              maxlength="20"
+              [(ngModel)]="measureName"
+              (ngModelChange)="mNameKeyUp($event)"
+              (blur)="measureNameBlur($event)"
+              style="width: 100%; padding: 0px 15px"
+            />
+          </div>
+          <!-- [appLimitLength]="20"  -->
+        </div>
+        <div class="ems-record-group mt15">
+          <label class="label-header">所属系统</label>
+          <div class="mt10" [ngClass]="{ errorBorder: systemError }">
+            <ion-input
+              class="label-input --with-button"
+              [ngClass]="systemId ? 'modify' : 'select'"
+              mode="md"
+              readonly
+              placeholder="请选择"
+              [(ngModel)]="systemName"
+              (click)="systemChange($event)"
+            ></ion-input>
+          </div>
+        </div>
+        <div class="ems-record-group mt15">
+          <label class="label-header">建议执行周期 </label>
+          <div class="mt10 executionCycleList-div" [ngClass]="{ errorBorder: executionCycleError }">
+            <div class="lable-btn" (click)="recordPopUp($event)">
+              <label class="label-placeholder" *ngIf="!executionCycleName">请选择</label>
+              <label class="label-text" *ngIf="executionCycleName">{{ executionCycleName }}</label>
+              <label class="label-choice">{{ lableTip }}</label>
+            </div>
+            <!-- <app-ems-radio-pop-up [dataList]=executionCycleList (implementChange)="butonChange($event)" [needMap]="true"  [showPop]="isRecordShow" *ngIf="isRecordShow"></app-ems-radio-pop-up> -->
+          </div>
+        </div>
+        <div class="ems-record-group mt15">
+          <label class="label-header">状态</label>
+          <div class="mt10 measureStatusList-div" [ngClass]="{ errorBorder: measureStatusError }">
+            <!-- <app-ems-radio-pop-up [dataList]=measureStatusList (implementChange)="measureStatusChange($event)" [initVlue]="measureStatusList[0]" [needMap]="true" [is-it-open]="isItPop"></app-ems-radio-pop-up> -->
+            <div class="lable-btn" (click)="measureStatusClick($event)">
+              <label class="label-placeholder" *ngIf="!measureStatusName">请输入</label>
+              <label class="label-text" *ngIf="measureStatusName">{{ measureStatusName }}</label>
+              <label class="label-choice">{{ measureLableTip }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="ems-record-group mt15">
+          <label class="label-header">关联功能</label>
+          <div class="mt10 measureStatusList-div" [ngClass]="{ errorBorder: relatedFuncError }">
+            <!-- <app-ems-radio-pop-up [dataList]=measureStatusList (implementChange)="measureStatusChange($event)" [initVlue]="measureStatusList[0]" [needMap]="true" [is-it-open]="isItPop"></app-ems-radio-pop-up> -->
+            <ion-input
+              class="label-input --with-button"
+              [ngClass]="relatedFunc ? 'modify' : 'select'"
+              mode="md"
+              readonly
+              placeholder="请选择（选填）"
+              [(ngModel)]="relatedFuncName"
+              (click)="relatedFuncChange($event)"
+            ></ion-input>
+            <!-- <div class="lable-btn" 
+                    (click)="measureStatusClick($event)" 
+                            > 
+                       
+                        <label class="label-placeholder" *ngIf="!measureStatusName ">请输入</label>
+                        <label class="label-text" *ngIf="measureStatusName">{{measureStatusName}}</label>
+                        <label class="label-choice">{{measureLableTip}}</label>
+                    </div> -->
+          </div>
+        </div>
+        <div class="ems-record-group mt15">
+          <label class="label-header">措施描述</label>
+          <div class="mt10 div-speech">
+            <app-ems-speech-recognition
+              (detailChange)="speechChangeDetail($event)"
+              placeholder="请描述具体措施0/2000（选填）"
+              maxlength="2000"
+            ></app-ems-speech-recognition>
+          </div>
+        </div>
+        <!-- <div (click)="showPOP($event)">照相  
+                <app-ems-radio-pop-up [dataList]=photographList (implementChange)="measureStatusChange($event)" [needMap]="false"  [showPop]="pop"></app-ems-radio-pop-up>
+            </div> -->
+      </div>
+    </ion-content>
+
+    <!-- </ion-content>  -->
+  </div>
+
+  <ion-footer class="ems-record-meaures-footer">
+    <ion-button
+      size="large"
+      class="footer-btn"
+      type="submit"
+      [style.--box-shadow]="'none'"
+      (click)="saveRecordMeasures()"
+      >保存</ion-button
+    >
+  </ion-footer>
+</div>

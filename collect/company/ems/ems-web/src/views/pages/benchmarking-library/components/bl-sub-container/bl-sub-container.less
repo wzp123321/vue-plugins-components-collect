@@ -1,0 +1,38 @@
+.bl-sub {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--iot-border-color);
+  &:last-child {
+    border-bottom: 0;
+  }
+  &-title {
+    position: relative;
+    height: 22px;
+    line-height: 22px;
+    font-size: 14px;
+    color: var(--iot-font-color-deep);
+    font-weight: 600;
+    padding-left: 12px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+  }
+  &-title::before {
+    content: '';
+    width: 0;
+    height: 16px;
+    border-left: 4px solid var(--iot-color-active);
+    position: absolute;
+    top: 3px;
+    left: 0;
+  }
+  &-container {
+    padding: 10px 0 15px 12px;
+  }
+  &-img {
+    height: 16px;
+    width: 16px;
+    margin: 0 12px 0 17px !important;
+  }
+}

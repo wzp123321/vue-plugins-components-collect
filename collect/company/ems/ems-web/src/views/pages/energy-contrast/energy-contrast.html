@@ -1,0 +1,149 @@
+<div class="energy-contrast">
+  <page-common
+    :title="'能耗对比'"
+    :showSearch="true"
+    :showExport="true"
+    :reportExportTitle="wordExportLoading? '报告正在导出' : '报告导出'"
+    @report-export="reportExport"
+    class="pageCommon"
+  >
+    <template v-slot:pageSearch>
+      <contrast-search
+        :valueMeanList="valueMeanList"
+        :timeUnitList="timeUnitList"
+        :analysisObjectData="analysisObjectData"
+        @handleSearch="handleSearch"
+        @onSubmit="onSubmit"
+        @error="onError"
+        @onReset="onReset"
+        :serverDate="serverDate"
+        ref="contrastSearchRef"
+      ></contrast-search>
+    </template>
+    <template v-slot:pageContent>
+      <div v-if="!showErrorEcharts" style="padding-bottom: 16px">
+        <div class="headerEcharts">
+          <div class="title">
+            <div class="lineLeft"></div>
+            能耗对比曲线
+          </div>
+        </div>
+        <div class="echarts" v-loading="pageLoading">
+          <energy-contrast-line
+            :timeUnit="queryContrastEchartsParams.timeUnit"
+            ref="energyContrastLineRef"
+          ></energy-contrast-line>
+        </div>
+        <div class="etLine"></div>
+        <div class="headerTable">
+          <div class="title">
+            <div class="lineLeft"></div>
+            能耗对比明细
+          </div>
+          <button v-if="tableData?.length" @click="contrastDataExport" primary>
+            {{ exportLoading? '正在导出' : '导出'}}
+          </button>
+        </div>
+        <table v-loading="pageLoading" style="width: 100%">
+          <thead :style="{ width : tableData?.length > 5 ? 'calc(100% - 8px)' : '100%'}">
+            <tr>
+              <th style="width: 60px">序号</th>
+              <th v-show="!showTimeObject">日期</th>
+              <th>对象</th>
+              <th>
+                <formatter-unit :formatHtml="`${energyTargetName}（${valueUnit}）`"></formatter-unit>
+              </th>
+              <th>平均值（{{ valueUnit }}）</th>
+              <th>最大值（{{ valueUnit }}）</th>
+              <th>最小值（{{ valueUnit }}）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in tableData" :key="index">
+              <td style="width: 60px">{{ index + 1 }}</td>
+              <td v-show="!showTimeObject">
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :show-after="500"
+                  :content="item.time || '--'"
+                  placement="bottom"
+                >
+                  <span> {{ item.time }}</span>
+                </el-tooltip>
+              </td>
+              <td>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :show-after="500"
+                  :content="item.analyseObjectName || '--'"
+                  placement="bottom"
+                >
+                  <span> {{ item.analyseObjectName}}</span>
+                </el-tooltip>
+              </td>
+              <td>
+                <span v-if="Object.prototype.toString.call(item.currentEnergyValue) === '[object Null]'">--</span>
+                <el-tooltip
+                  v-else
+                  class="item"
+                  effect="dark"
+                  :content="thousandSeparation(item.currentEnergyValue) || '--'"
+                  :show-after="500"
+                  placement="bottom"
+                >
+                  <span>{{ thousandSeparation(item.currentEnergyValue) }}</span>
+                </el-tooltip>
+              </td>
+              <td>
+                <span v-if="Object.prototype.toString.call(item.averageEnergyValue) === '[object Null]'">--</span>
+                <el-tooltip
+                  v-else
+                  class="item"
+                  effect="dark"
+                  :content="thousandSeparation(item.averageEnergyValue) || '--'"
+                  :show-after="500"
+                  placement="bottom"
+                >
+                  <span>{{ thousandSeparation(item.averageEnergyValue) }}</span>
+                </el-tooltip>
+              </td>
+              <td>
+                <span v-if="Object.prototype.toString.call(item.maxEnergyValue) === '[object Null]'">--</span>
+                <el-tooltip
+                  v-else
+                  class="item"
+                  effect="dark"
+                  :content="thousandSeparation(item.maxEnergyValue) || '--'"
+                  :show-after="500"
+                  placement="bottom"
+                >
+                  <span>{{ thousandSeparation(item.maxEnergyValue) }}</span>
+                </el-tooltip>
+              </td>
+              <td>
+                <span v-if="Object.prototype.toString.call(item.minEnergyValue) === '[object Null]'">--</span>
+                <el-tooltip
+                  v-else
+                  class="item"
+                  effect="dark"
+                  :content="thousandSeparation(item.minEnergyValue) || '--'"
+                  :show-after="500"
+                  placement="bottom"
+                >
+                  <span>{{ thousandSeparation(item.minEnergyValue) }}</span>
+                </el-tooltip>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="tableData?.length === 0 && !pageLoading" class="common-table__empty flex-column-center-center">
+          <img src="../../../assets/img/common/common-data-none.svg" alt="" />
+          <span>暂无数据</span>
+        </div>
+      </div>
+      <no-data :title="unConfigureMessage" v-show="showErrorEcharts && !pageLoading"></no-data>
+    </template>
+  </page-common>
+</div>

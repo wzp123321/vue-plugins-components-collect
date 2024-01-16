@@ -1,0 +1,121 @@
+<div class="re-report">
+  <!-- 导航 star -->
+  <div class="re-report-box" @mouseover="onMouseOver" @mouseleave="onMouseOut">
+    <!-- 左侧导航按钮 -->
+    <div class="re-report-box-button left-button buttonHide" @click="onLeftBtn">&lt;</div>
+    <!-- 右侧导航按钮 -->
+    <div class="re-report-box-button right-button buttonHide" @click="onRightBtn">&gt;</div>
+    <!-- list -->
+    <div class="re-report-box-content" :style="{ transform: `translateX(${translateX}px)` }">
+      <RgCard
+        v-for="(item, i) in reportItemList"
+        :key="'card_'+ i"
+        :type="'月'"
+        :selectedKey="selectedCardId"
+        @selected="itemClick"
+        :dataSource="item"
+      >
+        <div class="re-report-box-content-item-footer">
+          <i class="ems-iconfont icon-xiazai" title="下载" @click.stop="downloadReport(item)"></i>
+        </div>
+      </RgCard>
+    </div>
+  </div>
+  <!-- 导航 end -->
+  <!-- 搜索生成预览 star -->
+  <el-form :inline="true" :model="formInline" class="form-inline" style="margin: 21px 0" @submit.native.prevent>
+    <el-form-item label="日期">
+      <el-date-picker
+        v-model="formInline.date"
+        type="month"
+        prefix-icon="iconfont icon-Calendar"
+        clear-icon="iconfont icon-Close-Circle-Fill"
+        placeholder="选择月"
+        :disabledDate="onDisableDateCb"
+      ></el-date-picker>
+    </el-form-item>
+    <el-form-item label="对象">
+      <tree-select
+        :placeholder="'请选择分析对象'"
+        v-model="formInline.analysisObject"
+        :treeData="analysisObjectList"
+        :disabledProps="disabledProps"
+        :defaultProps="FGetElTreeDefaultProps()"
+        :expanedKeys="treeIdExpanedKeys"
+        :loading="pageTreeLoading"
+        :showSearch="true"
+        v-model:radioValue="formInline.radioValue"
+        :radioData="radioData"
+        @tree-radio-change="treeRaidoChange"
+        :width="'363px'"
+      >
+      </tree-select>
+    </el-form-item>
+    <el-form-item>
+      <button primary @click="onSearch">预览</button>
+    </el-form-item>
+    <el-form-item>
+      <button primary @click="onRefresh">更新</button>
+    </el-form-item>
+  </el-form>
+  <!-- 搜索生成预览 end -->
+  <div class="pdf-preview" v-loading="loading">
+    <iframe
+      class="pdf-preview-iframe"
+      v-if="!loading && pageUrl"
+      :src="pageUrl"
+      frameborder="0"
+      :style="{ width: `100%`, height: `${sectionHieght}px`}"
+    ></iframe>
+    <no-data v-show="!loading && pageUrl === ''" :title="noDataTitle" :marginTop="-45"></no-data>
+  </div>
+</div>
+
+<el-dialog
+  title="导出"
+  v-model="dialogFormVisible"
+  :close-on-click-modal="false"
+  :custom-class="'report-download-dialog'"
+  width="480px"
+  @close="onClose"
+>
+  <el-form :model="pageForm" label-width="70px">
+    <el-form-item label="导出格式">
+      <el-radio v-model="pageForm.format" label="word">word</el-radio>
+      <el-radio v-model="pageForm.format" label="pdf">pdf</el-radio>
+    </el-form-item>
+    <el-form-item label="导出日期">
+      <el-date-picker
+        v-model="pageForm.date"
+        style="width: 100%"
+        type="month"
+        prefix-icon="iconfont icon-Calendar"
+        clear-icon="iconfont icon-Close-Circle-Fill"
+        placeholder="选择月"
+        :disabledDate="onDisableDateCb"
+      ></el-date-picker>
+    </el-form-item>
+    <el-form-item label="对象">
+      <tree-select
+        :placeholder="'请选择分析对象'"
+        v-model="pageForm.analysisObject"
+        :treeData="pageForm.analysisObjectList"
+        :showSearch="true"
+        :disabledProps="disabledProps"
+        :defaultProps="FGetElTreeDefaultProps()"
+        v-model:radioValue="pageForm.radioValue"
+        :loading="dialogTreeLoading"
+        :expanedKeys="pageForm.expandedKeys"
+        :radioData="radioData"
+        @tree-radio-change="handleDialogTreeTypeChange"
+        :autoWidth="true"
+      ></tree-select>
+    </el-form-item>
+  </el-form>
+  <template #footer>
+    <span class="dialog-footer">
+      <button @click="onClose">取消</button>
+      <button primary @click="onHideDaySubmit">确定</button>
+    </span>
+  </template>
+</el-dialog>

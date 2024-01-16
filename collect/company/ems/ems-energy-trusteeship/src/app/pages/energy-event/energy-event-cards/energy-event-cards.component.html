@@ -1,0 +1,54 @@
+<div id="energy-event-cards">
+  <nz-spin [nzSpinning]="isLoading">
+    <div [@swipe]="index" #elementCardList class="event-card-list">
+      <ng-container *ngTemplateOutlet="templateEventCard; context: { card: getCard() }"></ng-container>
+      <ng-container *ngFor="let option of typeOptions">
+        <ng-container
+          *ngTemplateOutlet="templateEventCard; context: { card: getCard(option.value), option: option }"
+        ></ng-container>
+      </ng-container>
+    </div>
+
+    <div class="event-card-swipe swipe-left" [class.none]="!canSwipeLeft" (click)="swipeToLeft()">
+      <i class="size16" nz-icon nzType="left" nzTheme="outline"></i>
+    </div>
+    <div class="event-card-swipe swipe-right" [class.none]="!canSwipeRight" (click)="swipeToRight()">
+      <i class="size16" nz-icon nzType="right" nzTheme="outline"></i>
+    </div>
+  </nz-spin>
+</div>
+
+<ng-template #templateEventCard let-card="card" let-option="option">
+  <section
+    class="event-card-container"
+    [class.active]="(option?.value ?? 0) === current"
+    [ngStyle]="{ color: (option?.value ?? 0) === current ? option?.color : '' }"
+    flexible="false"
+    (click)="selectCard(option?.value)"
+  >
+    <div class="event-card-header">
+      <img [src]="mapCardIcon(option?.value)" alt="" />
+      <h6>
+        <span>{{ option?.label ?? '全年' }}</span>
+        <span>（{{ card.count ?? '--' }}）</span>
+      </h6>
+    </div>
+    <hr />
+    <div class="event-card-body">
+      <label>能耗（{{ unit ?? '--' }}）</label>
+      <span
+        class="event-card-consumption"
+        nz-tooltip
+        nzTooltipPlacement="bottomLeft"
+        [nzTooltipTitle]="card.consumption"
+      >
+        {{ card.consumption ?? '--' }}
+      </span>
+
+      <label>成本（元）</label>
+      <span class="event-card-cost" nz-tooltip nzTooltipPlacement="bottomLeft" [nzTooltipTitle]="card.cost">
+        {{ card.cost ?? '--' }}
+      </span>
+    </div>
+  </section>
+</ng-template>

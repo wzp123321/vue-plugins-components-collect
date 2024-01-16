@@ -1,0 +1,22 @@
+.ra-special-timetable {
+  width: 100%;
+
+  &--header {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--iot-border-color);
+    margin-bottom: 16px;
+
+    :deep(.el-form-item) {
+      margin-bottom: 0;
+      .el-date-editor.el-range-editor.el-input__inner{
+        height: 36px;
+        position: relative;
+        top: 2px;
+      }
+      button{
+        position: relative;
+        top: 2px;
+      }
+    }
+  }
+}

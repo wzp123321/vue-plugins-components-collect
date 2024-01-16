@@ -1,0 +1,21 @@
+<div
+  class="permission-configure"
+  :style="{ height : pcContainer.is_error || pcContainer.loading ? '100%' : 'calc(100% - 68px)' }"
+  v-loading="pcContainer.loading"
+>
+  <div
+    class="permission-configure--tree"
+    v-if="!pcContainer.is_error && !pcContainer.loading"
+  >
+    <pc-tree-select :pcTreeSelect="areaTree"></pc-tree-select>
+    <pc-tree-select :pcTreeSelect="commercialTree"></pc-tree-select>
+    <pc-tree-select :pcTreeSelect="assessTree"></pc-tree-select>
+  </div>
+  <div
+    class="permission-configure--btn"
+    v-if="!pcContainer.is_error && !pcContainer.loading"
+  >
+    <button primary @click="handleSubmit">完成</button>
+  </div>
+  <no-data v-if="pcContainer.is_error && !pcContainer.loading"></no-data>
+</div>

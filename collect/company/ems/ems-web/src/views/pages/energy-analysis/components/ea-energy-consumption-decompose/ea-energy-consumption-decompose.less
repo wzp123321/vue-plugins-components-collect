@@ -1,0 +1,61 @@
+.ea-energy-consumption-decompose {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .ecd-header {
+    margin-top: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .ecd-header-title {
+      display: flex;
+      align-items: center;
+
+      .ecd-name {
+        color: var(--iot-font-color-root);
+        font-size: 14px;
+        margin-right: 13px;
+      }
+
+      .ecd-value {
+        color: #1890ff;
+        font-size: 20px;
+      }
+
+      .ecd-unit {
+        color: #1890ff;
+        font-size: 20px;
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .ecd-bottom-title {
+    width: 85%;
+    position: absolute;
+    bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .ecd-bottom-line {
+      width: 8px;
+      height: 1px;
+      background-color: #1890ff;
+    }
+
+    .ecd-bottom-text {
+      font-size: 16px;
+      padding: 0px 4px;
+    }
+  }
+
+  .no-data {
+    height: auto !important;
+    flex: 1 1 auto;
+  }
+}

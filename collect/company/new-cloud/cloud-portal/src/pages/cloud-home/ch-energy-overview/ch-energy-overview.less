@@ -1,0 +1,271 @@
+#ch-energy-overview {
+    width: 100%;
+    height: 100%; 
+    position: relative;
+   > .ch-eo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; 
+        .ch-eo-type { 
+            display: flex;
+            justify-content: flex-end;
+            align-items: center; 
+            gap: 0.02rem;
+            cursor: pointer;
+            &-text { 
+                padding: 0 0.16rem 0 0.16rem; 
+                color: rgba(255, 255, 255, 100);
+                font-size: 0.12rem; 
+                height: 0.3rem;
+                line-height: 0.3rem;
+            }
+            &-select {   
+                padding: 0 0.16rem 0 0.16rem;
+                border-radius: 0.18rem;
+                background-color: rgba(3, 190, 255, 0.2);
+                color: rgba(3, 190, 255, 100);
+                height: 0.3rem;
+                line-height: 0.3rem;
+            }
+
+        }
+
+    }
+    .ch-eo-content {
+        display: flex;
+        justify-content: center;
+        width: 100%; 
+        height: calc(100% - 0.48rem);
+        padding: 0 0.33rem;
+        &-bg {
+            width: 100%;
+            height: calc(100% - 0.3rem);
+            background-size: 100% 100%;
+        }
+        &-info {
+            display: flex;
+            justify-content: center;
+            flex-direction: column; 
+            position: absolute;
+            width: 1.21rem;
+            height: calc(100% - 0.48rem);
+            overflow: hidden;
+            &-text {
+                width: 100%;
+                line-height: 0.28rem;  
+                font-size: 0.25rem;
+                text-align: center;
+                font-family: UniDreamLED; 
+                margin-top: 0.12rem;
+                overflow: hidden;
+                text-align: center;
+                text-overflow: ellipsis; 
+                padding: 0 0.04rem;
+                position: relative;
+                span {
+                    line-height: 0.28rem;  
+                    font-size: 0.25rem;
+                    text-align: center;
+                    font-family: UniDreamLED; 
+                }
+              &:hover {
+                  .tooltip {
+                      visibility: visible;
+                  }
+              }
+            }
+            &-text-hideen {
+                color: transparent !important;
+            }
+            &-value { 
+                display: flex;
+                flex-direction: column;
+               // gap: 0.06rem;
+                justify-content: center;
+                align-items: center;
+                width: 100%; 
+                // line-height: 0.34rem; 
+                font-size: 0.12rem;
+                text-align: center;
+                font-family: PingFangSC-Regular;  
+                &-text {
+                    line-height: 0.17rem; 
+                    overflow: hidden;
+                    text-align: center;
+                    text-overflow: ellipsis;
+                    width: 90%;
+                    font-size: 0.12rem;
+                }
+                span {
+                    line-height: 0.17rem; 
+                    font-size: 0.12rem;
+                    text-align: center;
+                    font-family: PingFangSC-Regular;
+                }
+            }
+            &-value-height {
+                height: 0.4rem;
+            }
+            &-name { 
+                width: 100%;
+                text-align: center;
+                line-height: 0.2rem;
+                color: rgba(164, 230, 255, 100);
+                font-size: 0.14rem; 
+                font-family: PingFangSC-Regular;
+                overflow: hidden;
+                text-align: center;
+                text-overflow: ellipsis;
+                
+            }
+            &-name-rate {
+                width: 100%;
+                text-align: center;
+                line-height: 0.2rem;
+                color: rgba(164, 230, 255, 100);
+                font-size: 0.14rem; 
+                font-family: PingFangSC-Regular;
+            }
+        }
+        &-info-second {
+          left: 0.33rem;
+          overflow: hidden;
+          .ch-eo-content-info-text {
+            background-image: -webkit-linear-gradient(bottom,#EEEEEE,#7B7B7B); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-top: 1.2rem;
+           
+          }
+          .ch-eo-content-info-value {
+            color: rgba(208, 208, 208, 100);
+            margin-top: 0.13rem;
+          }
+          .ch-eo-content-info-name {
+            margin-top: 0.14rem;
+            padding-right: 0.1rem;
+          }
+        }
+        &-info-first {
+            overflow: hidden;
+          .ch-eo-content-info-text {   
+            background-image: -webkit-linear-gradient(bottom,#FED530,#FE8F30); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-top: 0.98rem;
+          }
+          .ch-eo-content-info-value {
+            color: rgba(255, 204, 0, 100);
+            margin-top: 0.16rem;
+          }
+          .ch-eo-content-info-name {
+            margin-top: 0.3rem;
+          }
+        }
+        &-info-third {
+            right: 0.24rem;
+            overflow: hidden;
+            .ch-eo-content-info-text {   
+                background-image: -webkit-linear-gradient(bottom,#CA9561,#A86019); 
+                -webkit-background-clip: text;
+                background-clip: text;  
+                -webkit-text-fill-color: transparent; 
+                margin-top: 1.3rem;
+              }
+            .ch-eo-content-info-value {
+                color: rgba(202, 149, 97, 100);
+                margin-top: 0.13rem;
+            }
+            .ch-eo-content-info-name {
+                 margin-top: 0.04rem;
+            }
+        }
+    }
+    .tooltip {  
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute; 
+        visibility: hidden;
+        height: 0.25rem;
+        width: 1.21rem;
+        &-bg {
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            padding: 0 0.14rem; 
+            height: 0.25rem;
+            background-color: rgba(0, 48, 110, 1);
+            border-radius: 0.02rem;
+            backdrop-filter: blur(0.2rem); 
+            &-text {
+                padding-top: 0.01rem;
+                line-height: 0.2rem !important; 
+                font-size: 0.14rem;
+                color: rgba(255, 255, 255, 0.85);
+            }
+        }
+       
+    }
+    .ch-eo-empty { 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        height: calc(100% - 0.48rem);
+        overflow: hidden;
+        & > img {
+            height: 0.78rem;
+        }
+
+        & > span { 
+            font-size: 0.14rem; 
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.1rem;
+            text-align: center;
+        }
+    }
+    .ch-eo-loading {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        height: calc(100% - 0.48rem);
+        > i {
+          //  visibility: hidden;
+            width: 20px;
+            height: 20px;
+            &::before {
+              content: '';
+      
+              visibility: visible;
+              position: absolute;
+              top: 55%;
+              right: 50%;
+              bottom: 0;
+              left: 50%;
+      
+              border: 1px solid #03BEFF;
+              border-top-color: transparent;
+              border-radius: 50%;
+              
+              width: 20px;
+              height: 20px;
+              
+              animation: loading 888ms linear infinite;
+              pointer-events: none;
+            }
+          }
+    }
+}
+
+@keyframes loading {
+    0% {
+      transform: rotate(0);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }

@@ -1,0 +1,52 @@
+.te-popper {
+  // 下拉框
+  &.te-select__popper {
+    .te-popper__arrow {
+      display: none;
+    }
+  }
+
+  // 时间选择器
+  &.te-picker__popper {
+    .te-date-table th,
+    .te-date-picker__header {
+      line-height: 30px !important;
+    }
+
+    .te-date-table th,
+    .te-date-table td span.te-date-table-cell__text {
+      font-size: 12px !important;
+    }
+
+    .te-date-picker__header {
+      .te-picker-panel__icon-btn {
+        height: auto;
+        padding: 1px 6px;
+        line-height: normal;
+      }
+
+      .te-date-picker__header-label {
+        line-height: 22px;
+      }
+
+      button + button {
+        margin-left: 0;
+      }
+
+      .te-date-picker__prev-btn,
+      .te-date-picker__next-btn {
+        line-height: 30px;
+      }
+    }
+
+    .te-picker-panel__content {
+      table > tbody > tr:nth-child(even) > td {
+        background-color: transparent;
+      }
+
+      table > tbody > tr:hover > td {
+        background-color: transparent;
+      }
+    }
+  }
+}

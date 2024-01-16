@@ -1,0 +1,82 @@
+/* 表格相关样式控制 */
+table,
+table tr {
+  table-layout: fixed;
+}
+
+/* 溢出省略 */
+table td[ellipsis] {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+/* 表格标题 */
+table > thead,
+table > thead > tr {
+  width: 100%;
+}
+table > thead > tr > th {
+  height: 52px;
+  padding: 0px 10px;
+
+  color: var(--color-text-title);
+  background-color: var(--color-table-header);
+
+  font-weight: var(--param-font-medium);
+  text-align: center;
+}
+
+/* 表格内容 */
+table > tbody,
+table > tbody > tr {
+  width: 100%;
+
+  transition-duration: var(--param-transition-time);
+}
+table > tbody > tr > td {
+  height: 48px;
+  padding: 0px 10px;
+
+  color: var(--color-text-primary);
+  background-color: var(--color-default);
+
+  text-align: center;
+}
+table > tbody > tr:nth-child(even) > td {
+  background-color: var(--color-table-body);
+}
+table > tbody > tr:hover > td {
+  background-color: var(--color-hover);
+}
+
+/* 垂直滚动 */
+table[scroll-y] > thead,
+table[scroll-y] > tbody {
+  display: block;
+}
+table[scroll-y] tr {
+  display: table;
+}
+
+table[scroll-y] > tbody {
+  overflow-y: auto;
+}
+
+/* 水平滚动 */
+table[scroll-x] {
+  overflow-x: auto;
+
+  display: block;
+}
+table[scroll-x] tr > [fixed] {
+  position: sticky;
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+table[scroll-x] > thead > tr > th:not([fixed]) {
+  width: 100%;
+}

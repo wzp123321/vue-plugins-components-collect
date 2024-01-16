@@ -1,0 +1,13 @@
+<div id="air-conditioner-control-cards-chart" [style.top.px]="anchor[1]" [style.left.px]="anchor[0]">
+  <img *ngIf="!primary" class="card-flag" src="assets/img/air-conditioner-control/acccc-card-flag.svg" alt="" />
+  <img *ngIf="primary" class="card-flag" src="assets/img/air-conditioner-control/acccc-card-flag-primary.svg" alt="" />
+
+  <img *ngIf="!primary" src="assets/img/air-conditioner-control/acccc-title-flag.svg" alt="" />
+  <img *ngIf="primary" src="assets/img/air-conditioner-control/acccc-title-flag-primary.svg" alt="" />
+  <h5>{{ title }}</h5>
+  <i class="card-close" nz-icon nzType="close" nzTheme="outline" (click)="dismiss()"></i>
+
+  <nz-spin style="height: 100%; grid-column: span 3" [nzSpinning]="isLoading">
+    <div style="height: 100%; margin-left: -20px" echarts [options]="chartOptions"></div>
+  </nz-spin>
+</div>

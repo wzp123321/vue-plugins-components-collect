@@ -1,0 +1,416 @@
+<div class="environment-evaluation" style="width: 100%; height: 100%">
+  <page-common title="环境评价" :showSearch="true">
+    <template v-slot:pageSubTitle>
+      <el-tooltip popper-class="change-adress" placement="bottom-start">
+        <template #content>
+          <span>
+            <span>通过监测点位的环境因子（如二氧化碳、PM2.5、</span><br />
+            <span>温度、湿度等）的采集和分析，参考各因子的合理</span><br />
+            <span>评价区间，采用加权打分方法，给出环境点位的实</span><br />
+            <span>时环境评价结果，并告知异常。</span>
+          </span>
+        </template>
+        <span>
+          <img style="vertical-align: top;" :src="questionMark" alt="" />
+        </span>
+      </el-tooltip>
+    </template>
+    <!-- 头部搜索 -->
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="formInline" class="demo-form-inline">
+        <el-form-item label="分析对象">
+          <tree-select
+            :placeholder="'请选择分析对象'"
+            v-model:modelValue="formInline.treeId"
+            :treeData="treeList"
+            nodeKey="treeId"
+            :disabledProps="disabledProps"
+            :defaultProps="FGetElTreeDefaultProps('children')"
+            :expanedKeys="analysisObjectExpanedKeys"
+            :allowClear="true"
+          ></tree-select>
+        </el-form-item>
+        <el-form-item label="日期">
+          <el-date-picker
+            placeholder="请选择"
+            v-model="formInline.date"
+            type="daterange"
+            range-separator="~"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            :disabledDate="disabledDate"
+            prefix-icon="iconfont icon-Calendar"
+            clear-icon="iconfont icon-Close-Circle-Fill"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <!-- box -->
+      <div style="padding-bottom: 16px">
+        <!-- 卡片 start -->
+        <div class="env-board" style="width: 100%; min-height: 170px;" v-loading="loadings">
+          <div
+            class="env-box"
+            v-if="Object.keys(envCardData).length && envCardData.qualityScore !== null && envCardData.maxScore !== null && envCardData.maxScore !== null"
+          >
+            <!-- 环境质量 优中差-->
+            <div class="env-card-wrap" style="width: calc(33.3333%);" v-if="envCardData.qualityScore !== null">
+              <div class="env-card">
+                <div class="env-card-box">
+                  <div class="env-card-left">
+                    <div class="env-card-title flex">
+                      环境质量
+                      <!-- <span class="env-sub-title flex">{{
+                          envCardData.evaluate != '优'
+                            ? ''
+                            : '质量' + envCardData.evaluate
+                        }}</span> -->
+                      <span class="env-sub-title flex">{{ envCardData.evaluate }}</span>
+                      <div class="env-question">
+                        <el-tooltip popper-class="keep-adress">
+                          <template #content>
+                            <span>
+                              <span>优：80分及以上</span><br />
+                              <span>中：60-80分（含60分）</span><br />
+                              <span>差：0-60分</span>
+                            </span>
+                          </template>
+                          <span>
+                            <img style="vertical-align: top;" :src="questionMark" alt="" />
+                          </span>
+                        </el-tooltip>
+                      </div>
+                    </div>
+
+                    <div class="env-card-value">
+                      <span class="env-data text-overflow" :title="envCardData.qualityScore"
+                        >{{ envCardData.qualityScore }}</span
+                      >
+                      <span class="env-card-unit">分</span>
+                    </div>
+                  </div>
+                  <div class="env-card-right">
+                    <div
+                      class="icon-wrap"
+                      :class="{
+                          'icon-wrap_good1': envCardData.grade == '优',
+                          'icon-wrap_middle1': envCardData.grade == '中',
+                          'icon-wrap_lower1': envCardData.grade == '差'
+                        }"
+                    >
+                      <div
+                        class="icon-wrap-second"
+                        :class="{
+                            'icon-wrap_good2': envCardData.grade == '优',
+                            'icon-wrap_middle2': envCardData.grade == '中',
+                            'icon-wrap_lower2': envCardData.grade == '差'
+                          }"
+                      >
+                        <div
+                          class="icon-bg"
+                          :class="{
+                              'icon-wrap_good': envCardData.grade == '优',
+                              'icon-wrap_middle': envCardData.grade == '中',
+                              'icon-wrap_lower': envCardData.grade == '差'
+                            }"
+                          style="font-size: 14px;"
+                        >
+                          {{ envCardData.grade }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 最高评分 -->
+            <div class="env-card-wrap" style="width: calc(33.3333%);" v-if="envCardData.maxScore !== null">
+              <div class="env-card">
+                <div class="env-card-box">
+                  <div class="env-card-left">
+                    <div class="env-card-title">
+                      最高评分
+                      <!-- <span class="env-sub-title">{{envCardData.evaluate != '优'?'': '质量'+nvCardData.evaluate}}</span> -->
+                    </div>
+                    <div class="env-card-value">
+                      <span class="env-data text-overflow" :title="envCardData.maxScore"
+                        >{{ envCardData.maxScore }}</span
+                      >
+                      <span class="env-card-unit">分</span>
+                    </div>
+                  </div>
+                  <div class="env-card-right">
+                    <div class="icon-wrap" style="background-color: rgba(82, 196, 26, 0.1);">
+                      <div class="icon-wrap-second" style="background-color: rgba(82, 196, 26, 0.2);">
+                        <div class="icon-bg" style="background-color: rgba(82, 196, 26, 1);">
+                          <img :src="highScore" alt="" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 最低评分  -->
+            <div class="env-card-wrap" style="width: calc(33.3333%);" v-if="envCardData.minScore !== null">
+              <div class="env-card">
+                <div class="env-card-box">
+                  <div class="env-card-left">
+                    <div class="env-card-title">
+                      最低评分
+                      <span class="env-sub-title"></span>
+                    </div>
+                    <div class="env-card-value">
+                      <span class="env-data text-overflow" :title="envCardData.minScore"
+                        >{{ envCardData.minScore }}</span
+                      >
+                      <span class="env-card-unit">分</span>
+                    </div>
+                  </div>
+                  <div class="env-card-right">
+                    <div class="icon-wrap" style="background-color: rgba(245, 34, 45, 0.1);">
+                      <div class="icon-wrap-second" style="background-color: rgba(245, 34, 45, 0.2);">
+                        <div class="icon-bg" style="background-color: rgba(245, 34, 45, 1);">
+                          <img :src="lowerScore" alt="" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 同比 -->
+            <div class="env-card-wrap" style="width: calc(33.3333%);" v-if="envCardData.lastYearScore !== null">
+              <div class="env-card">
+                <div class="env-card-box">
+                  <div class="env-card-left">
+                    <div class="env-card-title">
+                      同比
+                      <span class="env-sub-title">去年同期评分：{{ envCardData.lastYearScore }}</span>
+                    </div>
+                    <div class="env-card-value">
+                      <span
+                        class="env-data text-overflow"
+                        style="color: rgba(0, 0, 0, 0.45);"
+                        :title="envCardData.maxScore"
+                        v-if="envCardData.lastYearCompare == 0"
+                      >
+                        - {{ envCardData.lastYearCompare }}</span
+                      >
+                      <span class="env-data text-overflow" v-else>
+                        <img
+                          style="margin-right: 8px;"
+                          :src="
+                              Math.sign(envCardData.lastYearCompare) == -1
+                                ? arrowDown
+                                : arrowUp
+                            "
+                          alt=""
+                        />
+                        <span
+                          style="font-size: 36px; letter-spacing:-2px;"
+                          :title="
+                              (
+                                Math.abs(envCardData.lastYearCompare) * 100
+                              ).toFixed(2)
+                            "
+                        >
+                          {{ Math.sign(envCardData.lastYearCompare) == -1 ? ( Math.abs(envCardData.lastYearCompare) *
+                          100 ).toFixed(2) : (envCardData.lastYearCompare * 100).toFixed(2) }}</span
+                        >
+                      </span>
+                      <span class="env-card-unit">%</span>
+                    </div>
+                  </div>
+                  <div class="env-card-right">
+                    <div class="icon-wrap" style="background-color: rgba(1, 172, 188, 0.1);">
+                      <div class="icon-wrap-second" style="background-color: rgba(1, 172, 188, 0.2);">
+                        <div class="icon-bg" style="background-color: rgba(1, 172, 188, 1);">
+                          同
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 环比 -->
+            <div class="env-card-wrap" style="width: calc(33.3333%);" v-if="envCardData.lastDayOrMonthScore !== null">
+              <div class="env-card">
+                <div class="env-card-box">
+                  <div class="env-card-left">
+                    <div class="env-card-title">
+                      环比
+                      <span class="env-sub-title">{{ date }}同期评分：{{ envCardData.lastDayOrMonthScore }}</span>
+                    </div>
+                    <div class="env-card-value">
+                      <span
+                        class="env-data text-overflow"
+                        style="color: rgba(0, 0, 0, 0.45);"
+                        :title="envCardData.lastDayOrMonthCompare"
+                        v-if="envCardData.lastDayOrMonthCompare == 0"
+                      >
+                        - {{ envCardData.lastDayOrMonthCompare }}</span
+                      >
+                      <span class="env-data text-overflow" v-else>
+                        <img
+                          style="margin-right: 8px;"
+                          :src="
+                              Math.sign(envCardData.lastDayOrMonthCompare) == -1
+                                ? arrowDown
+                                : arrowUp
+                            "
+                          alt=""
+                        />
+                        <span
+                          style="font-size:36px; letter-spacing: -2px;"
+                          :title="
+                              (
+                                Math.abs(envCardData.lastDayOrMonthCompare) *
+                                100
+                              ).toFixed(2)
+                            "
+                        >
+                          {{ Math.sign(envCardData.lastDayOrMonthCompare) == -1 ? ( Math.abs(
+                          envCardData.lastDayOrMonthCompare ) * 100 ).toFixed(2) : ( envCardData.lastDayOrMonthCompare *
+                          100 ).toFixed(2) }}</span
+                        >
+                      </span>
+                      <span class="env-card-unit">%</span>
+                    </div>
+                  </div>
+                  <div class="env-card-right">
+                    <div class="icon-wrap" style="background-color: rgba(0, 100, 255, 0.1);">
+                      <div class="icon-wrap-second" style="background-color: rgba(0, 100, 255, 0.2);">
+                        <div class="icon-bg" style="background-color: rgba(0, 100, 255, 1);">
+                          环
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <no-data
+            class="scale-img"
+            v-if="Object.keys(envCardData).length == 0 && loadings == false"
+            :title="envTip"
+          ></no-data>
+        </div>
+        <!-- 卡片 end -->
+
+        <!-- 环境监测分析折线图 标题-->
+        <div class="headerEcharts">
+          <div class="mark-tip">
+            <module-subhead :title="'环境监测分析'"></module-subhead>
+          </div>
+          <div class="switch" v-if="Object.keys(averageLineChartData).length">
+            <icon-switch-button
+              v-model="switchIconSelect"
+              :switchItems="switchLineChartTableIcons"
+              @switch-icon-button-change="switchIconChange"
+            ></icon-switch-button>
+            <el-button v-show="selected == 2" style="margin-left: 20px;" type="primary" @click="exportData()"
+              >导出</el-button
+            >
+          </div>
+        </div>
+        <!-- 环境监测分析折线图 start -->
+        <div class="echarts" style="width: 100%; min-height: 300px" v-show="selected == 1" v-loading="loadings">
+          <e-e-line-chart
+            :height="293"
+            :averageLineChartData="averageLineChartData"
+            v-if="Object.keys(averageLineChartData).length && loadings == false"
+          ></e-e-line-chart>
+          <no-data v-if="Object.keys(averageLineChartData).length == 0 && loadings == false" :title="envTip"></no-data>
+        </div>
+        <!-- 环境监测分析折线图 end -->
+
+        <!-- 环境监测分析表格导出 start -->
+        <div class="table" style="min-height: 300px" v-show="selected == 2" v-loading="loadings">
+          <div>
+            <el-table
+              :height="360"
+              :data="envListData"
+              style="width: 100%;"
+              v-if="envListData && envListData.length > 0"
+            >
+              <el-table-column label="序号" prop="number" align="center" show-overflow-tooltip :min-width="90">
+              </el-table-column>
+              <el-table-column prop="time" label="时间" align="center" show-overflow-tooltip> </el-table-column>
+              <el-table-column prop="treeName" label="对象" align="center" show-overflow-tooltip> </el-table-column>
+              <el-table-column prop="score" label="分值" align="center" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.score == null ? '--' : scope.row.score }}</template>
+              </el-table-column>
+              <el-table-column prop="withCompare" label="同比值" align="center" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.withCompare == null ? '--' : scope.row.withCompare }}</template>
+              </el-table-column>
+              <el-table-column prop="ringCompare" label="环比值" align="center" show-overflow-tooltip>
+                <template #default="scope">{{ scope.row.ringCompare == null ? '--' : scope.row.ringCompare }}</template>
+              </el-table-column>
+            </el-table>
+            <no-data v-else :title="envTip"></no-data>
+          </div>
+        </div>
+        <!-- 环境监测分析表格导出 end -->
+        <div class="etLine"></div>
+        <el-row :gutter="12" class="module-wrap" style="margin-bottom:10px;">
+          <!-- 分项指标评测--柱状图 start -->
+          <el-col :span="12">
+            <module-subhead :title="'分项指标评测'"></module-subhead>
+            <!-- <iot-echarts-container
+                      v-if="pieChartDataList && pieTotal !== 0"
+                      :useEchartsOptions="getPieEchartsOption"
+                    ></iot-echarts-container> -->
+            <div style="width:100%; height: 290px;" v-loading="loadings">
+              <subitem-target-chart
+                v-if="subitemTargetChart && subitemTargetChart.length != 0"
+                :subitemTargetChart="subitemTargetChart"
+              ></subitem-target-chart>
+              <no-data v-show="subitemTargetChart.length == 0 && loadings == false" :title="envTip"></no-data>
+            </div>
+          </el-col>
+          <!-- 分项指标评测--柱状图 end -->
+
+          <!-- 下级节点评测  --表格 start -->
+          <el-col :span="12">
+            <module-subhead :title="'下级节点评测'"></module-subhead>
+            <div style="width:100%; height: 290px;" v-loading="loadings">
+              <el-table
+                :height="290"
+                :data="envNodeData"
+                style="width: 100%;"
+                v-if="envNodeData && envNodeData.length > 0"
+                @sort-change="sortChange"
+                :default-sort="{prop: 'treeScore', order: 'descending'}"
+              >
+                <el-table-column label="序号" type="index" align="center" show-overflow-tooltip :min-width="90">
+                </el-table-column>
+                <el-table-column prop="treeName" label="节点名称" align="center" show-overflow-tooltip :min-width="150">
+                </el-table-column>
+                <el-table-column
+                  prop="treeScore"
+                  label="评分"
+                  align="center"
+                  sortable
+                  show-overflow-tooltip
+                  :min-width="90"
+                >
+                  <template #default="scope">{{ scope.row.treeScore == null ? '--' : scope.row.treeScore }}</template>
+                </el-table-column>
+              </el-table>
+              <no-data v-show="envNodeData.length == 0 && loadings == false" :title="envTip"></no-data>
+            </div>
+          </el-col>
+          <!-- 下级节点评测 --表格 end -->
+        </el-row>
+      </div>
+    </template>
+  </page-common>
+</div>

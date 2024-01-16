@@ -1,0 +1,554 @@
+/* 重置vue项目组件库样式文件 */
+@import url('../element-plus-reset/index.css');
+
+// 重置tree
+.el-tree {
+  &-node {
+    & > .el-tree-node__content {
+      .el-checkbox.is-checked + .el-tree-node__label {
+        background-color: var(--color-active) !important;
+      }
+    }
+
+    &.is-current > .el-tree-node__content {
+      background-color: var(--color-default) !important;
+    }
+
+    &.is-current.is-checked > .el-tree-node__content {
+      background-color: var(--color-default) !important;
+
+      .el-tree-node__label:not([disabled='true']) {
+        background-color: var(--color-active);
+      }
+    }
+
+    &.is-focusable {
+      background-color: var(--color-default);
+
+      &__content {
+        background-color: var(--color-default);
+      }
+    }
+
+    &__content {
+      height: 34px !important;
+      line-height: 34px !important;
+      font-size: 14px;
+      background-color: var(--color-default);
+    }
+
+    &:focus > .el-tree-node__content {
+      background-color: var(--color-default) !important;
+    }
+
+    &__content:focus {
+      background-color: var(--color-default) !important;
+    }
+
+    &__content:active {
+      background-color: var(--color-default) !important;
+    }
+
+    &__content:hover {
+      background-color: var(--color-default) !important;
+    }
+
+    &__label {
+      line-height: 34px;
+      padding: 7px 8px;
+      line-height: 22px;
+      font-size: 14px;
+      border-radius: 4px;
+      color: var(--color-text-primary);
+    }
+
+    &__label:not([disabled='true']):hover {
+      background-color: var(--color-hover);
+    }
+
+    .custom-tree-node {
+      height: 34px;
+      line-height: 34px;
+    }
+
+    .custom-tree-node[disabled='false']:hover {
+      background-color: var(--color-hover);
+    }
+
+    .custom-tree-node.custom-tree-node-active {
+      background-color: var(--color-hover);
+    }
+  }
+
+  .el-tree__empty-block {
+    position: relative;
+
+    .el-tree__empty-text {
+      top: 100%;
+      color: var(--color-text-disable);
+      &::before {
+        content: '';
+        width: 64px;
+        height: 41px;
+        background-image: url('../../img/common/common-data-none.svg');
+        position: absolute;
+        top: -41px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-repeat: no-repeat;
+      }
+    }
+  }
+}
+
+// i
+i {
+  cursor: pointer;
+}
+
+// form
+.el-form {
+  white-space: normal !important;
+
+  &--inline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &-item {
+    margin-right: 16px !important;
+    margin-bottom: 16px !important;
+    display: flex;
+    align-items: center;
+
+    &__label {
+      font-size: 14px;
+      line-height: 23px;
+      padding-right: 8px;
+    }
+
+    &__content {
+      button {
+        line-height: 36px;
+      }
+    }
+
+    &__error {
+      font-size: 14px;
+      padding-top: 0;
+    }
+  }
+}
+
+// 表格头label
+table {
+  border-spacing: 0;
+
+  thead {
+    tr th {
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.el-table {
+  * {
+    font-size: 14px;
+  }
+
+  tbody {
+    tr.el-table__row:hover td,
+    tr.el-table__row.hover-row > td {
+      background-color: var(--color-hover) !important;
+    }
+
+    tr {
+      text-align: center !important;
+      height: 24px;
+      line-height: 24px;
+      box-sizing: border-box !important;
+      border-bottom: none !important;
+
+      .cell {
+        text-align: center;
+        white-space: nowrap !important;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      td {
+        border: none;
+      }
+
+      &:nth-child(even) td {
+        background-color: #fafafa;
+      }
+    }
+  }
+
+  .table-column-item-label {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  th.el-table__cell {
+    background-color: var(--color-table-header);
+    height: 52px !important;
+    line-height: 52px !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  thead th {
+    background-color: var(--color-table-header) !important;
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: 600;
+    border-bottom: none !important;
+    text-align: center !important;
+
+    .cell {
+      align-items: center !important;
+    }
+  }
+
+  td.el-table__cell,
+  td {
+    height: 48px;
+    line-height: 48px;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    border-bottom: none !important;
+
+    .cell {
+      white-space: nowrap !important;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  }
+
+  .el-table__empty-block {
+    position: relative;
+    height: 166px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .el-table__empty-block::before {
+    content: '';
+    width: 100%;
+    height: 40px;
+    background-image: url('../../img/common/common-data-none.svg');
+    background-size: 100% 100%;
+    position: absolute;
+    top: 47px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .el-table__empty-text {
+    position: relative;
+    top: 26px;
+    line-height: 23px;
+    color: var(--color-text-disable);
+  }
+}
+
+.el-table::before {
+  background-color: var(--color-default);
+}
+
+// 重置确认框样式
+// popper
+.el-popper {
+  white-space: normal;
+
+  .el-select-dropdown__wrap {
+    .el-select-dropdown__list {
+      margin: 0 !important;
+      padding: 0 !important;
+
+      .el-select-dropdown__item {
+        height: 36px !important;
+        line-height: 36px !important;
+        font-size: 14px !important;
+        padding-left: 16px;
+      }
+
+      .el-select-dropdown__item.selected {
+        background-color: #00000005 !important;
+      }
+
+      .el-select-dropdown__item:hover {
+        height: 36px !important;
+        line-height: 36px !important;
+        background-color: var(--color-hover) !important;
+      }
+    }
+  }
+
+  .el-select-dropdown__empty {
+    position: relative;
+    height: 97px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    bottom: 10px;
+  }
+
+  .el-select-dropdown__empty::before {
+    content: '';
+    width: 50px;
+    height: 35px;
+    background-image: url('../../img/common/common-data-none.svg');
+    background-size: cover;
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  // 下拉框
+  &.el-select__popper {
+    margin-top: -10px !important;
+
+    .el-popper__arrow {
+      display: none;
+    }
+  }
+}
+
+.el-popper.is-dark {
+  min-width: 30px;
+  max-width: 330px;
+  min-height: 32px;
+  line-height: 21px;
+  padding: 6px 8px;
+  color: var(--color-default);
+  text-align: left;
+  text-decoration: none;
+  word-wrap: break-word;
+  border-radius: 4px;
+  opacity: 0.85;
+  box-shadow: 0 2px 8px var(--color-text-border);
+  word-break: break-all;
+
+  .el-select-dropdown {
+    .el-select-dropdown__item {
+      font-size: 14px;
+    }
+  }
+}
+
+// popover
+.el-popover.el-popper {
+  padding: 20px;
+
+  .el-popconfirm {
+    &__action {
+      margin-top: 17px;
+    }
+  }
+}
+
+.el-cascader {
+  &-menu__list {
+    padding: 0 !important;
+  }
+
+  &__dropdown {
+    .el-cascader-menu__wrap.el-scrollbar__wrap {
+      height: auto !important;
+    }
+
+    .el-cascader-node {
+      height: 36px !important;
+      min-height: 36px !important;
+      padding: 7px 10px !important;
+      font-weight: 400 !important;
+      font-size: 14px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+
+      &__label {
+        height: 36px !important;
+        line-height: 36px !important;
+        min-height: 36px !important;
+      }
+    }
+
+    .el-cascader-node:hover,
+    .el-cascader-node.is-active:hover {
+      background-color: var(--color-hover) !important;
+    }
+
+    .el-cascader-node.is-active {
+      background-color: #00000005 !important;
+
+      i {
+        display: none !important;
+      }
+    }
+  }
+}
+
+// input
+.el-input:not(.el-input--suffix) {
+  font-size: 14px;
+
+  .el-input__inner {
+    height: 36px !important;
+  }
+}
+
+.el-input:not(.is-disabled),
+.el-cascader:not(.is-disabled) {
+  &:hover {
+    .el-input__inner {
+      border-color: var(--color-primary);
+    }
+  }
+
+  .el-input__inner {
+    color: var(--color-text-primary) !important;
+    background-color: var(--color-default) !important;
+  }
+
+  [readonly] {
+    cursor: default !important;
+    color: var(--color-text-primary) !important;
+    background-color: var(--color-default) !important;
+  }
+
+  .el-input__inner::placeholder {
+    color: var(--color-text-disable) !important;
+  }
+}
+
+.el-input__inner,
+.el-input__suffix {
+  height: 36px;
+  line-height: 36px;
+
+  i {
+    font-size: 16px;
+  }
+
+  .el-select__caret {
+    line-height: 36px;
+    font-size: 16px;
+  }
+}
+
+.el-textarea {
+  font-size: 14px;
+}
+
+.el-select-dropdown__item.selected {
+  font-weight: 400;
+  background-color: transparent;
+}
+
+//去除多选日期确认按钮
+.el-date-editor:not(.is-disabled) {
+  position: relative;
+  cursor: pointer;
+
+  .el-input__inner {
+    height: 36px;
+    line-height: 36px;
+    padding-left: 12px;
+  }
+
+  input {
+    z-index: 1;
+    background-color: var(--color-default);
+  }
+
+  // 去除输入框聚焦
+  &.el-date-editor--monthrange,
+  &.el-date-editor--year,
+  &.el-date-editor--daterange,
+  &.is-active {
+    input:focus {
+      box-shadow: none;
+    }
+  }
+
+  // 前后缀
+  & > .el-input__prefix,
+  & > .el-input__suffix,
+  & > .iconfont.icon-Close-Circle-Fill.el-input__icon.el-range__close-icon,
+  & > .el-input__icon.el-range__icon.iconfont.icon-Calendar {
+    font-size: 16px;
+    position: absolute;
+    right: 12px;
+    left: auto;
+    width: 16px;
+    height: 34px;
+    line-height: 34px;
+    transition: none;
+
+    .el-input__suffix-inner > .el-input__icon.iconfont.icon-Close-Circle-Fill {
+      background-color: #fff;
+      transition: none;
+      color: rgba(0, 0, 0, 0.25);
+
+      &:hover {
+        color: rgba(0, 0, 0, 0.45);
+        transition: all 233ms;
+      }
+    }
+  }
+
+  & > .iconfont.icon-Close-Circle-Fill.el-input__icon.el-range__close-icon {
+    background-color: #fff;
+    transition: none;
+    color: rgba(0, 0, 0, 0.25);
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.45);
+      transition: all 233ms;
+    }
+  }
+
+  // 前缀
+  & > .el-input__icon.el-range__icon.el-icon-time,
+  & > .el-input__icon.el-range__icon.el-icon-date,
+  & > .el-input__icon.el-range__icon.el-icon-time,
+  & > .el-icon.el-input__icon.el-range__icon {
+    line-height: 32px;
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: auto;
+    transform: translateY(-50%);
+    z-index: 9;
+    transition: none;
+  }
+
+  .el-input__icon.el-range__close-icon {
+    position: absolute;
+  }
+
+  // 后缀
+  & > .el-icon-circle-close.el-input__icon.el-range__close-icon,
+  & > .el-icon.el-input__icon.el-range__close-icon {
+    line-height: 32px;
+    position: absolute;
+    right: 8px;
+    top: 1px;
+    background-color: #fff;
+    z-index: 10;
+  }
+
+  i {
+    cursor: pointer;
+  }
+}

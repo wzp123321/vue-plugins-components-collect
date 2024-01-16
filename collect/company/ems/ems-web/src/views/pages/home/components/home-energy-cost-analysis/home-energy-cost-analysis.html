@@ -1,0 +1,45 @@
+<h-component-container :headTitle="title">
+  <template v-slot:header>
+    <button text @click="linkToDetailPage">详情</button>
+  </template>
+  <template v-slot:box
+    ><div class="home-energy-cost-analysis" v-loading="isLoading">
+      <div class="eca-configure" v-if="!isNoConfigure && !isLoading">
+        <div class="eca-header ">
+          <div class="eca-total-info">
+            <div class="eca-total-text">
+              <span class="eca-total-title">总成本</span>
+              <span class="eca-total-unit" v-if="unit">/{{ unit }}</span>
+            </div>
+            <div class="eca-total-num">{{ thousandSeparation(totalCost)}}</div>
+          </div>
+          <switch-button
+            v-model="switchSelect"
+            :switchItems="switchItems"
+            @switch-button-change="switchChange"
+          ></switch-button>
+        </div>
+        <!-- :title="typeName" -->
+        <div class="ecs-chart" v-if="!isNoData && !isLoading && !isNoConfigureRate">
+          <EcaPieChart :dataList="pieList" :unit="unit"></EcaPieChart>
+        </div>
+        <div class="eca-no-data" v-if="isNoData && !isLoading && !isNoConfigureRate">
+          <no-data :title="isNoDataMsg" v-if="!isLoading && isNoData"></no-data>
+        </div>
+        <div class="eca-no-data" v-if="isNoConfigureRate && !isLoading && !isNoData">
+          <!-- <no-data
+                  :imgUrl="noConfigImg"
+                  :title="isNoConfigureMsg" 
+              ></no-data> -->
+          <img :src="noConfigImg" alt="" :style="{ width: `300px`, height: `200px` }" />
+          <div class="no-data-text mt8" :style="{ fontSize: `14px` }">
+            <span>{{isNoConfigureMsg}}，</span>
+            <span style="color: #1f8ffb; cursor: pointer" @click="goConfigure">请点击前往配置</span>
+          </div>
+        </div>
+      </div>
+      <div class="eca-no-configure" v-if="isNoConfigure && !isLoading">
+        <no-data :imgUrl="noConfigImg" :title="isNoConfigureMsg"></no-data>
+      </div></div
+  ></template>
+</h-component-container>

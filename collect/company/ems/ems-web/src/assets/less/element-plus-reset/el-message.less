@@ -1,0 +1,87 @@
+// message
+.el-message {
+  z-index: 9999 !important;
+  --el-message-min-width: 0;
+  padding: 10px 19px;
+  background-color: var(--color-default);
+  box-shadow: 0px 10px 32px 0px rgba(38, 38, 38, 0.18);
+  border: none;
+
+  i.el-message__icon {
+    margin-right: 12px;
+    font-size: 18px;
+
+    // 成功
+    &.el-icon-success::before {
+      font-family: 'iconfont';
+      content: '\e6c7';
+    }
+
+    // 失败
+    &.el-icon-error::before {
+      font-family: 'iconfont';
+      content: '\e6c6';
+    }
+
+    // 警告
+    &.el-icon-warning::before {
+      font-family: 'iconfont';
+      content: '\e6c8';
+    }
+
+    // 通知
+    &.el-icon-info::before {
+      font-family: 'iconfont';
+      content: '\e6c9';
+      color: var(--color-primary);
+    }
+  }
+
+  p.el-message__content {
+    font-size: 14px;
+    color: var(--color-text-primary);
+  }
+}
+
+// 自定义消息
+.download-message.el-message {
+  box-shadow: 0px 12px 42px 0px rgba(38, 38, 38, 0.24);
+
+  p {
+    color: rgba(0, 0, 0, 0.65) !important;
+  }
+
+  i.el-message__icon {
+    margin-right: 8px;
+
+    svg {
+      display: none !important;
+    }
+
+    &::before {
+      font-family: 'ems-iconfont' !important;
+      content: '\e73c' !important;
+      color: #1890ff;
+      font-size: 14px;
+    }
+
+    animation-name: icon_rotate;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+    animation-fill-mode: none;
+    animation-play-state: running;
+  }
+}
+
+@keyframes icon_rotate {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,73 @@
+<div
+  @click="pageToAnalysis"
+  :class="[
+    'th-energy-survey',
+    energySurveyService.dataSource?.length <= 2 && !energySurveyService.loading && !energySurveyService.is_error ? 'has-background' : '',
+  ]"
+>
+  <h5>能源概览</h5>
+  <div class="th-energy-survey--container" v-if="!energySurveyService.is_error">
+    <!-- 只有一条数据 -->
+    <div class="data-list data-list-onlyone" v-if="energySurveyService.dataSource?.length === 1">
+      <th-es-survey-item :surveyValue="energySurveyService.dataSource[0]"></th-es-survey-item>
+    </div>
+    <!-- 两条数据 -->
+    <div class="data-list data-list-onlytwo" v-if="energySurveyService.dataSource?.length === 2">
+      <th-es-survey-item :surveyValue="energySurveyService.dataSource[0]"></th-es-survey-item>
+      <th-es-survey-item :surveyValue="energySurveyService.dataSource[1]"></th-es-survey-item>
+    </div>
+    <!-- 三条数据 -->
+    <div
+      :class="['data-list', energySurveyService.dataSource?.length %2 !== 0 ? 'uneven' : 'even']"
+      v-if="energySurveyService.dataSource?.length >= 3"
+    >
+      <!-- 如果是偶数列 -->
+      <template v-if="energySurveyService.dataSource?.length%2 === 0">
+        <div class="even-column">
+          <th-es-survey-item
+            v-for="(item) in energySurveyService.dataSource?.length/2"
+            :surveyValue="energySurveyService.dataSource[(item-1)*2]"
+            :data="item"
+          ></th-es-survey-item>
+        </div>
+        <div class="even-column">
+          <th-es-survey-item
+            v-for="(item) in energySurveyService.dataSource?.length/2"
+            :data="item"
+            :surveyValue="energySurveyService.dataSource[item*2-1]"
+          ></th-es-survey-item>
+        </div>
+      </template>
+
+      <!-- 奇数 -->
+      <template v-if="energySurveyService.dataSource?.length%2 !== 0">
+        <div class="column-container">
+          <div class="first-column">
+            <th-es-survey-item
+              v-for="(item) in (energySurveyService.dataSource?.length-1)/2"
+              :surveyValue="energySurveyService.dataSource[2*(item-1)]"
+            ></th-es-survey-item>
+          </div>
+          <div class="second-column">
+            <th-es-survey-item
+              v-for="(item) in (energySurveyService.dataSource?.length -1)/2"
+              :surveyValue="energySurveyService.dataSource[2*item-1]"
+            ></th-es-survey-item>
+          </div>
+        </div>
+        <div class="last-line">
+          <th-es-survey-item
+            :surveyValue="energySurveyService.dataSource[energySurveyService.dataSource?.length-1]"
+          ></th-es-survey-item>
+        </div>
+      </template>
+    </div>
+  </div>
+  <div
+    class="th-energy-survey--nodata flex-column-center-center"
+    v-if="energySurveyService.is_error && !energySurveyService.loading"
+  >
+    <img src="../../../assets/img/common/common-table-nodata.svg" alt="" />
+    <span>暂无数据</span>
+  </div>
+</div>

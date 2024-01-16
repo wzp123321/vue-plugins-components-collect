@@ -1,0 +1,11 @@
+<el-aside class="page-aside flex-column-justify-start" style="width: 208px">
+  <a-menu mode="inline" theme="dark" v-model:selectedKeys="selectedMenu" v-model:openKeys="openKeys">
+    <AsideMenuItem
+      :dataSource="menuList"
+      :selectedMenu="selectedMenu"
+      @clearOpenKeys="clearOpenKeys"
+      @addOpenKeys="addOpenKeys"
+      :openKeys="openKeys"
+    ></AsideMenuItem>
+  </a-menu>
+</el-aside>

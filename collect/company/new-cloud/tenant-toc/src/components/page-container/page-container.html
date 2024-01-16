@@ -1,0 +1,15 @@
+<div :class="['tenant-pagecontainer',hasTitle ? 'tenant-pagecontainer_hastitle' : '' ]">
+  <!-- 标题 -->
+  <div class="tenant-pagecontainer__title" v-if="hasTitle">{{ pageTitle }}</div>
+  <!-- 内容 -->
+  <div class="tenant-pagecontainer__detail">
+    <!-- 搜索 -->
+    <div class="tenant-pagecontainer__detail-search" v-if="hasSearch">
+      <slot name="pageSearch"></slot>
+    </div>
+    <!-- 内容 -->
+    <div class="tenant-pagecontainer__detail-content">
+      <slot name="pageContent"></slot>
+    </div>
+  </div>
+</div>

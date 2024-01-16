@@ -1,0 +1,59 @@
+<div id="cd-t-tool-popover" v-show="cdToolPopover.visible" @click.stop="onHide" @contextmenu="onContextMenu">
+  <div
+    id="popover-container"
+    :class="['popover-container', cdToolPopover.is_editing ? 'whole-save' : '']"
+    :style="{top: cdToolPopover.pagePosition.top, left: cdToolPopover.pagePosition.left}"
+  >
+    <template v-if="!cdToolPopover.is_editing">
+      <div class="copy-btn" @click.stop="copyRow">
+        <img src="../../../../../assets/images/cost-detail/cd-copy.svg" alt="" class="mr16" />
+        <span>复制</span>
+      </div>
+      <div :disabled="cdToolPopover.delete_disabled" class="delete-btn" @click.stop="deleteRow">
+        <img
+          v-show="!cdToolPopover.delete_disabled"
+          src="../../../../../assets/images/cost-detail/cd-delete.svg"
+          alt=""
+          class="mr16"
+        />
+        <img
+          v-show="cdToolPopover.delete_disabled"
+          src="../../../../../assets/images/cost-detail/cd-delete-disabled.svg"
+          alt=""
+          class="mr16"
+        />
+        <span>删除</span>
+      </div>
+      <div class="insert-top" @click="handleMenuClick($event, cdToolPopover.insertTopLine, INSERT_TYPE.上方)">
+        <img src="../../../../../assets/images/cost-detail/cd-backup.svg" alt="" class="mr16" />
+        <span class="mr24">在上方插入行</span>
+        <el-input-number
+          :max="100"
+          :min="1"
+          v-model="cdToolPopover.insertTopLine"
+          controls-position="right"
+          @focus="e => onFocus(e, INSERT_TYPE.上方)"
+          @keydown.enter="onEnter"
+        />
+      </div>
+      <div class="insert-bottom" @click="handleMenuClick($event, cdToolPopover.insertBottomLine,INSERT_TYPE.下方)">
+        <img src="../../../../../assets/images/cost-detail/cd-backup.svg" alt="" class="mr16" />
+        <span class="mr24">在下方插入行</span>
+        <el-input-number
+          v-model="cdToolPopover.insertBottomLine"
+          :max="100"
+          :min="1"
+          controls-position="right"
+          @focus="e => onFocus(e, INSERT_TYPE.下方)"
+          @keydown.enter="onEnter"
+        />
+      </div>
+    </template>
+    <template v-else>
+      <div class="save-btn" @click.stop="saveWholeRow">
+        <img src="../../../../../assets/images/cost-detail/cd-save.svg" alt="" class="mr8" />
+        <span>整行保存</span>
+      </div>
+    </template>
+  </div>
+</div>

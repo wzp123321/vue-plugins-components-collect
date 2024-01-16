@@ -1,0 +1,145 @@
+<div id="ch-project-info">
+  <div class="ch-pi-header">
+    <h3 class="ch-pi-title">项目总数</h3>
+    <div class="ch-pi-total">{{ oProject.total.count ?? '--' }}</div>
+  </div>
+
+  <div class="ch-pi-body">
+    <div class="ch-pi-card" :type="oProject.mapFocusType(oProject.beforeEnter.state)">
+      <span class="ch-pi-card-icon icon-beforeEnter"></span>
+      <span class="ch-pi-card-name">{{ oProject.beforeEnter.name }}</span>
+      <span class="ch-pi-card-value">{{ oProject.beforeEnter.count ?? '--' }}</span>
+
+      <img class="ch-pi-card-arrow" src="@/assets/img/cloud-home/ch-project-info/ch-pi-arrow-yellow.svg" alt="" />
+      <svg class="ch-pi-card-bg" viewBox="0 0 139 115">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+          <g
+            class="ch-pi-card-bg-graph yellow"
+            stroke-width="2"
+            @click="oProject.selectProject(oProject.beforeEnter.state)"
+          >
+            <path
+              d="
+                M94.92,1.2 
+                C99.03,1.2 102.91,2.52 106.08,4.82 
+                C109.25,7.12 111.71,10.4 112.98,14.31 
+                L112.98,14.31 L137.11,88.31 
+                C138.74,93.3 138.19,98.47 135.99,102.81 
+                C133.79,107.14 129.93,110.64 124.94,112.26 
+                C123.04,112.88 121.05,113.2 119.05,113.2 
+                L119.05,113.2 L20.39,113.2 
+                C15.14,113.2 10.39,111.07 6.96,107.64 
+                C3.52,104.2 1.39,99.45 1.39,94.2 
+                L1.39,94.2 L1.39,20.2 
+                C1.39,14.95 3.52,10.2 6.96,6.76 
+                C10.39,3.33 15.14,1.2 20.39,1.2 
+                L20.39,1.2 Z
+              "
+            ></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="ch-pi-card" :type="oProject.mapFocusType(oProject.onBuilding.state)">
+      <span class="ch-pi-card-icon icon-onBuilding"></span>
+      <span class="ch-pi-card-name">{{ oProject.onBuilding.name }}</span>
+      <span class="ch-pi-card-value">{{ oProject.onBuilding.count ?? '--'}}</span>
+
+      <img class="ch-pi-card-arrow" src="@/assets/img/cloud-home/ch-project-info/ch-pi-arrow-blue.svg" alt="" />
+      <svg class="ch-pi-card-bg" viewBox="0 0 139 115">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+          <g
+            class="ch-pi-card-bg-graph blue"
+            stroke-width="2"
+            @click="oProject.selectProject(oProject.onBuilding.state)"
+          >
+            <path
+              d="
+                M94.92,1.2 
+                C99.03,1.2 102.91,2.52 106.08,4.82 
+                C109.25,7.12 111.71,10.4 112.98,14.31 
+                L112.98,14.31 L137.11,88.31 
+                C138.74,93.3 138.19,98.47 135.99,102.81 
+                C133.79,107.14 129.93,110.64 124.94,112.26 
+                C123.04,112.88 121.05,113.2 119.05,113.2 
+                L119.05,113.2 L20.39,113.2 
+                C15.14,113.2 10.39,111.07 6.96,107.64 
+                C3.52,104.2 1.39,99.45 1.39,94.2 
+                L1.39,94.2 L1.39,20.2 
+                C1.39,14.95 3.52,10.2 6.96,6.76 
+                C10.39,3.33 15.14,1.2 20.39,1.2 
+                L20.39,1.2 Z
+              "
+            ></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="ch-pi-card" :type="oProject.mapFocusType(oProject.onOperation.state)">
+      <span class="ch-pi-card-icon icon-onOperation"></span>
+      <span class="ch-pi-card-name">{{ oProject.onOperation.name }}</span>
+      <span class="ch-pi-card-value">{{ oProject.onOperation.count ?? '--'}}</span>
+      <svg class="ch-pi-card-bg" viewBox="0 0 139 115">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+          <g
+            class="ch-pi-card-bg-graph green"
+            stroke-width="2"
+            @click="oProject.selectProject(oProject.onOperation.state)"
+          >
+            <path
+              d="
+                M94.92,1.2 
+                C99.03,1.2 102.91,2.52 106.08,4.82 
+                C109.25,7.12 111.71,10.4 112.98,14.31 
+                L112.98,14.31 L137.11,88.31 
+                C138.74,93.3 138.19,98.47 135.99,102.81 
+                C133.79,107.14 129.93,110.64 124.94,112.26 
+                C123.04,112.88 121.05,113.2 119.05,113.2 
+                L119.05,113.2 L20.39,113.2 
+                C15.14,113.2 10.39,111.07 6.96,107.64 
+                C3.52,104.2 1.39,99.45 1.39,94.2 
+                L1.39,94.2 L1.39,20.2 
+                C1.39,14.95 3.52,10.2 6.96,6.76 
+                C10.39,3.33 15.14,1.2 20.39,1.2 
+                L20.39,1.2 Z
+              "
+            ></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<svg>
+  <defs>
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-yellow">
+      <stop stop-color="#FFCE20" stop-opacity="0.7" offset="0%"></stop>
+      <stop stop-color="#FFF420" stop-opacity="0.7" offset="100%"></stop>
+    </linearGradient>
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-yellow-active">
+      <stop stop-color="#FFCE20" stop-opacity="0.5" offset="0%"></stop>
+      <stop stop-color="#FFF420" stop-opacity="0.5" offset="100%"></stop>
+    </linearGradient>
+
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-blue">
+      <stop stop-color="#0043FF" stop-opacity="0.7" offset="0%"></stop>
+      <stop stop-color="#33FAFF" stop-opacity="0.8" offset="100%"></stop>
+    </linearGradient>
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-blue-active">
+      <stop stop-color="#0043FF" stop-opacity="0.5" offset="0%"></stop>
+      <stop stop-color="#33FAFF" stop-opacity="0.5" offset="100%"></stop>
+    </linearGradient>
+
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-green">
+      <stop stop-color="#00B261" stop-opacity="0.6" offset="0%"></stop>
+      <stop stop-color="#00B261" stop-opacity="0.8" offset="100%"></stop>
+    </linearGradient>
+    <linearGradient x1="0" x2="100%" id="ch-pi-svg-color-green-active">
+      <stop stop-color="#00B261" stop-opacity="0.4" offset="0%"></stop>
+      <stop stop-color="#00B261" stop-opacity="0.5" offset="100%"></stop>
+    </linearGradient>
+  </defs>
+</svg>

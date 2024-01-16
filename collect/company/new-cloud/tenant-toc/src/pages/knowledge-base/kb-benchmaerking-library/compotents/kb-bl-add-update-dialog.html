@@ -1,0 +1,87 @@
+<div v-drag class="kb-bl-add-update-dialog">
+  <el-dialog
+    :title="rows ? '编辑对标医院' : '新建对标医院'"
+    v-model="dialogFormVisible"
+    :close-on-click-modal="false"
+    width="560px"
+  >
+    <el-form :model="form" :rules="rules" ref="ruleForm" label-position="right">
+      <el-form-item label="对标医院名称" :label-width="formLabelWidth" prop="systemName">
+        <el-input
+          v-customInputFilter
+          :disabled="rows.id === 1"
+          placeholder="请输入医院名称"
+          v-model.trim="form.systemName"
+          maxlength="20"
+          autocomplete="off"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="医院所属地区" :label-width="formLabelWidth" prop="regionType">
+        <el-select v-model="form.regionType">
+          <el-option
+            v-for="item in Region"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            :title="item.name"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="医院等级" :label-width="formLabelWidth" prop="systemLevel">
+        <el-select v-model="form.systemLevel">
+          <el-option
+            v-for="item in HospitalLevel"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            :title="item.name"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="医院类型" :label-width="formLabelWidth" prop="systemType">
+        <el-select v-model="form.systemType">
+          <el-option
+            v-for="item in HospitalType"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            :title="item.name"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="供暖方式" :label-width="formLabelWidth" prop="heatingMode">
+        <el-select v-model="form.heatingMode">
+          <el-option
+            v-for="item in HeatingMode"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            :title="item.name"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="供冷方式" :label-width="formLabelWidth" prop="coolingMode">
+        <el-select v-model="form.coolingMode">
+          <el-option
+            v-for="item in CoolingMode"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            :title="item.name"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="Reset">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

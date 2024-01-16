@@ -1,0 +1,11 @@
+<div class="me-no-data">
+  <div class="no-data" [ngStyle]="customizedStyle">
+    <div class="no-data-img" [ngStyle]="imgStyle" [ngClass]="size"></div>
+    <div class="no-data-text" [ngClass]="size">
+      {{ noDataText }}
+      <span class="set-href" *ngIf="hrefMsg" (click)="onHrefItem($event)">
+        {{ hrefMsg }}
+      </span>
+    </div>
+  </div>
+</div>

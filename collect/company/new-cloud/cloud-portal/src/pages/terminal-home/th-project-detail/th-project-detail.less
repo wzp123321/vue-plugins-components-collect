@@ -1,0 +1,52 @@
+#th-project-detail {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.1rem;
+
+  cursor: pointer;
+
+  > .th-pd-info-container {
+    flex: auto;
+    overflow: hidden;
+
+    display: grid;
+    grid-template-columns: 2.2rem 1.3rem;
+    grid-template-rows: repeat(2, 0.52rem);
+    place-content: center;
+    place-items: stretch;
+    gap: 0.22rem 0.42rem;
+  }
+  .th-pd-info-item {
+    display: grid;
+    grid-template-columns: 0.2rem auto;
+    grid-template-rows: 0.2rem 0.22rem;
+    place-content: stretch;
+    place-items: stretch;
+    gap: 0.1rem;
+
+    &-icon {
+      color: rgba(88, 197, 202, 1);
+      font: 0.2rem/1 'iconfont';
+    }
+    &-name {
+      color: rgba(164, 230, 255, 1);
+      line-height: 0.2rem;
+      font-size: 0.14rem;
+    }
+    &-value {
+      grid-column-start: 2;
+      overflow: hidden;
+
+      color: white;
+
+      line-height: 0.22rem;
+      font-size: 0.16rem;
+      text-overflow: ellipsis;
+    }
+  }
+}

@@ -1,0 +1,51 @@
+.page-header {
+  height: 56px;
+  background: var(--nts-header-menu-bg-color) url(../../../assets/images/home/home-header-bg.png) no-repeat right;
+  background-size: contain;
+  color: var(--nts-white-color-font);
+  padding: 0 20px;
+  font-size: 14px;
+
+  &--username-right {
+    &::before {
+      content: url('../../../assets/images/common/common-user-avatar.svg');
+      width: 16px;
+      height: 16px;
+    }
+    font-size: 14px;
+    gap: 10px;
+    color: #fff;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 14px;
+  }
+
+  &--logo {
+    gap: 10px;
+    display: flex;
+    font-size: 16px !important;
+    img {
+      width: 68px;
+      height: 28px;
+    }
+    h1 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: 28px;
+      gap: 6px;
+      color: #fff;
+      font-size: 20px !important;
+      font-weight: 500;
+      &::before {
+        content: '';
+        width: 1px;
+        height: 16px;
+        background-color: white;
+      }
+    }
+  }
+}

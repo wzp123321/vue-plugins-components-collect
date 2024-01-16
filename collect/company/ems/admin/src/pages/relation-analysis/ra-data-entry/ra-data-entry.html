@@ -1,0 +1,119 @@
+<div class="data-entry" style="width: 100%">
+  <page-common title="数据导入" :showSearch="true" :isSubHead="true" :subTitle="'关联数据列表'">
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <el-form :inline="true" :model="dataEntryForm" @submit.native.prevent>
+        <el-form-item label="关联参数">
+          <input disabled v-model="paramName" />
+        </el-form-item>
+        <el-form-item label="时间颗粒">
+          <el-select v-model="queryParams.timeType" placeholder="请选择">
+            <el-option v-for="item in timeUnitList" :key="item.timeCode" :label="item.timeName" :value="item.timeCode">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="日期选择">
+          <el-date-picker
+            placeholder="请选择"
+            v-model="dataEntryForm.date"
+            type="daterange"
+            range-separator="~"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          >
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item>
+          <button primary @click="onSearch">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageSubHead>
+      <button primary @click="onAddDialogShow">新 增</button>
+      <button primary @click="onDelete">批量删除</button>
+    </template>
+    <template v-slot:pageContent>
+      <el-table
+        :data="dataSource"
+        v-loading="loading"
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        ref="multipleTable"
+      >
+        <el-table-column type="selection" width="55" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="index" label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="collectTime" label="日期" align="center" show-overflow-tooltip> </el-table-column>
+        <el-table-column
+          v-for="(item, index) in columns"
+          :key="'column'+index"
+          :prop="item.key"
+          :label="item.label"
+          align="center"
+          show-overflow-tooltip
+        >
+        </el-table-column>
+        <el-table-column prop="remark" label="数据描述" align="center" show-overflow-tooltip> </el-table-column>
+        <el-table-column prop="address" label="操作" width="220" align="center">
+          <template #default="scope">
+            <span class="operate-span mr16" @click="onEnergyCodeUpdate(scope.row)">修改</span>
+            <span class="delete-span" @click="onEnergyCodeDelete(scope.row.id)">删除</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <ems-pagination
+        v-show="!loading && total>0"
+        :current-page="queryParams.pageNum"
+        :page-sizes="pageSizes"
+        @size-change="onPageSizeChange"
+        @current-change="onCurrentChange"
+        :page-size="queryParams.pageSize"
+        :total="total"
+      >
+      </ems-pagination>
+    </template>
+  </page-common>
+  <!-- 弹框 -->
+  <!-- 单值 -->
+  <SingleData
+    v-if="paramType === PARAM_TYPES.SINGLE_DATA || paramType === PARAM_TYPES.ARITHMETIC_MEAN"
+    :isAddFlag="isAddFlag"
+    :dataDetail="dataDetail"
+    ref="addUpdateDialogRef"
+    :paramName="paramName"
+    :startTimeType="startTimeType"
+    :timeUnitList="timeUnitList"
+    :timeType="actualTimeType"
+    :paramId="queryParams.paramId"
+    @success="queryDataList"
+  >
+  </SingleData>
+  <!-- 值差 -->
+  <DifferenceValue
+    v-if="paramType === PARAM_TYPES.DATA_DIFFERENCE"
+    :dataDetail="dataDetail"
+    ref="differenceValueRef"
+    :isAddFlag="isAddFlag"
+    :paramName="paramName"
+    :timeUnitList="timeUnitList"
+    :timeType="actualTimeType"
+    :paramId="queryParams.paramId"
+    @success="queryDataList"
+  ></DifferenceValue>
+  <!-- 时差 -->
+  <DifferenceDate
+    v-if="paramType === PARAM_TYPES.DATE_DIFFERENCE"
+    :dataDetail="dataDetail"
+    ref="differenceDateRef"
+    :isAddFlag="isAddFlag"
+    :paramName="paramName"
+    :timeUnitList="timeUnitList"
+    :timeType="actualTimeType"
+    :paramId="queryParams.paramId"
+    @success="queryDataList"
+  ></DifferenceDate>
+</div>

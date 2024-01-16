@@ -1,0 +1,63 @@
+.ea-anomaly-tree {
+  :deep(.el-loading-mask) {
+    background-color: transparent !important;
+  }
+
+  :deep(.el-tree__empty-block) {
+    &::before {
+      top: 40%;
+    }
+    .el-tree__empty-text {
+      top: 50%;
+    }
+  }
+
+  .el-tree-node[aria-disabled='true'] {
+    > .el-tree-node__content > .custom-tree-node {
+      cursor: not-allowed;
+    }
+
+    > .el-tree-node__content > .custom-tree-node > .tree-label {
+      color: rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  .el-tree-node__content {
+    display: flex;
+
+    .custom-tree-node {
+      flex: 1;
+      overflow: hidden;
+
+      .tree-label {
+        text-align: left;
+        display: inline-block;
+        width: calc(100% - 60px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        padding-left: 9px;
+
+        :deep(em) {
+          font-style: normal !important;
+          color: var(--iot-color-active) !important;
+        }
+      }
+
+      .tree-count {
+        .text {
+          position: relative;
+          bottom: 1px;
+          padding-right: 6px;
+          color: var(--iot-anomaly-card-count-bg-color);
+        }
+
+        svg {
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
+  }
+}

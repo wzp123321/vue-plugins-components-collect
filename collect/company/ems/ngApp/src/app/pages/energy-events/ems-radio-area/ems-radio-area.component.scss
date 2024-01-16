@@ -1,0 +1,337 @@
+@import '../../../common/components/common-head/common-head.component.scss';
+.ems_radio-area {
+    width: 100%;
+    height: 100%;
+    background-color: #F2F3F6;
+    .head {
+        background-color: rgba(255, 255, 255, 1);
+    }
+    .ems_radio-area-content {
+        height: calc(100% - 44px);
+        width: 100%; 
+        .ems_radio-area-content-head {
+            padding: 10px 15px;
+            height: 56px;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 1);
+            .radio-area-group {
+                width: 100%;
+                height: 36px; 
+                border-radius: 5px;
+                background-color: rgba(243, 243, 243, 1);
+                padding: 0px 10px;
+                display: flex;
+                align-items: center;
+                .radio-area-search {
+                    background: url('../../../../assets/img/energy-events/search-gary.svg') no-repeat;
+                    width: 20px;
+                    height: 20px;
+                }
+            }
+            .label-input { 
+                border: 0px;
+                height: 36px;
+                line-height: 36px;
+                background-color: rgba(243, 243, 243, 1);
+                color: rgba(34, 34, 34, 0.8);
+                font-size: 16px; 
+                --placeholder-color: rgba(34, 34, 34, 0.2); 
+                --placeholder-opacity: 1;
+            }
+            .label-input::-webkit-input-placeholder { 
+                color: rgba(34, 34, 34, 0.2); 
+            }
+            .label-input::-moz-placeholder { 
+                color:rgba(34, 34, 34, 0.2) 
+            } /* firefox 19+ */
+            .label-input:-ms-input-placeholder { 
+                color:rgba(34, 34, 34, 0.2) 
+            } /* ie */
+            .label-input:-moz-placeholder { 
+                color:rgba(34, 34, 34, 0.2) 
+            }
+            ::ng-deep .sc-ion-input-md-h {
+                --padding-top: 7px;
+                --padding-end: 0;
+                --padding-bottom: 7px;
+                --padding-start: 10px;
+               
+            }
+        }
+        .ems_radio-area-crumbs {
+            min-height: 62px; 
+            padding: 20px 15px;
+            // display: flex;
+            justify-content: flex-start; 
+            background-color: rgba(255, 255, 255, 1);
+            line-height: 22px;
+            margin-bottom: 10px;
+            .crumbs-span {
+                height: 22px; 
+                line-height: 22px;
+                align-items: center;
+                // display: flex;
+                .area_parent-node {
+                //    background: url('../../../../assets/img/energy-events/crumbs.svg') no-repeat;
+                   width: 20px;
+                   height: 22px;
+                   line-height: 22px;
+                   img {
+                    width: 20px;
+                    height: 20px;
+                    margin-top: -5px;
+                    background-repeat: no-repeat;
+                   }
+                }
+                .area_node-name { 
+                    // height: 22px;
+                    line-height: 22px;
+                    color: rgba(34, 34, 34, 0.8);
+                    font-size: 16px;
+                    text-align: left; 
+                }
+                .area_node-children { 
+                    width: 3px;
+                    height: 6px;
+                    color:rgba(34, 34, 34, 0.2);
+                    margin: 0px 15px;
+                    img {
+                        width: 3px;
+                        height: 6px;
+                    }
+                }
+                .back-node-select {
+                    color: #1283FF;
+                }
+            }
+           
+        }
+        .ems_radio-area-list { 
+            width: calc(100% + 7px);
+            padding-bottom: 10px;
+            overflow-y: auto;
+            background-color: #F2F3F6;
+            .modal-content {
+                background-color: #F2F3F6;
+                .modal-content-list { 
+                    padding-right: 7px;
+                    padding-bottom: 10px;
+                    .list-have-childer {
+                        background-color:  rgba(255, 255, 255, 1);
+                        padding-left: 15px; 
+                        .list-have-childer-item { 
+                            display: flex;
+                            align-items: center;
+                            .item-check {
+                                padding: 20px 0px;
+                                height: 20px;
+                                width: 20px;
+                                margin-right: 10px; 
+                                display: flex;
+                                align-items: center;
+                               .item-check-img {
+                                    background: url('../../../../assets/img/energy-events/radio.svg') no-repeat;
+                                    height: 20px;
+                                    width: 20px;
+                               }
+                               .item-check-select { 
+                                    height: 20px;
+                                    width: 20px; 
+                                    background: url('../../../../assets/img/energy-events/radio-selected.svg') no-repeat;
+                               }
+                            }
+                           
+                            .item-content {
+                                padding: 20px 0px;
+                                box-shadow: inset 0px -0.5px 0px 0px rgba(34, 34, 34, 0.1);
+                                display: flex;
+                                align-items: center;
+                                width: calc(100% - 30px); 
+                                .item-text {
+                                    width:calc(100% - 60px);
+                                    line-height: 22px; 
+                                    opacity: 0.8;
+                                    color: rgba(34, 34, 34, 1);
+                                    font-size: 16px;
+                                    text-align: left; 
+                                    padding-right: 15px;
+                                }
+                                .item-children { 
+                                    height: 26px;
+                                    line-height: 26px;
+                                    color: rgba(18, 131, 255,  1 );
+                                    font-size: 14px;
+                                    text-align: right; 
+                                    border-left: 1px solid rgba(204, 204, 204, 1);
+                                    padding: 0px 15px;
+                                }
+                            }
+                            .item-no-content {
+                                padding: 20px 0px;
+                                box-shadow: inset 0px -0.5px 0px 0px rgba(34, 34, 34, 0.1);
+                                display: flex;
+                                align-items: center;
+                                width: calc(100% - 30px); 
+                                .item-text {
+                                    width: 100%;
+                                    line-height: 22px; 
+                                    opacity: 0.8;
+                                    color: rgba(34, 34, 34, 1);
+                                    font-size: 16px;
+                                    text-align: left; 
+                                    padding-right: 15px;
+                                }
+                            }
+                        }
+                    }
+                    .list-no-childer {
+                        background-color:  rgba(255, 255, 255, 1);
+                        padding-left: 15px;
+                        .list-have-childer-item { 
+                            display: flex;
+                            align-items: center;
+                            .item-check {
+                                padding: 20px 0px;
+                                height: 20px;
+                                width: 20px;
+                                margin-right: 10px; 
+                                display: flex;
+                                align-items: center;
+                               .item-check-img {
+                                    background: url('../../../../assets/img/energy-events/radio.svg') no-repeat;
+                                    height: 20px;
+                                    width: 20px;
+                               }
+                               .item-check-select { 
+                                    height: 20px;
+                                    width: 20px; 
+                                    background: url('../../../../assets/img/energy-events/radio-selected.svg') no-repeat;
+                               }
+                            } 
+                            .item-no-content {
+                                padding: 20px 0px;
+                                box-shadow: inset 0px -0.5px 0px 0px rgba(34, 34, 34, 0.1);
+                                display: flex;
+                                align-items: center;
+                                width: calc(100% - 30px); 
+                                .item-text {
+                                    width: 100%;
+                                    line-height: 22px; 
+                                    opacity: 0.8;
+                                    color: rgba(34, 34, 34, 1);
+                                    font-size: 16px;
+                                    text-align: left; 
+                                    padding-right: 15px;
+                                }
+                            }
+                        }
+                    }
+                } 
+            }
+           
+        }
+        .search-modal-content {
+            background-color: #F2F3F6;
+            height: calc(100% - 56px); 
+            padding-bottom: 10px;
+            overflow-y: auto; 
+            .search-list-childer {
+                background-color:  rgba(255, 255, 255, 1);
+                padding-left: 15px; 
+                .list-childer-item { 
+                    display: flex;
+                    align-items: center;
+                    box-shadow: inset 0px -0.5px 0px 0px rgba(34, 34, 34, 0.1);
+                    .item-check {
+                        padding: 20px 0px;
+                        height: 20px;
+                        width: 20px;
+                        margin-right: 10px; 
+                        display: flex;
+                        align-items: center;
+                       .item-check-img {
+                            background: url('../../../../assets/img/energy-events/radio.svg') no-repeat;
+                            height: 20px;
+                            width: 20px;
+                       }
+                       .item-check-select { 
+                            height: 20px;
+                            width: 20px; 
+                            background: url('../../../../assets/img/energy-events/radio-selected.svg') no-repeat;
+                       }
+                    } 
+                    .item-content {
+                        padding: 20px 0px; 
+                        width: calc(100% - 30px); 
+                        .item-text {
+                            width: 100%;
+                            line-height: 22px; 
+                            opacity: 0.8;
+                            color: rgba(34, 34, 34, 1);
+                            font-size: 16px;
+                            text-align: left; 
+                            padding-right: 15px; 
+                        }
+                        .item-parent-list { 
+                            width: 100%;
+                            margin-top: 5px;
+                            line-height: 20px;
+                            color: rgba(34, 34, 34, 0.5);
+                            font-size: 14px;
+                            text-align: left; 
+                            padding-right: 15px; 
+                        }
+                    }
+                }
+            }
+        }
+        .no-data {
+            background-color: #F2F3F6;  
+            width: 100%;
+            height: 100%;
+            text-align: center; 
+            .no-data-content { 
+                text-align: center; 
+                margin-top: 60px;
+                .none-task-description {
+                    height: 22px;
+                    line-height: 22px;
+                    margin-top: 15px;
+                    color: rgba(34, 34, 34, 0.2);
+                    font-size: 16px;
+                    text-align: center;
+                }
+            }
+           
+        }
+        .mt10 {
+            margin-top: 10px;
+        }
+    }
+}
+::ng-deep .custom-class.custom-loading { 
+    color: rgba(255, 255, 255, 1);
+    font-size: 16px;
+    text-align: center; 
+    --background: rgba(34, 34, 34, 1) ;
+    border-radius: 5px; 
+    --backdrop-opacity: var(--ion-backdrop-opacity, 0.8);
+
+    ::ng-deep  .loading-wrapper.sc-ion-loading-md {
+        border-radius: 5px;
+        padding-left: 36px;
+        padding-right: 36px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        -webkit-box-shadow: none;
+        box-shadow:  none;
+        background: rgba(34, 34, 34, 0.8) ;
+        ::ng-deep   .loading-content.sc-ion-loading-md {
+            color: rgba(255, 255, 255, 1);
+            font-size: 16px;
+        }
+    }
+}
+::ng-deep .my-area-class .loading-content.sc-ion-loading-md {
+    margin: 0px !important;
+}

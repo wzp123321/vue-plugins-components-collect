@@ -1,0 +1,60 @@
+.benchmark-value-maintenance {
+    height: 100%;
+
+    .bvm-pageContent-header {
+        padding: 16px 0;
+        text-align: right;
+
+        &-upload {
+            display: none;
+        }
+    }
+
+    .text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .bvm-pageContent-table-associatedNode,
+    .bvm-pageContent-table-community {
+        // display: flex;
+        // justify-content: space-between;
+        position: relative;
+
+        div {
+            display: inline-block;
+            width: calc(100% - 13px);
+            text-align: center;
+            
+        }
+
+        img {
+            position: absolute;
+            right: 0;
+            top: 4px;
+            cursor: pointer;
+            vertical-align: inherit;
+            margin-left: 20px;
+        }
+
+        span{
+            display: inline-block;
+        }
+    }
+
+    .sum {
+        td {
+            background: #e7e8e9 !important;
+        }
+    }
+
+    .table-nodata {
+        height: 166px;
+
+        p {
+            margin-top: 8px;
+            color: var(--color-text-disable);
+        }
+    }
+}

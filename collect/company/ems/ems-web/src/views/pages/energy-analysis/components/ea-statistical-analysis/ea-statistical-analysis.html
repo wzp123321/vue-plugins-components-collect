@@ -1,0 +1,113 @@
+<div class="ea-statistical-analysis">
+  <el-row :gutter="24">
+    <el-col :span="16">
+      <el-col :gutter="24" align="middle" style="width: 100%">
+        <el-row :span="12" class="ea-statistical-analysis-left">
+          <div class="ea-statistical-analysis-img tongbi">同比值</div>
+          <div class="ea-statistical-analysis-value-wrap">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="
+                  '去年同期 ' +
+                    resetValue(
+                      data.lastYearEnergyValue,
+                      data.unit ? data.unit : ''
+                    )
+                "
+              placement="bottom"
+            >
+              <div class="ea-statistical-analysis-icon">
+                <div v-if="data.lastYearRatio === 0" class="icon-flat"></div>
+                <img
+                  v-if="data.lastYearRatio < 0"
+                  src="../../../../../assets/img/common/common-compare-down.png"
+                  alt="down"
+                />
+                <img
+                  v-if="data.lastYearRatio > 0"
+                  src="../../../../../assets/img/common/common-compare-up.png"
+                  alt="up"
+                />
+              </div>
+            </el-tooltip>
+            <div class="ea-statistical-analysis-value text-overflow" :title="resetValue(data.lastYearRatio, '%')">
+              {{ resetValue(data.lastYearRatio, '%') }}
+            </div>
+          </div>
+        </el-row>
+        <el-row :span="12" class="ea-statistical-analysis-left">
+          <div class="ea-statistical-analysis-img huanbi">环比值</div>
+          <div class="ea-statistical-analysis-value-wrap">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="
+                  '上周期总能耗 ' +
+                    resetValue(
+                      data.lastMonthEnergyValue,
+                      data.unit ? data.unit : ''
+                    )
+                "
+              placement="bottom"
+            >
+              <div class="ea-statistical-analysis-icon">
+                <div v-if="data.lastMonthRatio === 0" class="icon-flat"></div>
+                <img
+                  v-if="data.lastMonthRatio < 0"
+                  src="../../../../../assets/img/common/common-compare-down.png"
+                  alt="down"
+                />
+                <img
+                  v-if="data.lastMonthRatio > 0"
+                  src="../../../../../assets/img/common/common-compare-up.png"
+                  alt="up"
+                />
+              </div>
+            </el-tooltip>
+            <div class="ea-statistical-analysis-value text-overflow" :title="resetValue(data.lastMonthRatio, '%')">
+              {{ resetValue(data.lastMonthRatio, '%') }}
+            </div>
+          </div>
+        </el-row>
+      </el-col>
+    </el-col>
+    <el-col :span="8" style="padding: 0">
+      <div class="ea-statistical-analysis-detail">
+        <div class="sa-detail-item">
+          <div class="sa-d-title">最大值</div>
+          <div
+            class="sa-d-value text-overflow"
+            :title="
+                resetValue(data.maxEnergyValue, data.unit ? data.unit : '')
+              "
+          >
+            {{ resetValue(data.maxEnergyValue, data.unit ? data.unit : '') }}
+          </div>
+        </div>
+        <div class="sa-detail-item">
+          <div class="sa-d-title">最小值</div>
+          <div
+            class="sa-d-value text-overflow"
+            :title="
+                resetValue(data.minEnergyValue, data.unit ? data.unit : '')
+              "
+          >
+            {{ resetValue(data.minEnergyValue, data.unit ? data.unit : '') }}
+          </div>
+        </div>
+        <div class="sa-detail-item">
+          <div class="sa-d-title">平均值</div>
+          <div
+            class="sa-d-value text-overflow"
+            :title="
+                resetValue(data.averageEnergyValue, data.unit ? data.unit : '')
+              "
+          >
+            {{ resetValue(data.averageEnergyValue, data.unit ? data.unit : '') }}
+          </div>
+        </div>
+      </div>
+    </el-col>
+  </el-row>
+</div>

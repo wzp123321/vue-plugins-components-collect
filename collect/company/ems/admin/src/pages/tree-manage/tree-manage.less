@@ -1,0 +1,46 @@
+#tree-manage {
+  height: 100%;
+  .tr-import-tip{
+    color: red;
+    margin-right: 12px;
+  }
+  .el-table::before {
+    height: 0;
+  }
+
+  :deep(.page-common__container-detail .el-table) {
+    padding-bottom: 16px;
+
+    .el-button--text {
+      font-size: 14px !important;
+    }
+
+    thead > tr > th:first-child > .cell {
+      text-align: left !important;
+    }
+
+    tbody > tr > td:first-child .cell {
+      text-align: left !important;
+    }
+  }
+
+  > tbody > tr:nth-child(even) {
+    background-color: white !important;
+  }
+
+  :deep(.el-table__fixed::before) {
+    background-color: #fff !important;
+  }
+
+  #table-container {
+    height: 100%;
+    overflow: auto;
+  }
+
+  :deep(.page-common__container) {
+    height: 0;
+    .page-common__container-detail {
+      height: 0;
+    }
+  }
+}

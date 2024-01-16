@@ -1,0 +1,35 @@
+<div class="ec-edit-dialog">
+  <el-form :model="Form" :rules="rules" ref="ruleForm" label-width="70px" label-position="right">
+    <el-form-item label="能源类型">
+      <el-input v-model="Form.energyCodeName" :disabled="disabledValue"></el-input>
+    </el-form-item>
+    <el-form-item label="分析对象" prop="treeName">
+      <el-input v-model="Form.treeName" :disabled="disabledValue"></el-input>
+    </el-form-item>
+    <el-form-item label="定额类型">
+      <el-input v-model="Form.quotaTypeName" :disabled="disabledValue"></el-input>
+    </el-form-item>
+    <el-form-item label="日 期" prop="quotaTimeCopy">
+      <el-input v-model="Form.quotaTimeCopy" :disabled="disabledValue"></el-input>
+    </el-form-item>
+    <el-form-item label="定额值" prop="quotaValue" class="ead-form-item">
+      <el-input
+        v-if="Form.quotaTypeName === '年'"
+        v-inputFilter:number="{ integral: 12, decimal: 2 }"
+        onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        v-model="Form.quotaValue"
+      ></el-input>
+      <el-input
+        v-else
+        v-inputFilter:number="{ integral: 10, decimal: 2 }"
+        onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        v-model="Form.quotaValue"
+      ></el-input>
+      <span class="ead-energy-unit">{{Form.unit}}</span>
+    </el-form-item>
+  </el-form>
+  <div class="dialog-footer mt32" style="text-align: right">
+    <button @click="onCancel">取 消</button>
+    <button primary @click="onSure">确 定</button>
+  </div>
+</div>

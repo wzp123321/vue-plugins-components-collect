@@ -1,0 +1,63 @@
+<div class="ma-esp-dm-table" v-loading="espTable.loading">
+  <div class="ma-esp-dm-table--btn">
+    <button
+      v-if="sarchBar.projectTypeList?.length"
+      primary
+      @click="espBasic.show(espTable.searchParams, sarchBar.projectName)"
+    >
+      基准量维护
+    </button>
+  </div>
+  <table v-if="!espTable.loading">
+    <thead>
+      <tr>
+        <th style="width: 70px">月份</th>
+        <th>基准量{{ sarchBar.unit ? `（${sarchBar.unit}）` : ''}}</th>
+        <th>合同账期</th>
+        <th>合同单价{{ sarchBar.unit ? `（元/${sarchBar.unit}）` : ''}}</th>
+        <th>实际用量{{ sarchBar.unit ? `（${sarchBar.unit}）` : ''}}</th>
+        <th>实际账期</th>
+        <th>实际单价{{ sarchBar.unit ? `（元/${sarchBar.unit}）` : ''}}</th>
+        <th>盈余（元）</th>
+        <th>节能量{{ sarchBar.unit ? `（${sarchBar.unit}）` : ''}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(item, index) in espTable.dataSource" :key="'project_'+index">
+        <td style="width: 70px">{{ item.month }}</td>
+        <td>{{ item.benchmarkValue ?? '--' }}</td>
+        <td>
+          <span v-if="!item.contractBillStartTime || !item.contractBillEndTime">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">
+                {{ item.contractBillStartTime }}~{{ item.contractBillEndTime }}
+              </div>
+            </template>
+            <span>{{ item.contractBillStartTime }}~{{ item.contractBillEndTime }}</span>
+          </el-tooltip>
+        </td>
+        <td>{{ item.contractPrice ?? '--' }}</td>
+        <td>{{ item.energyValue ?? '--' }}</td>
+        <td>
+          <span v-if="!item.actualBillStartTime || !item.actualBillEndTime">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">
+                {{ item.actualBillStartTime }}~{{ item.actualBillEndTime }}
+              </div>
+            </template>
+            <span>{{ item.actualBillStartTime }}~{{ item.actualBillEndTime }}</span>
+          </el-tooltip>
+        </td>
+        <td>{{ item.actualPrice ?? '--' }}</td>
+        <td>{{ item.surplus ?? '--' }}</td>
+        <td>{{ item.saveValue ?? '--' }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="table-nodata flex-column-center-center" v-if="espTable.is_error && !espTable.loading">
+    <img src="../../../../assets/images/common/common-data-none.svg" alt="" />
+    <p>暂无数据</p>
+  </div>
+</div>

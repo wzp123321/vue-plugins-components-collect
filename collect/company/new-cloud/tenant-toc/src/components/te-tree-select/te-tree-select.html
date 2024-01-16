@@ -1,0 +1,152 @@
+<!-- 树组件 -->
+<div :id="containerId" class="tree-select height36 lh36 br3" :disabled="disabled">
+  <te-popover
+    :disabled="disabled"
+    :popper-class="`tree-select__popover ${popoverClass}`"
+    :placement="placement"
+    :show-arrow="false"
+    :width="containerWidth"
+    :offset="popoverOffset"
+    v-model:visible="popoverVisible"
+    trigger="click"
+  >
+    <template #reference>
+      <div class="te-select" :disabled="disabled">
+        <div class="select-trigger">
+          <div class="te-input te-input--suffix tree-select--wrap">
+            <!-- 单选 start -->
+            <div
+              v-if="!multiple && treeNodeList && treeNodeList.length === 1"
+              class="te-select__single"
+              :title="
+              treeNodeList &&
+              treeNodeList.length > 0 &&
+              treeNodeList[0] &&
+              treeNodeList[0][defaultProps['label']]
+                  ? treeNodeList[0][defaultProps['label']]
+                  : ''
+              "
+            >
+              {{ treeNodeList && treeNodeList.length > 0 && treeNodeList[0] && treeNodeList[0][defaultProps['label']] ?
+              treeNodeList[0][defaultProps['label']] : '' }}
+            </div>
+            <!-- 单选 end -->
+            <!-- 多选 start -->
+            <div v-if="multiple && treeNodeList && treeNodeList.length > 0" class="te-select__tags scrollw4">
+              <span
+                class="te-tag te-tag--info te-tag--small te-tag--light"
+                v-for="(item, index) in treeNodeList"
+                :key="index"
+              >
+                <span
+                  class="te-select__tags-text"
+                  :title="
+                      item[defaultProps['label']]
+                        ? item[defaultProps['label']]
+                        : ''
+                    "
+                >
+                  {{ item[defaultProps['label']] ? item[defaultProps['label']] : '' }}
+                </span>
+                <i class="te-tag__close te-icon-close" @click="deleteSelectKey($event, index)"></i>
+              </span>
+            </div>
+            <!-- 多选 end -->
+            <div
+              v-if="
+                  !treeNodeList || (treeNodeList && treeNodeList.length === 0)
+                "
+              class="te-select-placeholder"
+            >
+              {{ placeholder }}
+            </div>
+            <span
+              :class="[
+                  'te-input__suffix',
+                  !disabled && allowClear && treeNodeList && treeNodeList.length > 0
+                    ? 'allow-clear'
+                    : '',
+                  popoverVisible ? 'popper-visible' : ''
+                ]"
+            >
+              <!-- 上下箭头 start -->
+              <span class="te-input__suffix-inner arrow-icon">
+                <IconDown v-show="!popoverVisible"></IconDown>
+                <IconUp v-show="popoverVisible"></IconUp>
+              </span>
+              <!-- 上下箭头 end -->
+              <!-- 清空按钮 start -->
+              <span class="te-input__suffix-inner close-icon" @click="emptySelectKeys($event)">
+                <i class="toc-iconfont icon-toc-qingkong"></i>
+              </span>
+              <!-- 清空按钮 end -->
+            </span>
+          </div>
+        </div>
+      </div>
+    </template>
+    <!-- 下拉面板 start -->
+    <!-- 增加最小宽度 -->
+    <div class="tree-select-panel">
+      <!-- 单选按钮 start -->
+      <div class="tree-radio--box" v-if="radioData && radioData.length > 0">
+        <te-radio-group :model-value="treeType" @change="radioChange">
+          <te-radio v-for="(item, index) in radioData" :key="index" :label="item.value">{{ item.label }} </te-radio>
+        </te-radio-group>
+      </div>
+      <!-- 单选按钮 end -->
+      <!-- 查询框 start -->
+      <div class="tree-search--box" v-if="showSearch">
+        <te-input placeholder="请输入搜索内容" suffix-icon="te-icon-search" v-inputFilter:search v-model="searchValue">
+        </te-input>
+      </div>
+      <!-- 查询框 end -->
+      <!-- 树 start -->
+      <div
+        class="tree-select--box"
+        v-loading="queryLoading"
+        :style="{ paddingTop: '8px', margin: showSearch ? '0 12px' : '0' }"
+      >
+        <te-tree
+          :check-on-click-node="false"
+          v-if="treeData && treeData.length !== 0"
+          ref="treeRef"
+          :data="treeData"
+          :show-checkbox="multiple"
+          :highlight-current="true"
+          :node-key="nodeKey"
+          :expand-on-click-node="false"
+          :check-strictly="true"
+          :filter-node-method="filtertreeNodeList"
+          :default-expanded-keys="compExpandKeys"
+          :default-expand-all="defaultExpandAll"
+          :props="defaultProps"
+          :default-checked-keys="checkedArr"
+          @node-click="onNodeClick"
+          @check="onCheck"
+        >
+          <template #default="{ node, data }">
+            <span
+              :class="[
+            'custom-tree-node',
+            'flex-row-justify-center',
+            checkedArr.includes(data[nodeKey]) ? 'custom-tree-node-active' : ''
+          ]"
+              v-html="formatTreeLabel(data[defaultProps.label])"
+            >
+            </span>
+          </template>
+        </te-tree>
+        <div
+          v-show="(!treeData || treeData?.length ===0) && !queryLoading"
+          class="tree-select--box-nodata flex-column-center-center"
+        >
+          <img src="../../assets/images/common/common-data-none.svg" alt="nodata" />
+          <span class="mt8">暂无数据</span>
+        </div>
+      </div>
+      <!-- 树 end -->
+    </div>
+    <!-- 下拉面板 end -->
+  </te-popover>
+</div>

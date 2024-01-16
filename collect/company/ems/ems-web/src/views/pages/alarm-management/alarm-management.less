@@ -1,0 +1,74 @@
+.alarm-management {
+  height: 100%;
+
+  .resetBtn {
+    background-color: #fff !important;
+    &:active {
+      border-color: #096dd9 !important;
+      color: #096dd9;
+    }
+  }
+
+  .edit {
+    padding: 0px;
+    border: 0px;
+    background-color: transparent;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  :deep(.el-table tbody tr td) {
+    white-space: normal !important;
+    word-wrap: normal !important;
+    word-break: break-word !important;
+    line-break: auto !important;
+  }
+
+  :deep(.el-table tbody tr .cell) {
+    white-space: normal !important;
+    word-wrap: normal !important;
+    word-break: break-word !important;
+    line-break: auto !important;
+  }
+
+  :deep(.el-table tbody tr .cell .text) {
+    white-space: normal !important;
+    word-wrap: normal !important;
+    word-break: break-word !important;
+    line-break: auto !important;
+  }
+
+  :deep(.el-table-column--selection .cell) {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  }
+  :deep(.el-dialog__footer) {
+    border-top: 0px;
+  }
+  :deep(button:disabled),
+  :deep([disabled]:not([disabled='false'])) {
+    color: rgba(0, 0, 0, 0.25) !important;
+  }
+  .alarm-level {
+    width: 46px;
+    height: 24px;
+    line-height: 24px;
+    border-radius: 12px;
+    margin: auto;
+    color: white;
+  }
+}
+
+:deep(.el-table td:nth-child(5) .cell div),
+:deep(.el-table td:nth-child(4) .cell .text) {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 4 !important;
+  overflow: hidden !important;
+}
+
+:deep(.el-table td .cell div.alarm-content) {
+  text-align: left !important;
+}

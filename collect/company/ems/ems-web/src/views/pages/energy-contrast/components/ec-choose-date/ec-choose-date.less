@@ -1,0 +1,70 @@
+.ec-choose-date {
+  height: 36px;
+
+  .el-icon-circle-plus-outline {
+    font-size: 20px;
+    color: var(--iot-color-active);
+    margin: 0 5px;
+  }
+
+  .date-list {
+    position: relative;
+    width: 250px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    height: 36px;
+    padding: 4px 0 4px 4px;
+    border-radius: 4px;
+
+    .list-container {
+      overflow-y: auto;
+      height: 26px;
+      display: flex;
+      flex-wrap: wrap;
+
+      span {
+        margin: 2px 4px 2px 2px;
+        line-height: 22px;
+        overflow: hidden;
+        color: rgba(0, 0, 0, 0.65);
+        background-color: #fafafa;
+        border: 1px solid #e8e8e8;
+        border-radius: 2px;
+        cursor: default;
+        transition: padding 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+        display: inline-block;
+        padding: 0 3px 0 8px;
+        box-sizing: border-box;
+
+        i {
+          margin-left: 4px;
+          margin-right: 0;
+        }
+      }
+    }
+
+    .ems-iconfont.icon-qingkong {
+      display: none;
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      color: rgba(0, 0, 0, 0.25);
+
+      &:hover {
+        color: rgba(0, 0, 0, 0.45);
+      }
+    }
+
+    &:hover {
+      &.week-allowclear {
+        .ems-iconfont.icon-qingkong {
+          display: inline-block;
+          transition: all 100ms;
+        }
+      }
+
+      border-color: var(--iot-color-active);
+      transition: all 100ms;
+    }
+  }
+}

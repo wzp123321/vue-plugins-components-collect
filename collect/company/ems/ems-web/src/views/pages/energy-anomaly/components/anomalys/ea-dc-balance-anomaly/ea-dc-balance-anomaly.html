@@ -1,0 +1,28 @@
+<div class="ea-dc-balance-anomaly flex-row-justify-end">
+  <div class="ea-dc-balance-anomaly-data flex">
+    <img
+      class="anomaly-ico"
+      src="../../../../../../assets/img/energy-anomaly/ea-abnormal.png"
+      alt="图标"
+    />
+    <div class="num">
+      <div class="font14">
+        总
+        <span class="bold font24">{{ thousandSeparation(totalValue) }}</span>
+        {{ unit }}
+      </div>
+      <div class="font14 mt12">
+        分
+        <span class="bold font24">{{ thousandSeparation(branchValue) }}</span>
+        {{ unit }}
+      </div>
+    </div>
+  </div>
+  <DifferenceValue
+    :count="differenceRatio"
+    :level="level"
+    text="差值"
+    :bolded="true"
+    :font-size="16"
+  ></DifferenceValue>
+</div>

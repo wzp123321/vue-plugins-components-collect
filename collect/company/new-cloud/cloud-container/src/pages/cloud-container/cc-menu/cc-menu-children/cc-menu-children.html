@@ -1,0 +1,25 @@
+<div class="cc-menu-children">
+  <template v-for="(item, index) in menu">
+    <div
+      class="cc-menu-item"
+      :class="oFrame.mapClassOfSelect(item)"
+      :style="mapLevelPadding(item.deep)"
+      @click="oFrame.loadFrame(item)"
+    >
+      <span class="cc-menu-item-name">{{ item.name }}</span>
+      <img
+        v-if="item.children.length"
+        class="cc-menu-item-arrow"
+        :class="{ expand: mapExpand(item) }"
+        src="@/assets/img/common/common-arrow-down.svg"
+        alt="展开菜单"
+        @click.stop="toggleExpand(item)"
+      />
+      <span v-else style="width: 14px; height: 14px"></span>
+    </div>
+
+    <transition name="cc-menu">
+      <cc-menu-children v-if="item.children.length && mapExpand(item)" :menu="item.children"></cc-menu-children>
+    </transition>
+  </template>
+</div>

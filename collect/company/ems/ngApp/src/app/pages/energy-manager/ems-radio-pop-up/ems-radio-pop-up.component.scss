@@ -1,0 +1,83 @@
+.lable-btn { 
+    height: 62px;
+    line-height: 62px;
+    border-radius: 5px;
+    background-color: rgba(243, 243, 243, 1);
+    color: rgba(34, 34, 34, 0.8);
+    font-size: 16px; 
+    --placeholder-color: rgba(34, 34, 34, 0.2); 
+    --placeholder-opacity: 1;
+    padding: 20px 15px;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    .label-placeholder {
+        color: rgba(34, 34, 34, 0.2); 
+    }
+    .label-choice { 
+        color: rgba(18, 131, 255, 1);
+        font-size: 16px; 
+    }
+    .label-text { 
+        color: rgba(34, 34, 34, 0.8);
+        font-size: 16px; 
+    }
+   
+}
+.upload-img { 
+    // width: 105px;
+    height: 75px;
+    border-radius: 5px;
+    border: 0.5px dashed rgba(18, 131, 255, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .upload-img-icon {
+        width: 40px;
+        height: 40px;
+    }
+}
+::ng-deep .sc-ion-action-sheet-md-h.summit {
+    --backdrop-opacity: var(--ion-backdrop-opacity, 0.7);
+}
+::ng-deep .sc-ion-action-sheet-md-h.cancel {
+    --backdrop-opacity: var(--ion-backdrop-opacity, 0.7);
+}
+::ng-deep  .action-sheet-group.sc-ion-action-sheet-md {
+    padding: 0px 15px ;
+}
+::ng-deep .action-sheet-summit.sc-ion-action-sheet-md:first-child {
+    margin-top: 20px !important;
+}
+::ng-deep .action-sheet-summit.sc-ion-action-sheet-md:last-child {
+    margin-bottom: 20px !important;
+}
+::ng-deep .action-sheet-button-inner.sc-ion-action-sheet-md {
+    justify-content: center;
+}
+::ng-deep .action-sheet-group-cancel {
+    margin-top: -0.5px !important;
+}
+::ng-deep .action-sheet-summit {
+    margin-top: 10px!important;
+    height: 52px !important;
+    line-height: 52px!important;
+    align-items: center; 
+    border-radius: 5px !important;
+    background-color: rgba(18, 131, 255, 1) !important; 
+    color: rgba(255, 255, 255, 1 ) !important;
+    font-size: 16px !important;
+    text-align: center; 
+    box-sizing: border-box;
+}
+::ng-deep .action-sheet-cancel { 
+    height: 52px !important;
+    line-height: 52px!important;
+    border-radius: 5px!important;
+    border: 0.5px solid rgba(18, 131, 255, 1)!important; 
+    color: rgba(18, 131, 255, 100)!important; 
+    font-size: 16px!important; 
+    text-align: center; 
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}

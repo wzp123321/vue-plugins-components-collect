@@ -1,0 +1,105 @@
+<div class="em__share" [hidden]="!value">
+  <img
+    class="fold"
+    src="assets/img/energy-manager/down-arrow.svg"
+    alt="收缩"
+    (click)="close()"
+  />
+  <main class="main" [@openClose]="value ? 'open' : 'close'">
+    <section class="content__text">
+      <p class="text text--comment DinPro-Medium">
+        <img src="assets/img/energy-manager/quotation-mark.png" alt="引号" />
+        {{ data.comment }}
+      </p>
+      <div class="text text--desc">
+        <p>持续为{{ rootName }}提供</p>
+        <p>
+          能源服务<span class="text--emphasize">{{ data.serviceDays }}</span
+          >天
+        </p>
+      </div>
+      <div class="text text--desc">
+        <p>执行能源管理措施</p>
+        <p>
+          <span class="text--emphasize">{{ data.taskCount }}</span
+          >次
+        </p>
+      </div>
+      <div class="text text--desc">
+        <p>最晚时间在</p>
+        <p>
+          {{
+            data.lastTime
+              | dateStringFormat
+              | date : "EEEEa"
+              | myDate : false : true : true
+          }}<span class="text--emphasize">{{
+            data.lastTime | dateStringFormat | date : "h:mm"
+          }}</span>
+        </p>
+      </div>
+      <p class="text text--time">
+        {{ data.beginTime | date : "M.d" }} - {{ data.endTime | date : "M.d" }}
+      </p>
+    </section>
+    <section class="content__img flex">
+      <div class="share">
+        <img
+          class="share__icon"
+          src="assets/img/energy-manager/avatar.png"
+          alt="头像"
+          [ngStyle]="{ width: '6vh', height: '6vh' }"
+        />
+        <p class="share__text">{{ userName }}</p>
+      </div>
+      <div class="share">
+        <img
+          class="share__icon"
+          src="assets/img/energy-manager/QRcode.png"
+          alt="二维码"
+          [ngStyle]="{ minWidth: '30px', minHeight: '30px' }"
+        />
+        <p class="share__text">我要管家</p>
+      </div>
+    </section>
+  </main>
+  <footer class="foot flex" [@openClose]="value ? 'open' : 'close'">
+    <div class="share" (click)="getHtmlBase64(shareService.platform.wechat)">
+      <img
+        class="share__icon"
+        src="assets/img/energy-manager/wechat.svg"
+        alt="微信"
+      />
+      <p class="share__text">分享至微信</p>
+    </div>
+    <div
+      class="share"
+      (click)="getHtmlBase64(shareService.platform.wechatMoment)"
+    >
+      <img
+        class="share__icon"
+        src="assets/img/energy-manager/wechat-moments.svg"
+        alt="朋友圈"
+      />
+      <p class="share__text">分享至朋友圈</p>
+    </div>
+    <!-- 2023-11-29-新版app屏蔽qq分享 -->
+    <!-- <div class="share" (click)="getHtmlBase64(shareService.platform.qq)">
+      <img class="share__icon" src="assets/img/energy-manager/qq.svg" alt="QQ" />
+      <p class="share__text">分享至QQ</p>
+    </div> -->
+  </footer>
+</div>
+<div
+  class="showImage"
+  [hidden]="!value || !showImage"
+  style="position: absolute; top: 0; bottom: 0; left: 0; bottom: 0"
+>
+  <img
+    class="fold"
+    src="assets/img/energy-manager/down-arrow.svg"
+    alt="收缩"
+    (click)="showImage = false"
+  />
+  <img [src]="dataURL" alt="" />
+</div>

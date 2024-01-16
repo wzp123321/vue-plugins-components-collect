@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="14px" viewBox="0 0 16 14" version="1.1">
+    <!-- Generator: Sketch 59.1 (86144) - https://sketch.com -->
+    <title>曲线-选中</title>
+    <desc>Created with Sketch.</desc>
+    <g id="供冷供暖模块-能耗监控" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="曲线-选中" transform="translate(-2.000000, -3.000000)">
+            <rect id="矩形" x="0" y="0" width="20" height="20"/>
+            <path d="M17.34375,15.46875 L3.90625,15.46875 L3.90625,3.28125 C3.90625,3.1953125 3.8359375,3.125 3.75,3.125 L2.65625,3.125 C2.5703125,3.125 2.5,3.1953125 2.5,3.28125 L2.5,16.71875 C2.5,16.8046875 2.5703125,16.875 2.65625,16.875 L17.34375,16.875 C17.4296875,16.875 17.5,16.8046875 17.5,16.71875 L17.5,15.625 C17.5,15.5390625 17.4296875,15.46875 17.34375,15.46875 Z" id="Line-Chart" fill="#1890FF"/>
+            <path d="M6,11.5142296 C7.14794922,9.15073931 8.48128255,8.64599609 10,10 C12.2780762,12.0310059 14.2548828,9.72635511 16,6.839882" id="路径-2" stroke="#1890FF" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,16 @@
+<div class="home-kpi-no-data no-data flex-column-center-center">
+  <img
+    :src="imgUrl"
+    alt=""
+    :style="{ width: `${width}px`, height: `${height}px` }"
+  />
+  <div class="no-data-text" :style="{ fontSize: `${fontSize}px` }">
+    <!-- {{ title }} -->
+    <span
+      style="color: #1f8ffb; cursor: pointer"
+      @click="goConfigure"
+      v-show="isNoData"
+      >请点击前往配置</span
+    >
+  </div>
+</div>

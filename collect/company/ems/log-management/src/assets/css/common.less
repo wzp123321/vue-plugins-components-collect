@@ -1,0 +1,62 @@
+@import './ems-iconfont/ems-iconfont.less';
+@import '../icon/common/iconfont/iconfont.less';
+@import './common-ui-reset.less';
+@import './flex.less';
+
+:root {
+  --iot-bg-color-root: rgb(240, 244, 249); // 全局基础背景颜色
+  --iot-font-color-deep: rgb(0, 0, 0);
+  --iot-font-color-root: rgba(0, 0, 0, 0.65); // 全局基础文本颜色
+  --iot-font-color-white: rgb(255, 255, 255); // 白色字体
+  --iot-border-color: rgba(0, 0, 0, 0.15); // 边框颜色
+  --iot-color-active: rgb(64, 158, 255, 1); // active color
+  --iot-color-active-red: rgba(245, 34, 45, 1); // active color
+  --iot-no-data-color: rgba(0, 0, 0, 0.25); // 无数据时提示颜色
+  --iot-color-disabled: rgba(0, 0, 0, 0.25); // 禁用颜色
+  --iot-bg-color-container: rgb(240, 244, 249); // container内容区背景色
+  --iot-bg-color-component: rgb(255, 255, 255); // 一般组件背景色
+  --iot-color-component-shadow: rgba(38, 38, 38, 0.1); // 一般组件阴影色
+}
+
+// 自定义消息
+.download-message.el-message {
+  box-shadow: 0px 12px 42px 0px rgba(38, 38, 38, 0.24);
+
+  p {
+    color: rgba(0, 0, 0, 0.65);
+  }
+
+  .el-icon {
+    margin-right: 8px;
+
+    svg {
+      display: none !important;
+    }
+
+    &::before {
+      font-family: 'ems-iconfont' !important;
+      content: '\e73c' !important;
+      color: #1890ff;
+      font-size: 14px;
+    }
+
+    animation-name: icon_rotate;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+    animation-fill-mode: none;
+    animation-play-state: running;
+  }
+}
+
+@keyframes icon_rotate {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

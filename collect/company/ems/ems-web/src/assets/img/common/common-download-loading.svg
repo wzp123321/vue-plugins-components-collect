@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="18px" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>6.Notification消息提醒/4.loading加载中/仅图标加载/小</title>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="对标分析/建筑详细信息" transform="translate(-2001.000000, -396.000000)">
+            <g id="非视窗区域" transform="translate(24.000000, 0.000000)">
+                <g id="交互区域" transform="translate(1896.000000, 0.000000)">
+                    <g id="需求细化注释" transform="translate(20.000000, 199.000000)">
+                        <g id="编组-30" transform="translate(0.000000, 102.000000)">
+                            <g id="常规-加载提示" transform="translate(44.000000, 80.000000)">
+                                <g id="6.Notification消息提醒/4.loading加载中/仅图标加载/小" transform="translate(16.000000, 14.000000)">
+                                    <rect id="Rectangle" x="0" y="0" width="20" height="20"></rect>
+                                    <path d="M10,1.875 C14.4873136,1.875 18.125,5.51268641 18.125,10 C18.125,14.4873136 14.4873136,18.125 10,18.125 C5.51268641,18.125 1.875,14.4873136 1.875,10 C1.875,5.51268641 5.51268641,1.875 10,1.875 Z M10,4.375 C6.89339828,4.375 4.375,6.89339828 4.375,10 C4.375,13.1066017 6.89339828,15.625 10,15.625 C13.1066017,15.625 15.625,13.1066017 15.625,10 C15.625,6.89339828 13.1066017,4.375 10,4.375 Z" id="Oval" fill="rgba(24, 144, 255, 1)" fill-rule="nonzero"></path>
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

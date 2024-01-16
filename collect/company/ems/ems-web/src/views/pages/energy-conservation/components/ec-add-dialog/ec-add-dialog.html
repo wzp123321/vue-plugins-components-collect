@@ -1,0 +1,82 @@
+<div class="ec-add-dialog">
+  <el-form :model="Form" :rules="rules" ref="ruleForm" label-width="70px" label-position="right">
+    <el-form-item label="能源类型">
+      <el-select v-model="Form.energyType" @change="energyChange">
+        <el-option v-for="item in energyTypeData" :key="item.code" :label="item.name" :value="item.code"></el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="分析对象" prop="analysisObject">
+      <tree-select
+        :placeholder="'请选择分析对象'"
+        v-model="Form.analysisObject"
+        :treeData="analysisObjectData"
+        :allowClear="false"
+        :showSearch="true"
+        :defaultProps="{ children: 'childTree', label: 'treeName' }"
+        v-model:radioValue="Form.radioValue"
+        :autoWidth="true"
+        :radioData="radioData"
+        :loading="treeLoading"
+        :expanedKeys="analysisObjectExpanedKeys"
+        @tree-radio-change="treeRaidoChange"
+        @select-change="treeSelectChange"
+      ></tree-select>
+    </el-form-item>
+    <el-form-item label="定额类型">
+      <el-select v-model="Form.dingeType" placeholder="请选择定额类型" @change="onTypeChange">
+        <el-option v-for="item in dingeTypeData" :key="item.value" :label="item.label" :value="item.value"></el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="日  期" prop="monthDate">
+      <div class="block">
+        <el-date-picker
+          v-if="Form.dingeType == CHOOSETIME.MONTH"
+          style="width: 100%"
+          v-model="Form.monthDate"
+          prefix-icon="iconfont icon-Calendar"
+          clear-icon="iconfont icon-Close-Circle-Fill"
+          type="month"
+          value-format="YYYY-MM"
+          placeholder="选择月"
+        >
+        </el-date-picker>
+        <el-date-picker
+          v-else
+          style="width: 100%"
+          v-model="Form.monthDate"
+          type="year"
+          prefix-icon="iconfont icon-Calendar"
+          clear-icon="iconfont icon-Close-Circle-Fill"
+          value-format="YYYY"
+          placeholder="选择年"
+        >
+        </el-date-picker>
+      </div>
+    </el-form-item>
+    <el-form-item label="定额值" prop="dingeValue" class="ead-form-item">
+      <el-input
+        v-if="Form.dingeType ===2"
+        v-model="Form.dingeValue"
+        placeholder="请输入数值"
+        v-inputFilter:number="{ integral: 12, decimal: 2 }"
+        onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+      >
+      </el-input>
+      <el-input
+        v-else
+        v-model="Form.dingeValue"
+        placeholder="请输入数值"
+        v-inputFilter:number="{ integral: 10, decimal: 2 }"
+        onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+      >
+      </el-input>
+      <span class="ead-energy-unit">{{energyUnit}}</span>
+    </el-form-item>
+  </el-form>
+  <div class="dialog-footer mt32" style="text-align: right">
+    <span slot="footer" class="dialog-footer">
+      <button @click="onCancel">取 消</button>
+      <button primary @click="onSure">确 定</button>
+    </span>
+  </div>
+</div>

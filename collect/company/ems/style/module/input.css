@@ -1,0 +1,93 @@
+/* 输入框相关样式控制 */
+/* 输入框-默认 */
+input {
+  height: 36px;
+  padding: 0px 11px;
+
+  color: var(--color-text-primary);
+  caret-color: var(--color-primary);
+  border: 1px solid var(--color-text-border);
+  border-radius: 3px;
+
+  transition-duration: var(--param-transition-time);
+}
+input:hover {
+  border-color: var(--color-primary);
+}
+input:read-write:enabled:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0px 0px 0px 2px var(--color-box-focus);
+}
+input::placeholder {
+  color: var(--color-text-disable);
+}
+
+/* 输入框-未通过校验状态 */
+input[error]:not([error='false']):read-write:enabled,
+input[error]:not([error='false']):read-write:enabled:hover,
+input[error]:not([error='false']):read-write:enabled:active {
+  color: var(--color-error);
+  caret-color: unset;
+  border-color: unset;
+}
+
+/* 输入框-禁用状态 */
+input:read-only,
+input:disabled {
+  color: var(--color-text-disable);
+  background-color: var(--color-text-background);
+  border-color: var(--color-text-border);
+  cursor: not-allowed;
+}
+input:read-only::placeholder,
+input:disabled::placeholder {
+  color: transparent;
+}
+
+/* 文本框-默认 */
+textarea {
+  min-height: 52px;
+  padding: 3px 11px 25px;
+
+  color: var(--color-text-primary);
+  caret-color: var(--color-primary);
+  border: 1px solid var(--color-text-border);
+  border-radius: 3px;
+
+  word-break: break-all;
+  white-space: pre-wrap;
+
+  transition: border-color var(--param-transition-time);
+}
+textarea:hover {
+  border-color: var(--color-primary);
+}
+textarea:read-write:enabled:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0px 0px 0px 2px var(--color-box-focus);
+}
+textarea::placeholder {
+  color: var(--color-text-disable);
+}
+
+/* 文本框-未通过校验状态 */
+textarea[error]:not([error='false']):read-write:enabled,
+textarea[error]:not([error='false']):read-write:enabled:hover,
+textarea[error]:not([error='false']):read-write:enabled:active {
+  color: var(--color-error);
+  caret-color: unset;
+  border-color: unset;
+}
+
+/* 文本框-禁用状态 */
+textarea:read-only,
+textarea:disabled {
+  color: var(--color-text-disable);
+  background-color: var(--color-text-background);
+  border-color: var(--color-text-border);
+  cursor: not-allowed;
+}
+textarea:read-only::placeholder,
+textarea:disabled::placeholder {
+  color: transparent;
+}

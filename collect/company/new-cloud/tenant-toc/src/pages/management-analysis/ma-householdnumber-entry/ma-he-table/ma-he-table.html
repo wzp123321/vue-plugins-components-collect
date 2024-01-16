@@ -1,0 +1,277 @@
+<div class="ma-he-table" v-loading="heTable.loading">
+  <table style="width: 100%" v-if="!heTable.loading">
+    <thead>
+      <tr>
+        <th style="width: 70px">序号</th>
+        <th>户号</th>
+        <th style="width: 100px">能源类型</th>
+        <th>关联节点</th>
+        <th style="width: 80px">月份</th>
+        <th>用量</th>
+        <th style="width: 80px">用量单位</th>
+        <th>实际缴费（元）</th>
+        <th style="width: 120px">实际单价</th>
+        <th style="width: 100px">实际单价单位</th>
+        <th>账期</th>
+        <th style="width: 160px">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(item, index) in heTable.dataSource" :key="index">
+        <td style="width: 70px">{{ (heTable.pageForm.pageNum - 1) * heTable.pageForm.pageSize + index + 1 }}</td>
+        <td ellipsis>
+          <span v-if="!item.accountNumber">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.accountNumber }}</div>
+            </template>
+            <span ellipsis>{{ item.accountNumber }}</span>
+          </el-tooltip>
+        </td>
+        <td style="width: 100px" ellipsis>
+          <span v-if="!item.energyName">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.energyName }}</div>
+            </template>
+            <span ellipsis>{{ item.energyName }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <span v-if="!item.treeName">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.treeName }}</div>
+            </template>
+            <span ellipsis>{{ item.treeName }}</span>
+          </el-tooltip>
+        </td>
+        <td style="width: 80px" ellipsis>{{ item.month }}</td>
+        <td ellipsis>
+          <span v-if="!item.amount">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.amount }}</div>
+            </template>
+            <span ellipsis>{{ item.amount }}</span>
+          </el-tooltip>
+        </td>
+        <td style="width: 80px" ellipsis>
+          <span v-if="!item.energyUnit">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.energyUnit }}</div>
+            </template>
+            <span ellipsis>{{ item.energyUnit }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <span v-if="!item.actualPayment">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.actualPayment }}</div>
+            </template>
+            <span ellipsis>{{ item.actualPayment }}</span>
+          </el-tooltip>
+        </td>
+        <td style="width: 120px" ellipsis>
+          <span v-if="!item.actualPrice">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.actualPrice }}</div>
+            </template>
+            <span ellipsis>{{ item.actualPrice }}</span>
+          </el-tooltip>
+        </td>
+        <td style="width: 100px" ellipsis>
+          <span v-if="!item.energyUnit">--</span>
+          <el-tooltip :open-delay="500" v-else effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">元/{{ item.energyUnit }}</div>
+            </template>
+            <span ellipsis>元/{{ item.energyUnit }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <span v-if="!item.billEndTime || !item.billStartTime">--</span>
+          <el-tooltip :open-delay="500" effect="dark" placement="bottom">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">
+                {{ item.billStartTime }}~{{ item.billEndTime}}
+              </div>
+            </template>
+            <span ellipsis
+              >{{ item.billStartTime && item.billEndTime ? item.billStartTime +'~' +item.billEndTime : '--' }}</span
+            >
+          </el-tooltip>
+        </td>
+        <td style="width: 160px">
+          <button text @click="onEditor(item)">编辑</button>
+          <button text @click="heTable.showFilePreview(item.fileVOList)">查看附件</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="table-nodata flex-column-center-center" v-if="heTable.is_error && !heTable.loading">
+    <img src="../../../../assets/images/common/common-data-none.svg" alt="" />
+    <p>暂无数据</p>
+  </div>
+  <el-pagination
+    v-show="heTable.total > 0 && !heTable.loading"
+    @size-change="heTable.onPageSizeChange"
+    @current-change="heTable.onPageChange"
+    :current-page="heTable.pageForm.pageNum"
+    :page-sizes="heTable.pageSizeList"
+    :page-size="heTable.pageForm.pageSize"
+    layout="total, prev, pager, next, sizes, jumper"
+    :total="heTable.total"
+  ></el-pagination>
+  <!-- 表单 -->
+  <div v-drag>
+    <el-dialog
+      :close-on-click-modal="false"
+      custom-class="ma-he-editor-form"
+      v-model="heForm.visible"
+      :title="heForm.type === FORM_STATUS.ADD ? '新增数据' : heForm.type === FORM_STATUS.EDITOR ? '编辑数据' : '查看数据'"
+      width="540px"
+      :before-close="heForm.close"
+    >
+      <el-form :model="heForm.formModel" :ref="heForm.formRef" :rules="rules" @submit.native.prevent label-width="90px">
+        <el-form-item label="能源类型" prop="energyCode">
+          <el-select
+            v-model="heForm.formModel.energyCode"
+            placeholder="请选择能源类型"
+            @change="heForm.onEnergyCodeChange"
+          >
+            <el-option
+              v-for="(item, index) in heTable.energyCodeList"
+              :key="'code'+index"
+              :label="item.name"
+              :value="item.code"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="户号" prop="accountNumber">
+          <el-select
+            :fit-input-width="true"
+            filterable
+            v-model="heForm.formModel.accountNumber"
+            placeholder="请选择户号"
+            @change="heForm.clearFormValidate('accountNumber')"
+          >
+            <el-option
+              :title="item"
+              v-for="(item, index) in heForm.accountNumberList"
+              :key="'code'+index"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="数据时间" prop="date">
+          <el-date-picker
+            popper-class="data-date"
+            :editable="false"
+            :disabled-date="heForm.disabledDataDate"
+            @change="heForm.queryBillTime"
+            v-model="heForm.formModel.date"
+            type="month"
+            placeholder="请选择时间"
+          />
+        </el-form-item>
+        <el-form-item label="用量" prop="amount">
+          <input
+            type="text"
+            v-model="heForm.formModel.amount"
+            v-inputFilter:number
+            placeholder="请输入用量"
+            @input="heForm.clearFormValidate('amount')"
+          />
+          <span class="suffix">{{ heForm.unit }}</span>
+        </el-form-item>
+        <el-form-item label="实际缴费" prop="actualPayment">
+          <input
+            type="text"
+            v-model="heForm.formModel.actualPayment"
+            v-inputFilter:number
+            placeholder="请输入实际缴费"
+            @input="heForm.clearFormValidate('actualPayment')"
+          />
+          <span class="suffix">元</span>
+        </el-form-item>
+        <el-form-item label="账期" prop="billDate">
+          <el-date-picker
+            :editable="false"
+            v-model="heForm.formModel.billDate"
+            type="daterange"
+            range-separator="~"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            @change="heForm.clearFormValidate('billDate')"
+          />
+        </el-form-item>
+        <el-form-item label="附件" prop="fileList">
+          <div class="flex-row-start-center">
+            <button primary @click="heForm.chooseFile()">选择文件</button>
+            <el-tooltip effect="dark" placement="right">
+              <template v-slot:content>
+                <div style="word-break: break-all; white-space: normal">
+                  支持上传xls、xlsx、xlsm、pdf、doc、docx、pptx、png、jpg、jpeg格式文件；图片最多支持上传6个，单个文件大小不超过10MB，总文件大小不超过100MB
+                </div>
+              </template>
+              <i class="toc-iconfont icon-toc-wenhao"></i>
+            </el-tooltip>
+          </div>
+          <div class="file-container" v-show="heForm.formModel.fileList?.length">
+            <div
+              v-for="(item, index) in heForm.formModel.fileList"
+              :key="'file_'+index"
+              class="file-item flex-row-start-center"
+            >
+              <img :src="heForm.mapFileTypeIcon(item.name)" alt="" />
+              <span :title="item.name" class="file-name">{{ item.name }}</span>
+              <i class="toc-iconfont icon-toc-qingkong" @click="heForm.fileDelete(index)"></i>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <button @click="heForm.close">取消</button>
+        <button primary @click="onSubmit">确认</button>
+      </template>
+    </el-dialog>
+  </div>
+  <!-- 查看附件 -->
+  <div v-drag>
+    <el-dialog
+      :close-on-click-modal="false"
+      custom-class="file-dialog"
+      v-model="heTable.visible"
+      title="查看附件"
+      width="600px"
+      :before-close="heTable.beforeClose"
+    >
+      <template v-if="heTable.fileList?.length">
+        <div v-for="(item, index) in heTable.fileList" :key="'file_'+index" class="file-item flex-row-start-center">
+          <img class="mr10" :src="heForm.mapFileTypeIcon(item.fileName)" alt="" />
+          <span :title="item.fileName" class="text-overflow file-name">{{ item.fileName }}</span>
+          <i
+            title="预览"
+            v-if="heTable.useType(item.fileName) === FILE_TYPE.PNG || heTable.useType(item.fileName) === FILE_TYPE.JPG || heTable.useType(item.fileName) === FILE_TYPE.JPEG "
+            class="toc-iconfont icon-toc-15tupianyulan"
+            @click="heTable.preview(item.fileId)"
+          ></i>
+          <i v-else class="toc-iconfont icon-toc-xiazai" title="下载" @click="heTable.download(item.fileId)"></i>
+        </div>
+      </template>
+      <no-data :title="'暂无附件'" v-else></no-data>
+    </el-dialog>
+  </div>
+  <!-- 图片预览 -->
+  <preview
+    v-if="heTable.previewVisible"
+    :urlList="heTable.imageList"
+    :initialIndex="heTable.initialIndex"
+    v-model="heTable.previewVisible"
+  ></preview>
+</div>

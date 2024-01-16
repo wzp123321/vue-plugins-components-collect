@@ -1,0 +1,1 @@
+export  { default as registerIconBox } from './register-icon-box'

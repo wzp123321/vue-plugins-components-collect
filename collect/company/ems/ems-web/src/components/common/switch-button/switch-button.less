@@ -1,0 +1,35 @@
+.switch-button {
+    .switch-button--wrap {
+        background-color: var(--icon-switch-bg);
+        color: var(--icon-switch-sort-icon-color);
+        height: 33px;
+        padding: 3px 2px;
+        display: flex;
+        align-items: center;
+        border-radius: 16px;
+        user-select: none;
+        z-index: 1000;
+        width: fit-content;
+
+        .switch-button-item {
+            height: 30px;
+            line-height: 30px;
+            font-size: 14px;
+            padding: 0 16px;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: all 400ms cubic-bezier(0.88, 0.03, 0, 0.91),
+                box-shadow 400ms ease;
+        }
+
+        img {
+            position: relative;
+            top: 5px;
+        }
+
+        .switch-button-item-selected {
+            color: rgba(24, 144, 255, 1);
+            background-color: var(--icon-switch-selected-bg);
+        }
+    }
+}

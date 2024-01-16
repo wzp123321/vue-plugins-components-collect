@@ -1,0 +1,61 @@
+.energy-balance {
+  height: 100%;
+
+  :deep(.page-common) {
+    &__container {
+      padding-right: 0;
+      padding-left: 0;
+    }
+
+    &__search {
+      box-shadow: 0 1px 7px 0 rgba(38, 38, 38, 0.1);
+      border-bottom: none;
+      margin-bottom: 20px !important;
+
+      border-radius: 4px 4px 0 0;
+    }
+
+    .el-loading-mask {
+      z-index: 99 !important;
+    }
+  }
+
+  .box {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    > .box_left {
+      display: flex;
+      .name {
+        margin-right: 4px;
+      }
+
+      :deep(.el-input) {
+        .el-input__suffix {
+          top: 2px;
+        }
+      }
+
+      i {
+        font-style: normal;
+        color: var(--iot-font-color-root);
+      }
+
+      .question_mark {
+        margin: 0 10px 0 7px;
+        fill: red;
+      }
+    }
+  }
+
+  &__chart {
+    padding: 10px 20px 20px;
+    height: 100%;
+  }
+
+  .no-data {
+    height: 100%;
+  }
+}

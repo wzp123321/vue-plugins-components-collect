@@ -1,0 +1,142 @@
+<!--
+ * @Description: 树节点绑定点位，
+        1.选择点位后需要在公式上面添加点位 +Vx
+        2.保存时需要校验公式是否合法，公式只能输入+ - * ( ) .等特殊符号，且每个点位都需要在公式中，
+        3.编辑公式后，如果切换节点、页面、能源类型、树类型需要提示是否保存公式，先校验公式在保存，如果公式不合法不进行后续操作。
+ * @Autor: zpwan
+ * @Date: 2022-01-02 17:57:26
+ * @LastEditors: yut
+ * @LastEditTime: 2024-01-10 09:41:03
+-->
+<div class="tree-bind" :style="{height: containerWidth}">
+  <page-common title="树-设备绑定" :showSearch="true">
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <div class="tree-bind-header flex-row-justify-center">
+        <div class="select-energycode flex-row-start-center">
+          <span>能源类型：</span>
+          <tree-select
+            :placeholder="'请选择能源类型'"
+            v-if="treeType !== 3"
+            :loading="treeSelectState.energyCodeLoading"
+            :expanedKeys="treeSelectState.energyCodeExpandKeys"
+            v-model:modelValue="treeSelectState.energyCode"
+            :treeData="treeSelectState.energyCodeList"
+            :defaultProps="defaultTypeProps.code"
+            :nodeKey="nodeKey"
+            @select-change="treeSelectState.onEnergycodeChange"
+            @select-item="treeSelectState.selectItem"
+            width="240px"
+          >
+          </tree-select>
+          <el-input v-else disabled v-model="energyName" style="width: 240px"></el-input>
+        </div>
+        <div>
+          <button primary @click="batchDelete" v-if="batchDeleteItem.length">批量删除</button>
+          <button primary :disabled="treeSelectState.treeId === -1" @click="onDialogShow">新增</button>
+          <button @click="onDialogExport" v-if="isShowbutton">{{ exportLoading ? '正在导出' : '导出' }}</button>
+        </div>
+      </div>
+    </template>
+    <template v-slot:pageContent>
+      <!-- 内容 -->
+      <div class="tree-bind-content flex">
+        <div class="tree-module">
+          <div class="tree-radio--box" v-if="treeSelectState.treeTypeList && treeSelectState.treeTypeList.length > 0">
+            <el-radio-group :model-value="treeType" @change="treeSelectState.onTreeTypeChange">
+              <el-radio v-for="(item, index) in treeSelectState.treeTypeList" :key="index" :label="item.code">
+                {{ item.name }}
+              </el-radio>
+            </el-radio-group>
+            <!-- 树 -->
+            <el-tree
+              v-loading="treeSelectState.treeLoading"
+              ref="emsTree"
+              :check-strictly="true"
+              :props="defaultTypeProps.tree"
+              :data="treeSelectState.treeList"
+              :expand-on-click-node="false"
+              :highlight-current="true"
+              :default-expand-all="false"
+              :current-node-key="treeSelectState.treeId"
+              :default-checked-keys="[treeSelectState.treeId]"
+              node-key="id"
+              @node-click="treeSelectState.onNodeClick"
+              :default-expanded-keys="expandedKeys"
+            >
+            </el-tree>
+          </div>
+          <no-data
+            v-if="!treeSelectState.treeLoading && ( treeSelectState.treeList && treeSelectState.treeList.length === 0)"
+          ></no-data>
+        </div>
+
+        <div class="table-module" v-loading="treeSelectState.tableLoading">
+          <el-table
+            v-if="!treeSelectState.tableLoading"
+            v-loading="treeSelectState.tableLoading"
+            :data="pointInfoList"
+            style="width: 100%"
+            @selection-change="handleSelectionChange"
+          >
+            <el-table-column type="selection" width="55" />
+            <!-- 公式号=序号 -->
+            <el-table-column label="公式号" width="120">
+              <template #default="scope">V{{ scope.$index }}</template>
+            </el-table-column>
+            <el-table-column label="分类分项" width="180">
+              <template #default>{{ treeSelectState.energyCode[0] }}</template>
+            </el-table-column>
+            <el-table-column prop="deviceName" label="设备" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="pointName" label="点位名称" show-overflow-tooltip></el-table-column>
+            <el-table-column label="操作" width="120">
+              <template #default="scope">
+                <button text danger @click="onPointItemDelete(scope.$index)">删除</button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- 文本 -->
+          <p style="display: none">
+            说明：可支持加减乘运算，乘号以*输入，允许输入（）；参数项或者点位以公式号形式输入，如V0+V1
+          </p>
+          <!-- textarea -->
+          <el-input
+            type="textarea"
+            :rows="2"
+            placeholder="请输入内容"
+            v-formulaFilter
+            v-model="formula"
+            style="display: none"
+          >
+          </el-input>
+          <!-- 按钮 -->
+          <!-- <div class="flex-row-center-center mt16" v-if="!treeSelectState.tableLoading">
+            <button :disabled="treeSelectState.treeId === -1" @click="onFormulaReset">重置</button>
+            <button primary :disabled="treeSelectState.treeId === -1" @click="onSave">保存</button>
+          </div> -->
+        </div>
+      </div>
+    </template>
+  </page-common>
+  <!-- 弹框 -->
+  <!-- <BindingPointAddDialog
+    ref="addDialog"
+    :energyCode="
+        treeSelectState.energyCode && treeSelectState.energyCode.length > 0
+          ? treeSelectState.energyCode[0]
+          : ''
+      "
+    @add="onPointAdd"
+  ></BindingPointAddDialog> -->
+  <TbBindPoint
+    ref="addDialog"
+    :standardPointCode="treeSelectState.standardPointCode"
+    :energyCode="
+  treeSelectState.energyCode && treeSelectState.energyCode.length > 0
+    ? treeSelectState.energyCode[0]
+    : ''
+"
+    :checkedIdList="checkedIdList"
+    @add="onPointAdd"
+  ></TbBindPoint>
+</div>

@@ -1,0 +1,33 @@
+<div class="pc-treeselect">
+  <div class="pc-treeselect--header">
+    <el-checkbox
+      v-model="pcTreeSelect.is_check_all"
+      :indeterminate="pcTreeSelect.is_indeterminate"
+      @change="pcTreeSelect.handleCheckAllChange"
+      >{{ pcTreeSelect.title }}</el-checkbox
+    >
+  </div>
+  <!-- 树 -->
+  <div class="pc-treeselect--tree">
+    <el-tree
+      :ref="pcTreeSelect.treeRef"
+      show-checkbox
+      empty-text="暂无数据"
+      :check-strictly="true"
+      :default-expand-all="false"
+      :check-on-click-node="true"
+      :expand-on-click-node="false"
+      :data="pcTreeSelect.treeList"
+      :props="pcTreeSelect.defaultProps"
+      :default-expanded-keys="pcTreeSelect.expanded_keys"
+      :node-key="pcTreeSelect.node_key"
+      @check="pcTreeSelect.handleTreeCheck"
+    >
+      <template #default="{ node, data }">
+        <span class="custom-tree-node">
+          <span :title="node.label">{{ node.label }}</span>
+        </span>
+      </template>
+    </el-tree>
+  </div>
+</div>

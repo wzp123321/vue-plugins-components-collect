@@ -1,0 +1,33 @@
+<!-- <ion-header> -->
+<app-common-head (back)="exitApp()" [title]="'一周小结'"></app-common-head>
+<!-- </ion-header> -->
+<ion-content class="em__week-summary">
+  <ion-infinite-scroll [position]="'top'" [threshold]="'15%'" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="加载更多数据..."> </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+  <ion-list>
+    <section class="list" *ngFor="let item of list; index as i">
+      <p class="list__time">
+        {{ item.createdTime | dateStringFormat | date: 'y年M月d日　ah:mm' | myDate: true:true }}
+      </p>
+      <div class="list__card" (click)="share(item)">
+        <img class="list__card__share" src="assets/img/energy-manager/share.svg" alt="分享" />
+        <p class="list__card__title">
+          一周小结&nbsp;&nbsp;{{ item.beginTime | date: 'M.d' }}-{{ item.endTime | date: 'M.d' }}
+        </p>
+        <div class="list__card__content">
+          <img class="content__avatar" src="assets/img/energy-manager/avatar.png" alt="头像" />
+          <div class="content__text">
+            <h2 class="text--title DinPro-Medium">执行了&nbsp;{{ item.taskCount }}次&nbsp;能源管理措施</h2>
+            <div class="text--desc">
+              <p>最晚时间在{{ item.lastTime | dateStringFormat | date: 'EEEEah:mm' | myDate: false:true:true }}</p>
+              <p>持续提供能源管家服务{{ item.serviceDays }}天</p>
+            </div>
+            <p class="text--comment">{{ item.comment }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </ion-list>
+</ion-content>
+<ems-em-share [(ngModel)]="isOpen" [data]="selectItem"></ems-em-share>

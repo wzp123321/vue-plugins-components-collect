@@ -1,0 +1,61 @@
+<div class="environment-evaluation">
+  <page-common title="环境评价" :showSearch="true" :isSubHead="false">
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <el-form :inline="true" :model="queryParams" @submit.native.prevent>
+        <el-form-item>
+          <el-input
+            v-inputFilter:search
+            placeholder="请输入品质描述"
+            :maxlength="100"
+            v-model.trim="queryParams.description"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div style="height: calc(100% - 68px)" v-loading="loading">
+        <el-table v-show="!loading" :data="dataSource" style="width: 100%">
+          <el-table-column prop="index" label="序号" width="80" align="center">
+            <template #default="scope">
+              {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="品质描述" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="upper" label="品质上限" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="lower" label="品质下限" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="energyCodeName" label="采样类型" show-overflow-tooltip></el-table-column>
+          <el-table-column label="操作" width="220" align="center">
+            <template #default="scope">
+              <span class="operate-span mr16" @click="onEnergyCodeUpdate(scope.row)">修改</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <ems-pagination
+          v-show="!loading && total>0"
+          :current-page="queryParams.pageNum"
+          :page-sizes="pageSizes"
+          @size-change="onPageSizeChange"
+          @current-change="onCurrentChange"
+          :page-size="queryParams.pageSize"
+          :total="total"
+        >
+        </ems-pagination>
+      </div>
+    </template>
+  </page-common>
+</div>
+<EditDialog
+  ref="environmentRef"
+  :environmentEvaluationDetail="environmentEvaluationDetail"
+  :dialogShow="dialogShow"
+  :key="nums"
+  :environmentState="environmentState.environmentEvaluationDetail"
+  @success="onSearch"
+>
+</EditDialog>

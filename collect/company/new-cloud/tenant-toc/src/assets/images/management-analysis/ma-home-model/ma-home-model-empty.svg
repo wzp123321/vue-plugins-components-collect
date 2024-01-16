@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="57px" height="40px" viewBox="0 0 57 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>暂无浏览记录</title>
+    <defs>
+        <linearGradient x1="52.0445751%" y1="100%" x2="52.0445751%" y2="-7.86526499%" id="linearGradient-1">
+            <stop stop-color="#009BFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#12A0FF" stop-opacity="0.615048282" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#82C1FF" offset="0%"></stop>
+            <stop stop-color="#035BEC" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="53.3649045%" y1="37.9489183%" x2="58.1336567%" y2="62.0510817%" id="linearGradient-3">
+            <stop stop-color="#82C0FF" offset="0%"></stop>
+            <stop stop-color="#0058EB" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="31.8467865%" y1="7.00007435%" x2="50%" y2="100%" id="linearGradient-4">
+            <stop stop-color="#98CCFF" offset="0%"></stop>
+            <stop stop-color="#76A3FF" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="后台" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.85">
+        <g id="经营分析——弹框" transform="translate(-1425.000000, -2590.000000)">
+            <g id="编组-31" transform="translate(1425.000000, 2590.000000)">
+                <ellipse id="椭圆形备份-14" fill="url(#linearGradient-1)" fill-rule="nonzero" cx="28.5" cy="27.8500414" rx="28.5" ry="12.1499586"></ellipse>
+                <g id="编组-30" transform="translate(10.424722, 0.000000)">
+                    <path d="M2.33107831,0.244028807 C0.183441676,1.0017217 -0.480221931,3.40390894 0.340087486,7.45059054 C1.73129486,7.36887757 6.28721056,7.36887757 14.0078345,7.45059054 L2.33107831,0.244028807 Z" id="路径-29" fill="#023177" fill-rule="nonzero"></path>
+                    <path d="M4.80723565,7.32370076 C4.33697573,12.6686594 3.66299541,26.0206633 8.39668849,24.9268688 C11.5524839,24.1976725 16.889212,23.8325236 24.4068728,23.8314221 L24.4068728,5.16080465 C23.80863,2.20832583 22.9463329,0.569400546 21.8199813,0.244028807 C20.6936298,-0.0813429356 14.1973288,-0.0813429356 2.33107831,0.244028807 C4.29535649,1.40050433 5.12074227,3.76039499 4.80723565,7.32370076 Z" id="路径-28" fill="url(#linearGradient-2)" fill-rule="nonzero"></path>
+                    <path d="M14.6838685,24.1441804 C9.65571265,24.8798844 7.47175709,25.1264721 8.13200175,24.8839433 C9.12236879,24.5201503 9.21886244,23.6351088 10.6369905,21.8289521 C12.0551186,20.0227953 13.4657708,20.2596055 14.4167614,22.6191686 C14.5314576,22.9037488 14.6204933,23.4120861 14.6838685,24.1441804 Z" id="路径-31" fill="#023177" fill-rule="nonzero"></path>
+                    <path d="M12.2373559,20.653913 C13.8712796,21.2527268 14.6882414,22.728344 14.6882414,25.0807644 C14.6882414,27.4331849 14.6882414,29.5130922 14.6882414,31.3204862 L33.7832884,31.3204862 C34.3105638,25.9042962 33.6853436,22.3487719 31.9076278,20.653913" id="路径-30" fill="url(#linearGradient-3)" fill-rule="nonzero"></path>
+                    <g id="编组备份" transform="translate(28.335378, 15.948353) rotate(-45.000000) translate(-28.335378, -15.948353) translate(23.809309, 9.517783)">
+                        <ellipse id="椭圆形" stroke="url(#linearGradient-4)" stroke-width="2.05481893" cx="4.5260697" cy="4.57904114" rx="4.5260697" ry="4.57904114"></ellipse>
+                        <rect id="矩形" fill="#7FBFFF" fill-rule="nonzero" x="4.00327745" y="10.0417028" width="1.04558449" height="2.81943828" rx="0.522792243"></rect>
+                    </g>
+                    <rect id="矩形" fill="#D8D8D8" fill-rule="nonzero" x="7.03473752" y="3.80863393" width="12.8378378" height="1.55105855" rx="0.775529273"></rect>
+                    <rect id="矩形备份-8" fill="#FFFFFF" fill-rule="nonzero" x="7.03473752" y="3.80863393" width="12.8378378" height="1.55105855" rx="0.775529273"></rect>
+                    <rect id="矩形备份-14" fill="#FFFFFF" fill-rule="nonzero" x="7.03473752" y="7.94479005" width="12.8378378" height="1.55105855" rx="0.775529273"></rect>
+                    <rect id="矩形备份-15" fill="#FFFFFF" fill-rule="nonzero" x="7.03473752" y="12.0809462" width="10.2702703" height="1.55105855" rx="0.775529273"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

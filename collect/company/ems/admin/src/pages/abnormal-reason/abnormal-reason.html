@@ -1,0 +1,76 @@
+<page-common title="异常原因库" class="abnormal-reason" :showSearch="true" :isSubHead="true">
+  <template v-slot:pageSearch>
+    <!-- 头部 -->
+    <el-form :inline="true" :model="queryParams" class="demo-form-inline" @submit.native.prevent>
+      <el-form-item>
+        <input placeholder="请输入异常原因" v-inputFilter:search v-model="queryParams.name" />
+      </el-form-item>
+      <el-form-item label="所属异常">
+        <el-select v-model="queryParams.typeId">
+          <el-option v-for="item in abnormalList" :key="item.id" :label="item.name" :value="item.id"> </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <button primary @click="getAbnormalReasonList">查询</button>
+        <button @click="onReset">重置</button>
+      </el-form-item>
+    </el-form>
+  </template>
+  <template v-slot:pageSubHead>
+    <button primary @click="onAddDialogShow">新增</button>
+  </template>
+  <template v-slot:pageContent>
+    <div v-loading="loading" style="height: calc(100% - 68px)">
+      <el-table
+        :data="dataSource"
+        style="width: 100%"
+        v-show="!loading"
+        @selection-change="handleSelectionChange"
+        ref="multipleTable"
+      >
+        <el-table-column prop="index" label="序号" width="80" align="center">
+          <template #default="scope"
+            >{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</template
+          >
+        </el-table-column>
+        <el-table-column prop="name" label="异常原因" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="typeName" label="所属异常" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="address" label="操作" width="220" align="center">
+          <template #default="scope">
+            <span class="operate-span mr16" @click="onEnergyCodeUpdate(scope.row)">修改</span>
+            <el-popconfirm
+              title="确认删除异常原因吗？"
+              confirmButtonText="确定"
+              cancelButtonText="取消"
+              cancelButtonType="default"
+              @confirm="onEnergyCodeDelete(scope.row.id)"
+            >
+              <template #reference>
+                <span class="delete-span">删除</span>
+              </template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+      <ems-pagination
+        v-show="!loading && total>0"
+        :current-page="queryParams.pageNum"
+        :page-sizes="pageSizes"
+        @size-change="onPageSizeChange"
+        @current-change="onCurrentChange"
+        :page-size="queryParams.pageSize"
+        :total="total"
+      ></ems-pagination>
+    </div>
+  </template>
+</page-common>
+<AddAndEditDialog
+  ref="dialogRef"
+  :abnormalReasonDetail="abnormalReasonDetail"
+  :isAddFlag="isAddFlag"
+  :abnormalList="abnormalList"
+  @success="getAbnormalReasonList"
+  :key="nums"
+  :dialogOpen="dialogOpen"
+>
+</AddAndEditDialog>

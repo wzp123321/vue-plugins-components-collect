@@ -1,0 +1,346 @@
+.me-object {
+  position: relative;
+  z-index: 999;
+  .ant-select-selection {
+    display: block;
+    box-sizing: border-box;
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-top-width: 1.02px;
+    border-radius: 4px;
+    outline: 0;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    &-single {
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      height: 36px;
+      position: relative;
+      cursor: pointer;
+    }
+    &-single:hover {
+      border-color: #40a9ff;
+      border-right-width: 1px !important;
+    }
+    &-rendered {
+      display: flex;
+      justify-content: flex-start;
+      line-height: 34px;
+      position: relative;
+      display: block;
+      width: calc(100% - 24px);
+      margin-right: 24px;
+    }
+    &-placeholder {
+      width: 100%;
+      overflow: hidden;
+      color: #bfbfbf;
+      white-space: nowrap;
+      text-align: left;
+      text-overflow: ellipsis;
+      padding-left: 11px;
+    }
+    &-selected-value {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: rgba(0, 0, 0, 0.65);
+      line-height: 34px;
+      padding-left: 11px;
+    }
+    &-clear {
+      position: absolute;
+      top: 50%;
+      z-index: 1;
+      display: inline-block;
+      color: rgba(0, 0, 0, 0.25);
+      font-size: 16px;
+      font-style: normal;
+      line-height: 16px;
+      text-align: center;
+      text-transform: none;
+      background: #fff;
+      cursor: pointer;
+      opacity: 0;
+      transition: color 0.3s ease, opacity 0.15s ease;
+      text-rendering: auto;
+      width: 16px;
+      height: 16px;
+      margin-top: -7px;
+      right: 8px;
+    }
+  }
+  .ant-select-selection:hover .ant-select-selection-clear {
+    opacity: 1;
+  }
+  .ant-select-selection-clear {
+    &-anticon {
+      color: inherit;
+      font-style: normal;
+      line-height: 0;
+      text-align: center;
+      text-transform: none;
+      vertical-align: -0.125em;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      display: flex;
+    }
+    &-icon {
+      display: block;
+      line-height: 1;
+    }
+    svg {
+      fill: rgba(0, 0, 0, 0.25);
+      transition: transform 0.3s;
+      display: flex;
+    }
+    svg:hover {
+      fill: rgba(0, 0, 0, 0.45);
+      transition: transform 0.3s;
+      display: flex;
+    }
+    svg:not(:root) {
+      overflow: hidden;
+    }
+  }
+  .ant-select-open {
+    .ant-select-arrow-icon {
+      svg {
+        transform: rotate(180deg);
+      }
+    }
+  }
+  .select-open-focus {
+    border: 1px solid #40a9ff;
+  }
+  .select-clear-icon {
+    font-size: 16px;
+  }
+  .ant-select-arrow {
+    display: flex;
+    font-style: normal;
+    text-align: center;
+    text-transform: none;
+    vertical-align: -0.125em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: absolute;
+    top: 50%;
+    right: 11px;
+    color: rgba(0, 0, 0, 0.25);
+    font-size: 12px;
+    line-height: 1;
+    transform-origin: 50% 50%;
+    height: 12px;
+    margin-top: -5px;
+    &-anticon {
+      display: flex;
+      color: inherit;
+      font-style: normal;
+      line-height: 1;
+      text-align: center;
+      text-transform: none;
+      vertical-align: -0.125em;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    &-icon {
+      display: block;
+    }
+  }
+  &-pane {
+    width: 405px;
+    z-index: 999;
+    position: fixed;
+    pointer-events: auto;
+    .meop-tree-select {
+      width: 100%;
+      pointer-events: auto;
+      top: 2px;
+      left: 0;
+      position: relative;
+      &-radio {
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+      }
+    }
+    .ant-select-tree-dropdown {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      color: rgba(0, 0, 0, 0.65);
+      font-size: 14px;
+      font-variant: tabular-nums;
+      line-height: 1.5;
+      list-style: none;
+      font-feature-settings: "tnum";
+      margin-top: 4px;
+      margin-bottom: 4px;
+      background-color: #fff;
+      border-radius: 4px;
+      outline: 0;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+      z-index: 1050;
+    }
+  }
+  .meop-tree-body {
+    width: 100%;
+    height: 292px;
+    display: flex;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    .meoptb-left-tree {
+      width: 50%;
+      .type-tree {
+        width: calc(100% - 11px);
+        height: 214px;
+        overflow: auto auto;
+        margin: 5px 4px 0 7px;
+      }
+    }
+    .meoptb-right-tree {
+      width: 50%;
+      border-left: 1px solid rgba(0, 0, 0, 0.15);
+      .meoptb-right-device {
+        width: 100%;
+        height: 214px;
+        padding: 0px 13px 0;
+        overflow: hidden auto;
+        margin-top: 5px;
+        .device-item {
+          height: 36px;
+          line-height: 36px;
+          font-size: 14px;
+          padding: 0 8px;
+          color: rgba(0, 0, 0, 0.65);
+          margin-bottom: 4px;
+          box-sizing: border-box;
+          cursor: pointer;
+        }
+        .device-item:hover {
+          background-color: #e6f7ff;
+        }
+        .device-item-select {
+          background-color: rgba(0, 0, 0, 0.02) !important;
+          color: #1890ff;
+        }
+        .text-overflow {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+    .tree-title {
+      padding: 9px 13px 5px 15px;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.85);
+    }
+    .meoptb-tree-select-search {
+      width: calc(100% - 26px);
+      margin: 0 13px;
+    }
+  }
+  &-operate {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    grid-gap: 12px;
+    gap: 12px;
+    padding: 0px 20px;
+  }
+  .spin-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tree-hide {
+    display: none;
+  }
+  .tree-show {
+    display: block;
+  }
+}
+nz-radio-group.meop-tree-select-radio-group {
+  gap: 12px;
+}
+::ng-deep .ant-radio,
+.ant-radio-group,
+.ant-radio-wrapper {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  font-variant: tabular-nums;
+  line-height: 1.5;
+  list-style: none;
+  font-feature-settings: "tnum";
+  display: flex;
+  line-height: unset;
+  align-items: center;
+}
+::ng-deep .ant-radio-wrapper {
+  font-size: 16px;
+  margin-right: 0;
+  width: 110px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  word-break: keep-all;
+  box-sizing: border-box;
+  margin: 0 8px 0 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  font-variant: tabular-nums;
+  line-height: 1.5;
+  list-style: none;
+  font-feature-settings: "tnum";
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  cursor: pointer;
+}
+::ng-deep .ant-radio-input {
+  cursor: pointer !important;
+}
+::ng-deep .ant-tree .ant-tree-treenode {
+  line-height: 36px !important;
+}
+::ng-deep .ant-tree-switcher {
+  line-height: 36px !important;
+}
+::ng-deep .ant-tree .ant-tree-node-content-wrapper {
+  min-height: 36px;
+  line-height: 36px;
+  // width: calc(100% - 24px);
+  white-space: nowrap;
+  border-radius: 4px;
+  span {
+    white-space: nowrap;
+    color: rgba(0, 0, 0, 0.65);
+  }
+}
+::ng-deep .ant-tree .ant-tree-node-content-wrapper:hover {
+  background-color: rgba(230, 247, 255, 1);
+}
+::ng-deep .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background-color: rgba(0, 0, 0, 0.02);
+  span {
+    color: #1890ff;
+  }
+}
+::ng-deep .font-highlight {
+  color: #1890ff !important;
+}

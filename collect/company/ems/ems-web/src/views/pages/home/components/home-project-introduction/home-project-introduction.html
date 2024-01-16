@@ -1,0 +1,29 @@
+<h-component-container :headTitle="title">
+  <template v-slot:box>
+    <div class="home-project-introduction" v-loading="isLoading">
+      <!-- 有数据时 start -->
+      <div class="project-data-container" v-if="!isLoading && !isNoData && !isNoConfig">
+        <div class="project-image-container">
+          <img v-if="imageSrc" :src="imageSrc" alt="项目介绍" class="project-image" />
+          <no-data
+            v-else
+            class="no-config"
+            :imgUrl="require('../../../../../assets/img/common/common-configure-none.svg')"
+            :title="'图片暂未配置'"
+          ></no-data>
+        </div>
+
+        <div class="text-introduction" :title="textIntroduction">
+          {{ textIntroduction }}
+        </div>
+      </div>
+      <!-- 有数据时 end -->
+      <!-- 无数据时 start -->
+      <no-data :title="isNoDataMsg" v-if="!isLoading && isNoData && !isNoConfig"></no-data>
+      <!-- 无数据时 end -->
+      <!-- 无配置时 start -->
+      <no-data :imgUrl="noConfigImg" :title="isNoConfigMsg" v-if="!isLoading && !isNoData && isNoConfig"></no-data>
+      <!-- 无配置时 end -->
+    </div>
+  </template>
+</h-component-container>

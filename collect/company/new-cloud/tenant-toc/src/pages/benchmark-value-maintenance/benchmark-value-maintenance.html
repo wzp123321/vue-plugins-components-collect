@@ -1,0 +1,183 @@
+<div class="benchmark-value-maintenance">
+  <page-container title="基准值维护">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="formInline" @submit.native.prevent>
+        <el-form-item label="托管范围">
+          <el-select v-model="formInline.hostingScope" placeholder="请选择托管范围">
+            <el-option
+              v-for="(item, index) in hostingScopeList"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; width: 194px"
+              :title="item.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="查询年份">
+          <el-select v-model="formInline.date" placeholder="请选择年份">
+            <el-option
+              v-for="(item, index) in yearList"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+              :title="item.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="能源类型">
+          <el-select v-model="formInline.energyType" placeholder="请选择能源类型">
+            <el-option
+              v-for="(item, index) in energyList"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+              :title="item.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div style="height: 100%" class="bvm-pageContent-maintenance_content">
+        <div class="bvm-pageContent-header">
+          <el-button type="primary" @click="addHouseholdNumber">月度比例表</el-button>
+        </div>
+        <div style="height: calc(100% - 68px)" v-loading="loading">
+          <table style="width: 100%" v-if="!loading">
+            <thead>
+              <tr>
+                <th style="width: 70px">月份</th>
+                <th>{{'基准量(' + unit + ')'}}</th>
+                <th>{{'合同单价(元/' + unit + ')'}}</th>
+                <th>基准金额(元)</th>
+                <th>合同账期</th>
+                <th>{{'合同单价风险区间(元/' + unit + ')'}}</th>
+                <th>{{'改造前能耗(' + unit + ')'}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in tableData" :key="'benchmark_value_'+index">
+                <td>{{ item.month }}</td>
+                <td>{{ item.benchmarkValue === null ? '--' : item.benchmarkValue }}</td>
+                <td>{{ item.price === null ? '--' : item.price }}</td>
+                <td>{{ item.amount === null ? '--' : item.amount }}</td>
+                <td>
+                  <div class="bvm-pageContent-table-associatedNode">
+                    <div
+                      v-if="(item.contractBillStartTime === null && item.contractBillEndTime === null) || (item.contractBillStartTime === '--' && item.contractBillEndTime === '--')"
+                      class="text"
+                    >
+                      --
+                    </div>
+                    <!-- <el-tooltip
+                      v-else-if="item.contractBillStartTime === null && item.contractBillEndTime !== null || item.contractBillStartTime !== null && item.contractBillEndTime === null"
+                      class="tips"
+                      effect="dark"
+                      :content="item.contractBillStartTime === null && item.contractBillEndTime !== null ? ' ' +' ~ '+ item.contractBillEndTime : item.contractBillStartTime + ' ~ ' + ' ' "
+                      placement="bottom"
+                      :offset="4"
+                      :show-after="500"
+                    >
+                      <div class="text">
+                        {{ item.contractBillStartTime === null && item.contractBillEndTime !== null ? ' ' +' ~ '+
+                        item.contractBillEndTime : item.contractBillStartTime + ' ~ ' + ' ' }}
+                      </div>
+                    </el-tooltip> -->
+                    <el-tooltip
+                      v-else
+                      class="tips"
+                      effect="dark"
+                      :content="item.contractBillStartTime + ' ~ ' + item.contractBillEndTime "
+                      placement="bottom"
+                      :offset="4"
+                      :show-after="500"
+                    >
+                      <div class="text">{{ item.contractBillStartTime + ' ~ ' + item.contractBillEndTime }}</div>
+                    </el-tooltip>
+
+                    <img
+                      v-if="item.month !== '合计'"
+                      @click="edit(item)"
+                      src="../../assets/images/common/common-edit.svg"
+                    />
+                    <span v-else></span>
+                  </div>
+                </td>
+                <td>
+                  <div class="bvm-pageContent-table-community">
+                    <div v-if="item.priceRiskLowerLimit === null && item.priceRiskUpperLimit === null" class="text">
+                      --
+                    </div>
+                    <el-tooltip
+                      v-else-if="item.priceRiskLowerLimit === null && item.priceRiskUpperLimit !== null || item.priceRiskLowerLimit !== null && item.priceRiskUpperLimit === null"
+                      class="tips"
+                      effect="dark"
+                      :content="item.priceRiskLowerLimit === null && item.priceRiskUpperLimit !== null ? ' ' +' ~ '+ item.priceRiskUpperLimit : item.priceRiskLowerLimit + ' ~ ' + ' ' "
+                      placement="bottom"
+                      :offset="4"
+                      :show-after="500"
+                    >
+                      <div class="text">
+                        {{ item.priceRiskLowerLimit === null && item.priceRiskUpperLimit !== null ? ' ' +' ~ '+
+                        item.priceRiskUpperLimit : item.priceRiskLowerLimit + ' ~ ' + ' ' }}
+                      </div>
+                    </el-tooltip>
+                    <el-tooltip
+                      v-else
+                      class="tips"
+                      effect="dark"
+                      :content="item.priceRiskLowerLimit + ' ~ ' + item.priceRiskUpperLimit "
+                      placement="bottom"
+                      :offset="4"
+                      :show-after="500"
+                    >
+                      <div class="text">{{ item.priceRiskLowerLimit + ' ~ ' + item.priceRiskUpperLimit }}</div>
+                    </el-tooltip>
+                    <img
+                      v-if="item.month !== '合计'"
+                      @click="edit(item)"
+                      src="../../assets/images/common/common-edit.svg"
+                    />
+                    <span v-else></span>
+                  </div>
+                </td>
+                <td>{{ item.retrofitBeforeValue === null ? '--' : item.retrofitBeforeValue }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-nodata flex-column-center-center" v-if="tableData?.length === 0 && !loading">
+            <img src="../../assets/images/common/common-data-none.svg" alt="" />
+            <p>暂无数据</p>
+          </div>
+        </div>
+      </div>
+    </template>
+  </page-container>
+</div>
+<!-- 月度比列表 -->
+<MonthlyProportion
+  v-drag
+  ref="proportionRef"
+  :householdNumberList="householdNumberList"
+  :energyCode="energyCode"
+  :energyCodeName="energyCodeName"
+  :num="num"
+  @addOK="addOK"
+></MonthlyProportion>
+<!-- 编辑合同账期&风险区间 -->
+<editDialog
+  v-drag
+  :key="editNum"
+  :rows="editRows"
+  :dialogAdd="editDialogAdd"
+  :energyCode="energyCode"
+  :year="year"
+  @editOK="editOK"
+></editDialog>

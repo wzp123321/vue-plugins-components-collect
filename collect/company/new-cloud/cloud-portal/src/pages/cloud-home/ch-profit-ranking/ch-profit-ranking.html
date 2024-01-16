@@ -1,0 +1,51 @@
+<div id="ch-profit-ranking">
+  <div class="ch-profit-ranking-title">
+    <h5 class="ch-pr-title">盈利排行榜</h5>
+    <div class="ch-pr-title-type">
+      <div
+        v-for="item in timeChangeList"
+        class="ch-pr-title-type-text"
+        :class="{'ch-pr-title-type-select': timeSelect === item.value}"
+        @click="timeChange(item)"
+      >
+        {{ item.label }}
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-pr-unit">单位:&nbsp;&nbsp;{{unit? unit: '--'}}</div>
+
+  <div class="ch-pr-content" v-if="!pRankEnergy.empty && rankData?.length > 0  && !pRankEnergy.loading">
+    <img src="@/assets/img/cloud-home/ch-profit-ranking/ch-pr-bg.png" class="ch-pr-content-bg" />
+
+    <div class="ch-pr-content-info" v-for="(item, index) in rankData" :class="infobg(item.rankOrder)">
+      <div class="ch-pr-content-info-surplus" @mousemove="tooltipChange(item)" @mouseleave="tooltipOut(item.rankOrder)">
+        {{item.surplus}}
+        <!-- <div class="ch-pr-content-info-tooltip" v-if="item.surplus">
+          <p class="ch-pr-content-info-tooltip-text">{{ item.surplus }}</p>
+        </div> -->
+      </div>
+      <div
+        class="ch-pr-content-info-name"
+        @mousemove="tooltipNameChange(item)"
+        @mouseleave="tooltipNameOut(item.rankOrder)"
+      >
+        {{item.tenantName}}
+      </div>
+    </div>
+
+    <!-- 悬浮 -->
+    <div class="ch-pr-content-info-tooltip" v-if="tooltipName != null && isTooltip" :style="tooltipPosition">
+      <span class="ch-pr-content-info-tooltip-text">{{tooltipName}}</span>
+    </div>
+  </div>
+
+  <div class="ch-pr-loading" v-if="pRankEnergy.loading">
+    <i></i>
+  </div>
+
+  <div class="ch-pr-empty" v-if="(pRankEnergy.empty  ||  rankData.length === 0) && !pRankEnergy.loading">
+    <img src="@/assets/img/cloud-home/ch-energy-overview/ch-eo-empty.svg" />
+    <span>暂无数据</span>
+  </div>
+</div>

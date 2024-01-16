@@ -1,0 +1,49 @@
+<div class="report-generation">
+  <page-common title="报告报表生成">
+    <template v-slot:pageContent>
+      <div class="rg-box">
+        <el-tabs v-model="activeName" class="rg-tabs" @tab-click="handleClick">
+          <el-tab-pane label="报表" name="reportForm">
+            <RgStateMent v-if="activeName === 'reportForm'"></RgStateMent>
+          </el-tab-pane>
+          <el-tab-pane label="报告" name="report">
+            <div style="height: 100%;" v-loading="reportLoading">
+              <Report
+                ref="reportRef"
+                v-if="activeName === 'report' && reportItemList.length > 0 && !reportLoading"
+                :reportItemList="reportItemList"
+                :tabName="activeName"
+              ></Report>
+              <no-data v-show="reportItemList.length === 0 && !reportLoading"></no-data>
+            </div>
+          </el-tab-pane>
+
+          <!-- <div class="rg-tabs-follow" v-if="isFollow">
+            关注
+            <div style="height: 100%;" v-loading="reportLoading">
+              <Report
+                ref="reportRef"
+                v-if=" reportItemList.length > 0 && !reportLoading"
+                :reportItemList="reportItemList"
+                :key="handleReportKey"
+                :tabName="tabName"
+                @updateFollowStatusOk="updateFollowStatusOk"
+              ></Report>
+              <no-data
+                v-show="reportItemList.length === 0 && !reportLoading"
+              ></no-data>
+            </div>
+          </div> -->
+        </el-tabs>
+
+        <!-- <div class="re-follow" @click="onFollow">
+          <img
+            src="../../../assets/img/report-generation/rg-follow.svg"
+            alt=""
+          />
+          已关注
+        </div> -->
+      </div>
+    </template>
+  </page-common>
+</div>

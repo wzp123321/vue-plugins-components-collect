@@ -1,0 +1,117 @@
+.energy_consumption-area-modal {
+    height: 100%;
+    width: 100%;
+    .modal-group {
+        .label-header { 
+            height: 22px;
+            line-height: 22px;
+            color: rgba(34, 34, 34, 0.8);
+            font-size: 16px;
+            text-align: left; 
+            font-weight: bold;
+        }
+        .label-tip-name { 
+            color: rgba(34, 34, 34, 0.5);
+            font-size: 14px;
+            text-align: left; 
+        }
+        .label-input { 
+            height: 62px;
+            line-height: 22px;
+            border-radius: 5px;
+            background-color: rgba(243, 243, 243, 1);
+            color: rgba(34, 34, 34, 0.8);
+            font-size: 16px; 
+            --placeholder-color: rgba(34, 34, 34, 0.2); 
+            --placeholder-opacity: 1;
+        }
+        .label-input::-webkit-input-placeholder { 
+            color: rgba(34, 34, 34, 0.2); 
+        }
+        .label-input::-moz-placeholder { 
+            color:rgba(34, 34, 34, 0.2) 
+        } /* firefox 19+ */
+        .label-input:-ms-input-placeholder { 
+            color:rgba(34, 34, 34, 0.2) 
+        } /* ie */
+        .label-input:-moz-placeholder { 
+            color:rgba(34, 34, 34, 0.2) 
+        }
+        ::ng-deep .sc-ion-input-md-h {
+            --padding-top: 20px;
+            --padding-end: 0;
+            --padding-bottom: 20px;
+            --padding-start: 15px;
+           
+        }
+        .div-speech {
+            height: 140px;
+        }
+    }
+    .mt10 {
+        margin-top: 10px;
+    }
+    .mt15 {
+        margin-top: 15px;
+    }
+    .lable-btn { 
+        height: 62px;
+        line-height: 62px;
+        border-radius: 5px;
+        background-color: rgba(243, 243, 243, 1);
+        color: rgba(34, 34, 34, 0.8);
+        font-size: 16px; 
+        --placeholder-color: rgba(34, 34, 34, 0.2); 
+        --placeholder-opacity: 1;
+        padding: 20px 15px;
+        align-items: center;
+        justify-content: space-between;
+        display: flex;
+        white-space: nowrap;
+        .label-placeholder {
+            color: rgba(34, 34, 34, 0.2); 
+        }
+        .label-choice { 
+            color: rgba(18, 131, 255, 1);
+            font-size: 16px; 
+            margin-left: 15px;
+        }
+        .label-text { 
+            color: rgba(34, 34, 34, 0.8);
+            font-size: 16px; 
+            width: calc(100% - 50px);
+            overflow: hidden;
+        }
+       
+    }
+}
+.empty {
+    border: 1px solid rgba(247, 91, 87, 1);
+  }
+::ng-deep .am-calendar .single-month .row .cell .date-wrapper .selected-single {
+    border-radius: 5px;
+}   
+::ng-deep .am-calendar .confirm-panel {
+    display: none;
+}
+::ng-deep  .am-calendar .header .right {
+    display: none;
+}
+::ng-deep .am-calendar .header {
+    padding: 15px 0px;
+}
+::ng-deep .am-calendar .header .left {
+    right: 15px;
+    left: auto;
+    top: auto;
+    color: #4E4E4E;
+    width: 28px;
+    height: 28px;
+}
+::ng-deep .am-calendar .single-month .row .cell .date-wrapper .date-selected {
+    background: rgba(18, 131, 255, 1);
+}
+::ng-deep .am-calendar .header .left .am-icon {
+    width: 28px !important;
+    height: 28px !important;
+}

@@ -1,0 +1,128 @@
+#cd-t-tool-popover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 11;
+
+  .popover-container {
+    position: absolute;
+    width: 245px;
+    height: 160px;
+    z-index: 12;
+    border-radius: 4px;
+    background-color: var(--color-default);
+    box-shadow: 0px 10px 32px 0px rgba(38, 38, 38, 0.18);
+    padding: 4px;
+
+    > div:not([disabled='true']):hover {
+      background-color: #f0f0f0;
+      transition: all 233ms;
+    }
+
+    > div {
+      display: flex;
+      align-items: center;
+
+      padding: 8px 0 8px 15px;
+    }
+
+    > div > img {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.whole-save {
+      width: 104px;
+      height: 48px;
+      padding: 4px;
+
+      > div.save-btn {
+        padding: 8px 0 8px 8px;
+      }
+    }
+
+    > div,
+    > div > span {
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+
+    > div.delete-btn[disabled='true'] {
+      cursor: not-allowed;
+
+      span {
+        cursor: not-allowed;
+        color: var(--color-text-disable);
+      }
+    }
+
+    :deep(.el-input-number) {
+      width: 72px;
+      height: 20px;
+
+      .el-input--small {
+        line-height: 20px;
+      }
+
+      .el-input-number__decrease,
+      .el-input-number__increase {
+        width: 10px;
+        display: inline-block;
+        height: 10px;
+        line-height: 10px;
+        margin-left: 2px;
+        border: 1px solid var(--color-text-border);
+        border-radius: 0;
+        background-color: var(--color-default);
+
+        &.is-disabled::before {
+          color: var(--color-text-disable);
+        }
+
+        i.el-icon {
+          display: none;
+        }
+      }
+
+      .el-input-number__increase::before {
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.85);
+        font-weight: 600;
+        font-family: 'toc-iconfont';
+        content: '\e6b3';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+
+      .el-input-number__decrease::before {
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.85);
+        font-weight: 600;
+        font-family: 'toc-iconfont';
+        content: '\e6a5';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+
+      > .el-input {
+        line-height: 20px;
+      }
+
+      > .el-input > .el-input__inner {
+        width: 60px;
+        height: 20px !important;
+        line-height: 20px !important;
+        padding-left: 8px !important;
+        border-radius: 2px;
+        text-align: left;
+      }
+    }
+  }
+}

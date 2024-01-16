@@ -1,0 +1,41 @@
+<div v-drag="visible" class="tb-add-update-dialog">
+  <el-dialog
+    title="点位选择"
+    v-model="visible"
+    width="40%"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
+    destroy-on-close
+  >
+    <div class="flex" style="height: 400px; overflow: hidden">
+      <SelectList
+        :loading="concentratorLoading"
+        title="站点"
+        :dataList="concentratorList"
+        v-model:activeId="concentratorId"
+        @choose="onConcentratorChoose"
+      ></SelectList>
+      <SelectList
+        :loading="deviceLoading"
+        title="设备名称"
+        :dataList="deviceList"
+        v-model:activeId="deviceId"
+        @choose="onDeviceIdChoose"
+      >
+      </SelectList>
+      <SelectList
+        :loading="pointLoading"
+        title="点位名称"
+        nodeKey="id"
+        :dataList="pointList"
+        v-model:activeId="pointId"
+      ></SelectList>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <button @click="visible = false">取消</button>
+        <button primary @click="onSubmit">确定</button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

@@ -1,0 +1,75 @@
+<div class="bpc-add-edit-dialog" v-drag="dialogFormVisible">
+  <el-dialog
+    :title="!isAddFlag ? '编辑环境信息' : '新增环境信息'"
+    :close-on-click-modal="false"
+    v-model="dialogFormVisible"
+    width="560px"
+    :before-close="onBeforeClose"
+  >
+    <el-form :model="pageForm" :rules="rules" ref="ruleForm" label-position="right">
+      <el-form-item label="采样类型" label-width="80px" prop="energyCode">
+        <el-select v-model="pageForm.energyCode">
+          <el-option v-for="item in energylList" :key="item.code" :label="item.name" :value="item.code"> </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="季节" label-width="80px" prop="seasonId">
+        <el-select v-model="pageForm.seasonId">
+          <el-option v-for="item in seasonList" :key="item.id" :label="item.name" :value="item.id"> </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="告警上限" label-width="80px" prop="alarmUpper">
+        <el-input v-show="!flag" v-model="alarmUpper" v-inputFilter:number="{ integral: 10, decimal: 4 }"> </el-input>
+        <el-input
+          v-show="flag"
+          v-model="alarmUpper"
+          @focus="onFocus(alarmUpper)"
+          @input="alarmUpper = alarmUpper.replace(alarmUpper,resetValues(alarmUpper))"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="舒适上限" label-width="80px" prop="comfortableUpper">
+        <el-input v-show="!flag" v-model="comfortableUpper" v-inputFilter:number="{ integral: 10, decimal: 4 }">
+        </el-input>
+        <el-input
+          v-show="flag"
+          v-model="comfortableUpper"
+          @focus="onFocus2(comfortableUpper)"
+          @input="comfortableUpper = comfortableUpper.replace(comfortableUpper,resetValues2(comfortableUpper))"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="舒适下限" label-width="80px" prop="comfortableLower">
+        <el-input v-show="!flag" v-model="comfortableLower" v-inputFilter:number="{ integral: 10, decimal: 4 }">
+        </el-input>
+        <el-input
+          v-show="flag"
+          v-model="comfortableLower"
+          @focus="onFocus3(comfortableLower)"
+          @input="comfortableLower = comfortableLower.replace(comfortableLower,resetValues3(comfortableLower))"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="告警下限" label-width="80px" prop="alarmLower">
+        <!-- 不是温度 -->
+        <el-input v-show="!flag" v-model="alarmLower" v-inputFilter:number="{ integral: 10, decimal: 4 }"> </el-input>
+        <!-- 是温度 -->
+        <el-input
+          v-show="flag"
+          v-model="alarmLower"
+          @focus="onFocus4(alarmLower)"
+          @input="alarmLower = alarmLower.replace(alarmLower,resetValues4(alarmLower))"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="权重" label-width="80px" prop="weight">
+        <el-input v-model="weight" v-inputFilter:number="{ integral: 10, decimal: 4 }"> </el-input>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer" style="text-align: center">
+        <el-button @click="onBeforeClose">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</div>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="44px" viewBox="0 0 42 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>告警备份</title>
+    <defs>
+        <filter x="-142.9%" y="-109.1%" width="385.7%" height="318.2%" filterUnits="objectBoundingBox" id="filter-1">
+            <feGaussianBlur stdDeviation="5" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+        <path d="M8,1.125 C8.3453125,1.125 8.625,1.4046875 8.625,1.75 L8.625,1.75 L8.625,2.35625 C10.7453125,2.659375 12.375,4.4828125 12.375,6.6875 L12.375,6.6875 L12.375,12 L12.75,12 C13.0265625,12 13.25,12.2234375 13.25,12.5 L13.25,12.5 L13.25,13 C13.25,13.06875 13.19375,13.125 13.125,13.125 L13.125,13.125 L9.75,13.125 C9.75,14.090625 8.965625,14.875 8,14.875 C7.034375,14.875 6.25,14.090625 6.25,13.125 L6.25,13.125 L2.875,13.125 C2.80625,13.125 2.75,13.06875 2.75,13 L2.75,13 L2.75,12.5 C2.75,12.2234375 2.9734375,12 3.25,12 L3.25,12 L3.625,12 L3.625,6.6875 C3.625,4.4828125 5.2546875,2.659375 7.375,2.35625 L7.375,2.35625 L7.375,1.75 C7.375,1.4046875 7.6546875,1.125 8,1.125 Z M8.75,13.125 L7.25,13.125 C7.25,13.5390625 7.5859375,13.875 8,13.875 C8.4140625,13.875 8.75,13.5390625 8.75,13.125 L8.75,13.125 Z" id="path-2"></path>
+        <filter x="-23.8%" y="-18.2%" width="147.6%" height="136.4%" filterUnits="objectBoundingBox" id="filter-3">
+            <feGaussianBlur stdDeviation="2" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="1" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1  0 0 0 0.668624344 0" type="matrix" in="shadowInnerInner1" result="shadowMatrixInner1"></feColorMatrix>
+            <feGaussianBlur stdDeviation="2" in="SourceAlpha" result="shadowBlurInner2"></feGaussianBlur>
+            <feOffset dx="-1" dy="-1" in="shadowBlurInner2" result="shadowOffsetInner2"></feOffset>
+            <feComposite in="shadowOffsetInner2" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner2"></feComposite>
+            <feColorMatrix values="0 0 0 0 1   0 0 0 0 0   0 0 0 0 0  0 0 0 1 0" type="matrix" in="shadowInnerInner2" result="shadowMatrixInner2"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixInner1"></feMergeNode>
+                <feMergeNode in="shadowMatrixInner2"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="app-能源经理工具" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="告警备份" transform="translate(13.000000, 14.000000)" fill-rule="nonzero">
+            <rect id="矩形" fill="#000000" opacity="0" x="0" y="0" width="16" height="16"></rect>
+            <path d="M8,1.125 C8.3453125,1.125 8.625,1.4046875 8.625,1.75 L8.625,1.75 L8.625,2.35625 C10.7453125,2.659375 12.375,4.4828125 12.375,6.6875 L12.375,6.6875 L12.375,12 L12.75,12 C13.0265625,12 13.25,12.2234375 13.25,12.5 L13.25,12.5 L13.25,13 C13.25,13.06875 13.19375,13.125 13.125,13.125 L13.125,13.125 L9.75,13.125 C9.75,14.090625 8.965625,14.875 8,14.875 C7.034375,14.875 6.25,14.090625 6.25,13.125 L6.25,13.125 L2.875,13.125 C2.80625,13.125 2.75,13.06875 2.75,13 L2.75,13 L2.75,12.5 C2.75,12.2234375 2.9734375,12 3.25,12 L3.25,12 L3.625,12 L3.625,6.6875 C3.625,4.4828125 5.2546875,2.659375 7.375,2.35625 L7.375,2.35625 L7.375,1.75 C7.375,1.4046875 7.6546875,1.125 8,1.125 Z M8.75,13.125 L7.25,13.125 C7.25,13.5390625 7.5859375,13.875 8,13.875 C8.4140625,13.875 8.75,13.5390625 8.75,13.125 L8.75,13.125 Z" id="形状结合" fill="#FF6161" filter="url(#filter-1)"></path>
+            <g id="形状结合">
+                <use fill="#FF0000" xlink:href="#path-2"></use>
+                <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-2"></use>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,65 @@
+@import 'common';
+$black: #222;
+::ng-deep .head {
+    background: #fff;
+}
+.em__week-summary {
+    --offset-bottom: -44px !important;
+    --ion-background-color: #F2F3F6;
+    ion-list {
+        margin: 0 15px;
+        padding-top: 0;
+        padding-bottom: 20px;
+    }
+    .list {
+        line-height: 1.43;
+        .list__time {
+            margin: 20px 0 10px 0;
+            text-align: center;
+            color: rgba($color: $black, $alpha: .5);
+        }
+        .list__card {
+            position: relative;
+            padding: 20px;
+            border-radius: 5px;
+            background: #fff;
+            box-shadow: 0 6px 15px -5px #DEE8F0;
+            .list__card__share {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+            }
+            .list__card__title {
+                margin-bottom: 15px;
+                color: rgba($color: $black, $alpha: .5);
+            }
+            .list__card__content {
+                display: flex;
+                .content__avatar {
+                    flex-shrink: 0;
+                    width: 44px;
+                    height: 44px;
+                }
+                .content__text {
+                    margin: 5px 0 5px 30px;
+                    flex-grow: 1;
+                    .text--title {
+                        margin: 0;
+                        font-size: 18px;
+                        color: rgba($color: $black, $alpha: .8);
+                    }
+                    .text--desc {
+                        margin: 20px 0 15px;
+                        color: rgba($color: $black, $alpha: .8);
+                        p {
+                            margin-bottom: 5px;
+                        }
+                    }
+                    .text--comment{
+                        color: #D49F00;
+                    }
+                }
+            }
+        }
+    }
+}

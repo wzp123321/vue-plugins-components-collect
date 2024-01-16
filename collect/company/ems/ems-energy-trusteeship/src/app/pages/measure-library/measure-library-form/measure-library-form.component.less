@@ -1,0 +1,46 @@
+#measure-library-form {
+  width: 100%;
+
+  & > .form-container {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    place-content: center;
+    place-items: center stretch;
+    gap: 16px 8px;
+
+    & > label {
+      text-align: right;
+    }
+
+    .form-textarea {
+      &-label {
+        align-self: flex-start;
+      }
+      &-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+
+        & > .textarea-counter {
+          align-self: flex-end;
+          height: 0px;
+
+          transform: translate(-10px, -22px);
+
+          &::after {
+            content: attr(data-count);
+
+            height: 22px;
+
+            color: fade(black, 25%);
+
+            line-height: 22px;
+            font-size: 14px;
+            font-weight: 400;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+<div id="mhm-actual-payment-bill" v-loading="loading">
+  <div class="ma-mcpb-back" @click="back">
+    <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-dialog-back.svg" alt="" />
+    查看票据: {{billList?.name}}
+  </div>
+  <div class="ma-mcpb-body" v-if="pictureList.length > 0 || fileist.length > 0">
+    <div class="ma-mcpb-body-picture" v-if="billList?.list.pictureVOList.length > 0" :style="pictureMaxHeight()">
+      <div class="ma-mcpb-body-picture-item" v-for="(item, pictureIndex) in billList?.list.pictureVOList">
+        <el-image
+          style="width: 100%; height: 100%"
+          :src="item.fileUrl"
+          :preview-src-list="[item.fileUrl]"
+          :initial-index="1"
+          fit="cover"
+        />
+      </div>
+    </div>
+    <!-- <div class="ma-mcpb-body-picture-empty flex-column-center-center" v-if="billList?.list.pictureVOList.length === 0">
+      <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-empty.svg" alt="" />
+      <p>暂无数据</p>
+    </div> -->
+
+    <div class="ma-mcpb-body-file">
+      <!-- <div class="ma-mcpb-body-file-title">文件名称</div> -->
+      <div class="ma-mcpb-body-file-body" v-if="billList?.list.fileVOList.length > 0" :style="maxHeight()">
+        <div
+          class="ma-mcpb-body-file-item"
+          v-for="(item,fileIndex) in billList?.list.fileVOList"
+          @click="download(item)"
+        >
+          <div class="ma-mcpb-body-file-item-icon"></div>
+          <el-tooltip
+            class="tips"
+            effect="dark"
+            :content="item.fileName"
+            placement="bottom-start"
+            :offset="4"
+            :show-after="500"
+          >
+            <div class="ma-mcpb-body-file-item-file">{{item.fileName}}</div>
+          </el-tooltip>
+        </div>
+      </div>
+
+      <!-- <div class="ma-mcpb-body-file-empty flex-column-center-center" v-if="billList?.list.fileVOList.length === 0">
+        <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-empty.svg" alt="" />
+        <p>暂无数据</p>
+      </div> -->
+    </div>
+  </div>
+  <!-- 空 -->
+  <div
+    class="ma-mcpb-body-empty flex-column-center-center"
+    v-if="pictureList.length === 0 && fileist.length === 0 && !loading"
+  >
+    <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+    <p>暂无数据</p>
+  </div>
+</div>

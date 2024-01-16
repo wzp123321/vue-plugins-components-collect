@@ -1,0 +1,23 @@
+<div class="th-alarm-track" @click="pageToAlarm">
+  <h5>告警处理跟踪</h5>
+  <div
+    class="th-alarm-track--container"
+    v-if="!alarmTrackService.is_error && alarmTrackService?.dataSource?.length === 4"
+  >
+    <div class="th-atc-left">
+      <th-at-card :alarmTrackVO="alarmTrackService?.dataSource?.[0]"></th-at-card>
+      <th-at-card :alarmTrackVO="alarmTrackService?.dataSource?.[2]"></th-at-card>
+    </div>
+    <div class="th-atc-right">
+      <th-at-card :alarmTrackVO="alarmTrackService?.dataSource?.[1]"></th-at-card>
+      <th-at-card :alarmTrackVO="alarmTrackService?.dataSource?.[3]"></th-at-card>
+    </div>
+  </div>
+  <div
+    v-if="alarmTrackService.is_error && !alarmTrackService.loading"
+    class="th-alarm-track--empty flex-column-center-center"
+  >
+    <img src="../../../assets/img/common/common-table-nodata.svg" alt="" />
+    <span>暂无数据</span>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+.task-status-bubble {
+  border: 0px;
+  border-radius: 15px;
+  background: transparent;
+  color: transparent;
+  padding: 0 10px;
+  height: 20px;
+  font-size: 14px;
+
+  &.undone {
+    color: rgba(247, 91, 87, 1);
+    background-color: rgba(255, 235, 230, 1);
+  }
+
+  &.delay {
+    color: rgba(255, 129, 19, 1);
+    background-color: rgba(255, 246, 230, 1);
+  }
+
+  &.special {
+    color: rgba(18, 131, 255, 1);
+    background-color: rgba(18, 131, 255, 0.05);
+  }
+
+  p {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    line-height: normal;
+  }
+}

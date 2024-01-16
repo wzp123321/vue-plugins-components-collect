@@ -1,0 +1,51 @@
+<h-component-container :headTitle="title">
+  <template v-slot:header>
+    <button text @click="linkToDetailPage" :disabled="!canJump">详情</button>
+  </template>
+  <template v-slot:box>
+    <div class="home-kpi" v-loading="isLoading">
+      <div v-if="!isNoConfig" style="position: absolute; z-index: 1000; right: 30px; top: 16px">
+        <switch-button
+          v-model="switchSelect"
+          :switchItems="switchItems"
+          @switch-button-change="switchChange"
+        ></switch-button>
+      </div>
+      <!-- 图表 start -->
+      <div class="kpi--left" v-if="!isLoading && !isNoData && !isNoConfig && !isNoDataData">
+        <kpi-chart :percent="percentData" :unitName="unitName"></kpi-chart>
+      </div>
+      <!-- 图表 end -->
+      <div class="kpi--right" v-if="!isLoading && !isNoData && !isNoConfig && !isNoDataData">
+        <div class="kpi-switch--wrap"></div>
+        <!-- detail start -->
+        <div class="kpi-detail--wrap">
+          <kpi-detail :cardData="cardData" :tipsData="tipsData" :kpiType="kpiType"></kpi-detail>
+        </div>
+        <!-- detail end -->
+      </div>
+      <!-- 无数据时1 start -->
+      <no-datas
+        :isNoData="isNoDataData"
+        :kpiType="kpiType"
+        :kpiTypeId="kpiTypeId"
+        :kpiDingeType="kpiDingeType"
+        :energyConservationEnergyCode="energyConservationEnergyCode"
+        :title="isNoDataMsg"
+        v-if="!isLoading && !isNoData && !isNoConfig && isNoDataData"
+      ></no-datas>
+      <!-- 无数据时1 end -->
+      <!-- 无数据时2 start -->
+      <no-data :title="isNoDataMsg" v-if="!isLoading && isNoData && !isNoConfig && !isNoDataData"></no-data>
+      <!-- 无数据时2 end -->
+      <!-- 无配置时 start -->
+      <no-data
+        :imgUrl="noConfigImg"
+        :title="isNoConfigMsg"
+        v-if="!isLoading && !isNoData && isNoConfig && !isNoDataData"
+      >
+      </no-data>
+      <!-- 无配置时 end -->
+    </div>
+  </template>
+</h-component-container>

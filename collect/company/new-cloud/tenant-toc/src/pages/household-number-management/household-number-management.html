@@ -1,0 +1,198 @@
+<div class="household-number-management">
+  <page-container title="户号管理">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="formInline" @submit.native.prevent>
+        <el-form-item>
+          <input
+            v-textInputFilter
+            placeholder="请输入户号"
+            maxlength="32"
+            v-model="formInline.search"
+            style="width: 240px"
+          />
+        </el-form-item>
+        <el-form-item label="能源类型">
+          <el-select v-model="formInline.energyType" placeholder="请选择能源类型" clearable @clear="energyTypeClear">
+            <el-option
+              v-for="(item, index) in energyList"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+              :title="item.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div style="height: 100%" class="household-number-management_content">
+        <div class="hnm-pageContent-header">
+          <el-button :disabled="downLoadLoading" style="margin-left: 10px" @click="download">
+            {{ downLoadLoading ? '正在下载' : '下载模板'}}</el-button
+          >
+          <input
+            type="file"
+            ref="clearFile"
+            @change="getFile($event)"
+            class="hnm-pageContent-header-upload"
+            :accept="['.xlsm', '.xls', '.xlsx']"
+          />
+          <el-button :disabled="uploadLoading" style="margin-left: 10px" @click="uploadTemplate">
+            {{ uploadLoading ? '正在导入' : '模板导入'}}</el-button
+          >
+          <el-button type="primary" @click="addHouseholdNumber">新增</el-button>
+        </div>
+        <div style="height: calc(100% - 68px)" v-loading="loading">
+          <table v-if="!loading" style="width: 100%">
+            <thead>
+              <tr>
+                <th style="width: 70px">序号</th>
+                <th>户号</th>
+                <th>能源类型</th>
+                <th>关联节点</th>
+                <th v-if="hostingAreaList.length > 0">所属托管区域</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in tableData" :key="'household_number_'+index">
+                <td>{{ (pageNum - 1) * pageSize + index + 1 }}</td>
+                <td>
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.accountNumber === null ? '--' : item.accountNumber"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.accountNumber === null ? '--' : item.accountNumber }}</div>
+                  </el-tooltip>
+                </td>
+                <td>
+                  <el-tooltip
+                    class="tips"
+                    effect="dark"
+                    :content="item.energyName === null ? '--' : item.energyName"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.energyName === null ? '--' : item.energyName }}</div>
+                  </el-tooltip>
+                </td>
+                <td>
+                  <div v-if="item.treeName === null || item.treeName === ''">--</div>
+                  <el-tooltip
+                    v-else
+                    class="tips"
+                    effect="dark"
+                    :content="item.treeName"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.treeName }}</div>
+                  </el-tooltip>
+                </td>
+                <td v-if="hostingAreaList.length > 0">
+                  <div v-if="item.hostingAreaName === null || item.hostingAreaName === ''">--</div>
+                  <el-tooltip
+                    v-else
+                    class="tips"
+                    effect="dark"
+                    :content="item.hostingAreaName"
+                    placement="bottom"
+                    :offset="4"
+                    :show-after="500"
+                  >
+                    <div class="text">{{ item.hostingAreaName }}</div>
+                  </el-tooltip>
+                </td>
+                <td>
+                  <span class="operate-span" @click="editHouseholdNumber(item)">编辑</span>
+                  <el-popconfirm title="确认删除该条数据吗?" @confirm="deleteHouseholdNumber(item.id)">
+                    <template #reference>
+                      <span class="delete-span">删除</span>
+                    </template>
+                  </el-popconfirm>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-nodata flex-column-center-center" v-if="tableData?.length === 0 && !loading">
+            <img src="../../assets/images/common/common-data-none.svg" alt="" />
+            <p>暂无数据</p>
+          </div>
+          <el-pagination
+            v-show="total > 0"
+            :current-page="pageNum"
+            :page-sizes="pageSizesArray"
+            @size-change="onPageSizeChange"
+            @current-change="onCurrentChange"
+            :page-size="pageSize"
+            layout="total, prev, pager, next, sizes, jumper"
+            :total="total"
+          >
+          </el-pagination>
+        </div>
+      </div>
+    </template>
+  </page-container>
+</div>
+<!-- 新增编辑弹框 -->
+<AddAndEditDialog
+  ref="addDialogRef"
+  :rows="rows"
+  :energyList="energyList"
+  :ShowHostingAreaList="hostingAreaList"
+  :num="num"
+  @addOK="getList"
+  @queryAssociatedNodeListOK="queryAssociatedNodeListOK"
+>
+</AddAndEditDialog>
+
+<!-- 导入模板错误数据 -->
+<el-dialog
+  custom-class="import-error-dialog"
+  v-model="importErrorVisible"
+  title="错误原因"
+  width="800px"
+  :before-close="errorDialogClose"
+>
+  <table style="width: 100%" scroll-y>
+    <thead :style="{ 'width': errorDataList?.length > 10 ? 'calc(100% - 8px)' : '100%' }">
+      <tr>
+        <th style="width: 50px">序号</th>
+        <th style="width: 170px">模板位置</th>
+        <th>详细信息</th>
+      </tr>
+    </thead>
+    <tbody style="height: 480px" @scroll="onScroll">
+      <tr v-for="(item, index) in errorDataList" :key="index">
+        <td style="width: 50px">{{ index +1 }}</td>
+        <td style="width: 170px" ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.position }}</div>
+            </template>
+            <span>{{ item.position }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.detail }}</div>
+            </template>
+            <span>{{ item.detail }}</span>
+          </el-tooltip>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</el-dialog>

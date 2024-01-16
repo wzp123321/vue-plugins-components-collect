@@ -1,0 +1,283 @@
+<div class="ma-monthly-data">
+  <page-container title="月度明细表">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="formInline" @submit.native.prevent>
+        <el-form-item label="时间维度">
+          <el-select v-model="formInline.valueType" placeholder="请选择时间维度" @change="queryYearList">
+            <el-option
+              v-for="(item, index) in valueTypeList"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+              style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; width: 194px"
+              :title="item.name"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-date-picker
+            placeholder="请选择"
+            :clearable="false"
+            v-model="formInline.year"
+            type="year"
+            value-format="YYYY"
+            popper-class="mmd-DatePicker"
+            :disabled-date="mapDisabledDate"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch()">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <!-- 按钮 -->
+      <div class="ma-md-pageContent-header">
+        <el-button :disabled="nodeDownloadLoading" @click="onNodeDownload">
+          {{ nodeDownloadLoading ? '正在下载模板' : '下载节点模板'}}
+        </el-button>
+        <input type="file" ref="nodeFile" @change="getFile('node', $event)" style="display: none" :accept="['.xlsx']" />
+        <el-button :disabled="nodeImportLoading || nodeEditing" style="margin-left: 12px" @click="onImport('node')">
+          {{ nodeImportLoading ? '正在导入模板' : '导入节点模板'}}
+        </el-button>
+        <el-button :disabled="dataDownloadLoading" @click="onDataDownload">
+          {{ dataDownloadLoading ? '正在下载模板' : '下载数据模板'}}
+        </el-button>
+        <input type="file" ref="dataFile" @change="getFile('data', $event)" style="display: none" :accept="['.xlsx']" />
+        <el-button
+          type="primary"
+          :disabled="dataImportLoading || nodeEditing"
+          style="margin-left: 12px"
+          @click="onImport('data')"
+        >
+          {{ dataImportLoading ? '正在导入模板' : '导入数据模板'}}
+        </el-button>
+      </div>
+      <!-- 表格 -->
+      <div style="height: calc(100% - 68px)" v-loading="loading">
+        <table
+          style="width: 100%"
+          v-if="masterDataSource?.head?.length || incomeDataSource?.head?.length || costDataSource?.head?.length"
+        >
+          <!-- 主节点 -->
+          <template v-if="masterDataSource?.head?.length">
+            <thead>
+              <tr>
+                <th v-for="(item, index) in mapHeadList(masterDataSource?.head)" :colspan="index === 0 ? 2 : 1">
+                  {{ item.title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in masterDataSource.list">
+                <td
+                  v-for="(childItem, childIndex) in masterDataSource.head"
+                  :style="childIndex > 1  ? {
+                    width: `${cellWidth}px`
+                  } : 
+                  { 
+                    minWidth: childIndex === 0 ? '30px' : '100px'
+                  }"
+                >
+                  <div
+                    v-if="!mapColumnEditing(childItem.month, item.id)"
+                    class="ma-md-column"
+                    :style="childIndex > 1 ? { width: `${cellWidth - 1}px` } : {  minWidth: childIndex === 0 ? '30px' : '100px' }"
+                  >
+                    <div
+                      :title="(item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                    undefined) ? '' : item[childItem.props]"
+                    >
+                      {{ (item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                      undefined) ? '--' : item[childItem.props] }}
+                    </div>
+                    <!-- <img
+                      v-if="mapColumnEditable(childItem.editable, item.title)"
+                      @click="handleColumnBeEdit(childItem.month, item.id, item[childItem.props], MA_EMonthlyNodeType.主节点)"
+                      title="编辑"
+                      src="../../../assets/images/management-analysis/ma-monthly/ma-monthly-edit-icon.svg"
+                      alt=""
+                    /> -->
+                  </div>
+                  <!-- <input
+                    class="ma-md-input"
+                    placeholder="请输入"
+                    v-inputFilter:number="{ integral: 10, decimal: 2 }"
+                    v-if="mapColumnEditing(childItem.month, item.id)"
+                    v-model="item[childItem.props]"
+                    autofocus
+                    type="text"
+                    @keydown.enter="handleEnter($event)"
+                    @blur="handleNodeEdit($event, MA_EMonthlyNodeType.主节点)"
+                  /> -->
+                </td>
+              </tr>
+            </tbody>
+          </template>
+
+          <!-- 收入 -->
+          <template v-if="incomeDataSource?.head?.length">
+            <thead>
+              <tr>
+                <th v-for="(item, index) in mapHeadList(incomeDataSource?.head)" :colspan="index === 0 ? 2 : 1">
+                  {{ item.title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in incomeDataSource.list">
+                <td
+                  v-for="(childItem, childIndex) in incomeDataSource.head"
+                  :style="childIndex > 1  ? {
+                    width: `${cellWidth}px`
+                  } : 
+                  { 
+                    minWidth: childIndex === 0 ? '30px' : '100px'
+                  }"
+                >
+                  <div
+                    v-if="!mapColumnEditing(childItem.month, item.id)"
+                    class="ma-md-column"
+                    :style="childIndex > 1 ? { width: `${cellWidth - 1}px` } : {  minWidth: childIndex === 0 ? '30px' : '100px' }"
+                  >
+                    <div
+                      :title="(item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                    undefined) ? '' : item[childItem.props]"
+                    >
+                      {{ (item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                      undefined) ? '--' : item[childItem.props] }}
+                    </div>
+                    <!-- <img
+                      v-if="mapColumnEditable(childItem.editable, item.title)"
+                      @click="handleColumnBeEdit(childItem.month, item.id, item[childItem.props], MA_EMonthlyNodeType.收入)"
+                      title="编辑"
+                      src="../../../assets/images/management-analysis/ma-monthly/ma-monthly-edit-icon.svg"
+                      alt=""
+                    /> -->
+                  </div>
+                  <!-- <input
+                    class="ma-md-input"
+                    placeholder="请输入"
+                    v-inputFilter:number="{ integral: 10, decimal: 2 }"
+                    v-if="mapColumnEditing(childItem.month, item.id)"
+                    v-model="item[childItem.props]"
+                    autofocus
+                    type="text"
+                    @keydown.enter="handleEnter($event)"
+                    @blur="handleNodeEdit($event, MA_EMonthlyNodeType.收入)"
+                  /> -->
+                </td>
+              </tr>
+            </tbody>
+          </template>
+
+          <!-- 支出 -->
+          <template v-if="costDataSource?.head?.length">
+            <thead>
+              <tr>
+                <th v-for="(item, index) in mapHeadList(costDataSource?.head)" :colspan="index === 0 ? 2 : 1">
+                  {{ item.title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in costDataSource.list">
+                <td
+                  v-for="(childItem, childIndex) in costDataSource.head"
+                  :style="childIndex > 1  ? {
+                    width: `${cellWidth}px`
+                  } : 
+                  { 
+                    minWidth: childIndex === 0 ? '30px' : '100px'
+                  }"
+                >
+                  <div
+                    v-if="!mapColumnEditing(childItem.month, item.id)"
+                    class="ma-md-column"
+                    :style="childIndex > 1 ? { width: `${cellWidth - 1}px` } : {  minWidth: childIndex === 0 ? '30px' : '100px' }"
+                  >
+                    <div
+                      :title="(item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                    undefined) ? '' : item[childItem.props]"
+                    >
+                      {{ (item[childItem.props] === null || item[childItem.props] === ''|| item[childItem.props] ===
+                      undefined) ? '--' : item[childItem.props] }}
+                    </div>
+                    <!-- <img
+                      v-if="mapColumnEditable(childItem.editable, item.title)"
+                      @click="handleColumnBeEdit(childItem.month, item.id, item[childItem.props], MA_EMonthlyNodeType.成本)"
+                      title="编辑"
+                      src="../../../assets/images/management-analysis/ma-monthly/ma-monthly-edit-icon.svg"
+                      alt=""
+                    /> -->
+                  </div>
+                  <!-- <input
+                    class="ma-md-input"
+                    placeholder="请输入"
+                    v-inputFilter:number="{ integral: 10, decimal: 2 }"
+                    v-if="mapColumnEditing(childItem.month, item.id)"
+                    v-model="item[childItem.props]"
+                    autofocus
+                    type="text"
+                    @keydown.enter="handleEnter($event)"
+                    @blur="handleNodeEdit($event, MA_EMonthlyNodeType.成本)"
+                  /> -->
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </table>
+
+        <!-- 缺省图 -->
+        <div
+          class="ma-md-data-none"
+          v-if="masterDataSource?.head?.length === 0 && incomeDataSource?.head?.length === 0 && costDataSource?.head?.length === 0 && !loading"
+        >
+          <img src="../../../assets/images/common/common-data-none.svg" alt="" />
+          <p>暂无数据，请先维护节点数据</p>
+        </div>
+      </div>
+    </template>
+  </page-container>
+</div>
+
+<!-- 导入模板错误数据 -->
+<el-dialog
+  custom-class="import-error-dialog"
+  v-model="importErrorVisible"
+  title="错误原因"
+  width="800px"
+  :close-on-click-modal="false"
+>
+  <table style="width: 100%" scroll-y>
+    <thead :style="{ 'width': errorDataList?.length > 10 ? 'calc(100% - 8px)' : '100%' }">
+      <tr>
+        <th style="width: 50px">序号</th>
+        <th>模板位置</th>
+        <th>详细信息</th>
+      </tr>
+    </thead>
+    <tbody style="height: 480px" @scroll="onScroll">
+      <tr v-for="(item, index) in errorDataList" :key="index">
+        <td style="width: 50px">{{ index +1 }}</td>
+        <td ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.position }}</div>
+            </template>
+            <span>{{ item.position }}</span>
+          </el-tooltip>
+        </td>
+        <td ellipsis>
+          <el-tooltip effect="dark" placement="bottom" :offset="4" :show-after="500">
+            <template v-slot:content>
+              <div style="word-break: break-all; white-space: normal">{{ item.detail }}</div>
+            </template>
+            <span>{{ item.detail }}</span>
+          </el-tooltip>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</el-dialog>

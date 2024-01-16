@@ -1,0 +1,23 @@
+<div class="aba-explain-item flex-row-start-center">
+    <span class="aba-explain-item__title" :title="`${explainInfo.name}（${explainInfo.unit}）`">
+        {{ explainInfo.name }}
+        （{{ explainInfo.unit }}）
+    </span>
+    <div class="aba-explain-item__progress">
+        <ExplainProgress :explainInfo="explainInfo"></ExplainProgress>
+    </div>
+    <div class="aba-explain-item__legend" v-if="hasLegend">
+        <div class="aba-explain-item__legend-chunk flex-row-start-center">
+            <span class="title">标准范围</span>
+            <div class="legend">
+                <ExplainProgress :isLegend="true"></ExplainProgress>
+            </div>
+        </div>
+        <div class="aba-explain-item__legend-chunk flex-row-start-center">
+            <span class="title">测量值</span>
+            <div class="legend" style="text-align: right">
+                <img src="../../../../../assets/img/airport-benchmarking/ab-measured-value.svg" alt="图例" />
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,101 @@
+<div class="km-using-progress flex-row-start-center">
+  <!-- 标题 -->
+  <div class="km-using-progress__title">
+    {{ title }}
+  </div>
+  <!-- 中间进度条 -->
+  <div
+    :class="[
+        'km-using-progress__bar',
+        status === 0 ? 'normal' : status === 1 ? 'unnormal' : 'over'
+      ]"
+  >
+    <!-- 日期 -->
+    <div class="datescope flex-row-justify-end">
+      <span>{{ dateScope.startTime }}</span>
+      <span>{{ dateScope.endTime }}</span>
+    </div>
+    <!-- 当前消耗值 -->
+    <div
+      :style="{ width: compCosume && compCosume.percnet + '%' }"
+      class="progress-current"
+    ></div>
+    <!-- 当前理想值 -->
+    <div
+      v-if="compIdeal && compIdeal.percnet > 0"
+      class="progress-ideal"
+      :style="{
+          width: `calc(${compIdeal && compIdeal.percnet - compCosume.percnet}%)`
+        }"
+    ></div>
+    <!-- 当前状态 -->
+    <div
+      class="km-using-progress__bar-status"
+      :style="{
+          left:
+            'calc(' +
+            `${compCosume && compCosume.percnet ? compCosume.percnet : 0}%` +
+            ' - 5px)'
+        }"
+    >
+      <div class="status-circle">
+        <img :src="circles[status]" alt="" />
+        <span class="white-circle"></span>
+      </div>
+      <!-- 当前值tooltip (自身width/2-icon宽度/2-5) -->
+      <div
+        class="status-tooltip"
+        :style="{
+            border: `2px solid ${colors[status + 1]}`,
+            backgroundColor: backgroundColors[status],
+            left: 'calc(' + `${compCosume && compCosume.percnet}%` + ' - 66px)'
+          }"
+      >
+        <div class="data-title">
+          {{ isHistoryDate ? dateScope.endTime : compCosume.itemDay
+          }}：当前消耗值
+        </div>
+        <div class="data-num">
+          {{ thousandSeparation(compCosume.itemValue) }}
+          <formatter-unit fontSize="14px" :formatHtml="unit"></formatter-unit>
+        </div>
+      </div>
+    </div>
+    <!-- 理想值 -自身width/2 && 超出后的定额值 -->
+    <div
+      v-if="(compIdeal && compIdeal.percnet > 0) || status === 2"
+      class="km-using-progress__bar-ideal"
+      :style="{
+          left:
+            status !== 2
+              ? 'calc(' + (compIdeal && compIdeal.percnet) + '%' + ' - '+ width +'px)'
+              : 'calc(' + compQuota.percnet + '% - '+ width +'px)'
+        }"
+    >
+      <div class="tooltip-title">
+        {{ status === 2 ? '定额值' : '理想值' }}
+      </div>
+      <div class="tooltip-num">
+        {{ status === 2 ? thousandSeparation(compQuota.itemValue) : compIdeal &&
+        thousandSeparation(compIdeal.itemValue) }}
+        <formatter-unit fontSize="14px" :formatHtml="unit"></formatter-unit>
+      </div>
+    </div>
+    <!-- 超出值 -->
+    <div
+      class="km-using-progress__bar-over"
+      v-if="compQuota && compQuota.percnet !== 0"
+      :style="{
+          width: 'calc(100% - ' + compQuota.percnet + '% + 40px)'
+        }"
+    ></div>
+  </div>
+  <!-- 末尾定额值 -->
+  <div class="km-using-progress__max" v-if="status !== 2">
+    <div class="km-using-progress__max-title">{{ quotaTitle }}</div>
+    <div class="km-using-progress__max-num">
+      {{ thousandSeparation(compQuota.itemValue) }}
+      <formatter-unit fontSize="14px" :formatHtml="unit"></formatter-unit>
+    </div>
+  </div>
+</div>

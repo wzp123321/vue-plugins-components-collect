@@ -1,0 +1,58 @@
+<div class="ec-choose-month">
+  <el-popover
+    placement="bottom"
+    popper-class="month-popper"
+    :show-arrow="false"
+    v-model:visible="visible"
+    :width="297"
+    trigger="click"
+  >
+    <template #reference>
+      <div :class="['month-select',  chooseMonthList?.length && !visible ? 'month-clear' : '']">
+        <div class="inputBox">
+          <span v-for="(item, index) in chooseMonthList" :key="index">
+            {{ item.year }}-{{ item.value > 9 ? item.value : '0' + item.value }}
+            <i @click="deleteYearItem(index)" class="el-icon-close"></i>
+          </span>
+          <p v-if="chooseMonthList.length == 0">请选择月份</p>
+        </div>
+        <!-- 图标 -->
+        <i class="iconfont icon-Calendar"></i>
+        <i class="iconfont icon-Close-Circle-Fill" @click.stop="onClear"></i>
+      </div>
+    </template>
+    <div class="yearHead flex-row-center-center">
+      <div class="yearLeft" @click="changeYear(true)">
+        <i class="iconfont icon-doubleleft"></i>
+      </div>
+      <div class="yearClass" v-if="showMonthBox" @click="onYearClick">
+        {{ year }}年
+      </div>
+      <div class="yearClass" v-if="!showMonthBox">
+        {{ yearList[0] }}-{{ yearList[11] }}年
+      </div>
+      <div class="right" @click="changeYear(false)">
+        <i class="iconfont icon-a-doubleright"></i>
+      </div>
+    </div>
+    <div class="monthBox" v-show="showMonthBox">
+      <div
+        class="monthItem"
+        @click="OnMonthChoose(index, item.value)"
+        :class="{
+            activeMonth: item.key,
+            'date-disabled': checkDisabled(item.value)
+          }"
+        v-for="(item, index) in monthList"
+        :key="index"
+      >
+        <span>{{ item.value }}月</span>
+      </div>
+    </div>
+    <div class="yearBox" v-show="!showMonthBox">
+      <div class="monthItem" @click="onYearChoose(index)" v-for="(item, index) in yearList" :key="index">
+        <span>{{ item }}</span>
+      </div>
+    </div>
+  </el-popover>
+</div>

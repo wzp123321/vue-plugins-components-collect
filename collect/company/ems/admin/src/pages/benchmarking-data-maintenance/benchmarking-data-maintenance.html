@@ -1,0 +1,134 @@
+<page-common class="benchmarking-data-maintenance" title="对标数据维护" :showSearch="true" :isSubHead="true">
+  <template v-slot:pageSearch>
+    <!-- 头部 -->
+    <el-form :inline="true" :model="formInline" class="demo-form-inline" @submit.native.prevent>
+      <el-form-item label="体系选择">
+        <el-select v-model="formInline.systemId" placeholder="请选择体系" filterable>
+          <el-option
+            v-for="item in systemList"
+            :key="item.id"
+            :label="item.systemName"
+            :value="item.id"
+            style="width: 207px; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+            :title="item.systemName"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="数据时间">
+        <el-select v-model="formInline.benchmarkingType" placeholder="请选择">
+          <el-option v-for="item in quotaTypeList" :key="item.value" :label="item.label" :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="日期">
+        <div v-show="formInline.benchmarkingType == '1'">
+          <el-date-picker
+            :disabledDate="onDisableDateCb"
+            v-model="formInline.valueTime"
+            type="month"
+            :clearable="false"
+            placeholder="请选择日期"
+          >
+          </el-date-picker>
+        </div>
+        <div v-show="formInline.benchmarkingType == '2'">
+          <el-date-picker
+            :disabledDate="onDisableDateCbYear"
+            v-model="formInline.valueTime"
+            type="year"
+            :clearable="false"
+            placeholder="请选择日期"
+          >
+          </el-date-picker>
+        </div>
+      </el-form-item>
+      <el-form-item>
+        <button primary @click="onSearch">查询</button>
+        <button @click="onReset">重置</button>
+      </el-form-item>
+    </el-form>
+  </template>
+  <template v-slot:pageSubHead>
+    <input
+      type="file"
+      ref="clearFile"
+      @change="getFile($event)"
+      class="add-file-right-input"
+      style="margin-left: 70px; display: none"
+      accept=".xlsx"
+    />
+    <button @click="updateData">{{updateLoading?'正在更新数据':'更新数据'}}</button>
+    <button @click="importDatas">导 入</button>
+    <button primary @click="downLoad">{{ downloadLoading ? '正在下载模板' : '下载模板'}}</button>
+  </template>
+  <template v-slot:pageContent>
+    <div class="benchmarkingTable" v-loading="loading">
+      <el-table
+        :header-cell-style="{ background: '#edf5fc', color: 'rgba(0, 0, 0, 0.85)' }"
+        :data="tableData"
+        stripe
+        style="width: 100%"
+        v-show="!loading"
+      >
+        <el-table-column prop="index" label="序号" width="80" align="center" fixed>
+          <template #default="scope">{{ (pageNum - 1) * pageSize + scope.$index + 1 }}</template>
+        </el-table-column>
+        <el-table-column prop="name" label="节点名称" show-overflow-tooltip align="left" fixed min-width="160">
+          <template #header>
+            <div v-html="tableHeadData.name" class="data-maintenance-header"></div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-for="(item, i) in tableHeadData.benchmarkingDataValueQueryVOList"
+          :key="i"
+          show-overflow-tooltip
+          min-width="185"
+        >
+          <template #header>
+            <div v-html="item.value" class="data-maintenance-header" :title="item.value"></div>
+          </template>
+          <template #default="scope">
+            <!-- <div > -->
+            <div v-show="scope.row.benchmarkingDataValueQueryVOList[i].isInputShow" class="dataBox">
+              <span class="data-maintenance-body">
+                {{ scope.row.benchmarkingDataValueQueryVOList[i].valueBigdecimal || '--' }}
+              </span>
+              <img
+                @click="onChekImg(scope.row, i)"
+                class="editImg"
+                src="../../assets/img/benchmarking/bm-edit.png"
+                alt="editImg"
+              />
+            </div>
+            <el-input
+              v-inputFilter:number="{ integral: 10, decimal: 4 }"
+              v-show="!scope.row.benchmarkingDataValueQueryVOList[i].isInputShow"
+              :ref="el=>{inputDataRef[i] = el}"
+              v-model.trim="form.value"
+              size="mini"
+              :class="'input_'+ i"
+              @blur="onInputBurl($event, scope.row, i)"
+            ></el-input>
+          </template>
+        </el-table-column>
+      </el-table>
+      <ems-pagination
+        v-show="!loading && total>0"
+        :current-page="pageNum"
+        :page-sizes="pageSizes"
+        @size-change="onPageSizeChange"
+        @current-change="onCurrentChange"
+        :page-size="pageSize"
+        :total="total"
+      ></ems-pagination>
+    </div>
+  </template>
+</page-common>
+
+<DownloadDialog :dialogAdd="dialogAdd" v-model:downloadLoading="downloadLoading" @downloaddOK="onDownloaddOK">
+</DownloadDialog>
+<UpdateDialog
+  :dialogUpdate="dialogUpdate"
+  v-model:updateLoading="updateLoading"
+  @onUpdateOk="onUpdateOk"
+></UpdateDialog>

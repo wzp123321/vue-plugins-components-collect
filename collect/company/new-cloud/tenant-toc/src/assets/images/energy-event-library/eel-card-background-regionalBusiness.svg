@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="220px" height="117px" viewBox="0 0 220 117" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>区域业务调整</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="220" height="117" rx="4"></rect>
+    </defs>
+    <g id="后台" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="能源事件" transform="translate(-1437.000000, -181.000000)">
+            <g id="区域业务调整" transform="translate(1437.000000, 181.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="蒙版" fill="#FFFFFF" xlink:href="#path-1"></use>
+                <g id="eec-card-business" opacity="0.1" mask="url(#mask-2)">
+                    <g transform="translate(104.000000, 20.000000)">
+                        <circle id="椭圆形备份" fill="#85E2A5" fill-rule="nonzero" cx="83.3346757" cy="83.4586273" r="83.0950305"></circle>
+                        <g id="编组-26" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(33.674332, 36.748403)">
+                            <polygon id="矩形" stroke="#FFFFFF" stroke-width="0.9" points="66.3709808 -1.02185991e-15 70.5191671 16.5673724 29.0373041 16.5673724 29.0373041 4.14184305"></polygon>
+                            <rect id="矩形" fill="#FFFFFF" fill-rule="nonzero" x="3.07027463e-15" y="12.2116321" width="99.5564711" height="74.5640638" rx="0.9"></rect>
+                            <rect id="矩形" fill="#85E2A5" fill-rule="nonzero" x="3.07027463e-15" y="24.6371614" width="99.5564711" height="9.20409578"></rect>
+                            <path d="M91.3641037,49.8863959 C96.1916477,49.8863959 100.57285,51.6945273 103.740158,54.6516377 C106.803265,57.5114617 108.725031,61.4545767 108.725031,65.8262162 C108.725031,71.668486 103.456734,80.2739202 93.8075947,91.8069395 C79.3211564,79.6496254 74.0031756,71.4917504 74.0031756,65.8262162 C74.0031756,61.4545767 75.9249421,57.5114617 78.988049,54.6516377 C82.1553576,51.6945273 86.5365595,49.8863959 91.3641037,49.8863959 Z" id="椭圆形" stroke="#FFFFFF" stroke-width="0.9" fill="#85E2A5" fill-rule="nonzero"></path>
+                            <path d="M91.3641037,41.6027097 C98.4157153,41.6027097 104.789071,44.2900117 109.40653,48.601034 C114.128191,53.0093426 117.021404,59.1070594 117.021404,65.8262162 C117.021404,73.2055817 110.885216,84.7690378 97.4685857,100.30406 C71.062122,84.1620424 65.706803,72.9736927 65.706803,65.8262162 C65.706803,59.1070594 68.6000158,53.0093426 73.3216769,48.601034 C77.9391366,44.2900117 84.3124918,41.6027097 91.3641037,41.6027097 Z" id="椭圆形" stroke="#85E2A5" stroke-width="0.9"></path>
+                            <ellipse id="椭圆形" stroke="#FFFFFF" stroke-width="0.8" cx="91.3641037" cy="67.2207762" rx="9.21819177" ry="9.20409578"></ellipse>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,275 @@
+<div class="benchmarking-manage">
+  <page-common :title="'对标分析'" :showSearch="true">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="queryParams" @submit.native.prevent>
+        <el-form-item>
+          <el-input
+            placeholder="请输入体系名称"
+            :maxlength="20"
+            v-inputFilter:search
+            v-model="queryParams.name"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <button primary @click="onSearch">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div class="benchmarking-manage-container">
+        <div class="container-header mt6 mb13">
+          <button class="mr12" @click="backBenchmarkingAnalysis">返回对标展示</button>
+          <button primary @click="onAdddialog">新增</button>
+        </div>
+        <div class="container-data" style="height: calc(100% - 55px)" v-loading="loading">
+          <table class="container-data-table" v-if="!loading" style="width: 100%">
+            <thead>
+              <tr>
+                <th style="width: 60px">序号</th>
+                <th>父体系</th>
+                <th>子体系</th>
+                <th>标杆值类型</th>
+                <th>标杆值</th>
+                <th>单位</th>
+                <th style="width: 150px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in dataSource" :key="index">
+                <td style="width: 60px">{{ (queryParams.pageNum -1) * queryParams.pageSize + index + 1}}</td>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :offset="-5"
+                  :show-after="500"
+                  :content="item.parentName || '--'"
+                  placement="bottom"
+                >
+                  <td>{{ item.parentName || '--' }}</td>
+                </el-tooltip>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :offset="-5"
+                  :show-after="500"
+                  :content="item.name || '--'"
+                  placement="bottom"
+                >
+                  <td>{{ item.name || '--' }}</td>
+                </el-tooltip>
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :offset="-5"
+                  :show-after="500"
+                  :content="item.archTypeName || '--'"
+                  placement="bottom"
+                >
+                  <td>{{ item.archTypeName || '--' }}</td>
+                </el-tooltip>
+                <td>
+                  <div class="updete">
+                    <el-input
+                      v-inputFilter:number="{ integral: 10, decimal: 4 }"
+                      v-model="item.benchmarkValue"
+                      class="value-input"
+                      :class="'edit_input_' + item.id"
+                      @blur="toSave(item)"
+                      v-if="isEditFlag==item.id"
+                    >
+                    </el-input>
+                    <el-tooltip
+                      v-else
+                      class="item"
+                      effect="dark"
+                      :offset="10"
+                      :show-after="500"
+                      :content="item.benchmarkValue ? String(item.benchmarkValue) : '--'"
+                      placement="bottom"
+                    >
+                      <div class="updete_text">{{ thousandSeparation(item.benchmarkValue) }}</div>
+                    </el-tooltip>
+                    <div
+                      class="editImg"
+                      @click="onEdit(item)"
+                      :style="{display:isEditFlag==item.id?'none':'inline-block'}"
+                    >
+                      <img src="../../../assets/img/benchmarking-analysis/bm-edit.svg" />
+                    </div>
+                  </div>
+                </td>
+                <!-- </el-tooltip> -->
+                <el-tooltip
+                  class="item"
+                  effect="dark"
+                  :offset="-5"
+                  :show-after="500"
+                  :content="item.archTypeUnit || '--'"
+                  placement="bottom"
+                >
+                  <td>{{ item.archTypeUnit || '--' }}</td>
+                </el-tooltip>
+                <td style="width: 150px">
+                  <!-- <span @click="onEdit(item)" class="operate-span mr16">编辑</span> -->
+                  <el-popconfirm
+                    title="确认删除该条数据吗?"
+                    placement="top"
+                    confirmButtonText="确定"
+                    cancelButtonText="取消"
+                    @confirm="onDelete(item.id)"
+                    cancelButtonType="default"
+                  >
+                    <template #reference>
+                      <span class="delete-span">删除</span>
+                    </template>
+                  </el-popconfirm>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="common-table__empty flex-column-center-center" v-if="dataSource?.length === 0 && !loading">
+            <img src="../../../assets/img/common/common-data-none.svg" alt="" />
+            <p>暂无数据</p>
+          </div>
+          <el-pagination
+            v-if="total> 0 && !loading"
+            :current-page="queryParams.pageNum"
+            :page-sizes="pageSizes"
+            @size-change="onPageSizeChange"
+            @current-change="onPageChange"
+            :page-size="queryParams.pageSize"
+            layout="total, prev, pager, next, sizes, jumper"
+            :total="total"
+          >
+          </el-pagination>
+        </div>
+      </div>
+    </template>
+  </page-common>
+  <!-- 新增 弹窗 start -->
+  <div class="benchmarking-manage-dialog-father" v-if="fatherDialogVisible">
+    <el-dialog
+      title="新增父体系"
+      v-model="fatherDialogVisible"
+      width="620px"
+      :before-close="onBeforeClose"
+      :close-on-click-modal="false"
+    >
+      <div style="display: flex; align-items: center" @click.stop>
+        <div class="el-form-label"><span>*</span>父体系名称</div>
+        <div class="supplierCls">
+          <el-input
+            class="inputFather"
+            placeholder="请新增或者选择父体系"
+            :maxlength="20"
+            v-inputFilter:search="{ allowSpace: false }"
+            v-model="parentForm.parentName"
+            @input="supplierInput"
+            @focus="focus"
+            @blur="blur"
+          >
+          </el-input>
+          <div class="jiantou"></div>
+          <!-- 下拉框三角形 -->
+          <!-- <div v-if="supplierOptionsShow" class="el-form-triangle"></div> -->
+          <!-- 下拉框 -->
+          <div class="el-form-content" v-if="supplierOptionsShow">
+            <template v-if="parentForm.parentOptions?.length">
+              <div
+                class="select-item"
+                style="height: 36px; background-color: #fff"
+                v-for="(item, i) in parentForm.parentOptions"
+                :key="item.id"
+                @click="selectItem(item)"
+                :class="[`el-form-content-item${i}`, supplierId==item.id && parentForm.parentName == item.name?'el-form-selectItem':'']"
+                @mouseover="onMouseoverAsync(i)"
+                @mouseout="onMouseoutAsync(i)"
+              >
+                {{item.name}}
+              </div>
+            </template>
+            <div v-if="parentForm.parentOptions?.length === 0" class="nodata">
+              <img src="../../../assets/img/common/common-data-none.svg" alt="nodata" />
+              <span>暂无数据</span>
+            </div>
+          </div>
+        </div>
+        <div class="tips" v-if="supplierOptionsShowTips">父体系名称长度最多为20字</div>
+      </div>
+      <template #footer>
+        <div style="text-align: right">
+          <el-button @click="onFatherReset">重 置</el-button>
+          <el-button type="primary" @click="onNext">下一步</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+  <div class="benchmarking-manage-dialog-child" v-if="sonDialogVisible">
+    <el-dialog
+      title="新增子体系"
+      v-model="sonDialogVisible"
+      width="620px"
+      :before-close="onBeforeClose"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="manageSonRef" :rules="rules" :model="sonForm" label-width="100px">
+        <el-form-item label="子体系名称" prop="sonName">
+          <el-input
+            v-inputFilter:search
+            v-model="sonForm.sonName"
+            :maxlength="20"
+            class="value-input"
+            placeholder="请输入子体系名称"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="标杆值类型" prop="timeType">
+          <el-select
+            v-model="sonForm.timeType"
+            disabled
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请输入标杆值类型"
+          >
+            <el-option v-for="item in timeTypeList" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="指标类型" prop="archTypeId">
+          <el-select
+            v-model="sonForm.archTypeId"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请输入指标类型"
+            @change="archTypeChange"
+          >
+            <el-option v-for="item in archTypeList" :key="item.id" :label="item.name" :value="item.id"> </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标杆值" prop="benchmarkValue">
+          <el-input
+            v-inputFilter:number="{ integral: 10, decimal: 4 }"
+            v-model="sonForm.benchmarkValue"
+            class="value-input"
+            placeholder="请输入标杆值"
+          >
+            <template #suffix>
+              <span>{{unit}}</span>
+            </template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="text-align: right">
+          <el-button @click="onSonReset">重 置</el-button>
+          <el-button @click="onPrevious">上一步</el-button>
+          <el-button type="primary" @click="onAddSubmit">提交</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+  <!-- 新增 弹窗 end -->
+</div>

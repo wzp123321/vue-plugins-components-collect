@@ -1,0 +1,32 @@
+@import (once) './layout.less';
+@import (once) './animation.less';
+
+@import (once) './ems-iconfont/ems-iconfont.less';
+
+@font-face {
+  font-family: 'DINPro Medium';
+  font-style: normal;
+  font-weight: normal;
+  src: local('DINPro Medium'), url('../font/web-font/DINPro-Medium tr.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'DINPro Bold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('DINPro Bold'), url('../font/web-font/DINPro-Bold tr.woff') format('woff');
+}
+
+.DinPro-Medium {
+  font-family: 'DINPro Medium';
+}
+
+.DinPro-Bold {
+  font-family: 'DINPro Bold';
+}
+
+:root {
+  --iot-bg-color-header-menu: rgb(23, 26, 28); // 头部、menu背景色
+  --iot-bg-color-container: rgb(240, 244, 249); // container内容区背景色
+  --iot-color-active: rgb(64, 158, 255, 1); // active color
+}

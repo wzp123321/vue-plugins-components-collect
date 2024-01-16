@@ -1,0 +1,19 @@
+<div class="energy-item-ratio">
+  <div class="eir-switch--wrap">
+    <switch-button
+      v-model="switchSelect"
+      :switchItems="switchItems"
+    ></switch-button>
+  </div>
+  <div class="eir-back-button" v-if="areaId || areaId === 0">
+    <el-button @click="backClick" type="primary">返回上级</el-button>
+  </div>
+  <div class="eir-chart">
+    <energy-item-ratio-chart
+      :nodeName="nodeName"
+      :yAxisItems="yAxisItems"
+      :dataList="dataList"
+      @chartClick="chartClick($event)"
+    ></energy-item-ratio-chart>
+  </div>
+</div>

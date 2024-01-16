@@ -1,0 +1,149 @@
+<!--
+ * @Description: 系统明细页面
+ * @Autor: zpwan
+ * @Date: 2022-02-16 11:22:06
+ * @LastEditors: wanzp wanzp@tiansu-china.com
+ * @LastEditTime: 2022-05-10 10:39:01
+-->
+<div class="system-detail">
+  <page-common :title="'系统明细'" :showSearch="true">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="queryForm" @submit.native.prevent>
+        <el-form-item label="系统">
+          <el-select style="width:180px" v-model="queryForm.systemId" placeholder="请选择系统" @change="onSystemChange">
+            <el-option
+              style="width:180px"
+              v-for="item in systemList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+              :title="item.name"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="日期">
+          <el-date-picker
+            v-model="queryForm.date"
+            type="date"
+            placeholder="请选择日期"
+            :disabledDate="disabledDate"
+            prefix-icon="iconfont icon-Calendar"
+            clear-icon="iconfont icon-Close-Circle-Fill"
+            :clearable="true"
+          />
+        </el-form-item>
+        <el-form-item>
+          <button primary @click="onSubmit">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <div v-if="!errorFlag" style="height: 100%;" class="flex flex-column">
+        <!-- 图 -->
+        <div class="system-detail__charts">
+          <div class="flex-row-justify-center">
+            <module-subhead :title="`${searchSystemName}${queryForm.paramName}`"></module-subhead>
+            <el-select
+              v-model="queryForm.paramId"
+              v-if="paramList?.length"
+              @change="onFilterParamChange"
+              style="width:200px"
+            >
+              <el-option
+                style="width:200px"
+                v-for="item in paramList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+                :title="item.name"
+              >
+              </el-option>
+            </el-select>
+          </div>
+          <div class="charts-container" v-loading="chartLoading">
+            <iot-echarts-container v-if="!chartLoading" :height="300" :useEchartsOptions="onInitCharts">
+            </iot-echarts-container>
+          </div>
+        </div>
+        <!-- 表 -->
+        <div class="system-detail__table mt30" v-loading="tableLoading">
+          <div class="flex-row-justify-center mb16">
+            <module-subhead title="系统数据明细"></module-subhead>
+            <button primary @click="onTableExport">
+              {{ exportLoading ? '正在导出' : '导出'}}
+            </button>
+          </div>
+          <el-table
+            v-if="dataSource?.length"
+            :class="{'overflow-table': dataSource?.length > 10}"
+            :data="dataSource"
+            style="width: 100%"
+            :height="dataSource?.length > 10 ? 532 : 
+                            dataSource?.length*48 + 52"
+          >
+            <el-table-column
+              :fixed="index === 0"
+              v-for="(item, index) in systemTableVO.proSystemParamTitleList"
+              :prop="`value${index}`"
+              :key="'column_'+index"
+              :label="item"
+              min-width="200"
+            >
+              <template v-slot:header>
+                <span class="text-overflow" :title="item">{{ item }}</span>
+              </template>
+              <template #default="scope">
+                <span
+                  v-if="Object.prototype.toString.call(scope.row[`value${index}`]) === '[object Null]'
+                                    || Object.prototype.toString.call(scope.row[`value${index}`]) === '[object Undefined]'
+                                    || scope.row[`value${index}`] === '--'"
+                >
+                  --
+                </span>
+                <el-tooltip
+                  v-else
+                  class="item"
+                  effect="dark"
+                  :show-after="500"
+                  :content=" index !== 0 ?
+                    thousandSeparation(scope.row[`value${index}`]) :
+                        scope.row[`value${index}`] "
+                  placement="bottom"
+                >
+                  <span
+                    >{{ index !== 0 ? thousandSeparation(scope.row[`value${index}`]) : scope.row[`value${index}`]
+                    }}</span
+                  >
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
+          <no-data style="height:auto" v-if="!tableLoading &&  dataSource?.length === 0"> </no-data>
+        </div>
+      </div>
+      <no-data :title="errorMessage" v-if="errorFlag"></no-data>
+    </template>
+  </page-common>
+  <!-- 导出选择日期弹框 -->
+  <el-dialog v-model="exportVisible" title="选择日期" width="390px">
+    <el-date-picker
+      v-model="exportDate"
+      :type="'daterange'"
+      :range-separator="'~'"
+      :start-placeholder="'开始日期'"
+      :end-placeholder="'结束日期'"
+      :disabledDate="disabledDate"
+      prefix-icon="iconfont icon-Calendar"
+      clear-icon="iconfont icon-Close-Circle-Fill"
+    >
+    </el-date-picker>
+    <template #footer>
+      <span class="dialog-footer">
+        <button @click="onCancel">取消</button>
+        <button primary @click="onExportSubmit">确认</button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

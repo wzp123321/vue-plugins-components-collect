@@ -1,0 +1,26 @@
+<!-- <div class="ec-date-timeunit-picker"> -->
+<!-- <el-form :inline="true" :model="dateForm" @submit.native.prevent> -->
+<el-form-item label="时间颗粒" v-show="showTimeUnit">
+  <el-select placeholder="请选择时间颗粒" v-model="dateForm.timeUnit" @change="onTimeUnitChange">
+    <el-option v-for="(item, index) in timeUnitList" :key="item.code" :value="item.code" :label="item.name">
+    </el-option>
+  </el-select>
+</el-form-item>
+<el-form-item v-if="showDateScope && scopeList?.length" label="快捷选时">
+  <radio-select-button v-model="dateForm.dateScope" :switchItems="scopeList" @switch-click="onDateScopeChange">
+  </radio-select-button>
+</el-form-item>
+<el-form-item label="日期">
+  <date-range-picker
+    :clearable="clearable"
+    v-model:value="dateForm.date"
+    :timeUnit="dateForm.timeUnit"
+    :format="format"
+    :mode="mode"
+    :disableDateCb="disableDateCb"
+    @change="onDateChange"
+  >
+  </date-range-picker>
+</el-form-item>
+<!-- </el-form> -->
+<!-- </div> -->

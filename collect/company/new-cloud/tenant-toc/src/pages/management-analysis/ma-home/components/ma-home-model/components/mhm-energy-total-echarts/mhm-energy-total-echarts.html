@@ -1,0 +1,64 @@
+<div>
+  <div class="ma-home-model-button-back" v-if="showComponentId==='5'">
+    <img @click="back" src="@/assets/images/management-analysis/ma-home-model/ma-home-model-dialog-back.svg" alt="" />
+    返回
+  </div>
+  <div class="mhm-energy-total-echarts" v-loading="loadingStatus">
+    <div
+      v-if="treeListCopy?.length===0 && !loadingStatus && chartList?.length!==0"
+      class="mhm-energy-charts-left-empty mhm-common-empty"
+      style="height: 370px"
+    >
+      <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+      <span>暂无数据</span>
+    </div>
+    <div class="mhm-energy-total-echarts-tree" v-show="treeListCopy?.length!==0">
+      <div>
+        <div>{{dialogTitle}}</div>
+      </div>
+      <div>
+        <div>
+          <div class="mhm-energy-total-echarts-treeChild-middle-left"></div>
+          <div
+            v-for="item in treeListCopy"
+            :key="item.name"
+            class="mhm-energy-total-echarts-treeChild"
+            :style="item.siteMargin"
+          >
+            <div>
+              <div :class="`mhm-energy-total-echarts-treeChild-${item.site}`"></div>
+              <div></div>
+            </div>
+            <div>
+              <div :style="`background-color:${item.color}`"></div>
+            </div>
+            <span>{{item.name}} </span>
+            <img
+              v-if="showComponentId==='4' && item.site==='middle'&& item.show"
+              src="@/assets/images/management-analysis/ma-home-model/ma-home-model-open.svg"
+              alt=""
+              @click="openDetail"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="container" v-show="chartList?.length!==0"></div>
+    <div
+      v-if="chartList?.length === 0 && !loadingStatus && treeListCopy?.length!==0"
+      class="mhm-energy-charts-right-empty mhm-common-empty"
+      style="height: 370px"
+    >
+      <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+      <span>暂无数据</span>
+    </div>
+    <div
+      v-if="treeListCopy?.length===0 &&  chartList?.length === 0 && !loadingStatus"
+      class="mhm-common-empty"
+      style="height: 370px"
+    >
+      <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+      <span>暂无数据</span>
+    </div>
+  </div>
+</div>

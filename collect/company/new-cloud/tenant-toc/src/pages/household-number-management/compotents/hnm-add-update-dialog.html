@@ -1,0 +1,75 @@
+<div v-drag class="hnm-add-update-dialog">
+  <el-dialog
+    :title="rows ? '编辑户号' : '新建户号'"
+    v-model="dialogFormVisible"
+    width="560px"
+    @close="Cancel"
+    :close-on-click-modal="false"
+  >
+    <el-form :model="form" :rules="rules" ref="ruleForm" label-position="right">
+      <el-form-item label="户号" :label-width="formLabelWidth" prop="houseNumber">
+        <el-input
+          style="ime-mode: disabled"
+          v-filterHouseholdNumber="form.houseNumber"
+          placeholder="请输入户号"
+          v-model.trim="form.houseNumber"
+          maxlength="32"
+          autocomplete="off"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="能源类型" :label-width="formLabelWidth" prop="energyType">
+        <el-select v-model="form.energyType" @change="energyTypeChange">
+          <el-option
+            v-for="(item, index) in energyList"
+            :key="index"
+            :label="item.name"
+            :value="item.code"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis"
+            :title="item.name"
+          >
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="关联节点" :label-width="formLabelWidth" prop="associatedNode">
+        <tree-select
+          :placeholder="'请选择节点'"
+          v-model="form.associatedNode"
+          :nodeKey="'treeId'"
+          :treeData="associatedNodeList"
+          :showSearch="true"
+          :autoWidth="true"
+          :defaultProps="{ children: 'childTree', label: 'treeName' }"
+          v-model:radioValue="form.radioValue"
+          :radioData="radioData"
+          :expandedKeys="expandedKeys"
+          @tree-radio-change="treeRaidoChange"
+        >
+        </tree-select>
+      </el-form-item>
+      <el-form-item
+        v-if="hostingAreaList.length > 0"
+        label="所属托管区域"
+        :label-width="formLabelWidth"
+        prop="hostingArea"
+      >
+        <el-select v-model="form.hostingAreaName" clearable @clear="hostingAreaClear" @change="hostingAreaChange">
+          <el-option
+            v-for="item in hostingAreaList"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+            style="white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; width: 374px"
+            :title="item.name"
+          >
+          </el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="Cancel">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

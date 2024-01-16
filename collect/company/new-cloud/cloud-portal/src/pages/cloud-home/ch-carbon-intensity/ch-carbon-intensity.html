@@ -1,0 +1,8 @@
+<div id="ch-carbon-intensity">
+  <h5>碳排放强度(年)</h5>
+  <div v-show="dataList&&dataList.length!==0" class="ch-ci-charts-container" :id="customEchartId"></div>
+  <div v-show="!dataList||dataList.length===0" class="ch-ci-empty">
+    <img src="@/assets/img/cloud-home/ch-energy-overview/ch-eo-empty.svg" />
+    <span>暂无数据</span>
+  </div>
+</div>

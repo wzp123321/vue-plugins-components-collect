@@ -1,0 +1,49 @@
+<h-component-container :headTitle="title">
+  <template v-slot:header>
+    <button text @click="linkToDetailPage">详情</button>
+  </template>
+  <template v-slot:box>
+    <div class="home-cost-compare-overview">
+      <!-- 同环比概览 -->
+      <div class="cco--wrap">
+        <!-- 折线图 start -->
+        <div class="cco--left" v-loading="isLineLoading">
+          <div class="cco-switch--wrap">
+            <switch-button v-model="switchSelect" :switchItems="switchItems" @switch-button-change="switchChange">
+            </switch-button>
+          </div>
+          <cost-compare-chart
+            style="width: 100%"
+            v-if="!isLineLoading && !isChartNoData"
+            :seriesData="seriesData"
+            :xAxisTime="xAxisTime"
+            :yAxisItems="yAxisItems"
+          ></cost-compare-chart>
+          <!-- 无数据时 start -->
+          <no-data :title="chartErrorTitle" v-show="!isLineLoading && isChartNoData && !isNoConfig"></no-data>
+          <!-- 无数据时 end -->
+        </div>
+        <!-- 折线图 end -->
+        <!-- 卡片 start -->
+        <div class="cco--right" v-loading="isCardLoading">
+          <template v-if="!isCardLoading && !isCardNoData">
+            <div class="cco-card" v-for="(item, index) in cardData" :key="index">
+              <cost-compare-card :dataInfo="item" :index="index"></cost-compare-card>
+            </div>
+            <h6 class="cco--right-tip">*截至昨日数据</h6>
+          </template>
+          <!-- 无数据时 start -->
+          <no-data :title="cardErrorTitle" v-show="!isCardLoading && isCardNoData && !isNoConfig"></no-data>
+          <!-- 无数据时 end -->
+        </div>
+        <!-- 卡片 end -->
+        <no-data
+          :imgUrl="noConfigImg"
+          :title="noConfigTitle"
+          v-if="!isLineLoading && isNoConfig && !isCardLoading"
+          style="left: -14%;"
+        ></no-data>
+      </div>
+    </div>
+  </template>
+</h-component-container>

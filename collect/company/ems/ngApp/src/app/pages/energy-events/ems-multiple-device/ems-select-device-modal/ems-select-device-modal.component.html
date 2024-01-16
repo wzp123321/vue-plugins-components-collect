@@ -1,0 +1,18 @@
+<div class="ems_select-device-modal">
+    <div class="select-device-modal-header">
+        <span class="header-text">{{title}}</span>
+        <span class="header-clear">清空</span>
+    </div>
+    <div class="select-device-modal-content">
+        <div
+            *ngFor="
+            let item of selectDeviceData;
+            let i = index;
+            trackBy: trackById"
+            class="select-item" 
+        >
+         <div class="select-item-text">{{item.deviceName}}</div>
+         <i class="select-detect" icon="cross-circle-o" text="cross-circle-o"></i>
+    </div>
+    </div>
+</div>

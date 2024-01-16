@@ -1,0 +1,232 @@
+<div class="energy-conservation" style="width: 100%" v-loading="uploadLoading">
+  <page-common :title="'节能考核'" :showSearch="true">
+    <template v-slot:pageSearch>
+      <el-form :inline="true" :model="formInline" @submit.native.prevent>
+        <el-form-item label="能源类型">
+          <el-select v-model="formInline.energyType" style="width: 160px">
+            <el-option
+              v-for="item in energyTypeData"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+              @click.native="energyTypeOPtionClick(item.code)"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分析对象">
+          <tree-select
+            :placeholder="'请选择分析对象'"
+            v-model="formInline.analysisObject"
+            :treeData="analysisObjectData"
+            :showSearch="true"
+            width="380px"
+            :defaultProps="{ children: 'childTree', label: 'treeName' }"
+            v-model:radioValue="formInline.radioValue"
+            :radioData="radioData"
+            :loading="treeLoading"
+            :expanedKeys="analysisObjectExpanedKeys"
+            @tree-radio-change="treeRaidoChange"
+            @select-change="treeSelectChange"
+          ></tree-select>
+        </el-form-item>
+        <el-form-item label="定额类型">
+          <el-select v-model="formInline.chooseTime" style="width: 130px">
+            <el-option
+              v-for="item in chooseTimeData"
+              :key="item.code"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          label="时间范围"
+          v-show="
+          formInline.chooseTime == CHOOSETIME.MONTH ||
+            formInline.chooseTime == CHOOSETIME.YEAR
+        "
+        >
+          <div
+            style="display: flex; flex-direction: row; justify-content: center; align-items: center"
+            v-show="formInline.chooseTime == CHOOSETIME.MONTH"
+          >
+            <el-date-picker
+              v-model="formInline.monthDate1"
+              style="width: 160px"
+              type="month"
+              prefix-icon="iconfont icon-Calendar"
+              clear-icon="iconfont icon-Close-Circle-Fill"
+              placeholder="选择月"
+              value-format="YYYY-MM"
+              :disabledDate="startMonth"
+            ></el-date-picker>
+            <em>~</em>
+            <el-date-picker
+              v-model="formInline.monthDate2"
+              type="month"
+              style="width: 160px"
+              prefix-icon="iconfont icon-Calendar"
+              clear-icon="iconfont icon-Close-Circle-Fill"
+              placeholder="选择月"
+              value-format="YYYY-MM"
+              :disabledDate="endMonth"
+            ></el-date-picker>
+          </div>
+          <div
+            style="display: flex; flex-direction: row; justify-content: center; align-items: center"
+            v-show="formInline.chooseTime == CHOOSETIME.YEAR"
+          >
+            <el-date-picker
+              v-model="formInline.monthDate1"
+              style="width: 160px"
+              type="year"
+              prefix-icon="iconfont icon-Calendar"
+              clear-icon="iconfont icon-Close-Circle-Fill"
+              placeholder="选择年"
+              value-format="YYYY"
+              :disabledDate="startYear"
+            ></el-date-picker>
+            <em>~</em>
+            <el-date-picker
+              v-model="formInline.monthDate2"
+              style="width: 160px"
+              type="year"
+              prefix-icon="iconfont icon-Calendar"
+              clear-icon="iconfont icon-Close-Circle-Fill"
+              value-format="YYYY"
+              placeholder="选择年"
+              :disabledDate="endYear"
+            ></el-date-picker>
+          </div>
+        </el-form-item>
+
+        <el-form-item>
+          <button primary @click="onSubmit('flag')">查询</button>
+          <button @click="onReset">重置</button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageContent>
+      <el-row class="module-wrap" style="height: 100%">
+        <el-col :span="24" style="height: 100%" class="flex flex-column">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 19px">
+            <module-subhead :title="'定额值列表'"></module-subhead>
+            <div>
+              <input
+                type="file"
+                ref="clearFile"
+                @change="getFile($event)"
+                class="add-file-right-input"
+                style="margin-left: 70px; display: none"
+                accept=".xlsm"
+              />
+              <button @click="importDatas">导入</button>
+              <button @click="downLoad">下载模板</button>
+              <button primary @click="increaseData">新增</button>
+            </div>
+          </div>
+          <!-- 列表数据 -->
+          <div v-if="abnormal" style="flex: 1 1 auto">
+            <div style="height: calc(100% - 20px)" v-loading="tableDataLoading">
+              <el-table :data="tableData" :stripe="lightOrDark" style="width: 100%" v-show="!tableDataLoading">
+                <el-table-column label="序号" type="index" align="center" width="80" show-overflow-tooltip>
+                  <template #default="scope">
+                    {{ (formInline.pageNum - 1) * formInline.pageSize + scope.$index + 1 }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="energyCodeName" label="能源类型" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="treeName" label="分析对象" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="quotaTypeName" label="定额类型" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column
+                  prop="quotaTime"
+                  label="日期"
+                  align="center"
+                  :formatter="formatDate"
+                  show-overflow-tooltip
+                ></el-table-column>
+                <el-table-column label="定额值" align="center" show-overflow-tooltip>
+                  <template #default="scope">
+                    {{ thousandSeparation(scope.row.quotaValue) }}
+                    <formatter-unit fontSize="12px" :formatHtml="scope.row.unit"></formatter-unit>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="inputSourceName" label="录入来源" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column label="操作" align="center" width="160px">
+                  <template #default="scope">
+                    <div v-if="scope.row.quotaType !== 2">
+                      <button text @click.prevent="updateFn(scope.$index, tableData)" style="margin-right: 8px">
+                        修改
+                      </button>
+                      <!-- <button danger text @click="sureDelete(scope.row.id)">
+                                          删除
+                                      </button> -->
+                      <el-popconfirm
+                        title="确认删除该条数据吗?"
+                        placement="top"
+                        confirmButtonText="确定"
+                        cancelButtonText="取消"
+                        @confirm="sureDelete(scope.row.id)"
+                        cancelButtonType="default"
+                      >
+                        <template #reference>
+                          <span class="delete-span">删除</span>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <el-pagination
+                v-if="total > 0 && !tableDataLoading"
+                :current-page="formInline.pageNum"
+                :page-sizes="formInline.pageSizes"
+                @size-change="onPageSizeChange"
+                @current-change="onCurrentChange"
+                :page-size="formInline.pageSize"
+                layout="total, prev, pager, next, sizes, jumper"
+                :total="total"
+              ></el-pagination>
+            </div>
+          </div>
+          <no-data v-else></no-data>
+        </el-col>
+      </el-row>
+    </template>
+  </page-common>
+
+  <!-- 修改弹框 -->
+  <div v-drag>
+    <el-dialog title="修改数据" v-model="dialogFormVisibleEdit" width="540px" :close-on-click-modal="false">
+      <dialogEdit
+        v-if="dialogFormVisibleEdit"
+        :editData="editData"
+        @dialogEditCancel="dialogFormVisibleEdit = false"
+        @dialogEditSure="dialogEditSureFn"
+      ></dialogEdit>
+    </el-dialog>
+  </div>
+  <!-- 新增弹框 -->
+  <div v-drag>
+    <el-dialog
+      title="新增数据"
+      v-model="dialogFormVisibleAdd"
+      :close-on-click-modal="false"
+      @close="dialogFormVisibleAdd = false"
+      width="540px"
+    >
+      <dialogAdd
+        :kpiDingeType="kpiDingeType"
+        :energyConservationEnergyCode="energyConservationEnergyCode"
+        v-if="dialogFormVisibleAdd"
+        @dialogCancel="diaogAddCancel"
+        :energyTypeData="energyTypeData"
+        @successFn="addSuccessFn"
+        ref="addChilde"
+      ></dialogAdd>
+    </el-dialog>
+  </div>
+</div>

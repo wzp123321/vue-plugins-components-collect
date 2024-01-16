@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="76px" height="76px" viewBox="0 0 76 76" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 11</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="52" height="52" rx="26"></rect>
+        <filter x="-40.4%" y="-28.8%" width="180.8%" height="180.8%" filterUnits="objectBoundingBox" id="filter-2">
+            <feMorphology radius="3" operator="erode" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="6" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="9" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.0705882353   0 0 0 0 0.51372549   0 0 0 0 1  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="视觉稿" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="能源事件-首页-多条事件（完整版）" transform="translate(-295.000000, -1799.000000)">
+            <g id="编组-19" transform="translate(0.000000, 247.000000)">
+                <g id="编组-10" transform="translate(0.000000, 340.000000)">
+                    <g id="编组-19" transform="translate(14.000000, 30.000000)">
+                        <g id="编组-11" transform="translate(293.000000, 1188.000000)">
+                            <g id="矩形">
+                                <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                                <use fill="#1283FF" fill-rule="evenodd" xlink:href="#path-1"></use>
+                            </g>
+                            <path d="M27,14 C27.5522847,14 28,14.4477153 28,15 L28,24 L37,24 C37.5522847,24 38,24.4477153 38,25 L38,27 C38,27.5522847 37.5522847,28 37,28 L28,28 L28,37 C28,37.5522847 27.5522847,38 27,38 L25,38 C24.4477153,38 24,37.5522847 24,37 L24,28 L15,28 C14.4477153,28 14,27.5522847 14,27 L14,25 C14,24.4477153 14.4477153,24 15,24 L24,24 L24,15 C24,14.4477153 24.4477153,14 25,14 L27,14 Z" id="形状结合" fill="#FFFFFF"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

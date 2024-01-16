@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="220px" height="117px" viewBox="0 0 220 117" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>空调供应时段调整</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="220" height="117" rx="4"></rect>
+    </defs>
+    <g id="后台" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="能源事件" transform="translate(-1669.000000, -181.000000)">
+            <g id="空调供应时段调整" transform="translate(1669.000000, 181.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="蒙版" fill="#FFFFFF" xlink:href="#path-1"></use>
+                <g id="eec-card-conditioner" opacity="0.1" mask="url(#mask-2)">
+                    <g transform="translate(104.000000, 20.000000)">
+                        <circle id="椭圆形" fill="#FFB73F" fill-rule="nonzero" cx="83.3346757" cy="82.9049695" r="83.0950305"></circle>
+                        <g id="编组-2" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(33.674332, 48.978596)">
+                            <rect id="矩形" fill="#FFFFFF" fill-rule="nonzero" x="3.06300316e-15" y="1.52867355e-15" width="99.3206873" height="49.568642" rx="0.9"></rect>
+                            <rect id="矩形" fill="#FFB73F" fill-rule="nonzero" x="8.27672394" y="33.0457613" width="82.7672394" height="9.17937815" rx="0.45"></rect>
+                            <rect id="矩形" fill="#FFB73F" fill-rule="nonzero" x="74.4905155" y="8.26144033" width="16.5534479" height="9.17937815"></rect>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

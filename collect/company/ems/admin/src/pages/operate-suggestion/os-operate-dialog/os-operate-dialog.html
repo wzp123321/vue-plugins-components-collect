@@ -1,0 +1,35 @@
+<div class="os-operate-dialog" v-drag>
+  <el-dialog
+    :title="!isAddFlag ? '编辑操作建议' : '新建操作建议'"
+    v-model="dialogFormVisible"
+    width="560px"
+    :before-close="onBeforeClose"
+    :close-on-click-modal="false"
+  >
+    <el-form :model="pageForm" :rules="rules" ref="ruleForm" label-position="right" label-width="110px">
+      <el-form-item label="操作建议" prop="name">
+        <el-input
+          placeholder="请输入操作建议"
+          v-inputFilter:search
+          v-model.trim="pageForm.name"
+          maxlength="128"
+          autocomplete="off"
+          show-word-limit
+          type="textarea"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="所属异常原因" prop="causeId">
+        <el-select size="small" v-model="pageForm.causeId" placeholder="请选择所属异常原因" :fit-input-width="true">
+          <el-option v-for="item in abnormalList" :key="item.id" :title="item.name" :label="item.name" :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer" style="text-align: center">
+        <el-button @click="onBeforeClose">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</div>

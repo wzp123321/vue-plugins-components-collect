@@ -1,0 +1,16 @@
+<div class="ems-preview-image" (click)="hideImge()">
+    <div class="ems-preview-image-div">
+        <ion-img 
+            [src]=imagrScr 
+            (click)="unClick($event)" 
+            class="iocn-image" 
+            [ngStyle]="{'top': topImage, '-webkit-transition': webkittransition, '-webkit-transform': webkittransform, 'transform': transform, webkittransition: webkittransition}" 
+            #unclick
+            (touchstart)="imgtouchstart($event)"
+            (touchmove)="imgtouchmove($event)"
+            (touchend)="imgtouchend($event)"
+
+        >
+        </ion-img>
+    </div>
+</div>

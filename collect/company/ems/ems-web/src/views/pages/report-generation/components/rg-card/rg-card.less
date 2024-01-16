@@ -1,0 +1,54 @@
+.rg-card {
+  height: 102px;
+  width: 252px;
+  padding: 10px;
+  border-radius: 2px;
+  background-color: #f7f7f7;
+  border: 1px solid #eaeaea;
+  margin-bottom: 8px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  &__title {
+    white-space: normal;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  &__tag {
+    position: absolute;
+    right: 0;
+    top: -1px;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    border-radius: 0 2px 0 0;
+    font-size: 14px;
+    color: var(--iot-font-color-white);
+  }
+
+  &__btn {
+    text-align: right;
+
+    :deep(img) {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+  }
+
+  &.selected {
+    border-color: var(--iot-color-active);
+
+    .rg-card__title {
+      color: var(--iot-color-active);
+    }
+  }
+}

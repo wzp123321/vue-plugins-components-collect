@@ -1,0 +1,51 @@
+.home-project-introduction {
+  width: 100%;
+  height: 100%;
+  padding: 16px 30px;
+  color: var(--iot-font-color-root);
+  overflow: hidden;
+
+  .project-data-container {
+    width: 100%;
+    height: 100%;
+
+    .project-image-container {
+      height: 200px;
+      width: 100%;
+
+      .project-image {
+        height: 200px;
+        width: 100%;
+      }
+    }
+
+    .text-introduction {
+      margin: 22px 0 auto;
+      word-break: break-all;
+      white-space: normal;
+      width: 100%;
+      text-indent: 2em;
+      font-size: 14px;
+      text-align: left;
+      overflow-x: hidden;
+      overflow-y: auto;
+      max-height: 120px;
+      overflow-wrap: break-word;
+      scrollbar-color: transparent transparent;
+      scrollbar-track-color: transparent;
+      -ms-scrollbar-track-color: transparent;
+
+      &::first-line {
+        text-indent: 2em;
+      }
+    }
+  }
+}
+
+.text-introduction::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.text-introduction::-webkit-scrollbar-track {
+  background: transparent;
+}

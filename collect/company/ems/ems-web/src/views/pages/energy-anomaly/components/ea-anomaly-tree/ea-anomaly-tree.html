@@ -1,0 +1,53 @@
+<el-tree
+  class="ea-anomaly-tree"
+  ref="treeRef"
+  v-loading="loading"
+  :data="dataSource"
+  :props="FGetElTreeDefaultProps()"
+  :expand-on-click-node="false"
+  :node-key="nodeKey"
+  :highlight-current="true"
+  :default-expanded-keys="expandedKeys"
+  :filter-node-method="onTreeNodeFilter"
+  @node-click="onTreeNodeClick"
+>
+  <template #default="{ node, data }">
+    <span
+      :class="[
+      'custom-tree-node',
+      'flex-row-justify-center',
+      selectedKey === data.treeId ? 'custom-tree-node-active' : ''
+    ]"
+    >
+      <span class="font14 tree-label" :title="node.label" v-html="formatTreeLabel(node.label)"></span>
+      <span class="tree-count" v-if="!data.lockFlag">
+        <span class="font14 text">{{ data.abnormalTreeNumber }}</span>
+        <svg
+          _ngcontent-dse-c8
+          class="icon"
+          height="12"
+          p-id="2242"
+          t="1593316160268"
+          version="1.1"
+          viewBox="0 0 1024 1024"
+          width="12"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs _ngcontent-dse-c8>
+            <linearGradient _ngcontent-dse-c8 gradientTransform="rotate(90)" id="greenGradient">
+              <stop _ngcontent-dse-c8 offset="0" stop-color="#FF0000" />
+              <stop _ngcontent-dse-c8 offset="100%" stop-color="#FF9A9A" />
+            </linearGradient>
+          </defs>
+          <path
+            _ngcontent-dse-c8
+            d="M815.981714 768h-23.990857V428.032a280.064 280.064 0 0 0-239.981714-277.211429v-38.765714a40.009143 40.009143 0 1 0-80.018286 0v38.765714a280.064 280.064 0 0 0-239.981714 277.211429V768h-23.990857a31.963429 31.963429 0 0 0-32.036572 32.036571v31.963429c0 4.388571 3.657143 8.045714 8.045715 8.045714h215.990857a112.054857 112.054857 0 0 0 223.963428 0h215.990857c4.388571 0 8.045714-3.657143 8.045715-8.045714v-32.036571a31.963429 31.963429 0 0 0-32.036572-31.963429zM512 887.954286a47.981714 47.981714 0 0 1-47.981714-47.981715h95.963428a47.981714 47.981714 0 0 1-47.981714 48.054858z"
+            fill="url(#greenGradient)"
+            opacity=".65"
+            p-id="2243"
+          />
+        </svg>
+      </span>
+    </span>
+  </template>
+</el-tree>

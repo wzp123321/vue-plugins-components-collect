@@ -1,0 +1,113 @@
+// 月选择
+.el-picker-panel.el-date-range-picker[type='monthrange'] {
+  .el-date-range-picker__header::before {
+    width: calc(100% + 22px);
+  }
+
+  table.el-month-table {
+    tbody > tr > td {
+      padding: 16px 0;
+
+      &.in-range {
+        > div {
+          background-color: var(--color-hover);
+        }
+      }
+
+      &.disabled > div {
+        a.cell {
+          color: var(--color-text-disable);
+        }
+      }
+
+      &.start-date > div,
+      &.end-date > div {
+        &:hover > a.cell,
+        > a.cell {
+          color: var(--color-default);
+          background-color: var(--color-primary);
+          transition: none;
+        }
+      }
+
+      &.start-date > div,
+      &:first-child > div {
+        padding-left: 0;
+        margin-left: 7px;
+      }
+
+      &.end-date > div,
+      &:last-child > div {
+        padding-right: 0;
+        margin-right: 7px;
+      }
+
+      > div {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        height: auto;
+        padding: 0 7px;
+      }
+
+      > div > a.cell {
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        color: var(--color-text-primary);
+        border-radius: 2px;
+        font-size: 14px;
+        font-weight: normal;
+      }
+    }
+  }
+}
+
+.el-picker-panel__content table.el-month-table {
+  tbody > tr > td {
+    padding: 0;
+
+    &:not(.in-range):not(.end-date):not(.start-date):not(.current):not(.disabled) > div:hover {
+      background-color: transparent !important;
+
+      a.cell {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+
+    &:not(.current) {
+      > div > a.cell {
+        color: var(--color-text-primary);
+      }
+    }
+
+    &.current {
+      > div > a.cell {
+        color: var(--color-default);
+        background-color: var(--color-primary);
+      }
+    }
+
+    &.disabled {
+      > div > a.cell {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--color-text-disable);
+      }
+    }
+
+    > div {
+      height: 56px;
+      padding: 16px 0;
+
+      > a.cell {
+        font-weight: normal;
+        text-align: center;
+        height: 24px !important;
+        line-height: 24px !important;
+        border-radius: 2px;
+        color: var(--color-text-primary);
+      }
+    }
+  }
+}

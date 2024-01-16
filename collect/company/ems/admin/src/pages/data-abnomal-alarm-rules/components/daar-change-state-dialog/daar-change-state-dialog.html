@@ -1,0 +1,28 @@
+<div v-drag="visible" style="position: relative">
+  <el-dialog
+    title="编辑状态"
+    v-model="visible"
+    width="30%"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
+  >
+    <div class="dialog-content">
+      <el-form>
+        <el-form-item label="原因">
+          <el-input
+            v-inputFilter:search="{ allowSpace: false }"
+            maxlength="128"
+            v-model="reasonInput"
+            type="textarea"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <button @click="toReset">取消</button>
+        <button primary @click="toSubmit">确认</button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

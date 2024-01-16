@@ -1,0 +1,96 @@
+<div class="home-kaa-card">
+  <div class="tag-box">{{ tagTextArray[index] }}</div>
+  <div class="cost-item-info">
+    <span class="cost-item-name">能耗值</span>
+    <span class="cost-item-unit" v-if="cardData.unit" style="margin-left:6px"
+      >/</span
+    >
+    <span class="cost-item-unit" v-html="cardData.unit"></span>
+  </div>
+  <div class="cost-item-value-wrapper" :title="cardData.value2">
+    <div
+      class="text-overflow cost-item-value"
+      v-html="cardData.value2 ? cardData.value2 : '--'"
+    ></div>
+  </div>
+  <div class="cost-compare-container">
+    <div class="cost-compare-items-wrapper">
+      <div class="cost-compare-item">
+        <span class="cost-compare-type">同比</span>
+        <span class="cost-compare-trend">
+          <span
+            class="icon-up-down"
+            v-if="
+                adaptCompareValue(cardData.yearCompare).value > 0 ||
+                  adaptCompareValue(cardData.yearCompare).value < 0
+              "
+          >
+            <el-tooltip class="box-item" effect="dark" placement="bottom">
+              <template #content>
+                <div
+                  style="white-space: normal;word-break: break-all;"
+                  v-html="cardData.tbTitle"
+                ></div>
+              </template>
+              <img
+                class="compare-triangle"
+                :src="
+                adaptCompareValue(cardData.yearCompare).value > 0
+                  ? require('@/assets/img/common/common-compare-up.png')
+                  : require('@/assets/img/common/common-compare-down.png')
+              "
+                alt="同比图标"
+              />
+            </el-tooltip>
+          </span>
+          <span
+            class="icon-fair"
+            v-if="adaptCompareValue(cardData.yearCompare).value == 0"
+          ></span>
+        </span>
+        <span class="cost-compare-value"
+          >{{ adaptCompareValue(cardData.yearCompare).absValue === '--' ? '--' :
+          `${adaptCompareValue(cardData.yearCompare).absValue}%` }}</span
+        >
+      </div>
+      <div class="cost-compare-item">
+        <span class="cost-compare-type">环比</span>
+        <span class="cost-compare-trend">
+          <span
+            class="icon-up-down"
+            v-if="
+                adaptCompareValue(cardData.monthCompare).value > 0 ||
+                  adaptCompareValue(cardData.monthCompare).value < 0
+              "
+          >
+            <el-tooltip class="box-item" effect="dark" placement="bottom">
+              <template #content>
+                <div
+                  style="white-space: normal;word-break: break-all;"
+                  v-html="cardData.hbTitle"
+                ></div>
+              </template>
+              <img
+                class="compare-triangle"
+                :src="
+                adaptCompareValue(cardData.monthCompare).value > 0
+                  ? require('@/assets/img/common/common-compare-up.png')
+                  : require('@/assets/img/common/common-compare-down.png')
+              "
+                alt="环比图标"
+              />
+            </el-tooltip>
+          </span>
+          <span
+            class="icon-fair"
+            v-if="adaptCompareValue(cardData.monthCompare).value == 0"
+          ></span>
+        </span>
+        <span class="cost-compare-value"
+          >{{ adaptCompareValue(cardData.monthCompare).absValue === '--' ? '--'
+          : `${adaptCompareValue(cardData.monthCompare).absValue}%` }}</span
+        >
+      </div>
+    </div>
+  </div>
+</div>

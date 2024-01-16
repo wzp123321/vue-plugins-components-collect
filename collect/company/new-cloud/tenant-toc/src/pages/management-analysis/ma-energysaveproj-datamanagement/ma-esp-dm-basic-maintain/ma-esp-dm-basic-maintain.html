@@ -1,0 +1,72 @@
+<div v-drag>
+  <el-dialog
+    :close-on-click-modal="false"
+    custom-class="ma-esp-dm-basic-maintain"
+    v-model="espBasic.visible"
+    title="基准量维护"
+    width="660px"
+    :before-close="espBasic.close"
+  >
+    <el-form
+      class="basic-form"
+      v-loading="espBasic.basicLoading"
+      label-width="40px"
+      :inline="true"
+      :model="espBasic.basicValue"
+      @submit.native.prevent
+    >
+      <el-form-item label="1月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.january" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="2月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.february" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="3月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.march" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="4月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.april" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="5月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.may" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="6月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.june" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="7月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.july" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="8月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.august" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="9月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.september" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="10月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.october" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="11月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.november" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+      <el-form-item label="12月">
+        <input v-inputFilter:number type="text" v-model="espBasic.basicValue.december" />
+        <span class="ml10" style="width: 30px; display: inline-block">{{ sarchBar.unit }}</span>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <button @click="espBasic.close">取消</button>
+      <button primary @click="onSubmit">确认</button>
+    </template>
+  </el-dialog>
+</div>

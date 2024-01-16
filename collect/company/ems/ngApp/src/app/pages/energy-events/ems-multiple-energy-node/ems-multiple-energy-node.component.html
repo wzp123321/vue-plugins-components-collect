@@ -1,0 +1,175 @@
+<div class="ems_multiple-energy-node">
+    <header class="head"  >
+        <div class="head__button--back"  (click)="goBack()"></div>
+        <h2 class="head__title">选择节点</h2> 
+    </header>
+    <div class="ems_multiple-energy-node-content">
+        <div class="ems_multiple-content-head">
+            <div class="multiple-node-group">
+                <label class="multiple-node-search"></label>
+                <ion-input 
+                    mode='md'
+                    placeholder="请输入节点名称搜索" 
+                    class="label-input"    
+                    [value]="energyNodeName"   
+                    [(ngModel)]="energyNodeName"
+                    (ionBlur)="searchNameBlur($event)"
+                    (keypress)="searchNameChange.next($event)"
+                 ></ion-input>
+            </div>
+        </div>
+        <div class="ems_multiple-node-crumbs" *ngIf="!isSearch && !noData">
+            <span 
+                class="crumbs-span" 
+                *ngFor="
+                        let item of crumbsListData;
+                        let i = index;
+                        trackBy: trackById"
+                (click)="backNode(item, i)"
+            >
+                 <span *ngIf="i===0" class="area_parent-node">
+                     <img src='assets/img/energy-events/crumbs.svg'>
+                 </span>
+                 <!-- <span class="area_node-children" *ngIf="item.children && i===0"  icon="left" type="left">
+                    <img src="../../../../assets/img/energy-events/arrow-right.svg">
+                </span> -->
+                 <span class="area_node-name" *ngIf="i > 0" [ngClass]="{'back-node-select': i !== crumbsListData.length - 1}">{{item.name}}</span>
+                 <span class="area_node-children" *ngIf="item.children"  icon="left" type="left">
+                     <img src="assets/img/energy-events/arrow-right.svg">
+                 </span>
+        </span>
+        </div>
+        <div class="ems_multiple-node-list" [ngStyle]="{'height': listHeight}" *ngIf="!isSearch &&!noData">
+            <ion-content class="modal-content" slot="fixed"  [style.--background]="'#F2F3F6'"  no-bounce >
+                <div class="modal-content-list" [ngClass]="{'mb90': (selectNodeList && selectNodeList.length > 0) && !isSearch }">
+                    <div class="list-have-childer">
+                        <div class="list-have-childer-item" 
+                        *ngFor="
+                            let item of childrenList;
+                            let i = index;
+                            trackBy: trackById"
+                            [ngClass]="{'selectNodeDiv': item.classSelect}" 
+                        > 
+                           <div class="item-list">
+                                <ion-checkbox 
+                                    color="primary" 
+                                    class="item-check mr10" 
+                                    [(ngModel)]="item.checked" 
+                                    mode="md"
+                                    (ionChange)="selectNodeData(item, i, $event)"
+                                >
+                                </ion-checkbox> 
+                           </div>
+                         
+                        
+                           <div class="item-content">
+                                <div class="item-text"  (click)="selectNode(item, i, $event)" >{{item.title}}</div>
+                                <div class="item-children" (click)="subordinateNode(item)">下级</div>
+                           </div>
+                          
+                        </div>
+                    </div>
+                    <div class="list-no-childer " [ngClass]="{'mt10': childrenList && childrenList.length > 0, 'mb10': (selectNodeList && selectNodeList.length > 0) && !isSearch}">
+                        <div class="list-have-childer-item"
+
+                        *ngFor="
+                            let item of noChildrenList;
+                            let i = index;
+                            trackBy: trackById"
+                            [ngClass]="{'selectNodeDiv': item.classSelect}"
+                            
+                        > 
+                           <ion-checkbox 
+                                color="primary" 
+                                class="item-check mr10" 
+                                [(ngModel)]="item.checked" 
+                                mode="md"
+                                (ionChange)="selectNodeData(item, i, $event)"
+                            >
+                           </ion-checkbox>
+                           <div class="item-no-content"  (click)="selectNode(item, i, $event)">
+                                <div class="item-text">{{item.title}}</div> 
+                           </div>
+                          
+                        </div>
+                    </div>
+                </div> 
+            </ion-content>
+        </div>
+        <div class="search-modal-content" *ngIf="isSearch && !noData" [ngStyle]="{'height': listHeight}">
+            <div class="search-list-childer mb20">
+                <div class="list-childer-item" 
+                *ngFor="
+                    let item of formartAllListData;
+                    let i = index;
+                    trackBy: trackById"
+                    [ngClass]="{'selectNodeDiv': item.classSelect}"
+                   
+                > 
+                    <ion-checkbox 
+                                color="primary" 
+                                class="item-check mr10" 
+                                [(ngModel)]="item.checked" 
+                                mode="md"
+                                (ionChange)="selectNodeData(item, i, $event)"
+                            >
+                    </ion-checkbox>
+                   <div class="item-content" (click)="selectNode(item,i, $event)" >
+                        <div class="item-text">{{item.title}}</div>
+                        <div class="item-parent-list">{{item.allNode}}</div>
+                   </div>
+                  
+                </div>
+            </div>
+        </div>
+        <div class="no-data" *ngIf="noData" >
+            <div class="no-data-content">
+                <img src="assets/img/energy-manager/none-task-layout.svg">
+                <div class="none-task-description">
+                   {{noDescription}}
+                </div>
+            </div>
+          
+        </div>
+        <div class="suspension-operation" *ngIf="(selectNodeList && selectNodeList.length > 0) && !isSearch">
+            <div class="select-identification mt5" (click)="selectModal()">
+                <div class="select-number">
+                   <span class="select-iocn mr15"></span>
+                   <span class="number-text">{{selectNodeList.length}}</span>
+                </div>
+                <div class="select-tip mt5">已选能耗节点（个）</div>
+            </div>
+            <ion-button color="primary" class="select-datermine" (click)="determineSelectNode()">确定</ion-button>
+        </div>
+        <div class="is-search-ok" *ngIf="isSearch">
+            <ion-button color="primary" class="search-datermine" (click)="isSearchOk()">确定</ion-button>
+        </div>
+    </div>
+</div>
+<Modal [(ngModel)]="stateShow" [popup]="true" [animationType]="'slide-up'" (onClose)="onClose()" [style.height]="380">
+    <div class="ems_select-device-modal">
+        <div class="select-device-modal-header">
+            <span class="header-text">已选节点</span>
+            <span class="header-clear" (click)="emptyData()">清空</span>
+        </div>
+        <div class="select-device-modal-content">
+            <div class="select-device-modal-list">
+                <div
+                    *ngFor="
+                    let item of selectNodeList;
+                    let i = index;
+                    trackBy: trackById"
+                    class="select-item" 
+                >
+                    <div class="select-item-text">
+                        <div class="item-title">{{item.title}}</div>
+                        <div class="item-path">{{item.allNode}}</div>
+                    </div> 
+                    <!-- <Icon [type]="'cross-circle-o'" class="select-detect"></Icon> -->
+                    <div class="select-detect" (click)="deleteDecive(item)"></div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</Modal>

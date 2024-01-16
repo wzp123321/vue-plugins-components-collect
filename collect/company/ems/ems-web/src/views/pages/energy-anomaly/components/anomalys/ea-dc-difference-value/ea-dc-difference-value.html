@@ -1,0 +1,14 @@
+<div
+  class="ea-dc-difference-value font14 flex-row-center-center"
+  :style="{
+      background: level === 1 ? 'rgba(245,77,66,.04)' : '#f54d42',
+      color: level === 1 ? 'rgba(0,0,0,.65)' : '#fff'
+    }"
+>
+  <span class="font14">{{ text }}</span>
+  <span
+    :style="{ color: level === 1 ? '#f54d42' : '#fff' }"
+    :class="[bolded ? 'bold' : '', `font${fontSize}`, 'ea-dc-difference-value-data flex-row-center-center']"
+    >{{ count }}<span v-if="isNumber">%</span></span
+  >
+</div>

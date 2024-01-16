@@ -1,0 +1,105 @@
+<div
+  class="em-period-work"
+  *ngIf="periodWorkData !== null"
+  (click)="onCardClick()"
+>
+  <div class="check-icon-wrapper">
+    <app-em-task-check-icon
+      [checkStatus]="checkStatus"
+    ></app-em-task-check-icon>
+  </div>
+
+  <article class="pw__content">
+    <header class="pw__content__header">
+      <div>
+        <span class="header__work-type">{{ periodWorkType }}</span>
+
+        <span
+          *ngIf="
+            deadlineTip || checkStatus === 'undone' || checkStatus === 'delay'
+          "
+          class="header__status-bubble"
+        >
+          <app-em-task-status-bubble
+            [workStatus]="checkStatus"
+            [special]="deadlineTip"
+          ></app-em-task-status-bubble>
+        </span>
+      </div>
+
+      <img
+        *ngIf="checkStatus === 'done' || checkStatus === 'delay'"
+        (click)="toggleDetail()"
+        [class.active]="showDetail"
+        src="assets/img/energy-manager/up-arrow.svg"
+        class="header__toggle-arrow"
+      />
+
+      <span
+        *ngIf="
+          (type === 'today' && checkStatus === 'todo') ||
+          checkStatus === 'continue'
+        "
+        class="header__link-icon"
+      ></span>
+    </header>
+
+    <div class="pw__content__title">{{ periodWorkData.measureName }}</div>
+
+    <div class="pw__content__desc" *ngIf="periodWorkData.description">
+      <div class="origin" [class.hidden]="canDescriptionFolded">
+        <p>{{ periodWorkData.description }}</p>
+      </div>
+      <div class="clamp" [class.hidden]="!canDescriptionFolded">
+        <div class="expand-box">
+          <p class="origin-text">
+            {{ periodWorkData.description }}
+          </p>
+          <div
+            class="toggle"
+            *ngIf="canDescriptionFolded && isDescriptionFolded"
+            (click)="toggleDescription($event, false)"
+          >
+            <p class="toggle-text">展开全部</p>
+            <img src="assets/img/energy-manager/description-clamp-switch.svg" />
+          </div>
+        </div>
+      </div>
+      <div
+        class="toggle show"
+        *ngIf="canDescriptionFolded && !isDescriptionFolded"
+        (click)="toggleDescription($event, true)"
+      >
+        <p class="toggle-text">收起</p>
+        <img src="assets/img/energy-manager/description-clamp-switch.svg" />
+      </div>
+    </div>
+
+    <div
+      class="pw__content__detail"
+      [hidden]="!showDetail"
+      *ngIf="checkStatus === 'done' || checkStatus === 'delay'"
+    >
+      <div class="detail__remark" *ngIf="periodWorkData.remarks">
+        {{ periodWorkData.remarks }}
+      </div>
+
+      <div
+        class="detail__image-gallery"
+        *ngIf="
+          periodWorkData?.attachList && periodWorkData?.attachList?.length > 0
+        "
+      >
+        <img
+          class="detail__image"
+          *ngFor="let item of periodWorkData?.attachList"
+          [src]="getImgSrc(item)"
+          alt="图片"
+          (click)="bigImage(getImgSrc(item))"
+        />
+      </div>
+
+      <div class="detail__done-time">{{ periodWorkData.finishTime }}完成</div>
+    </div>
+  </article>
+</div>

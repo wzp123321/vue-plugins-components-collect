@@ -1,0 +1,32 @@
+.energy-event-detail-dialog {
+  text-align: left;
+  h5::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    display: inline-block;
+    background: url(../../../../assets/images/energy-event-library/eel-title-icon.svg) no-repeat;
+    transform: translateY(2px);
+  }
+  :deep(.el-form) {
+    margin: 12px 0 0 22px;
+  }
+ :deep(.el-form-item ){
+    color: rgba(0, 0, 0, 0.65);
+    cursor: text;
+    &__content,
+    &__label {
+      height: 22px;
+      line-height: 22px;
+    }
+  }
+  section {
+    margin-top: 20px;
+    overflow: hidden;
+    table {
+      width: 100%;
+      margin: 12px 0 0 22px;
+    }
+  }
+}

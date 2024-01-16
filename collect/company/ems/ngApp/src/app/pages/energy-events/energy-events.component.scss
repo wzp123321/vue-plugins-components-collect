@@ -1,0 +1,15 @@
+.energy-events {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 1);
+    .section-new-events {
+        position: absolute;
+        bottom: 40px;
+        right: 15px; 
+        height: 76px;
+        width: 74px;
+        background: url('../../../assets/img/energy-events/new-ionic.svg') no-repeat;
+        background-size: auto;
+    }
+}

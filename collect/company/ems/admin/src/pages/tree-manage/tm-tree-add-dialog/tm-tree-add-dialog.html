@@ -1,0 +1,54 @@
+<div v-drag="visible">
+  <el-dialog
+    title="树节点新增"
+    v-model="visible"
+    :destroy-on-close="true"
+    :width="dialogWidth"
+    custom-class="tm-tree-add-dialog"
+    :close-on-click-modal="false"
+    @close="handleClose"
+  >
+    <div class="tree-manage-add" v-loading="loading">
+      <div class="tm-form-list">
+        <div class="form-add" v-for="(formItem,index) in addForm.nodeList">
+          <el-form :ref="formRef" :inline="true" :rules="rules" :model="formItem">
+            <el-form-item label="节点名称" prop="treeName">
+              <el-input
+                v-model.trim="formItem.treeName"
+                v-inputFilter:search="{ allowSpace: false }"
+                placeholder="请输入节点名称"
+                maxlength="20"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="本级排序号" prop="treeSort" v-if="isAddChildrenFlag">
+              <el-input
+                v-inputFilter:positiveNumber="{integral: 8, positiveInteger: true}"
+                v-model="formItem.treeSort"
+                placeholder="请输入本级排序号"
+              ></el-input>
+            </el-form-item>
+            <!-- 如果是科室树则不展示 -->
+            <el-form-item class="tm-node-type" label="节点类型" prop="nodeType" v-if="mapNodeType()">
+              <el-radio-group v-model="formItem.nodeType" :disabled="!isAddChildrenFlag">
+                <el-radio
+                  v-for="(item,index) in nodeTypeList"
+                  :label="item.code"
+                  :disabled="parentNodeType >= item.code"
+                  @click.stop.prevent="selectNodeType(item.code,formItem,parentNodeType >= item.code)"
+                >
+                  {{item.name}}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-form>
+          <i v-show="addForm.nodeList.length !== 1" @click="deleteForm(index)" class="iconfont icon-shanchu"></i>
+        </div>
+      </div>
+      <el-button @click="addNewNode" v-show="isAddChildrenFlag">新增节点</el-button>
+      <div slot="footer" style="text-align: center" class="mt24">
+        <el-button @click="handleClose">取消</el-button>
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+      </div>
+    </div>
+  </el-dialog>
+</div>

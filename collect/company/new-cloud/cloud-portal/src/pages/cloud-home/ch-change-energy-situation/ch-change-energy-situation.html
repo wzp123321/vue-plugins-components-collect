@@ -1,0 +1,41 @@
+<div id="ch-change-energy-situation">
+  <h5>节能技改概况</h5>
+  <div class="ch-ces-main">
+    <div
+      class="ch-ces-content"
+      v-for="item in changeEnergySituationServiceList"
+      ::key="item.projectCode"
+      :style="{background:mapBackground(item.projectCode,'main')}"
+    >
+      <div class="ch-ces-gradient" :style="{background:mapBackground(item.projectCode)}"></div>
+      <div>
+        <div class="ch-ces-project">
+          <div>
+            <div>实施项目</div>
+            <div>
+              <div>
+                <span>{{item.projectCount?item.projectCount:'--'}}</span>
+                <i>{{item.projectCount?item.projectCount:'--'}}</i>
+              </div>
+              <em>个</em>
+            </div>
+          </div>
+          <div>
+            <div>已节约</div>
+            <div>
+              <div>
+                <span>{{item.savingAmount?item.savingAmount:'--'}}</span>
+                <i>{{item.savingAmount?item.savingAmount:'--'}}</i>
+              </div>
+              <em>万元</em>
+            </div>
+          </div>
+        </div>
+        <div class="ch-ces-img">
+          <img :src="mapImg(item.projectCode)" alt="" />
+          {{item.projectName?item.projectName:'--'}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

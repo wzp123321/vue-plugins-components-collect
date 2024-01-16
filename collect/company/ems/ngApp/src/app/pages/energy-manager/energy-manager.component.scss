@@ -1,0 +1,163 @@
+ion-header {
+  z-index: 0;
+  display: none;
+  width: 100%;
+  height: 0px;
+  border: none;
+  background: url("../../../assets/img/energy-manager/em-header-bg.svg") no-repeat;
+  background-size: 100%;
+  visibility: hidden;
+
+  &.show {
+    display: block;
+    height: auto;
+    visibility: visible;
+  }
+
+  .em-header-title {
+    display: flex;
+    width: 100%;
+    height: 44px;
+    justify-content: space-between;
+    align-items: center;
+
+    .title-icon-back {
+      width: 24px;
+      height: 24px;
+      margin: 0px 15px;
+      text-align: left;
+    }
+
+    p#title {
+      height: 24px;
+      color: rgba(255, 255, 255, 1);
+      font-size: 17px;
+      text-align: center;
+    }
+
+    .title-icon-calendar {
+      display: flex;
+      width: 24px;
+      height: 24px;
+      margin: 0px 15px;
+      background: url("../../../assets/img/energy-manager/calendar-mode-switch.svg")
+        no-repeat;
+      justify-content: center;
+      align-items: flex-end;
+
+      p {
+        height: 15px;
+        line-height: 15px;
+        margin-bottom: 2px;
+        color: rgba(18, 131, 255, 100);
+        font-size: 12px;
+        text-align: center;
+        font-family: "DINPro Medium";
+      }
+    }
+  }
+}
+
+ion-content {
+  --ion-background-color: rgba(242, 243, 246, 1);
+  --header-height: 0px;
+
+  width: calc(100% + 7px);
+  height: 100%;
+  overflow: hidden;
+
+  &.coverHeader {
+    height: calc(100% - var(--header-height));
+    transform: translateY(-60px);
+
+    &.noneFooter {
+      height: calc(100% - var(--header-height) + 60px);
+    }
+  }
+
+  &.coverHeaderborder {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  .em-content-none-task {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
+
+    .none-task-description {
+      height: 22px;
+      line-height: 22px;
+      margin-top: 15px;
+      color: rgba(34, 34, 34, 0.2);
+      font-size: 16px;
+      text-align: center;
+    }
+  }
+}
+
+ion-footer {
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  height: 60px;
+  line-height: 60px;
+  background: url("../../../assets/img/energy-manager/em-footer-bg.svg")
+    no-repeat;
+  background-size: cover;
+  
+  .em-footer-item {
+    display: flex;
+    // width: 50%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .line-tip {
+    width: 0px;
+    height: 20px;
+    border: 0.5px solid   rgba(242, 243, 246, 1);;
+    position: absolute;
+    left: -0.25px;
+  }
+  .em-footer-add-record {
+    // display: flex;
+    display: grid;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 0px 0.25px; 
+
+    .add-record-icon {
+      transform: translateY(6px);
+    }
+
+    .add-record-description {
+      height: 22px;
+      line-height: 22px;
+      color: rgba(255, 255, 255, 1);
+      font-size: 16px;
+      text-align: center;
+    }
+  }
+}
+
+::-webkit-scrollbar,
+* ::-webkit-scrollbar {
+  display: none !important;
+}
+.scroll-bar-indicator {
+  opacity: 0;
+}
+
+.noneSelect {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

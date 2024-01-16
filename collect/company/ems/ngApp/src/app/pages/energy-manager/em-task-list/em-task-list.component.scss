@@ -1,0 +1,124 @@
+.em__task-list {
+  border-radius: 20px;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  background-color: rgba(242, 243, 246, 1);
+}
+
+.plan-list__header {
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  background-color: rgba(243, 248, 255, 1);
+  box-shadow: 0px 4px 8px 0px rgba(74, 138, 248, 0.08);
+  padding: 16px 24px;
+  line-height: 20px;
+  color: rgba(18, 131, 255, 100);
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  &.coverHeaderborder {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+  .header__plan-icon {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    height: 40px;
+    width: 30px;
+  }
+}
+
+.plan-list__content {
+  background-color: rgba(242, 243, 246, 1);
+  padding-bottom: 20px;
+}
+
+.other-measures {
+  .other-measures__header {
+    background-color: rgba(243, 248, 255, 1);
+    box-shadow: 0px 4px 8px 0px rgba(74, 138, 248, 0.08);
+    padding: 15px 24px;
+    line-height: 20px;
+    color: rgba(18, 131, 255, 100);
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+
+    .header__measure-icon {
+      position: absolute;
+      left: 0;
+      top: 1px;
+      height: 48px;
+      width: 48px;
+    }
+  }
+}
+
+.other-measures__list {
+  background-color: rgba(242, 243, 246, 1);
+  padding-bottom: 20px;
+}
+
+.task-card__wrapper {
+  margin: 20px 23px 0;
+
+  .task-card {
+    margin-left: 26px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 1);
+
+    .task-card__title {
+      color: rgba(34, 34, 34, 0.8);
+      font-size: 16px;
+      line-height: 22px;
+      word-break: break-all;
+    }
+
+    .task-card__desc {
+      color: rgba(34, 34, 34, 0.5);
+      font-size: 14px;
+      line-height: 20px;
+      word-break: break-all;
+      white-space: pre-line;
+    }
+
+    .task-card__detail {
+      border-radius: 5px;
+      background-color: rgba(245, 245, 245, 1);
+    }
+    .task-card__time {
+      border-radius: 5px;
+      background-color: whitesmoke;
+      padding: 10px 15px;
+      margin: 10px 0px 0;
+      color: rgba(34, 34, 34, 0.5);
+      font-size: 14px;
+      transition: all 0.5s;
+    }
+  }
+}
+
+.other-measure__list__item {
+  position: relative;
+
+  .other-measure__icon {
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    left: 0;
+    top: 17px;
+  }
+
+  .other-measure__item__content {
+    padding: 15px;
+
+    .om__item__content__desc {
+      margin-top: 10px;
+    }
+  }
+}

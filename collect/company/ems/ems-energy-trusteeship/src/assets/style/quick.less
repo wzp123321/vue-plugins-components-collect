@@ -1,0 +1,68 @@
+// 容器
+.none {
+  display: none !important;
+}
+
+.ghost {
+  visibility: hidden !important;
+}
+
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  color: fade(black, 25%);
+}
+.empty {
+  &-module:extend(.empty-container all) {
+    gap: 10px;
+
+    & > img {
+      width: 200px;
+      height: 200px;
+    }
+  }
+  &-table:extend(.empty-container all) {
+    height: 166px;
+
+    gap: 8px;
+
+    & > img {
+      width: 60px;
+      height: 40px;
+    }
+  }
+}
+
+// 弹性布局
+[flexible='true'] {
+  flex: auto;
+}
+[flexible='false'] {
+  flex: none;
+}
+
+// 边距
+each(range(50), {
+  .mt@{value} {
+    margin-top: @value * 1px !important;
+  }
+  .mr@{value} {
+    margin-right: @value * 1px !important;
+  } 
+  .mb@{value} {
+    margin-bottom: @value * 1px !important;
+  }
+  .ml@{value} {
+    margin-left: @value * 1px !important;
+  }
+});
+
+// 字号
+each(range(50), {
+  .size@{value} {
+    font-size: @value * 1px;
+  }
+})

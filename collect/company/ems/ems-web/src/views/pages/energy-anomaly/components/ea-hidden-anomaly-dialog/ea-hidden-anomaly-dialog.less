@@ -1,0 +1,112 @@
+.ea-hidden-anomaly-dialog {
+  max-height: 480px;
+  min-height: 168px;
+  overflow: hidden;
+
+  .flex1 {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .hide-card {
+    margin-top: 24px;
+    border-bottom: 1px solid var(--iot-border-color);
+    box-sizing: content-box;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &__info {
+      min-width: 300px;
+      max-width: 300px;
+      padding-left: 8px;
+      padding-bottom: 12px;
+      text-align: left;
+
+      .bold {
+        height: 33px;
+        line-height: 33px;
+
+        margin-bottom: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .font14 {
+        color: var(--iot-font-color-shadow);
+        white-space: normal;
+        word-break: break-all;
+      }
+    }
+
+    &__list {
+      .anomaly-item {
+        width: 196px;
+        height: 80px;
+        border-radius: 2px;
+        padding: 8px;
+        margin: 0 20px 16px;
+        box-sizing: content-box;
+        background-color: var(--iot-anomaly-hide-card-item-bg-color);
+
+        &__header {
+          .title {
+            font-weight: 600;
+            color: #f54d42;
+          }
+
+          .btn {
+            cursor: pointer;
+            background-color: var(--iot-color-active);
+            color: #fff;
+            padding: 2px 15px;
+            border-radius: 4px;
+          }
+        }
+
+        .subtext {
+          color: var(--iot-font-color-shadow);
+        }
+
+        .count {
+          line-height: 25px;
+
+          .bold {
+            padding-right: 2px;
+            color: var(--iot-font-color-deep);
+          }
+
+          .infinity {
+            position: relative;
+            top: 4px;
+            left: 2px;
+            line-height: 25px !important;
+          }
+
+          :deep(.el-input) {
+            width: 100px;
+            line-height: 25px !important;
+            height: 25px !important;
+
+            &__inner {
+              height: 25px !important;
+              line-height: 25px !important;
+            }
+          }
+        }
+
+        .iconfont {
+          font-size: 16px;
+          padding-left: 10px;
+          cursor: pointer;
+          color: var(--iot-color-active);
+        }
+      }
+    }
+  }
+}

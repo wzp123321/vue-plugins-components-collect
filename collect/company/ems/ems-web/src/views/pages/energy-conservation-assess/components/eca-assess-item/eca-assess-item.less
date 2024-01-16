@@ -1,0 +1,61 @@
+.eca-assess-item {
+  width: 300px;
+  height: 124px;
+  padding: 16px 20px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px 0 rgba(38, 38, 38, 0.04);
+  margin-right: 24px;
+  box-sizing: border-box;
+
+  &-text {
+    margin-bottom: 36px;
+
+    &-title {
+      color: var(--energy-item-title-color);
+      font-size: var(--font16);
+    }
+
+    &-status {
+      display: inline-block;
+      border-radius: 15px;
+      width: 50px;
+      height: 20px;
+      text-align: center;
+      line-height: 20px;
+      font-size: var(--font14);
+      color: #fff;
+    }
+
+    .normal {
+      background: var(--energy-conservation-data-normal-bg-color);
+    }
+
+    .over {
+      background: var(--energy-conservation-data-over-bg-color);
+    }
+    .warn {
+      background: var(--te-color-warning);
+    }
+  }
+
+  &-amount {
+    &-num {
+      color: var(--energy-item-num-color);
+      font-size: var(--font32);
+      font-weight: bold;
+      max-width: 200px;
+      line-height: 32px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 4px;
+    }
+
+    &-unit {
+      color: var(--energy-item-unit-color);
+      display: flex;
+      align-items: center;
+    }
+  }
+}

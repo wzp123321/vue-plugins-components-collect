@@ -1,0 +1,47 @@
+<div class="environment-evaluation-dailog" v-drag>
+  <el-dialog
+    title="编辑品质信息"
+    v-model="dialogFormVisible"
+    width="560px"
+    :before-close="onBeforeClose"
+    :close-on-click-modal="false"
+  >
+    <el-form :model="pageForm" :rules="rules" ref="ruleForm" label-width="80px" label-position="right">
+      <el-form-item label="品质描述" prop="description">
+        <el-input disabled v-model="pageForm.description" maxlength="128"></el-input>
+      </el-form-item>
+      <el-form-item label="品质上限" prop="upper">
+        <el-input
+          v-model="pageForm.upper"
+          v-inputFilter:number="{ integral: 10, decimal: 4 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="品质下限" prop="lower">
+        <el-input
+          v-model="pageForm.lower"
+          v-inputFilter:number="{ integral: 10, decimal: 4 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="采样类型" prop="energyCodeName">
+        <el-select size="small" v-model="pageForm.energyCodeName" style="width: 100%">
+          <el-option v-for="item in energylList" :label="item.name" :key="item.code" :value="item.name"> </el-option>
+        </el-select>
+      </el-form-item>
+      <div class="description">
+        <p>1、品质上限、下限间为闭区间</p>
+        <p>2、品质上限、下限最多保留两位小数</p>
+        <p>3、各区间 [上限，下限] 互不重叠</p>
+      </div>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer" style="text-align: center">
+        <el-button @click="onBeforeClose">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</div>

@@ -1,0 +1,321 @@
+<div class="transformer-tables">
+  <div class="single-query-params" v-if="isSingleParam">
+    <div class="params-level">
+      <div class="params-level-header common-header">参数水平</div>
+      <div
+        class="red-tip load-description"
+        :title="paramLevelLists && paramLevelLists[0] &&
+        paramLevelLists[0].description"
+        v-show="paramLevelLists && paramLevelLists[0] && paramLevelLists[0].description !== ''"
+      >
+        {{paramLevelLists && paramLevelLists[0] &&
+        paramLevelLists[0].description}}
+      </div>
+      <div class="params-level-table" v-if="!isDataNone[0]">
+        <table>
+          <thead>
+            <tr>
+              <th>参数</th>
+              <th>实际平均值</th>
+              <th>合理区间上限</th>
+              <th>合理区间下限</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in paramLevelLists">
+              <td>
+                {{isNotNull(item.paramName) + isShowUnit(item.paramUnit)}}
+              </td>
+              <td
+                :class="{'red-tip':item.upperLimit !== null && item.average !== null && item.average > item.upperLimit 
+                || item.lowerLimit !== null && item.average !== null && item.average < item.lowerLimit}"
+              >
+                {{isNotNull(item.average)}}
+              </td>
+              <td>{{isNotNull(item.upperLimit)}}</td>
+              <td>{{isNotNull(item.lowerLimit)}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <data-none v-else :tips="tips[0]"></data-none>
+    </div>
+    <div class="load-overview">
+      <div class="load-overview-header common-header">
+        负荷总览<span
+          v-show="!isDataNone[1]"
+          :title="`${loadDetailsVO && isNotNull(loadDetailsVO.name)}:
+        额定容量${loadDetailsVO &&
+          isNotNull(loadDetailsVO.ratedCapacity)}kVA`"
+        >
+          ({{loadDetailsVO && isNotNull(loadDetailsVO.name)}}:
+          额定容量{{loadDetailsVO &&
+          isNotNull(loadDetailsVO.ratedCapacity)}}kVA)</span
+        >
+      </div>
+      <div class="load-overview-table" v-if="!isDataNone[1]">
+        <div class="guagou-left"></div>
+        <div class="guagou-right"></div>
+        <div class="average">
+          负荷平均值
+          <span
+            class="average-num-unit"
+            :title="loadDetailsVO && isNotNull(loadDetailsVO.aveLoadValue)+'kW'"
+          >
+            <span class="load-data-num"
+              >{{loadDetailsVO && isNotNull(loadDetailsVO.aveLoadValue)}}</span
+            >
+            <span class="load-data-unit">kW</span>
+          </span>
+        </div>
+        <div class="maxAndMin">
+          <div class="load-max">
+            负荷最大值
+            <div
+              class="load-data"
+              :title="loadDetailsVO && isNotNull(loadDetailsVO.maxLoadValue)+'kW'"
+            >
+              <span class="load-data-num"
+                >{{loadDetailsVO &&
+                isNotNull(loadDetailsVO.maxLoadValue)}}</span
+              >
+              <span class="load-data-unit">kW</span>
+            </div>
+            <div class="time-table">
+              {{loadDetailsVO && isOnlyNotNull(loadDetailsVO.maxLoadValueTime)}}
+            </div>
+          </div>
+          <div class="load-min">
+            负荷最小值
+            <div
+              class="load-data"
+              :title="loadDetailsVO && isNotNull(loadDetailsVO.minLoadValue)+'kW'"
+            >
+              <span class="load-data-num"
+                >{{loadDetailsVO &&
+                isNotNull(loadDetailsVO.minLoadValue)}}</span
+              >
+              <span class="load-data-unit">kW</span>
+            </div>
+            <div class="time-table">
+              {{loadDetailsVO && isOnlyNotNull(loadDetailsVO.minLoadValueTime)}}
+            </div>
+          </div>
+        </div>
+        <div class="compare">
+          <div class="last-year-period">
+            去年同期
+            <div
+              class="load-data"
+              :title="loadDetailsVO && isNotNull(loadDetailsVO.lastYearValue)+'kW'"
+            >
+              <span class="load-data-num"
+                >{{loadDetailsVO &&
+                isNotNull(loadDetailsVO.lastYearValue)}}</span
+              >
+              <span class="load-data-unit">kW</span>
+            </div>
+            <div class="compare-ratio">
+              <span class="compare-ratio-name">同比</span>
+              <span class="compare-ratio-value">
+                <img
+                  v-show="isNegativeNum(loadDetailsVO.lastYearRatio)"
+                  src="@/assets/img/transformer/transformer-compare-down.png"
+                  alt=""
+                />
+                <img
+                  v-show="isPositiveNum(loadDetailsVO.lastYearRatio)"
+                  src="@/assets/img/transformer/transformer-compare-up.png"
+                  alt=""
+                />
+                {{loadDetailsVO &&
+                isNoMinus(loadDetailsVO.lastYearRatio,'%')}}</span
+              >
+            </div>
+          </div>
+          <div class="last-cycle">
+            上周期
+            <div
+              class="load-data"
+              :title="loadDetailsVO && isNotNull(loadDetailsVO.lastMonthValue)+'kW'"
+            >
+              <span class="load-data-num"
+                >{{loadDetailsVO &&
+                isNotNull(loadDetailsVO.lastMonthValue)}}</span
+              >
+              <span class="load-data-unit">kW</span>
+            </div>
+            <div class="compare-ratio">
+              <span class="compare-ratio-name">环比</span>
+              <span class="compare-ratio-value">
+                <img
+                  v-show="isNegativeNum(loadDetailsVO.lastMonthRatio)"
+                  src="@/assets/img/transformer/transformer-compare-down.png"
+                  alt=""
+                />
+                <img
+                  v-show="isPositiveNum(loadDetailsVO.lastMonthRatio)"
+                  src="@/assets/img/transformer/transformer-compare-up.png"
+                  alt=""
+                />
+                {{loadDetailsVO &&
+                isNoMinus(loadDetailsVO.lastMonthRatio,'%')}}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <data-none v-else :tips="tips[1]"></data-none>
+    </div>
+    <div class="loss-rate-overview">
+      <div class="loss-rate-overview-header common-header">损耗率总览</div>
+      <div class="loss-rate-overview-table" v-if="!isDataNone[2]">
+        <div class="guagou-left"></div>
+        <div class="guagou-right"></div>
+        <div class="average">
+          损耗率平均值
+          <span
+            class="average-num-unit"
+            :title="lossRatioDetailsVO && isNotNull(lossRatioDetailsVO.aveLossRatioValue,'%')"
+          >
+            <span class="load-data-num"
+              >{{lossRatioDetailsVO &&
+              isNotNull(lossRatioDetailsVO.aveLossRatioValue)}}</span
+            >
+            <span class="load-data-unit">%</span>
+          </span>
+        </div>
+        <div class="maxAndMin">
+          <div class="load-max">
+            损耗率最大值
+            <div
+              class="load-data"
+              :title="lossRatioDetailsVO && isNotNull(lossRatioDetailsVO.maxLossRatioValue,'%')"
+            >
+              <span class="load-data-num"
+                >{{lossRatioDetailsVO &&
+                isNotNull(lossRatioDetailsVO.maxLossRatioValue)}}</span
+              >
+              <span class="load-data-unit">%</span>
+            </div>
+            <div class="time-table">
+              {{lossRatioDetailsVO &&
+              isOnlyNotNull(lossRatioDetailsVO.maxLossRatioValueTime)}}
+            </div>
+          </div>
+          <div class="load-min">
+            损耗率最小值
+            <div
+              class="load-data"
+              :title="lossRatioDetailsVO && isNotNull(lossRatioDetailsVO.minLossRatioValue,'%')"
+            >
+              <span class="load-data-num"
+                >{{lossRatioDetailsVO &&
+                isNotNull(lossRatioDetailsVO.minLossRatioValue)}}</span
+              >
+              <span class="load-data-unit">%</span>
+            </div>
+            <div class="time-table">
+              {{lossRatioDetailsVO &&
+              isOnlyNotNull(lossRatioDetailsVO.minLossRatioValueTime)}}
+            </div>
+          </div>
+        </div>
+        <div class="compare">
+          <div class="last-year-period">
+            去年同期
+            <div
+              class="load-data"
+              :title="lossRatioDetailsVO && isNotNull(lossRatioDetailsVO.lastYearValue,'%')"
+            >
+              <span class="load-data-num"
+                >{{lossRatioDetailsVO &&
+                isNotNull(lossRatioDetailsVO.lastYearValue)}}</span
+              >
+              <span class="load-data-unit">%</span>
+            </div>
+            <div class="compare-ratio">
+              <span class="compare-ratio-name">同比</span>
+              <span class="compare-ratio-value"
+                ><img
+                  src="@/assets/img/transformer/transformer-compare-down.png"
+                  alt=""
+                  v-show="isNegativeNum(lossRatioDetailsVO.lastYearRatio)"
+                />
+                <img
+                  v-show="isPositiveNum(lossRatioDetailsVO.lastYearRatio)"
+                  src="@/assets/img/transformer/transformer-compare-up.png"
+                  alt=""
+                />{{lossRatioDetailsVO &&
+                isNoMinus(lossRatioDetailsVO.lastYearRatio,'%')}}</span
+              >
+            </div>
+          </div>
+          <div class="last-cycle">
+            上周期
+            <div
+              class="load-data"
+              :title="lossRatioDetailsVO && isNotNull(lossRatioDetailsVO.lastMonthValue,'%')"
+            >
+              <span class="load-data-num"
+                >{{lossRatioDetailsVO &&
+                isNotNull(lossRatioDetailsVO.lastMonthValue)}}</span
+              >
+              <span class="load-data-unit">%</span>
+            </div>
+            <div class="compare-ratio">
+              <span class="compare-ratio-name">环比</span>
+              <span class="compare-ratio-value">
+                <img
+                  v-show="isNegativeNum(lossRatioDetailsVO.lastMonthRatio)"
+                  src="@/assets/img/transformer/transformer-compare-down.png"
+                  alt=""
+                />
+                <img
+                  v-show="isPositiveNum(lossRatioDetailsVO.lastMonthRatio)"
+                  src="@/assets/img/transformer/transformer-compare-up.png"
+                  alt=""
+                />{{lossRatioDetailsVO &&
+                isNoMinus(lossRatioDetailsVO.lastMonthRatio,'%')}}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <data-none v-else :tips="tips[2]"></data-none>
+    </div>
+  </div>
+  <div class="multi-query-params" v-else>
+    <div class="multi-query-params-header common-header">
+      参数排名<span v-if="!isDataNone[3]"> ({{paramName}})</span>
+    </div>
+    <div class="multi-query-params-table" v-if="!isDataNone[3]">
+      <table>
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>能效对象</th>
+            <th>实际平均值</th>
+            <th>合理区间上限</th>
+            <th>合理区间下限</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item,index) in rankList">
+            <td :title="item[0]">{{isNotNull(item[0])}}</td>
+            <td :title="item[1]">{{isNotNull(item[1])}}</td>
+            <td
+              :title="item[2]"
+              :class="{'red-tip': isShowRed(item[2],item[4],item[3])}"
+            >
+              {{isNotNull(item[2])}}
+            </td>
+            <td :title="item[3]">{{isNotNull(item[3])}}</td>
+            <td :title="item[4]">{{isNotNull(item[4])}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <data-none v-else :tips="tips[3]"></data-none>
+  </div>
+</div>

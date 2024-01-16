@@ -1,0 +1,35 @@
+<div id="boiler-single-overview">
+  <h5>投入产出效率总览</h5>
+
+  <nz-spin class="ml12" flexible="true" [nzSpinning]="isLoading">
+    <div *ngIf="!isEmpty" class="overview-card-list">
+      <ng-container *ngFor="let card of cards">
+        <ng-container *ngTemplateOutlet="templateOverviewCard; context: { card: card }"></ng-container>
+      </ng-container>
+    </div>
+
+    <div class="empty-module" [class.none]="!isEmpty || isLoading">
+      <img src="assets/img/common/common-config-unset.svg" alt="尚未配置" />
+      <span>尚未配置锅炉参数</span>
+    </div>
+  </nz-spin>
+</div>
+
+<ng-template #templateOverviewCard let-card="card">
+  <div
+    class="overview-card-container"
+    [ngStyle]="{ color: mixinAlpha(card.color, 0.5), 'background-color': card.color }"
+  >
+    <label>
+      <span class="overview-card-name">{{ card.name }}</span>
+      <span class="overview-card-unit ml8">{{ card.unit }}</span>
+    </label>
+    <span
+      class="overview-card-value"
+      nz-tooltip
+      nzTooltipPlacement="bottomLeft"
+      [nzTooltipTitle]="mapPowerValue(card.id) | numberSeparator: 3"
+      >{{ (mapPowerValue(card.id) | numberSeparator: 3) ?? '--' }}</span
+    >
+  </div>
+</ng-template>

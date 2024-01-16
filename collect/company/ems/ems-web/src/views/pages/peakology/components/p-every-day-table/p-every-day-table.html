@@ -1,0 +1,46 @@
+<div class="p-every-day-table">
+  <el-table
+    :data="tableData"
+    :stripe="lightOrDark"
+    style="width: 100%"
+    height="280"
+  >
+    <el-table-column
+      label="序号"
+      type="index"
+      width="80"
+      align="center"
+      show-overflow-tooltip
+      ><template #default="scope">
+        {{ scope.$index + 1 }}
+      </template>
+    </el-table-column>
+    <el-table-column
+      prop="date"
+      label="时间"
+      align="center"
+      show-overflow-tooltip
+    >
+    </el-table-column>
+    <el-table-column
+      prop="unitArea"
+      align="center"
+      :formatter="formatFact"
+      show-overflow-tooltip
+    >
+      <template #header>
+        <div v-html="'单位面积功率(' + unit + ')'"></div>
+      </template>
+    </el-table-column>
+    <el-table-column
+      prop="value"
+      align="center"
+      :formatter="formatFact"
+      show-overflow-tooltip
+    >
+      <template #header>
+        <div v-html="'峰值(kW)'"></div>
+      </template>
+    </el-table-column>
+  </el-table>
+</div>

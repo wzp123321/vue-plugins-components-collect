@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>能源企业备份</title>
+    <g id="视觉稿" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="能源企业备份" fill-rule="nonzero">
+            <rect id="矩形" fill="#000000" opacity="0" x="0" y="0" width="20" height="20"></rect>
+            <g id="编组-3" transform="translate(0.000000, 1.000000)">
+                <polygon id="路径" fill="#CCCCCC" points="1.9453125 0 13.6171875 0 13.6171875 15.5625 1.9453125 15.5625"></polygon>
+                <path d="M7.78125,11.3446875 C9.19992187,11.3446875 10.3502344,10.5203906 10.3502344,9.03796875 C10.3502344,7.55554687 8.09882812,5.64351563 7.78125,4.2178125 C7.50515625,5.65757812 5.21226563,7.55578125 5.21226563,9.03796875 C5.21226563,10.5201563 6.36257812,11.3446875 7.78125,11.3446875 Z" id="路径" fill="#4C4C4C"></path>
+                <polygon id="路径" fill="#999999" points="13.6171875 2.91796875 17.5078125 2.91796875 17.5078125 15.5625 13.6171875 15.5625"></polygon>
+                <polygon id="路径" fill="#CCCCCC" points="0 15.5625 19.453125 15.5625 19.453125 18.4804688 0 18.4804688"></polygon>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,36 @@
+@import './quick.scss';
+
+@font-face {
+  font-family: 'D-DIN-DIN-Bold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('D-DIN-DIN-Bold'), url('../fonts/D-DIN-Bold.otf') format('woff');
+}
+
+@font-face {
+  font-family: 'D-DIN';
+  font-style: normal;
+  font-weight: normal;
+  src: local('D-DIN'), url('../fonts/D-DIN.otf') format('woff');
+}
+
+// 公共样式
+uni-page-body {
+  width: 100%;
+  height: 100%;
+}
+
+// 盒模型
+* {
+  box-sizing: border-box;
+}
+
+// 隐藏滚动条
+::-webkit-scrollbar {
+  display: none;
+  width: 0 !important;
+  height: 0 !important;
+  -webkit-appearance: none;
+  background: transparent;
+  color: transparent;
+}

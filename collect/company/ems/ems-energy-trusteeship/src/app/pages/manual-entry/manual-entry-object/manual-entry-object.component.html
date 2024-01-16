@@ -1,0 +1,305 @@
+<div class="me-object" [style.width.px]="width">
+  <div
+    class="ant-select-selection ant-select-selection-single"
+    (click)="toggle($event)"
+    [ngClass]="{ 'select-open-focus': isPanelShow }"
+  >
+    <!-- 单选 start -->
+    <div class="ant-select-selection-rendered">
+      <div class="ant-select-selection-placeholder" *ngIf="!name">
+        {{ placeholder }}
+      </div>
+      <div
+        class="ant-select-selection-selected-value"
+        [title]="name ? name : ''"
+      >
+        {{ name ? name : "" }}
+      </div>
+    </div>
+    <!-- 单选 end -->
+    <!-- 清空按钮 start -->
+    <span
+      class="ant-select-selection-clear"
+      *ngIf="!isPanelShow && name"
+      (click)="clearSelect()"
+    >
+      <i class="ant-select-selection-clear-anticon select-clear-icon">
+        <svg
+          viewBox="64 64 896 896"
+          fill="currentColor"
+          width="1em"
+          height="1em"
+          data-icon="close-circle"
+          aria-hidden="true"
+        >
+          <path
+            d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm165.4 618.2l-66-.3L512 563.4l-99.3 118.4-66.1.3c-4.4 0-8-3.5-8-8 0-1.9.7-3.7 1.9-5.2l130.1-155L340.5 359a8.32 8.32 0 01-1.9-5.2c0-4.4 3.6-8 8-8l66.1.3L512 464.6l99.3-118.4 66-.3c4.4 0 8 3.5 8 8 0 1.9-.7 3.7-1.9 5.2L553.5 514l130 155c1.2 1.5 1.9 3.3 1.9 5.2 0 4.4-3.6 8-8 8z"
+          ></path>
+        </svg>
+      </i>
+    </span>
+    <!-- 清空按钮 end -->
+    <!-- 箭头按钮 start -->
+    <div class="ant-select-arrow" [class.ant-select-open]="isPanelShow">
+      <i class="ant-select-arrow-anticon ant-select-arrow-icon anticon-down">
+        <svg
+          *ngIf="!isPanelShow"
+          viewBox="64 64 896 896"
+          fill="currentColor"
+          width="1em"
+          height="1em"
+          data-icon="down"
+          aria-hidden="true"
+        >
+          <path
+            d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+          ></path>
+        </svg>
+        <svg
+          *ngIf="isPanelShow"
+          viewBox="64 64 896 896"
+          fill="currentColor"
+          width="1em"
+          height="1em"
+          data-icon="down"
+          aria-hidden="true"
+        >
+          <path
+            d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+          ></path>
+        </svg>
+      </i>
+    </div>
+    <!-- 箭头按钮 end -->
+  </div>
+  <!-- 下拉面板 start -->
+  <div
+    style="
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    "
+    [style.display]="
+      isPanelShow && objectPosition === 'fixed' ? 'block' : 'none'
+    "
+    [ngStyle]="{ height: modalMask, top: modalTop }"
+    (click)="cancelModal()"
+  ></div>
+  <div
+    class="me-object-pane nzDropdownStyle"
+    [style.display]="isPanelShow ? 'block' : 'none'"
+    [style.position]="objectPosition"
+  >
+    <div
+      class="meop-tree-select ant-select-tree-dropdown ng-trigger-slideMotion ant-select-dropdown--single ant-select-dropdown-placement-bottomLeft"
+    >
+      <div class="meop-tree-select-radio" *ngIf="radioData?.data">
+        <nz-radio-group
+          class="meop-tree-select-radio-group"
+          [(ngModel)]="radioData.selectValue"
+          (ngModelChange)="radioModelChange($event)"
+        >
+          <label
+            nz-radio
+            [nzValue]="item.value"
+            *ngFor="let item of radioData?.data"
+            >{{ item.label }}</label
+          >
+        </nz-radio-group>
+      </div>
+      <div class="meop-tree-body">
+        <div class="meoptb-left-tree">
+          <div class="tree-title">
+            {{
+              radioData.selectValue === 1
+                ? "区域树"
+                : radioData.selectValue === 2
+                ? "业态树"
+                : radioData.selectValue === 3
+                ? "支路树"
+                : ""
+            }}
+          </div>
+          <nz-input-group
+            [nzSuffix]="suffixIcon"
+            class="meoptb-tree-select-search"
+          >
+            <input
+              type="text"
+              nz-input
+              placeholder="请输入搜索内容"
+              [(ngModel)]="searchValue"
+            />
+          </nz-input-group>
+          <ng-template #suffixIcon>
+            <svg
+              t="1588994205990"
+              class="icon"
+              viewBox="0 0 1102 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="4260"
+              width="16"
+              height="16"
+            >
+              <path
+                d="M817.872758 756.441356c-175.275321 175.275321-457.007171 178.503662-629.211631 6.299203C16.377928 590.37862 19.606269 308.646769 194.88159 133.450188s457.007171-178.503662 629.211631-6.299202c172.2832 172.2832 169.054858 454.01505-6.299203 629.29037z m-83.464439-83.464438c129.52736-129.6061 131.889561-336.534916 6.141723-462.204014-125.669098-125.747838-332.597914-123.385637-462.204013 6.220463C148.818669 346.520727 146.456468 553.449543 272.204306 679.118641c125.747838 125.669098 332.676654 123.306897 462.204013-6.299203z m-26.692872 41.495999l83.464439-83.464439 308.345982 308.267243-83.464438 83.464438L707.715447 714.551657z"
+                fill="#D9D9D9"
+                p-id="4261"
+              ></path>
+            </svg>
+          </ng-template>
+          <div
+            [class.pt]="!radioData.data"
+            class="tree-hide"
+            [ngClass]="{
+              'tree-show':
+                treeSelectNodes && treeSelectNodes.length > 0 && !loading
+            }"
+          >
+            <div class="type-tree">
+              <nz-tree
+                [nzData]="treeSelectNodes"
+                [nzTreeTemplate]="nzTreeTemplate"
+                [nzExpandedKeys]="treeSelectExpandedKeys"
+                [(nzSelectedKeys)]="select"
+                [nzHideUnMatched]="false"
+                [nzSearchValue]="searchValue"
+                (nzClick)="treeSelectNode($event)"
+              >
+              </nz-tree>
+              <ng-template #nzTreeTemplate let-node>
+                <span
+                  class="tree-custom-node"
+                  [ngClass]="{ 'node-selected': select === node.key }"
+                >
+                  <span
+                    class="ant-tree-title node-title"
+                    [ngClass]="{
+                      'text-overflow':
+                        node.title.indexOf(searchValue) === 0 ||
+                        node.title.indexOf(searchValue) === -1
+                    }"
+                    [title]="node.title"
+                    [innerHTML]="node.title | searchHighLight : searchValue"
+                  ></span>
+                </span>
+              </ng-template>
+            </div>
+          </div>
+          <ng-container *ngIf="loading">
+            <div class="spin-container" style="height: calc(100% - 72px)">
+              <nz-spin
+                nzSimple
+                [nzSize]="'small'"
+                nzTip="Loading..."
+                [nzSpinning]="loading"
+              ></nz-spin>
+            </div>
+          </ng-container>
+          <ng-container
+            *ngIf="
+              (!treeSelectNodes ||
+                (treeSelectNodes && treeSelectNodes.length === 0)) &&
+              !loading
+            "
+          >
+            <div style="width: 100%; height: calc(100% - 72px)">
+              <app-manual-entry-no-data
+                [size]="'small'"
+                [noDataText]="'暂无数据'"
+              ></app-manual-entry-no-data>
+            </div>
+          </ng-container>
+        </div>
+        <div class="meoptb-right-tree">
+          <div class="tree-title">相关设备</div>
+          <nz-input-group
+            [nzSuffix]="suffixIcon"
+            class="meoptb-tree-select-search"
+          >
+            <input
+              type="text"
+              nz-input
+              placeholder="请输入搜索内容"
+              [(ngModel)]="searchDeviceValue"
+            />
+          </nz-input-group>
+          <ng-template #suffixIcon>
+            <svg
+              t="1588994205990"
+              class="icon"
+              viewBox="0 0 1102 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="4260"
+              width="16"
+              height="16"
+            >
+              <path
+                d="M817.872758 756.441356c-175.275321 175.275321-457.007171 178.503662-629.211631 6.299203C16.377928 590.37862 19.606269 308.646769 194.88159 133.450188s457.007171-178.503662 629.211631-6.299202c172.2832 172.2832 169.054858 454.01505-6.299203 629.29037z m-83.464439-83.464438c129.52736-129.6061 131.889561-336.534916 6.141723-462.204014-125.669098-125.747838-332.597914-123.385637-462.204013 6.220463C148.818669 346.520727 146.456468 553.449543 272.204306 679.118641c125.747838 125.669098 332.676654 123.306897 462.204013-6.299203z m-26.692872 41.495999l83.464439-83.464439 308.345982 308.267243-83.464438 83.464438L707.715447 714.551657z"
+                fill="#D9D9D9"
+                p-id="4261"
+              ></path>
+            </svg>
+          </ng-template>
+          <div
+            class="meoptb-right-device"
+            [hidden]="
+              deviceLoading ||
+              !deviceData ||
+              (deviceData && deviceData.length === 0)
+            "
+          >
+            <div
+              class="device-item text-overflow"
+              *ngFor="let item of deviceData"
+              (click)="deviceClick(item)"
+              [ngClass]="{
+                'device-item-select':
+                  deviceSelect === item.deviceId &&
+                  pointNumber === item.pointNumber
+              }"
+              [title]="item.deviceName"
+              [hidden]="item.deviceName.indexOf(searchDeviceValue) === -1"
+            >
+              {{ item.deviceName }}：{{ item.pointName }}
+            </div>
+          </div>
+          <ng-container *ngIf="deviceLoading">
+            <div class="spin-container" style="height: calc(100% - 72px)">
+              <nz-spin
+                nzSimple
+                [nzSize]="'small'"
+                nzTip="Loading..."
+                [nzSpinning]="deviceLoading"
+              ></nz-spin>
+            </div>
+          </ng-container>
+          <ng-container
+            *ngIf="
+              (!deviceData || (deviceData && deviceData.length === 0)) &&
+              !deviceLoading
+            "
+          >
+            <div style="width: 100%; height: calc(100% - 72px)">
+              <app-manual-entry-no-data
+                [size]="'small'"
+                [noDataText]="deviceNodataMsg"
+              ></app-manual-entry-no-data>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div class="me-object-operate">
+        <button class="--ml12" (click)="cancel()">取消</button>
+        <button primary (click)="submit()">确认</button>
+      </div>
+    </div>
+  </div>
+  <!-- 下拉面板 end -->
+</div>

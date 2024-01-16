@@ -1,0 +1,42 @@
+<el-dialog
+  custom-class="ma-ad-toolbar-exception"
+  :model-value="show"
+  title="错误原因"
+  :close-on-click-modal="false"
+  @close="onClose()"
+>
+  <table style="width: 100%" scroll-y v-resize:8>
+    <thead>
+      <tr>
+        <th style="width: 60px">序号</th>
+        <th style="width: 280px">模板位置</th>
+        <th>详细信息</th>
+      </tr>
+    </thead>
+    <tbody style="height: 480px">
+      <tr v-for="(item,index) in list">
+        <td style="width: 60px">{{ index + 1 }}</td>
+        <el-tooltip
+          placement="bottom"
+          :offset="-8"
+          transition="ease"
+          :hide-after="10"
+          :content="item.position"
+          :disabled="!item.position"
+        >
+          <td style="width: 280px" ellipsis>{{ item.position ?? '--' }}</td>
+        </el-tooltip>
+        <el-tooltip
+          placement="bottom"
+          :offset="-8"
+          transition="ease"
+          :hide-after="10"
+          :content="item.detail"
+          :disabled="!item.detail"
+        >
+          <td ellipsis>{{ item.detail ?? '--' }}</td>
+        </el-tooltip>
+      </tr>
+    </tbody>
+  </table>
+</el-dialog>

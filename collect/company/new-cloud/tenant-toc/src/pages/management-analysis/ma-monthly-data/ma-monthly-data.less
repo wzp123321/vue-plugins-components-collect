@@ -1,0 +1,148 @@
+.ma-monthly-data {
+  height: 100%;
+
+  :deep(.tenant-pagecontainer__detail) {
+    overflow: hidden;
+    min-width: 1440px;
+
+    .tenant-pagecontainer__detail-content {
+      overflow: hidden;
+    }
+
+    .el-loading-mask {
+      background-color: transparent !important;
+    }
+  }
+
+  .ma-md-pageContent-header {
+    padding: 16px 0;
+    text-align: right;
+  }
+
+  table {
+    min-width: 100%;
+    max-height: 100%;
+    overflow: auto;
+    display: block;
+  }
+
+  // 表头单元格线
+  :deep(.el-table),
+  table {
+    tr > th,
+    tr > td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      border-right: 1px solid var(--color-text-divider);
+      border-bottom: 1px solid var(--color-text-divider);
+
+      span {
+        width: 100%;
+        display: inline-block;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    tbody tr td {
+      padding: 0;
+      box-sizing: border-box;
+
+      &.el-table__cell {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      div {
+        position: relative;
+      }
+
+      .ma-md-column {
+        > div {
+          padding: 0 10px;
+        }
+
+        img {
+          cursor: pointer;
+
+          position: absolute;
+          top: 50%;
+          right: 2px;
+          transform: translateY(-50%);
+
+          width: 16px;
+          height: 16px;
+
+          display: none;
+        }
+      }
+
+      input {
+        min-width: 112px;
+        max-width: 112px;
+        margin: 0 auto;
+      }
+
+      // &:hover {
+      //   .ma-md-column img {
+      //     display: inline-block;
+
+      //     transition: all 233ms;
+      //   }
+      // }
+    }
+
+    // tbody td
+    .text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // 缺省图
+    .table-nodata {
+      height: 166px;
+
+      p {
+        margin-top: 8px;
+        color: var(--color-text-disable);
+      }
+    }
+  }
+
+  .ma-md-data-none {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      width: 60px;
+      height: 60px;
+    }
+
+    p {
+      color: rgba(0, 0, 0, 0.25);
+      display: inline-block;
+      line-height: 22px;
+      margin-top: 8px;
+    }
+  }
+}
+
+.import-error-dialog {
+  table tbody tr td span {
+    display: inline-block;
+    width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

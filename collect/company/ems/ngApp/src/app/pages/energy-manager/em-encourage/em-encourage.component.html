@@ -1,0 +1,27 @@
+<ion-backdrop *ngIf="showBackdrop"></ion-backdrop>
+<div class="em__encourage" *ngIf="showBackdrop">
+  <div class="encourage__tip" *ngIf="isAllFinished">
+    <object data="./assets/img/energy-manager/encourage-complete-work.svg" type="image/svg+xml">一天的任务完成</object>
+    <!-- <img src="./assets/img/energy-manager/encourage-complete-work.svg" alt="一天的任务完成"> -->
+  </div>
+  <div class="encourage__tip encourage__tip--days" *ngIf="isServiceDaysRight">
+    <object data="./assets/img/energy-manager/encourage-count-day.svg" type="image/svg+xml">
+      <!-- <slot name="count">{{ serviceDays }}</slot> -->
+    </object>
+    <!-- <img src="./assets/img/energy-manager/encourage-count-day.svg" alt="完成设定天数"> -->
+    <aside>
+      <p>您已持续完成能源管理工作</p>
+      <p><span class="font--big DinPro-Bold">{{ serviceDays }}</span>天</p>
+    </aside>
+  </div>
+  <div class="encourage__tip encourage__tip--measure" *ngIf="isAddMeasure">
+    <img src="./assets/img/energy-manager/encourage-add-measure.png" alt="感谢您的付出，为措施库添砖加瓦！">
+    <aside>
+      <p>感谢您的付出，</p>
+      <p>为{{ rootName }}措施库添砖加瓦！</p>
+    </aside>
+  </div>
+  <ion-icon name="close-circle-outline" (click)="close()"
+     [ngClass]="{'measure-icon': isAddMeasure, 'service-days-icon': isServiceDaysRight, 'all-finished-icon': isAllFinished}"
+  ></ion-icon>
+</div>

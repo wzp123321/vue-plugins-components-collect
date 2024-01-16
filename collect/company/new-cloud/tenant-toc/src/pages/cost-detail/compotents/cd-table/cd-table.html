@@ -1,0 +1,170 @@
+<div class="cd-table" id="cd-table" v-loading="isLoading">
+  <!-- 编辑输入框 -->
+  <cd-t-cell-editor @editor="saveCell"></cd-t-cell-editor>
+  <!-- 表格 -->
+  <vxe-table
+    id="cd-t-container"
+    class="cd-t-container"
+    border="none"
+    :height="height"
+    :scroll-y="{ mode: 'wheel' }"
+    :column-config="{resizable: true}"
+    show-overflow
+    ref="xTable"
+    :size="tableSize"
+    :row-class-name="getRowClassName"
+    @cell-click="handleCellClick"
+    @resizable-change="handleColumnResize"
+  >
+    <vxe-column
+      v-for="(item, index) in columnList"
+      :field="item.key"
+      :fixed="index === 0 ? 'left' : ''"
+      :width="item.minWidth"
+      :min-width="item.minWidth"
+      :title="item.title"
+    >
+      <template #header>
+        <cd-t-screen
+          class="cd-t-header"
+          :districts="districts"
+          :title="item.title"
+          :columnKey="item.key"
+          :firstHh="item.firstHh"
+          :screenBg="item.screenBg"
+          :hasFilter="item.hasFilter"
+          @query="handleScreenQuery"
+        >
+        </cd-t-screen>
+      </template>
+      <template v-slot="{ row, rowIndex }">
+        <!-- 行索引不能超出数据源范围 -->
+        <div
+          v-if="item.key !== 'log' && rowIndex <= tableData.length-1"
+          class="cell-container"
+          @contextmenu.capture="handleRowContextMenu($event, rowIndex, row)"
+        >
+          <!-- 非编辑状态 或者当前单元格不处于编辑状态 数据不为空 -->
+          <span
+            class="text"
+            :title="tableData[rowIndex][item.key]"
+            v-if="(!row.editing && (!tableStore.editableColumnKeys.includes(item.key) || rowIndex !== tableStore.editRowIndex)) || (row.editing && item.type === COLUMN_TYPE.只读文本)"
+          >
+            {{ !checkDefault(tableData[rowIndex][item.key]) ? `${ mapCellValue(tableData[rowIndex][item.key], item.key)
+            }${ item?.unit ? '&nbsp;' + item?.unit : '' }` : '--'}}
+          </span>
+
+          <!-- 编辑状态 或者 当前单元格处于编辑状态 -->
+          <input
+            type="text"
+            placeholder="请输入"
+            :class="['edit-input', tableStore.editColumnKey === item.key ? 'is-editing-input' : '']"
+            :maxlength="200"
+            :value="tableData[rowIndex][item.key]"
+            v-if="(item.type === COLUMN_TYPE.文本输入框 || item.type === COLUMN_TYPE.正数输入框 || item.type === COLUMN_TYPE.负数输入框) &&
+         (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+          />
+
+          <!-- 编辑状态 或者 当前单元格处于编辑状态 -->
+          <el-select
+            v-model="tableData[rowIndex][item.key]"
+            popper-class="cost-select-popper"
+            placeholder="请选择"
+            v-if="item.type === COLUMN_TYPE.一般下拉框 && (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+            @change="handleSelectChange($event, row, item.key, rowIndex)"
+            @visible-change="handleSelectVisibleChange($event, rowIndex, item.key)"
+          >
+            <el-option
+              v-for="(selItem, selIndex) in useList(item.key)"
+              :key="selItem + selIndex"
+              class="option"
+              :title="selItem.name"
+              :label="selItem.name"
+              :value="selItem.code"
+            >
+            </el-option
+          ></el-select>
+
+          <!-- 编辑状态 或者 当前单元格处于编辑状态 -->
+          <cd-t-editable-select
+            v-model:value="tableData[rowIndex][item.key]"
+            v-if="item.type === COLUMN_TYPE.可新增下拉框 && (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+            :width="item.minWidth"
+            :list="useList(item.key)"
+            @change="handleSelectChange($event, row, item.key, rowIndex)"
+            @visible-change="handleSelectVisibleChange($event, rowIndex, item.key)"
+          ></cd-t-editable-select>
+
+          <!-- 日期选择 -->
+          <el-date-picker
+            v-model="tableData[rowIndex].formatBillDate"
+            v-if="item.key === 'billDate' && (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+            type="date"
+            :editable="false"
+            :clearable="false"
+            placeholder="请选择"
+            @change="dateChange($event, item.key, 'yyyy-MM-dd', rowIndex)"
+          />
+
+          <!-- 创建时间 -->
+          <el-date-picker
+            v-model="tableData[rowIndex].formatRecordTime"
+            v-if="item.key === 'recordTime' && (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+            type="date"
+            :editable="false"
+            :clearable="false"
+            placeholder="请选择"
+            @change="dateChange($event, item.key, 'yyyy-MM-dd', rowIndex)"
+          />
+
+          <!-- 蒙层 -->
+          <span
+            class="date-mask"
+            @click="handleDateMaskClick($event, rowIndex, item.key)"
+            v-if="(item.key === 'billDate' || item.key === 'recordTime') && (row.editing || (tableStore.editableColumnKeys.includes(item.key) && rowIndex === tableStore.editRowIndex))"
+          ></span>
+        </div>
+        <div
+          v-if="item.key === 'log' && rowIndex <= tableData.length-1"
+          class="cell-container log"
+          :disabled="!row.hasLog"
+          @contextmenu.capture="handleRowContextMenu($event, rowIndex, row)"
+        >
+          日志
+        </div>
+      </template>
+    </vxe-column>
+
+    <template v-slot:empty>
+      <div class="cd-t-empty" :class="{ none: !isEmpty }">
+        <img src="@/assets/images/common/common-data-none.svg" alt="暂无数据" />
+        <span>暂无数据</span>
+      </div>
+    </template>
+  </vxe-table>
+
+  <!-- 分页器 -->
+  <el-pagination
+    v-show="total > 0"
+    :current-page="sTable.paginationVO.page"
+    :page-sizes="sTable.pageSizes"
+    @size-change="handlePageSizeChange"
+    @current-change="handlePageNumChange"
+    :page-size="sTable.paginationVO.pageSize"
+    layout="slot, prev, pager, next, sizes, jumper"
+    :total="total"
+  >
+    <template #default>
+      <span class="amount">共{{ total }}条，金额总计{{ thousandSeparation(totalBalance) }}元</span>
+    </template>
+  </el-pagination>
+
+  <!-- 复制弹框 -->
+  <cd-t-tool-popover
+    @copy="copyRow"
+    @insert="insertRow"
+    @saveWholeRow="saveWholeRow"
+    @popoverClose="popoverClose"
+    @delete="handleDelete"
+  ></cd-t-tool-popover>
+</div>

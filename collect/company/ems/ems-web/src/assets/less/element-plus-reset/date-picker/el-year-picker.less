@@ -1,0 +1,63 @@
+.el-picker__popper.yearrange-popper {
+  .el-date-picker__header.el-date-picker__header--bordered {
+    margin: 0 0 1px 0;
+    padding: 9px 16px 8px;
+    border-bottom: 1px solid var(--color-text-divider);
+
+    button {
+      height: 22px;
+      line-height: 22px;
+      margin-top: 0;
+    }
+  }
+}
+
+.el-picker-panel__content table.el-year-table {
+  tbody > tr > td {
+    height: 56px;
+    padding: 16px 0;
+
+    &:not(.current) {
+      > div > a.cell {
+        color: var(--color-text-primary);
+      }
+    }
+
+    &.disabled .cell {
+      color: var(--color-text-disable);
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    &.current {
+      cursor: pointer;
+
+      a.cell,
+      > div > a.cell {
+        cursor: pointer;
+        font-weight: normal;
+        color: var(--color-default);
+        background-color: var(--color-primary);
+      }
+    }
+
+    &:hover {
+      background-color: transparent !important;
+    }
+
+    &:not(.disabled):not(.current) {
+      a.cell:hover {
+        background-color: rgba(0, 0, 0, 0.04) !important;
+      }
+    }
+
+    > a.cell {
+      width: 60px;
+      font-weight: normal;
+      text-align: center;
+      height: 24px !important;
+      line-height: 24px !important;
+      border-radius: 2px;
+      color: var(--color-text-primary);
+    }
+  }
+}

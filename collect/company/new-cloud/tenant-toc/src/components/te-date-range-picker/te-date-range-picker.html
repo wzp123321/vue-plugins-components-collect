@@ -1,0 +1,118 @@
+<!-- 通过调试工具发现可禁用 时分秒 -->
+<div class="date-range-picker" :style="{ width: computedWidth }">
+  <!-- 日期范围 带time  -->
+  <te-date-picker
+    v-if="mode === 'datetimerange'&& format === 'YYYY-MM-DD HH:mm'"
+    v-model="value"
+    :editable="editable"
+    :type="'datetimerange'"
+    :style="{ width: computedWidth }"
+    :range-separator="separator"
+    :format="format"
+    :start-placeholder="placeholder[0]"
+    :end-placeholder="placeholder[1]"
+    :clearable="clearable"
+    :disabledDate="disabledDate"
+    :disabledMinutes="disabledMinutes"
+    :disabledHours="disabledHours"
+    :clear-icon="customClose"
+    @change="onDateChange"
+    popper-class="picker-date-popper"
+    @focus="onFocus"
+    @blur="onBlur"
+    :default-time="defaultTime"
+  >
+  </te-date-picker>
+  <te-date-picker
+    v-if="mode === 'datetimerange' && format === 'YYYY-MM-DD HH'"
+    v-model="value"
+    :editable="editable"
+    type="datetimerange"
+    :style="{ width: computedWidth }"
+    :range-separator="separator"
+    format="YYYY-MM-DD HH"
+    :start-placeholder="placeholder[0]"
+    :end-placeholder="placeholder[1]"
+    :clearable="clearable"
+    :disabledDate="disabledDate"
+    :disabledMinutes="disabledMinutes"
+    :disabledHours="disabledHours"
+    :clear-icon="customClose"
+    @change="onDateChange"
+    popper-class="picker-date-popper"
+    @focus="onFocus"
+    @blur="onBlur"
+    :default-time="defaultTime"
+  >
+  </te-date-picker>
+  <te-date-picker
+    v-if="mode === 'daterange'"
+    v-model="value"
+    :editable="editable"
+    :type="'daterange'"
+    :style="{ width: computedWidth }"
+    :range-separator="separator"
+    :format="format"
+    :start-placeholder="placeholder[0]"
+    :end-placeholder="placeholder[1]"
+    :clearable="clearable"
+    :disabledDate="disabledDate"
+    :disabledMinutes="disabledMinutes"
+    :disabledHours="disabledHours"
+    :clear-icon="customClose"
+    @change="onDateChange"
+    popper-class="picker-date-popper"
+    @focus="onFocus"
+    @blur="onBlur"
+  >
+  </te-date-picker>
+  <!-- 月 -->
+  <te-date-picker
+    v-if="mode === 'monthrange'"
+    v-model="value"
+    :editable="editable"
+    :type="'monthrange'"
+    :style="{ width: computedWidth }"
+    :range-separator="separator"
+    :format="format"
+    :start-placeholder="placeholder[0]"
+    :end-placeholder="placeholder[1]"
+    :clearable="clearable"
+    :disabledDate="disabledDate"
+    :disabledMinutes="disabledMinutes"
+    :disabledHours="disabledHours"
+    :clear-icon="customClose"
+    @change="onDateChange"
+  >
+  </te-date-picker>
+  <!-- 年 -->
+  <div v-if="mode === 'yearrange'" class="year-picker flex-row-start-center" :style="{ width: computedWidth }">
+    <te-date-picker
+      v-model="startDate"
+      :editable="editable"
+      type="year"
+      :format="'YYYY'"
+      popper-class="yearrange-popper "
+      :placeholder="placeholder[0]"
+      :clearable="clearable"
+      :disabledDate="disabledStartYear"
+      :clear-icon="customClose"
+      @change="onStartDateChange"
+    >
+    </te-date-picker>
+    <span class="separator">{{ separator }}</span>
+    <te-date-picker
+      v-model="endDate"
+      :editable="editable"
+      type="year"
+      :format="'YYYY'"
+      popper-class="yearrange-popper"
+      :placeholder="placeholder[1]"
+      :clearable="clearable"
+      :disabledDate="disabledEndYear"
+      :clear-icon="customClose"
+      @change="onEndDateChange"
+    >
+    </te-date-picker>
+  </div>
+</div>

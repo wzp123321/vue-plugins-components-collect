@@ -1,0 +1,159 @@
+<div class="me-search">
+  <div class="item-container">
+    <nz-input-group
+      [nzSuffix]="suffixIconSearch"
+      [ngStyle]="{ height: '36px' }"
+    >
+      <input
+        type="text"
+        class="item-container-input"
+        nz-input
+        placeholder="请输入录入对象名称搜索"
+        [(ngModel)]="keyWords"
+        emsInputFilter_Special
+        emsInputFilterCharacters=""
+        [(emsInputFilterModel)]="keyWords"
+      />
+    </nz-input-group>
+    <ng-template #suffixIconSearch>
+      <!-- <i nz-icon nzType="search"></i> -->
+      <svg
+        t="1588994205990"
+        class="icon"
+        viewBox="0 0 1102 1024"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        p-id="4260"
+        width="14"
+        height="14"
+      >
+        <path
+          d="M817.872758 756.441356c-175.275321 175.275321-457.007171 178.503662-629.211631 6.299203C16.377928 590.37862 19.606269 308.646769 194.88159 133.450188s457.007171-178.503662 629.211631-6.299202c172.2832 172.2832 169.054858 454.01505-6.299203 629.29037z m-83.464439-83.464438c129.52736-129.6061 131.889561-336.534916 6.141723-462.204014-125.669098-125.747838-332.597914-123.385637-462.204013 6.220463C148.818669 346.520727 146.456468 553.449543 272.204306 679.118641c125.747838 125.669098 332.676654 123.306897 462.204013-6.299203z m-26.692872 41.495999l83.464439-83.464439 308.345982 308.267243-83.464438 83.464438L707.715447 714.551657z"
+          fill="#D9D9D9"
+          p-id="4261"
+        ></path>
+      </svg>
+    </ng-template>
+  </div>
+
+  <div class="item-container">
+    <label>能源类型</label>
+    <nz-tree-select
+      class="item-container-select"
+      style="width: 180px"
+      [nzExpandedKeys]="energyExpandKeys"
+      [nzNodes]="energyList"
+      nzShowSearch
+      nzPlaceHolder="请选择能源类型"
+      nzAllowClear="true"
+      [(ngModel)]="energyCodeValue"
+      (ngModelChange)="energyChange($event)"
+      [nzBackdrop]="true"
+    ></nz-tree-select>
+  </div>
+  <div class="item-container">
+    <label>录入对象</label>
+    <div class="item-container-object">
+      <app-manual-entry-object
+        [placeholder]="'请选择录入对象'"
+        (meoTSubmitSelectChange)="submitSelectChange($event)"
+        [objectPosition]="'absolute'"
+      >
+      </app-manual-entry-object>
+    </div>
+  </div>
+  <div class="item-container">
+    <label>录入值类型</label>
+    <nz-select
+      style="width: 178px"
+      id="valueType"
+      name="valueType"
+      [(ngModel)]="energyType"
+      (ngModelChange)="valueTypeChange($event)"
+      nzPlaceHolder="请选择录入值类型"
+      [nzAllowClear]="false"
+      [nzDropdownClassName]="'me-value-type'"
+      [nzOptionHeightPx]="36"
+    >
+      <nz-option
+        *ngFor="let item of valueTypeData"
+        [nzValue]="item.value"
+        [nzLabel]="item.name"
+      ></nz-option>
+    </nz-select>
+  </div>
+  <div class="item-container">
+    <label>数据时间</label>
+    <nz-range-picker
+      [hidden]="energyType === '1'"
+      [ngStyle]="{ width: '442px' }"
+      [nzDisabledDate]="disabledDate"
+      [(ngModel)]="dateRange"
+      (ngModelChange)="dateModelChange($event)"
+      name="dateRange"
+      id="dateRange"
+      [nzAllowClear]="true"
+      nzSeparator="～"
+    >
+    </nz-range-picker>
+    <div class="item-container-date" [hidden]="energyType !== '1'">
+      <app-manual-entry-quick-time
+        *ngIf="energyType === '1'"
+        [itemArray]="quickTimeList"
+        [itemSelected]="quickTimeSelect"
+        (itemOnSelect)="shortcutOnSelect($event)"
+      >
+      </app-manual-entry-quick-time>
+      <div class="me-date-day" [hidden]="quickTimeSelect === 1">
+        <label>开始时间</label>
+        <nz-date-picker
+          [ngStyle]="{ width: '206px' }"
+          [(ngModel)]="startDate"
+          [nzDisabledDate]="disabledDate1"
+          [nzShowToday]="false"
+          [nzAllowClear]="true"
+          [nzPlaceHolder]="'请选择日期'"
+          (ngModelChange)="startDateOnChange($event)"
+        >
+        </nz-date-picker>
+        <label class="ml8">结束时间</label>
+        <nz-date-picker
+          [ngStyle]="{ width: '206px' }"
+          [(ngModel)]="endDate"
+          [nzDisabledDate]="disabledDate2"
+          [nzShowToday]="false"
+          [nzAllowClear]="true"
+          [nzPlaceHolder]="'请选择日期'"
+          (ngModelChange)="endDateOnChange($event)"
+        >
+        </nz-date-picker>
+      </div>
+      <div class="me-date-month" [hidden]="quickTimeSelect === 2">
+        <label>开始时间</label>
+        <nz-month-picker
+          [ngStyle]="{ width: '206px', height: '36px' }"
+          [nzDisabledDate]="disabledDate1"
+          [(ngModel)]="startDate"
+          [nzPlaceHolder]="'请选择月份'"
+          [nzAllowClear]="true"
+          (ngModelChange)="startDateOnChange($event)"
+        >
+        </nz-month-picker>
+        <label class="ml8">结束时间</label>
+        <nz-month-picker
+          [ngStyle]="{ width: '206px', height: '36px' }"
+          [nzDisabledDate]="disabledDate2"
+          [(ngModel)]="endDate"
+          [nzAllowClear]="true"
+          [nzPlaceHolder]="'请选择月份'"
+          (ngModelChange)="endDateOnChange($event)"
+        >
+        </nz-month-picker>
+      </div>
+    </div>
+  </div>
+  <div class="button-group">
+    <button primary (click)="toSearch()">查询</button>
+    <button class="--ml12" (click)="toReset()">重置</button>
+  </div>
+</div>

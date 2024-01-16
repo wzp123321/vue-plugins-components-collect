@@ -1,0 +1,221 @@
+.me-search {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  .item-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    &-input {
+      width: 654px;
+    }
+    &-select {
+      height: 36px;
+      width: 180px;
+    }
+    &-date {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 16px;
+      .me-date-day {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+      }
+      .me-date-month {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+    &-object {
+      height: 36px;
+      width: 358px;
+    }
+  }
+  & > .button-group {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+  }
+}
+.mr8 {
+  margin-right: 8px;
+}
+.ml8 {
+  margin-left: 8px;
+}
+// ::ng-deep .ant-picker-body table > thead {
+//   background-color: transparent;
+//   & > tr > th {
+//     padding: 0px;
+//   }
+// }
+// ::ng-deep .ant-picker-body table > tbody > tr > td {
+//   height: auto;
+// }
+// ::ng-deep .ant-picker-body table > tbody > tr:nth-child(even) {
+//   background-color: transparent;
+// }
+// ::ng-deep .ant-picker-body table > tbody > tr:hover {
+//   background-color: transparent;
+// }
+::ng-deep .me-value-type {
+  display: flex;
+  align-items: center;
+  nz-option-container.ant-select-dropdown nz-option-item.ant-select-item {
+    min-height: 36px;
+    padding: 0px 10px;
+    font-weight: 400;
+    height: 36px;
+    line-height: 36px;
+    .ant-select-item-option-content {
+      line-height: 36px;
+    }
+  }
+}
+::ng-deep .ant-select-open:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .anticon.anticon-down {
+  transform: rotate(180deg);
+}
+::ng-deep input:read-write:enabled:focus {
+  box-shadow: none !important;
+}
+::ng-deep .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  height: 36px;
+}
+::ng-deep .ant-select-single:not(.ant-select-customize-input) .ant-select-selector .ant-select-selection-search-input {
+  height: 34px;
+  line-height: 34px;
+}
+::ng-deep .ant-select-selection-placeholder,
+.ant-select-selection-item {
+  line-height: 34px !important;
+}
+::ng-deep .ant-select-selector .ant-select-selection-item {
+  line-height: 34px !important;
+}
+::ng-deep .ant-select-tree {
+  box-sizing: border-box;
+  padding: 0 4px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  font-variant: tabular-nums;
+  list-style: none;
+  font-feature-settings: 'tnum';
+  margin: -4px 0 0;
+}
+::ng-deep .ant-select-tree .ant-select-tree-treenode {
+  display: flex;
+  align-items: center;
+  padding: 6px 5px;
+  outline: 0;
+  line-height: 36px;
+  height: 36px;
+}
+::ng-deep .ant-select-tree .ant-select-tree-node-content-wrapper {
+  line-height: 36px;
+  color: rgba(0, 0, 0, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+::ng-deep .ant-select-tree .ant-select-tree-node-content-wrapper:hover {
+  background-color: #e6f7ff;
+}
+::ng-deep .ant-radio-button-wrapper,
+.ant-radio-button-wrapper a,
+.ant-select {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+// ::ng-deep .ant-picker-cell-in-view:hover:not(.ant-picker-cell-in-view) .ant-picker-cell-inner,
+// .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end):not(.ant-picker-cell-range-hover-start):not(.ant-picker-cell-range-hover-end)
+//   .ant-picker-cell-inner {
+//   background: #e6f7ff;
+//   cursor: pointer;
+// }
+// ::ng-deep
+//   .ant-picker-cell-in-view.ant-picker-cell-range-hover-start.ant-picker-cell-range-start-single.ant-picker-cell-range-hover:after {
+//   border: 0px;
+//   background: #e6f7ff;
+// }
+// ::ng-deep .ant-picker-cell-in-view.ant-picker-cell-in-range.ant-picker-cell-range-hover::before {
+//   border: 0px !important;
+//   background: #e6f7ff;
+//   width: 100%;
+// }
+// ::ng-deep
+//   .ant-picker-panel
+//   > :not(.ant-picker-date-panel)
+//   .ant-picker-cell-in-view.ant-picker-cell-in-range.ant-picker-cell-range-hover-start::before {
+//   background: #e6f7ff;
+// }
+// ::ng-deep
+//   .ant-picker-date-panel
+//   .ant-picker-cell-in-view.ant-picker-cell-in-range.ant-picker-cell-range-hover-start
+//   .ant-picker-cell-inner::after {
+//   background: #e6f7ff;
+// }
+// ::ng-deep .ant-picker-cell-in-view.ant-picker-cell-range-hover:not(.ant-picker-cell-in-range):after {
+//   border: 0px !important;
+//   background: #e6f7ff;
+//   width: 100%;
+// }
+// ::ng-deep tr > .ant-picker-cell-in-view.ant-picker-cell-range-hover:first-child:after {
+//   border: 0px !important;
+// }
+// ::ng-deep tr > .ant-picker-cell-in-view.ant-picker-cell-range-hover:last-child:after {
+//   border: 0px !important;
+// }
+
+// // ng-star-inserted ant-picker-cell ant-picker-cell-in-view ant-picker-cell-range-start-single ant-picker-cell-range-hover ant-picker-cell-range-start-near-hover
+// ::ng-deep
+//   .ant-picker-cell-in-view.ant-picker-cell-range-hover-end:not(.ant-picker-cell-in-range):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end)::after {
+//   border: 0px !important;
+// }
+// ::ng-deep .ant-picker-cell-in-view.ant-picker-cell-range-hover-start.ant-picker-cell-range-start-single::after {
+//   border: 0px !important;
+// }
+// ::ng-deep
+//   .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end):not(.ant-picker-cell-range-hover-start):not(.ant-picker-cell-range-hover-end)
+//   .ant-picker-cell-inner {
+//   background: transparent;
+// }
+// ::ng-deep
+//   .ant-picker-cell-in-view:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end):not(.ant-picker-cell-range-hover-start):not(.ant-picker-cell-range-hover-end)
+//   .ant-picker-cell-inner {
+//   background: #e6f7ff;
+// }
+// ::ng-deep .ant-picker-cell:hover:not(.ant-picker-cell-in-view) .ant-picker-cell-inner {
+//   background: transparent;
+// }
+
+// ::ng-deep .ant-picker-cell-in-view {
+//   color: rgba(0, 0, 0, 0.65);
+// }
+// ::ng-deep
+//   .ant-picker-cell-in-view.ant-picker-cell-range-hover-start:not(.ant-picker-cell-in-range):not(.ant-picker-cell-range-start):not(.ant-picker-cell-range-end)::after {
+//   border: 0px !important;
+// }
+// ::ng-deep .ant-picker-cell-today {
+//   color: #1890ff;
+//   font-weight: 700;
+// }
+// ::ng-deep nz-date-picker.ant-picker > .ant-picker-input > input {
+//   text-align: left !important;
+// }
+// ::ng-deep nz-date-picker.ant-picker {
+//   padding: 4px 11px;
+// }
+::ng-deep nz-input-group > input {
+  height: auto !important;
+}

@@ -1,0 +1,173 @@
+<div class="kqc-add-edit-dialog">
+  <el-dialog
+    :title="rows ? '修改KPI数据' : '新增KPI数据'"
+    v-model="dialogFormVisibleAdd"
+    :close-on-click-modal="false"
+    width="540px"
+  >
+    <el-form :model="Form" :rules="rules" ref="ruleForm" label-width="75px" label-position="right">
+      <el-form-item label="KPI类型">
+        <el-select v-model="Form.KPIType" :disabled="rows ? true : false" @change="onTypeChange">
+          <el-option
+            v-for="item in KPITypeData"
+            :key="item.kpiTypeId"
+            :label="item.kpiTypeName"
+            :value="item.kpiTypeId"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="分析对象" prop="analysisObject">
+        <el-input disabled v-if="rows" :placeholder="'请选择分析对象'" v-model="rows.treeName"></el-input>
+        <tree-select
+          v-else
+          :placeholder="'请选择分析对象'"
+          v-model="Form.analysisObject"
+          :treeData="analysisObjectData"
+          :loading="treeLoading"
+          :allowClear="false"
+          :showSearch="true"
+          :autoWidth="true"
+          :defaultProps="{ children: 'childTree', label: 'treeName' }"
+          v-model:radioValue="Form.radioValue"
+          :radioData="radioData"
+          :expanedKeys="analysisObjectExpanedKeys"
+          @tree-radio-change="treeRaidoChange"
+          @select-change="treeSelectChange"
+        ></tree-select>
+      </el-form-item>
+      <el-form-item label="定额类型">
+        <el-select
+          v-model="Form.dingeType"
+          placeholder="请选择定额类型"
+          :disabled="rows ? true : false"
+          @change="onTypeChange"
+        >
+          <el-option
+            v-for="item in dingeTypeData"
+            :key="item.quotaType"
+            :label="item.quotaTypeName"
+            :value="item.quotaType"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="日期" prop="monthDate">
+        <div class="block">
+          <el-date-picker
+            v-if="Form.dingeType == CHOOSETIME.MONTH&&!rows"
+            prefix-icon="iconfont icon-Calendar"
+            clear-icon="iconfont icon-Close-Circle-Fill"
+            style="width: 100%"
+            v-model="Form.monthDate"
+            type="month"
+            value-format="YYYY-MM"
+            placeholder="选择月"
+          ></el-date-picker>
+          <el-date-picker
+            v-else-if="Form.dingeType == CHOOSETIME.YEAR&&!rows"
+            prefix-icon="iconfont icon-Calendar"
+            clear-icon="iconfont icon-Close-Circle-Fill"
+            style="width: 100%"
+            v-model="Form.monthDate"
+            type="year"
+            value-format="YYYY"
+            placeholder="选择年"
+          ></el-date-picker>
+          <el-input v-else v-model="Form.monthDate" :disabled="true"></el-input>
+        </div>
+      </el-form-item>
+      <el-form-item label="定额值" prop="dingeValue">
+        <el-input
+          v-if="Form.dingeType == 1"
+          class="form-input"
+          v-model="Form.dingeValue"
+          placeholder="请输入数值"
+          v-inputFilter:number="{ integral:10, decimal: 2 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="quotaUnit"></span>
+            </i>
+          </template>
+        </el-input>
+        <el-input
+          v-else
+          class="form-input"
+          v-model="Form.dingeValue"
+          placeholder="请输入数值"
+          v-inputFilter:number="{ integral:12, decimal: 2 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="quotaUnit"></span>
+            </i>
+          </template>
+        </el-input>
+      </el-form-item>
+      <!-- 前三种---有消耗值 -->
+      <el-form-item label="经营值" prop="consumptionValue" v-if="consumeUnit">
+        <el-input
+          class="form-input"
+          v-if="(Form.KPIType==1||Form.KPIType==2) && Form.dingeType == 1"
+          v-model="Form.consumptionValue"
+          placeholder="请输入数值"
+          v-inputFilter:positiveNumber="{integral:10}"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="consumeUnit"></span>
+            </i>
+          </template>
+        </el-input>
+        <el-input
+          class="form-input"
+          v-if="(Form.KPIType==1||Form.KPIType==2) && Form.dingeType == 2"
+          v-model="Form.consumptionValue"
+          placeholder="请输入数值"
+          v-inputFilter:positiveNumber="{integral:12}"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="consumeUnit"></span>
+            </i>
+          </template>
+        </el-input>
+        <el-input
+          class="form-input"
+          v-if="(Form.KPIType !=1&& Form.KPIType!=2) && Form.dingeType == 1"
+          v-model="Form.consumptionValue"
+          placeholder="请输入数值"
+          v-inputFilter:number="{ integral:10, decimal: 2 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="consumeUnit"></span>
+            </i>
+          </template>
+        </el-input>
+        <el-input
+          class="form-input"
+          v-if="(Form.KPIType !=1&& Form.KPIType!=2) && Form.dingeType == 2"
+          v-model="Form.consumptionValue"
+          placeholder="请输入数值"
+          v-inputFilter:number="{ integral:12, decimal: 2 }"
+          onkeyup="this.value = this.value.replace(/[^\d.]/g,'');"
+        >
+          <template #suffix>
+            <i style="font-style: normal">
+              <span v-html="consumeUnit"></span>
+            </i>
+          </template>
+        </el-input>
+      </el-form-item>
+    </el-form>
+    <div class="dialog-footer mt32" style="text-align: right">
+      <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
+      <el-button type="primary" @click="onSure">确 定</el-button>
+    </div>
+  </el-dialog>
+</div>

@@ -1,0 +1,109 @@
+<div class="ea-energy-consumption-detail">
+  <table style="width: 100%">
+    <thead :style="{ width : listData?.length > 5 ? 'calc(100% - 8px)' : '100%'}">
+      <tr>
+        <th style="width: 60px">序号</th>
+        <th :title="'时间'">时间</th>
+        <th :title="`${ computedColumnName }（${ unit }）`">
+          {{ computedColumnName }}（{{ unit }}）
+        </th>
+        <th v-if="valueMean === '1' && isMH.tbFlag" :title="`同比能耗（${ unit }）`">
+          同比能耗（{{ unit }}）
+        </th>
+        <th v-if="valueMean === '1'  && isMH.tbFlag" :title="'同比值'">同比值</th>
+        <th v-if="valueMean === '1'  && isMH.hbFlag" :title="`环比能耗（${ unit }）`">
+          环比能耗（{{ unit }}）
+        </th>
+        <th v-if="valueMean === '1'  && isMH.hbFlag" :title="'环比值'">环比值</th>
+      </tr>
+    </thead>
+    <tbody @scroll="onScroll">
+      <tr v-for="(item, index) in listData" :key="index">
+        <td style="width: 60px">{{ index + 1}}</td>
+        <td>
+          <el-tooltip
+            class="item"
+            effect="dark"
+            :content="item.time || '--'"
+            :show-after="500"
+            placement="bottom"
+            :offset="5"
+          >
+            <span>{{ item.timeRange }}</span>
+          </el-tooltip>
+        </td>
+        <td>
+          <el-tooltip
+            v-if="Object.prototype.toString.call(item.currentEnergyValue) !== '[object Null]'"
+            class="item"
+            effect="dark"
+            :show-after="500"
+            :content="Object.prototype.toString.call(item.currentEnergyValue) !== '[object Null]'? thousandSeparation(item.currentEnergyValue) : '--'"
+            placement="bottom"
+          >
+            <span>{{ thousandSeparation(item.currentEnergyValue) }}</span>
+          </el-tooltip>
+          <span v-else>--</span>
+        </td>
+        <td v-if="valueMean === '1'  && isMH.tbFlag">
+          <el-tooltip
+            v-if="Object.prototype.toString.call(item.lastYearEnergyValue) !== '[object Null]'"
+            class="item"
+            effect="dark"
+            :show-after="500"
+            :content="Object.prototype.toString.call(item.lastYearEnergyValue) !== '[object Null]' ? thousandSeparation(item.lastYearEnergyValue) : '--'"
+            placement="bottom"
+          >
+            <span>{{ thousandSeparation(item.lastYearEnergyValue) }}</span>
+          </el-tooltip>
+          <span v-else>--</span>
+        </td>
+        <td v-if="valueMean === '1'  && isMH.tbFlag">
+          <el-tooltip
+            v-if="Object.prototype.toString.call(item.lastYearRatio) !== '[object Null]'"
+            class="item"
+            effect="dark"
+            :show-after="500"
+            :content="Object.prototype.toString.call(item.lastYearRatio) !== '[object Null]' ? item.lastYearRatio + '%' : '--'"
+            placement="bottom"
+          >
+            <span
+              >{{ Object.prototype.toString.call(item.lastYearRatio) !== '[object Null]' ? item.lastYearRatio + '%' :
+              '--' }}</span
+            >
+          </el-tooltip>
+          <span v-else>--</span>
+        </td>
+        <td v-if="valueMean === '1'  && isMH.hbFlag">
+          <el-tooltip
+            v-if="Object.prototype.toString.call(item.lastMonthEnergyValue) !== '[object Null]'"
+            class="item"
+            effect="dark"
+            :show-after="500"
+            :content="Object.prototype.toString.call(item.lastMonthEnergyValue) !== '[object Null]' ? thousandSeparation(item.lastMonthEnergyValue) : '--'"
+            placement="bottom"
+          >
+            <span>{{ thousandSeparation(item.lastMonthEnergyValue) }}</span>
+          </el-tooltip>
+          <span v-else>--</span>
+        </td>
+        <td v-if="valueMean === '1'  && isMH.hbFlag">
+          <el-tooltip
+            v-if="Object.prototype.toString.call(item.lastMonthRatio) !== '[object Null]'"
+            class="item"
+            effect="dark"
+            :show-after="500"
+            :content="Object.prototype.toString.call(item.lastMonthRatio)  !== '[object Null]' ? item.lastMonthRatio + '%' : '--'"
+            placement="bottom"
+          >
+            <span
+              >{{ Object.prototype.toString.call(item.lastMonthRatio) !== '[object Null]' ? item.lastMonthRatio + '%' :
+              '--' }}</span
+            >
+          </el-tooltip>
+          <span v-else>--</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

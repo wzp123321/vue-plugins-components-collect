@@ -1,0 +1,42 @@
+<div v-drag class="add-update-dialog">
+  <el-dialog
+    :title="isAddFlag ? '新增分组':'编辑分组'"
+    v-model="dialogFormVisible"
+    width="560px"
+    :before-close="onBeforeClose"
+    :close-on-click-modal="false"
+  >
+    <el-form @submit.native.prevent :model="pageForm" :rules="rules" ref="dataFormRef" label-width="80px">
+      <el-form-item label="分组名称" prop="name">
+        <el-input placeholder="请输入分组名称" v-inputFilter:search v-model="pageForm.name" :maxlength="32"> </el-input>
+      </el-form-item>
+      <el-form-item label="分类分项" prop="energyCode">
+        <el-select v-model="pageForm.energyCode" :fit-input-width="true">
+          <el-option
+            v-for="item in energyCodeList"
+            :title="item.name"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+          >
+          </el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer" style="text-align: center">
+        <el-button @click="onBeforeClose">取消</el-button>
+        <el-button type="primary" @click="nextStep">下一步</el-button>
+      </div>
+    </template>
+  </el-dialog>
+  <GroupConfiguration
+    ref="selectTreeRef"
+    :isAddFlag="isAddFlag"
+    :groupDetail="pageForm"
+    :key="nums"
+    @success="onBeforeClose"
+    :dialogOpen="dialogOpen"
+  >
+  </GroupConfiguration>
+</div>

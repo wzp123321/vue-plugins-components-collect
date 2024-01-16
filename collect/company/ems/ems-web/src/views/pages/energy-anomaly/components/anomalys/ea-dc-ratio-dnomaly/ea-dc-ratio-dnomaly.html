@@ -1,0 +1,20 @@
+<div class="ea-dc-ratio-dnomaly">
+  <div class="ea-dc-rd-container">
+    <img class="ea-dc-rd-ico" src="../../../../../../assets/img/energy-anomaly/ea-abnormal.png" alt="图标" />
+    <label>能耗</label>
+    <span class="count bold font24 ml34">{{ thousandSeparation(actualValue) }}</span>
+    <span class="unit">{{ unit }}</span>
+    <label>预测值</label>
+    <span class="count bold font24 ml34">{{ thousandSeparation(predictValue) }}</span>
+    <span class="unit">{{ unit }}</span>
+  </div>
+
+  <!-- 偏差值 -->
+  <div :class="['ea-dc-rd-deviation', abnormalLevel === ANOMALY_LAVEL.GENERAL ? 'general' : 'serious']">
+    <span>偏差率</span>
+    <span class="num">
+      {{ deviationRate === '' || deviationRate === null || deviationRate=== undefined ? '--' : `${deviationRate}%` }}
+    </span>
+  </div>
+  <slot></slot>
+</div>

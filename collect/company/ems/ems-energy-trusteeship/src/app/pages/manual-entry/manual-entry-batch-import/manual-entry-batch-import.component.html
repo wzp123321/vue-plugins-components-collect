@@ -1,0 +1,127 @@
+<div class="me-batch-import">
+  <nz-modal
+    [(nzVisible)]="isVisible"
+    [nzStyle]="{ top: '19vh' }"
+    nzTitle="批量添加数据"
+    nzWidth="518px"
+    nzMaskClosable="false"
+    [nzFooter]="modalFooter"
+    [nzContent]="modalContent"
+    (nzOnCancel)="handleCancel()"
+    nzClassName="me-batch-import-modal-add"
+  >
+    <ng-template #modalContent>
+      <ng-container>
+        <nz-upload
+          [(nzFileList)]="fileList"
+          [nzBeforeUpload]="beforeUpload"
+          [nzAccept]="acceptFileTypes"
+          [nzMultiple]="true"
+          class="mbim-upload-list"
+          [nzFileListRender]="fileListContent"
+        >
+          <button primary>
+            <span>选择文件</span>
+          </button>
+          <!-- <button nz-button nzType="primary"><span>选择文件</span></button> -->
+        </nz-upload>
+        <!-- <div class="upload-tip" nzOverlayClassName="upload-tip-style" nzTooltipTitle="只支持xls类型文件，文件大小不超过10MB" nzTooltipPlacement="bottom" nz-tooltip>?</div> -->
+        <i
+          info
+          nz-icon
+          nzType="question-circle"
+          nzTooltipTitle="只支持xlsm类型文件，文件大小不超过10MB"
+          nzTooltipPlacement="bottom"
+          nz-tooltip
+          class="upload-tip"
+        ></i>
+        <ng-template #fileListContent>
+          <div class="me-file-content" [ngClass]="{ mt16: fileList && fileList.length > 0 }">
+            <div *ngFor="let item of fileList" class="me-file-item">
+              <div class="me-file-item-text">
+                {{ item.name }}
+              </div>
+              <div class="me-file-item-close" (click)="fileRemove(item)">
+                <i
+                  nz-icon=""
+                  nztype="close"
+                  class="anticon ng-tns-c22-12 anticon-close ng-star-inserted"
+                  title="删除文件"
+                  ><svg
+                    viewBox="64 64 896 896"
+                    fill="currentColor"
+                    width="1em"
+                    height="1em"
+                    class="ng-tns-c22-12"
+                    data-icon="close"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M563.8 512l262.5-312.9c4.4-5.2.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 00203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z"
+                    ></path></svg
+                ></i>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </ng-container>
+    </ng-template>
+  </nz-modal>
+</div>
+
+<ng-template #modalFooter>
+  <button (click)="handleCancel()">取消</button>
+  <button
+    nz-button
+    nzType="primary"
+    [disabled]="fileList?.length === 0"
+    [nzLoading]="uploading"
+    (click)="handleUpload()"
+  >
+    {{ uploading ? '导入中' : '导入' }}
+  </button>
+</ng-template>
+
+<div class="upload-error-list">
+  <nz-modal
+    [nzVisible]="errorListModelShow"
+    [nzStyle]="{ top: '19vh' }"
+    nzTitle="上传失败文件列表"
+    nzWidth="680px"
+    nzMaskClosable="false"
+    [nzFooter]="null"
+    (nzOnCancel)="handleCancelErrorList()"
+    nzClassName="me-batch-import-modal"
+    [nzContent]="errorModalContent"
+  >
+    <ng-template #errorModalContent>
+      <nz-spin [nzSpinning]="isLoading">
+        <table style="width: 100%">
+          <thead>
+            <tr>
+              <th style="width: 60px">序号</th>
+              <th>文件名称</th>
+              <th style="width: 100px" [ngClass]="{ pr20: importResult.length * 48 > 258 }">操作</th>
+            </tr>
+          </thead>
+        </table>
+        <div class="scroll-y-tbody">
+          <table>
+            <tbody>
+              <tr *ngFor="let item of importResult; let i = index">
+                <td style="width: 60px" class="error-txt">{{ i + 1 }}</td>
+                <td class="error-txt text-hidden" [title]="item.FileName">{{ item.FileName }}</td>
+                <td style="width: 100px" class="error-txt text-gesture" (click)="errorResult(item.ErrorMsg)">查看</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </nz-spin>
+    </ng-template>
+  </nz-modal>
+</div>
+<app-manual-entry-import-error-list
+  [errorModalVisible]="showErrodetailsModal"
+  (meOnHideModal)="handleHideErrorModal($event)"
+>
+</app-manual-entry-import-error-list>

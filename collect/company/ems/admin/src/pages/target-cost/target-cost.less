@@ -1,0 +1,43 @@
+.target-cost {
+  height: 100%;
+  .table-container {
+    height: 100%;
+  }
+  &-header {
+    padding-bottom: 16px;
+    display: flex;
+    justify-content: end;
+  }
+
+  .el-select {
+    width: 100%;
+  }
+
+  .el-form {
+    &-item {
+      &__content {
+        // height: 36px !important;
+      }
+    }
+  }
+
+  .el-input.value-input {
+    position: relative;
+  }
+
+  .el-input.value-input::after {
+    content: '（元/年）';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+  }
+}
+
+:deep(.el-popover.el-popper) {
+  width: 100%;
+}
+
+.hide {
+  display: none !important;
+}

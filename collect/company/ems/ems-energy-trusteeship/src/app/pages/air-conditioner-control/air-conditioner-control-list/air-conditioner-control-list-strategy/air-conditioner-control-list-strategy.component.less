@@ -1,0 +1,361 @@
+#air-conditioner-control-list-strategy {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  .accls-list {
+    width: 100%;
+    &-item {
+      height: 46px;
+      border-top-left-radius: 2px;
+      border-top-right-radius: 2px;
+      background-color: rgba(255, 255, 255, 1);
+      box-shadow: 0px 1px 7px 0px rgba(38, 38, 38, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0px 24px 0px 20px;
+      position: relative;
+      cursor: pointer;
+      &-collapse {
+        background-color: rgba(250, 253, 255, 1) !important;
+      }
+      &-border {
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+      }
+      &-left {
+        display: flex;
+        align-items: center;
+        height: 22px;
+        line-height: 22px;
+        gap: 8px;
+        .acclslil-item-bulb {
+          width: 14px;
+          height: 14px;
+        }
+        .acclslil-item-time {
+          height: 22px;
+          line-height: 22px;
+          color: rgba(24, 144, 255, 1);
+          font-size: 14px;
+          text-align: left;
+        }
+        .acclslil-item-type {
+          width: 40px;
+          height: 18px;
+          line-height: 18px;
+          border-radius: 2px;
+          font-size: 12px;
+          text-align: center;
+          padding: 0px 8px;
+        }
+        .acclslil-item-automatic {
+          background-color: rgba(230, 247, 255, 1);
+          color: rgba(24, 144, 255, 100);
+        }
+        .acclslil-work-order {
+          background-color: rgba(246, 255, 237, 1);
+          color: rgba(82, 196, 26, 1);
+        }
+      }
+      &-right {
+        display: flex;
+        align-items: center;
+        height: 22px;
+        line-height: 22px;
+        gap: 12px;
+        .acclslil-item-progress {
+          display: flex;
+          gap: 8px;
+          &-label {
+            color: rgba(0, 0, 0, 0.45);
+            font-size: 12px;
+          }
+          .acclslil-item-speed {
+            color: rgba(24, 144, 255, 1);
+            font-size: 14px;
+          }
+          .acclslil-item-total {
+            color: rgba(0, 0, 0, 0.65);
+            font-size: 14px;
+          }
+        }
+        .acclslil-item-button {
+          font-size: 14px;
+          color: rgba(24, 144, 255, 1);
+          cursor: pointer;
+        }
+      }
+    }
+    &-content {
+      width: 100%;
+      padding: 8px 24px 12px 20px;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+      background-color: rgba(255, 255, 255, 1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-top: 0px;
+      margin-top: 2px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      ::ng-deep .ant-timeline-item {
+        padding-bottom: 12px;
+      }
+      ::ng-deep .ant-timeline-item-content {
+        top: 0px;
+        margin: 0px 0px 0px 22px;
+      }
+      ::ng-deep .ant-timeline-item-last > .ant-timeline-item-content {
+        min-height: 22px;
+        padding-bottom: 0px;
+      }
+      ::ng-deep .ant-timeline-item-last {
+        padding-bottom: 0px;
+      }
+      ::ng-deep .ant-timeline-item-head {
+        top: 12px;
+      }
+      ::ng-deep .ant-timeline-item-tail {
+        top: 20px;
+        border-left: 1px solid rgba(186, 231, 255, 1);
+        height: calc(100% - 16px);
+        left: 5px;
+      }
+      ::ng-deep .ant-timeline-item-head-custom {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background-color: rgba(230, 247, 255, 1);
+        color: rgba(24, 144, 255, 100);
+        font-size: 12px;
+        text-align: center;
+        padding: 0px;
+      }
+      .alc-item-label-tip-num {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background-color: rgba(230, 247, 255, 1);
+        line-height: 12px;
+        color: rgba(24, 144, 255, 100);
+        font-size: 12px;
+        text-align: center;
+      }
+      &-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        &:hover .alc-item-right-circle {
+          color: rgba(24, 144, 255, 1) !important;
+        }
+        .alc-item-label {
+          display: flex;
+          line-height: 22px;
+          align-items: center;
+          gap: 8px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          &-tip {
+            width: 14px;
+
+            &-num {
+              width: 14px;
+              height: 14px;
+              border-radius: 4px;
+              background-color: rgba(230, 247, 255, 1);
+              line-height: 12px;
+              color: rgba(24, 144, 255, 100);
+              font-size: 12px;
+              text-align: center;
+            }
+            &-line {
+              width: 1px;
+              height: 16px;
+              background-color: rgba(186, 231, 255, 1);
+              position: absolute;
+              top: 20px;
+              left: 7px;
+            }
+          }
+          &-text {
+            line-height: 22px;
+            color: rgba(0, 0, 0, 0.65);
+            font-size: 14px;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+        .alc-item-right {
+          line-height: 22px;
+          min-width: 91px;
+          text-align: right;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 12px;
+          &-text {
+            line-height: 22px;
+            color: rgba(0, 0, 0, 0.65);
+            font-size: 14px;
+          }
+          &-circle {
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.25);
+          }
+          .error-text {
+            color: rgba(245, 34, 45, 100);
+          }
+        }
+        .acls-mask {
+          left: 0px;
+          width: 100%;
+          height: 100%;
+          background-color: transparent;
+          z-index: 99;
+          position: fixed;
+          top: 0px;
+        }
+      }
+      .mode-node {
+        position: absolute;
+        bottom: 0px;
+        right: 0px;
+        width: 14px;
+        height: 1px;
+        // border: 1px solid red;
+      }
+    }
+  }
+  .mb12 {
+    margin-bottom: 12px;
+  }
+}
+
+.backdrop {
+  z-index: 10;
+}
+
+.acls-popover-progress {
+  width: 300px;
+  height: 220px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0px 10px 32px 0px rgba(38, 38, 38, 0.18);
+  position: absolute;
+  z-index: 99;
+  right: 0px;
+
+  padding: 20px 0px 20px 20px;
+  &-header {
+    height: 22px;
+    line-height: 22px;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 17px;
+    &-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      img {
+        height: 14px;
+      }
+      &-text {
+        height: 22px;
+        line-height: 22px;
+        color: rgba(0, 0, 0, 0.85);
+        font-size: 14px;
+      }
+    }
+    &-close {
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+  }
+  &-content {
+    padding-top: 14px;
+    height: calc(100% - 22px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    .acclsppc-loading {
+      height: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      ::ng-deep .ant-spin-nested-loading > div > .ant-spin {
+        max-height: auto !important;
+      }
+    }
+    .empty-module {
+      height: 150px;
+      width: 260px;
+    }
+    .empty-table {
+      padding-right: 16px;
+    }
+    .aclsppc-header {
+      margin-right: 17px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mt8 {
+      margin-top: 8px;
+    }
+    .pt8 {
+      padding-top: 8px;
+    }
+    .pb16 {
+      padding-bottom: 16px;
+    }
+    .aclsppc-content {
+      margin-right: 9px;
+      height: calc(100% - 20px);
+      overflow-y: auto;
+      &-list {
+        margin-right: 8px;
+        &-time {
+          line-height: 22px;
+          color: rgba(24, 144, 255, 1);
+          font-size: 14px;
+          text-align: left;
+        }
+        &-name {
+          line-height: 20px;
+          color: rgba(0, 0, 0, 0.85);
+          font-size: 14px;
+          text-align: left;
+        }
+        ::ng-deep .ant-timeline-item {
+          padding: 0px;
+        }
+        ::ng-deep .ant-timeline-item-head {
+          width: 8px;
+          height: 8px;
+          background-color: rgba(24, 144, 255, 1);
+          top: 2px;
+        }
+        ::ng-deep .ant-timeline-item-tail {
+          top: 11px;
+          left: 3.5px;
+          border-left: 1px solid rgba(24, 144, 255, 0.5);
+        }
+        ::ng-deep .ant-timeline-item-content {
+          margin: 0 0 0 15px;
+        }
+        ::ng-deep .ant-spin-nested-loading > div > .ant-spin .ant-spin-text {
+          left: -40px;
+        }
+      }
+    }
+  }
+}

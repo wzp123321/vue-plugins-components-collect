@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="27px" viewBox="0 0 42 27" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>月/周/特背景</title>
+    <defs>
+        <path d="M0,0 L26,0 C31.5228475,-1.01453063e-15 36,4.4771525 36,10 C36,15.5228475 31.5228475,20 26,20 L0,20 L0,20 L0,0 Z" id="path-1"></path>
+        <filter x="-18.1%" y="-17.5%" width="136.1%" height="170.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feMorphology radius="1.5" operator="erode" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="4" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="3" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.0705882353   0 0 0 0 0.51372549   0 0 0 0 1  0 0 0 0.455201049 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="app-能源经理工具" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="月/周/特背景" transform="translate(3.000000, 0.000000)" fill-rule="nonzero">
+            <g id="矩形备份">
+                <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                <use fill="#5DAAFF" xlink:href="#path-1"></use>
+            </g>
+        </g>
+    </g>
+</svg>

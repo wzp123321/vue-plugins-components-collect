@@ -1,0 +1,46 @@
+<div id="ch-save-energy">
+  <h5>节能概览</h5>
+  <main v-if="saveEnergyList&&saveEnergyList.length!==0">
+    <div>
+      <div class="ch-se-main" v-for="item in saveEnergyList" :key="item.name">
+        <div>{{item.name?item.name:'--'}}</div>
+        <div>
+          <div>{{item.value?item.value:'--'}}</div>
+          <div v-if="item.value">{{item.value}}</div>
+        </div>
+        <span>{{item.unit?item.unit:'--'}}</span>
+      </div>
+    </div>
+    <div class="ch-se-tree">
+      <div>
+        <div class="ch-se-animation-picture">
+          <img src="../../../assets/img/cloud-home/ch-save-energy/ch-se-tree.svg" />
+          <div>
+            <div class="ch-se-animation">
+              <div class="ch-se-animation-tree-cover">
+                <div class="ch-se-animation-tree">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ch-se-picture-text">
+          <div>{{treeObj.name?treeObj.name:'--'}}</div>
+          <div>
+            <div>{{treeObj.value?treeObj.value:'--'}}</div>
+            <div v-if="treeObj.value">{{treeObj.value}}</div>
+          </div>
+          <div>{{treeObj.unit?treeObj.unit:'--'}}</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div v-else class="ch-se-empty">
+    <img src="@/assets/img/cloud-home/ch-energy-overview/ch-eo-empty.svg" />
+    <span>暂无数据</span>
+  </div>
+</div>

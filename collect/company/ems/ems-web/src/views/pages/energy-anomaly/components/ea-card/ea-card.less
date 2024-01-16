@@ -1,0 +1,138 @@
+.ea-card {
+  width: 400px;
+  padding: 24px;
+  box-sizing: border-box !important;
+  height: 141px;
+  padding: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--iot-anomaly-card-border-color);
+
+  background-color: hsla(0, 0%, 100%, 0) !important;
+  // backdrop-filter: blur(10px) grayscale(30%);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  position: relative;
+  cursor: pointer;
+
+  .ea-card-title {
+    color: var(--iot-font-color-deep);
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    height: 33px;
+    line-height: 33px;
+  }
+
+  .ea-card-treepath {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.65;
+    color: rgba(13, 30, 54, 1);
+  }
+
+  .detail-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--iot-anomaly-card-icon-bg-color);
+    line-height: 18px;
+    text-align: center;
+
+    .iconfont {
+      display: inline-block;
+      transform: scale(0.75);
+      font-size: 12px;
+      color: var(--iot-font-color-white);
+    }
+  }
+
+  .ea-card-count {
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 2px;
+    line-height: 20px;
+
+    background-color: var(--iot-anomaly-card-count-bg-color);
+    box-shadow: 0px 0px 6px 0px rgba(245, 77, 66, 0.42);
+  }
+
+  &-subtext {
+    margin-left: 22px;
+    color: var(--iot-font-color-shadow);
+
+    &.boundary {
+      margin-left: 9px;
+
+      span {
+        line-height: 20px;
+        height: 20px;
+        border-radius: 2px;
+        padding: 2px 4px;
+      }
+    }
+
+    .bold {
+      color: var(--iot-anomaly-card-count-bg-color);
+      padding: 0 4px;
+    }
+
+    span.trigger {
+      color: rgba(255, 77, 79, 1);
+      background-color: rgba(255, 241, 240, 1);
+      border: 1px solid rgba(255, 204, 199, 1);
+    }
+
+    span.unlook {
+      color: rgba(30, 30, 30, 0.58);
+      background-color: rgba(249, 249, 249, 1);
+      border: 1px solid rgba(212, 212, 212, 1);
+    }
+  }
+}
+
+.ea-card.collapsed-menu {
+  transition: all 233ms;
+  width: 335px !important;
+}
+
+.ea-card:hover {
+  border-color: var(--iot-color-active);
+  transition: all 233ms;
+
+  .detail-icon {
+    background-color: var(--iot-color-active);
+    transition: all 233ms;
+  }
+}
+
+@media screen and (max-width: 1820px) {
+  .ea-card.collapsed-menu {
+    width: 320px !important;
+    transition: 233ms all;
+  }
+}
+
+@media screen and (max-width: 1700px) {
+  .ea-card {
+    width: 378px !important;
+    transition: all 233ms;
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .ea-card {
+    width: 346px !important;
+    transition: all 233ms;
+  }
+}
+
+@media screen and (max-width: 1500px) {
+  .ea-card {
+    width: 325px !important;
+    transition: all 233ms;
+  }
+}

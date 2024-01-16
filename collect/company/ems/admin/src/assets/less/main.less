@@ -1,0 +1,138 @@
+@import './flex.less';
+@import './ems-iconfont/ems-iconfont.less';
+@import './reset.less';
+@import './reset-element-plus/index.less';
+@import (once) './te-element-plus-reset/index.less';
+
+// @import '../../../../style/global.css';
+
+:root {
+  --iot-bg-color-root: rgb(240, 244, 249); // 全局基础背景颜色
+  --iot-bg-color-header-menu: rgb(23, 26, 28); // 头部、menu背景色
+  --iot-bg-color-container: rgb(240, 244, 249); // container内容区背景色
+  --iot-font-color-root: rgba(0, 0, 0, 0.65); // 全局基础文本颜色
+  --iot-font-color-white: rgb(255, 255, 255); // 白色字体
+  --iot-font-color-deep: rgb(0, 0, 0); // 深色文本颜色
+  --iot-font-color-shadow: rgba(0, 0, 0, 0.45); // 浅色文本颜色
+  --iot-border-color: rgba(0, 0, 0, 0.15); // 边框颜色
+  --iot-border-color-shadow: rgba(0, 0, 0, 0.04); // 浅色边框颜色
+  --iot-bg-color-component: rgb(255, 255, 255); // 一般组件背景色
+  --iot-color-component-shadow: rgba(38, 38, 38, 0.1); // 一般组件阴影色
+  --iot-color-active: rgb(64, 158, 255, 1); // active color
+  --iot-color-active-red: rgba(245, 34, 45, 1); // active color
+  --iot-component-bg-color-white: rgb(255, 255, 255); // 白色背景
+  --iot-color-shadow-primary-1: rgba(0, 0, 0, 0.04); // 浅色-1
+  --iot-color-shadow-primary-2: rgba(230, 247, 255, 1); // 浅色-2
+  --iot-no-data-color: rgba(0, 0, 0, 0.25); // 无数据时提示颜色
+  --iot-color-disabled: rgba(0, 0, 0, 0.25); // 禁用颜色
+  --iot-color-bg-disable: rgba(0, 0, 0, 0.04);
+
+  // 菜单
+  --menu-bg-color: #15203f; // 菜单背景色
+  --menu-hover-color: #2f3957; // hover样式
+  --menu-selected-color: #1890ff; // 选中样式
+}
+
+// each(range(50), {
+//     .font@{value} {
+//       font-size: @value * 1px;
+//     }
+//     .mt@{value} {
+//       margin-top: @value * 1px;
+//     }
+
+//     .mr@{value} {
+//       margin-right: @value * 1px;
+//     }
+
+//     .mb@{value} {
+//       margin-bottom: @value * 1px;
+//     }
+
+//     .ml@{value} {
+//       margin-left: @value * 1px;
+//     }
+//   }
+// );
+
+.common-table__empty {
+  width: 100%;
+  height: 166px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 60px;
+    height: 60px;
+  }
+
+  p {
+    color: rgba(0, 0, 0, 0.25);
+    display: inline-block;
+    line-height: 22px;
+    margin-top: 8px;
+  }
+}
+
+.ml7 {
+  margin-left: 7px;
+}
+
+.ml8 {
+  margin-left: 8px;
+}
+
+.mr2 {
+  margin-right: 2px;
+}
+
+.mr5 {
+  margin-right: 5px;
+}
+
+.mr7 {
+  margin-right: 7px;
+}
+
+.mr8 {
+  margin-right: 8px;
+}
+
+.mr16 {
+  margin-right: 16px;
+}
+
+.mr44 {
+  margin-right: 44px;
+}
+
+.mt8 {
+  margin-top: 8px;
+}
+
+.mt10 {
+  margin-top: 10px;
+}
+
+.mt16 {
+  margin-top: 16px;
+}
+
+.mt24 {
+  margin-top: 24px;
+}
+
+.mt32 {
+  margin-top: 32px;
+}
+
+.mb16 {
+  margin-bottom: 16px;
+}
+
+.font14 {
+  font-size: 14px;
+}

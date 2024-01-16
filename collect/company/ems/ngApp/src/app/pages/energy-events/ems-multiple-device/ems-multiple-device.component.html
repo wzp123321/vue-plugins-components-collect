@@ -1,0 +1,99 @@
+<div class="ems_multiple-device">
+  <header class="head">
+    <div class="head__button--back" (click)="goBack()"></div>
+    <h2 class="head__title">选择设备</h2>
+  </header>
+  <div class="ems_multiple-device-content">
+    <div class="ems_multiple-device-head-list">
+      <div class="ems_multiple-device-head">
+        <div class="multiple-device-group">
+          <label class="multiple-device-search"></label>
+          <ion-input
+            mode="md"
+            placeholder="请输入设备名称搜索"
+            class="label-input"
+            [value]="deviceName"
+            [(ngModel)]="deviceName"
+            (ionBlur)="searchNameBlur($event)"
+            (keypress)="searchNameChange.next($event)"
+          ></ion-input>
+        </div>
+      </div>
+      <div class="ems_multiple-device-list-title mt10">设备列表</div>
+    </div>
+    <div class="ems_multiple-device-list">
+      <ion-content class="modal-content multiple-modal" [style.--background]="'#F2F3F6'">
+        <ion-refresher slot="fixed" (ionRefresh)="pullup($event)" *ngIf="!noData">
+          <ion-refresher-content
+            pullingIcon="arrow-down"
+            pullingText="Pull to refresh"
+            refreshingSpinner="circles"
+            refreshingText="Refreshing..."
+          >
+          </ion-refresher-content>
+        </ion-refresher>
+        <div class="modal-content-list" *ngIf="!noData">
+          <div class="list-childer">
+            <div
+              class="list-childer-item"
+              *ngFor="let item of deviceListData | filterName: queryName; let i = index; trackBy: trackById"
+            >
+              <ion-checkbox
+                color="primary"
+                class="item-check mr10"
+                [(ngModel)]="item.checked"
+                mode="md"
+                (ionChange)="selectDeviceDate(item, i, $event)"
+                [disabled]="item.disabled"
+              >
+              </ion-checkbox>
+              <div class="item-content" (click)="selectDeviceListChange(item, i, $event)">
+                <span class="item-text">{{ item.deviceName }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="no-data" *ngIf="noData">
+          <div class="no-data-content">
+            <img src="assets/img/energy-manager/none-task-layout.svg" />
+            <div class="none-task-description">
+              {{ noDescription }}
+            </div>
+          </div>
+        </div>
+        <ion-infinite-scroll threshold="100px" (ionInfinite)="doRefresh($event)" *ngIf="!noData && isDrop">
+          <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="上拉加载更多...">
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      </ion-content>
+
+      <div class="suspension-operation" *ngIf="selectDeviceData && selectDeviceData.length > 0">
+        <div class="select-identification mt5" (click)="selectModal()">
+          <div class="select-number">
+            <span class="select-iocn mr15"></span>
+            <span class="number-text">{{ selectDeviceData.length }}</span>
+          </div>
+          <div class="select-tip mt5">已选设备（个）</div>
+        </div>
+        <ion-button color="primary" class="select-datermine" (click)="determineSelectDevice()">确定</ion-button>
+      </div>
+    </div>
+  </div>
+</div>
+<Modal [(ngModel)]="stateShow" [popup]="true" [animationType]="'slide-up'" (onClose)="onClose()" [style.height]="380">
+  <div class="ems_select-device-modal">
+    <div class="select-device-modal-header">
+      <span class="header-text">已选设备</span>
+      <span class="header-clear" (click)="emptyData()">清空</span>
+    </div>
+    <div class="select-device-modal-content">
+      <div class="select-device-modal-list">
+        <div *ngFor="let item of selectDeviceData; let i = index; trackBy: trackById" class="select-item">
+          <div class="select-item-text">{{ item.deviceName }}</div>
+          <!-- <Icon [type]="'cross-circle-o'" class="select-detect"></Icon> -->
+          <div class="select-detect" (click)="deleteDecive(item)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Modal>

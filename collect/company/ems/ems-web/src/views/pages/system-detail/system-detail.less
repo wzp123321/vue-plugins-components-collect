@@ -1,0 +1,43 @@
+.system-detail {
+  height: 100%;
+  overflow: hidden;
+
+  &__charts {
+    .charts-container {
+      height: 300px;
+    }
+  }
+
+  &__table {
+    width: 100%;
+    flex: 1;
+    padding-bottom: 16px;
+
+    :deep(.el-table) {
+      &.overflow-table {
+        .el-table__header-wrapper {
+          background-color: rgba(237, 245, 252, 1);
+        }
+
+        thead > tr > th {
+          border-right: none;
+        }
+      }
+    }
+  }
+
+  :deep(.el-dialog) {
+    &__body {
+      padding: 20px;
+
+      .ant-picker {
+        width: 100%;
+      }
+    }
+
+    &__footer {
+      padding: 10px;
+      text-align: right;
+    }
+  }
+}

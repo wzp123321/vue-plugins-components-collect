@@ -1,0 +1,42 @@
+<div class="eb-search-form">
+  <el-form :inline="true" :model="pageForm" class="formInline" @submit.native.prevent>
+    <el-form-item label="功能选择">
+      <radio-select-button
+        v-model="pageForm.treeType"
+        :switchItems="allTreeTypeList"
+        @switch-click="onTreeTypeChange"
+      ></radio-select-button>
+    </el-form-item>
+    <el-form-item label="能源类型" v-if="pageForm.treeType !== 3">
+      <tree-select
+        :placeholder="'请选择能源类型'"
+        v-model="pageForm.energyCode"
+        v-model:treeData="compEnergyCodeList"
+        nodeKey="code"
+        width="150px"
+        :defaultExpandAll="true"
+        :defaultProps="{ children: 'childEnergyCode', label: 'name' }"
+        :expanedKeys="energyTreeExpanedKeys"
+      >
+      </tree-select>
+    </el-form-item>
+    <el-form-item label="日期">
+      <el-date-picker
+        v-model="pageForm.date"
+        :type="'daterange'"
+        :range-separator="'~'"
+        :start-placeholder="'开始日期'"
+        :end-placeholder="'结束日期'"
+        :disabledDate="disabledDate"
+        prefix-icon="iconfont icon-Calendar"
+        clear-icon="iconfont icon-Close-Circle-Fill"
+        @change="onDateChange"
+      >
+      </el-date-picker>
+    </el-form-item>
+    <el-form-item>
+      <button primary @click="onSubmit">查询</button>
+      <button @click="onReset">重置</button>
+    </el-form-item>
+  </el-form>
+</div>

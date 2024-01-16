@@ -1,0 +1,26 @@
+<div id="th-project-detail" @click="jumpToProjectInfo">
+  <h5>项目详情</h5>
+
+  <div class="th-pd-info-container">
+    <div class="th-pd-info-item">
+      <span class="th-pd-info-item-icon icon-tuoguanzhouqi"></span>
+      <span class="th-pd-info-item-name">托管周期：</span>
+      <span class="th-pd-info-item-value">{{ service.period ?? '--' }}</span>
+    </div>
+    <div class="th-pd-info-item">
+      <span class="th-pd-info-item-icon icon-nengyuanjingli"></span>
+      <span class="th-pd-info-item-name">能源经理：</span>
+      <span class="th-pd-info-item-value">{{ service.manager ?? '--' }}</span>
+    </div>
+    <div class="th-pd-info-item">
+      <span class="th-pd-info-item-icon icon-tuoguannengyuan"></span>
+      <span class="th-pd-info-item-name">托管能源：</span>
+      <span class="th-pd-info-item-value">{{ service.energy ?? '--' }}</span>
+    </div>
+    <div class="th-pd-info-item">
+      <span class="th-pd-info-item-icon icon-xiangmuzhuangtai"></span>
+      <span class="th-pd-info-item-name">项目状态：</span>
+      <span class="th-pd-info-item-value">{{ service.state ?? '--' }}</span>
+    </div>
+  </div>
+</div>

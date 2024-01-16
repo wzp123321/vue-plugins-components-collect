@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="19px" viewBox="0 0 18 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 3</title>
+    <g id="EMS-icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="编组-3" transform="translate(0.000000, 0.833333)">
+            <circle id="椭圆形" fill="#FFB73F" cx="9" cy="9" r="9"></circle>
+            <g id="编组-2" transform="translate(3.000000, 5.000000)">
+                <rect id="矩形" fill="#FFFFFF" x="0.6" y="0.3" width="10.8" height="5.4" rx="0.9"></rect>
+                <rect id="矩形" fill="#FFB73F" x="1.5" y="3.9" width="9" height="1" rx="0.45"></rect>
+                <rect id="矩形" fill="#FFB73F" x="8.7" y="1.2" width="1.8" height="1"></rect>
+                <g id="编组" transform="translate(2.500000, 6.500000)" stroke="#FFFFFF" stroke-linecap="round" stroke-width="0.9">
+                    <path d="M0.67991166,0.75 C0.22991166,1.66977939 0.625062463,1.63638374 0.727481211,1.98607061 C0.816343473,2.28947176 0.67991166,2.61405699 0.434849054,2.9059237" id="路径"></path>
+                    <path d="M3.76791166,0.75 C3.31791166,1.66977939 3.71306246,1.63638374 3.81548121,1.98607061 C3.90434347,2.28947176 3.76791166,2.61405699 3.52284905,2.9059237" id="路径"></path>
+                    <path d="M6.75591166,0.75 C6.30591166,1.66977939 6.70106246,1.63638374 6.80348121,1.98607061 C6.89234347,2.28947176 6.75591166,2.61405699 6.51084905,2.9059237" id="路径"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

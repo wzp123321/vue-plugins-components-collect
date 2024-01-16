@@ -1,0 +1,182 @@
+<div class="energy-medical-report-config">
+  <page-common class="benchmarking-data-maintenance" title="能耗体检报告配置" :showSearch="true" :isSubHead="true">
+    <template v-slot:pageContent>
+      <div class="energy-table" v-loading="loading">
+        <el-table
+          :header-cell-style="{ background: '#edf5fc', color: 'rgba(0, 0, 0, 0.85)' }"
+          :data="tableData"
+          v-show="!loading"
+          stripe
+          style="width: 100%"
+          :span-method="objectSpanMethod"
+          @setCurrentRow="setCurrentRow(row)"
+        >
+          <el-table-column prop="paramId" label="序号" width="90" align="center" fixed="left">
+            <template #default="scope">{{scope.row.paramId}}</template>
+          </el-table-column>
+          <el-table-column
+            prop="paramName"
+            label="参数"
+            show-overflow-tooltip
+            min-width="120"
+            fixed="left"
+          ></el-table-column>
+          <el-table-column
+            prop="unit"
+            label="单位"
+            show-overflow-tooltip
+            min-width="100"
+            fixed="left"
+          ></el-table-column>
+          <el-table-column
+            prop="configItem"
+            label="配置项"
+            show-overflow-tooltip
+            min-width="120"
+            fixed="left"
+          ></el-table-column>
+          <!-- 编辑配置项 start-->
+          <el-table-column prop="configItemValue" label="配置项数值" show-overflow-tooltip min-width="160">
+            <template #default="scope">
+              <div v-show="scope.row.isInputShow" class="dataBox">
+                <span class="data-maintenance-body"
+                  >{{scope.row.configItemValue ? Number(scope.row.configItemValue).toFixed(2) : '0.00'
+                  }}{{scope.row.configItemSuffix}}</span
+                >
+                <img
+                  @click="onConfigItemImg(scope.row)"
+                  class="editImg"
+                  src="../../assets/img/benchmarking/bm-edit.png"
+                />
+              </div>
+              <div class="input-data" v-show="!scope.row.isInputShow">
+                <el-input
+                  v-show="scope.row.paramId === 1"
+                  v-model.trim="formValue"
+                  v-inputFilter:number="{ integral:1, decimal: 2 }"
+                  @blur="onInputBlur(scope.row)"
+                  @input="inputPower"
+                  :class="'input_'+ scope.row.id"
+                >
+                </el-input>
+
+                <el-input
+                  v-show="scope.row.paramId === 2"
+                  v-model.trim="formValue"
+                  v-inputFilter:number="{ integral:3, decimal: 2 }"
+                  @blur="onInputBlur(scope.row)"
+                  @input="inputPressure"
+                  :class="'input_3_'+ scope.row.id"
+                >
+                </el-input>
+                <div class="span-data">
+                  <span class="data-maintenance-body">{{scope.row.configItemSuffix}}</span>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <!-- 编辑配置项 end-->
+          <el-table-column
+            prop="judgmentBasis"
+            label="判断依据"
+            show-overflow-tooltip
+            min-width="160"
+          ></el-table-column>
+          <!-- 可编辑文案 start-->
+          <el-table-column prop="editableText" label="可编辑文案" show-overflow-tooltip min-width="350">
+            <template #default="scope">
+              <div v-show="scope.row.isEditInputShow" class="dataBox">
+                <span class="data-maintenance-body">{{scope.row.editableText || '--'}}</span>
+                <img
+                  @click="onEditableTextImg(scope.row)"
+                  class="editImg"
+                  src="../../assets/img/benchmarking/bm-edit.png"
+                />
+              </div>
+              <el-input
+                v-show="!scope.row.isEditInputShow"
+                v-model.trim="editFormValue"
+                @blur="onEditInputBurl(scope.row)"
+                :class="'input_2_'+ scope.row.id"
+                maxlength="256"
+              >
+              </el-input>
+            </template>
+          </el-table-column>
+          <!-- 可编辑文案 end-->
+          <el-table-column prop="textExample" label="文案示例" align="left" show-overflow-tooltip min-width="600">
+            <template #default="scope">
+              <div class="dataBodyBox">
+                <span class="data-body">{{scope.row.textExample}}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="objectsFlag" label="操作" align="center" show-overflow-tooltip min-width="100">
+            <template #default="scope">
+              <span class="operate-span mr16" @click="configObjects(scope.row)"
+                >{{scope.row.objectsFlag == '1'?'配置对象':''}}</span
+              >
+            </template>
+          </el-table-column>
+        </el-table>
+        <!-- 配置对象弹框 -->
+        <div class="emrc-config-object-dialog" v-drag>
+          <el-dialog
+            title="配置对象"
+            v-model="configObjectsDialog"
+            width="590px"
+            :before-close="onBeforeClose"
+            :close-on-click-modal="false"
+            center
+          >
+            <span class="emrc-select">选择对象:</span>
+            <div class="emrc-select-objects">
+              <el-tag v-for="item in tagData" class="mx-1" closable type="info" :key="item" @close="handleClose(item)">
+                {{item.treeName}}
+              </el-tag>
+            </div>
+            <div class="emrc-button" style="width: 70px">
+              <el-button type="primary" @click="showConfigTreeDialog">选择</el-button>
+            </div>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button type="primary" @click="onSave">保存</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+        <!-- 点击选择显示树形结构弹框 -->
+        <div class="emrc-config-tree-dialog" v-drag>
+          <el-dialog
+            title="选择"
+            v-model="configTreeDialog"
+            width="560px"
+            :before-close="onClose"
+            :close-on-click-modal="false"
+            center
+          >
+            <div class="emrc-tree">
+              <el-tree
+                ref="treeRef"
+                :data="energyTreeData"
+                show-checkbox
+                default-expand-all
+                node-key="id"
+                highlight-current
+                :check-strictly="true"
+                :props="defaultProps"
+                @check="getNodeId"
+                @check-change="handleCheckChange"
+              />
+            </div>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button type="primary" @click="onSure">确定</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+      </div>
+    </template>
+  </page-common>
+</div>

@@ -1,0 +1,31 @@
+.kqc-add-edit-dialog {
+  :deep(.el-form-item) {
+    margin-right: 0 !important;
+  }
+
+  :deep(.el-form) {
+    .el-input.form-input {
+      height: 36px;
+
+      .el-input__suffix {
+        top: 1px;
+        right: 10px;
+        color: rgba(0, 0, 0, 0.65);
+
+        span {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .el-select {
+    width: 100%;
+  }
+
+  .block {
+    :deep(.el-input--prefix .el-input__inner) {
+      padding-left: 11px !important;
+    }
+  }
+}

@@ -1,0 +1,100 @@
+<div class="target-cost">
+  <page-common title="目标成本" :showSearch="true">
+    <template v-slot:pageSearch>
+      <div class="target-cost-header">
+        <el-button type="primary" @click="onAddDialogShow" size="small">新 增</el-button>
+      </div>
+    </template>
+    <template v-slot:pageContent>
+      <!-- 表格 start -->
+      <div class="table-container" v-loading="loading" style="height: calc(100% - 13px)">
+        <el-table :data="dataSource" v-show="!loading" style="width: 100%">
+          <el-table-column prop="index" label="序号" width="80">
+            <template #default="scope"
+              >{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</template
+            >
+          </el-table-column>
+          <el-table-column prop="treeName" label="节点名称" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column prop="energyName" label="分类分项" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column prop="targetValue" label="目标值（元）" :show-overflow-tooltip="true"> </el-table-column>
+          <el-table-column label="操作" width="180">
+            <template #default="scope">
+              <span class="operate-span mr16" @click="editTarget(scope.row)">编辑</span>
+              <span class="delete-span" @click="deleteTarget(scope.row.id)">删除</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <ems-pagination
+          v-show="!loading && total>0"
+          :current-page="queryParams.pageNum"
+          :page-sizes="pageSizes"
+          @size-change="onPageSizeChange"
+          @current-change="onCurrentChange"
+          :page-size="queryParams.pageSize"
+          :total="total"
+        ></ems-pagination>
+      </div>
+      <!-- 表格 end-->
+    </template>
+  </page-common>
+  <!-- 新增/编辑 弹窗 start -->
+  <div v-drag>
+    <el-dialog
+      :title="!isAddFlag ? '编辑目标成本' : '新增目标成本'"
+      v-model="dialogVisible"
+      width="520px"
+      :before-close="onBeforeClose"
+      :close-on-click-modal="false"
+      :destroy-on-close="true"
+    >
+      <el-form ref="targetCostRef" :rules="rules" :model="targetCostForm" label-width="80px">
+        <el-form-item label="分类分项" prop="energyCode">
+          <el-select v-model="targetCostForm.energyCode" placeholder="请选择分类分项" :fit-input-width="true">
+            <el-option
+              v-for="(item, index) in energyCodeList"
+              :title="item.name"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="选择节点" prop="treeId">
+          <div style="width: 100%">
+            <tree-select
+              :placeholder="'请选择节点'"
+              v-model="targetCostForm.treeId"
+              :treeData="treeList"
+              :defaultProps="{ children: 'childTree', label: 'treeName' }"
+              :showSearch="true"
+              :expanedKeys="expandKeys"
+              v-model:radioValue="treeType"
+              dialogWidth="100%"
+              :autoWidth="true"
+              @tree-radio-change="onTreeTypeChange"
+              :defaultExpandAll="false"
+              @select-change="onTreeSelect"
+            ></tree-select>
+          </div>
+        </el-form-item>
+        <el-form-item label="目标值" prop="targetValue">
+          <el-input
+            v-model="targetCostForm.targetValue"
+            v-inputFilter:number
+            class="value-input"
+            placeholder="请输入目标值"
+          >
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="text-align: center">
+          <el-button @click="onBeforeClose">取消</el-button>
+          <el-button type="primary" @click="onSubmit" :loading="reqLoading">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+  <!-- 新增/编辑 弹窗 end -->
+</div>

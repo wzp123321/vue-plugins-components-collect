@@ -1,0 +1,7 @@
+<div class="mhm-goods-cost" v-loading="loadingStatus">
+  <div id="container" v-show="tableEchartsData?.length!==0"></div>
+  <div v-if="tableEchartsData?.length===0 && !loadingStatus" class="mhm-common-empty" style="height: 390px">
+    <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+    <span>暂无数据</span>
+  </div>
+</div>

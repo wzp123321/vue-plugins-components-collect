@@ -1,0 +1,62 @@
+@import '../common.less';
+
+.ea-dc-rank-anomaly {
+  margin-top: -12px;
+
+  &-item:nth-child(n + 2) {
+    margin-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+  }
+
+  &-data {
+    .anomaly-ico {
+      top: 16px;
+    }
+
+    &__num {
+      line-height: 24px;
+
+      span {
+        padding-left: 8px;
+      }
+    }
+  }
+
+  &-tag {
+    .description {
+      position: relative;
+      bottom: 12px;
+    }
+
+    .detail {
+      text-align: center;
+      cursor: pointer;
+      color: var(--iot-color-active);
+    }
+
+    .value {
+      border-radius: 12px;
+      background: var(--iot-anomaly-rank-value-bg-color);
+      padding: 2px 12px;
+      line-height: 22px;
+
+      img {
+        margin: 0 8px;
+        position: relative;
+        height: 16px;
+        &.up {
+          transform: translateY(2px);
+        }
+        &.down {
+          transform: translateY(-2px);
+        }
+      }
+
+      span.font16 {
+        position: relative;
+        top: 1px;
+        color: var(--iot-anomaly-card-count-bg-color);
+      }
+    }
+  }
+}

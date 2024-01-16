@@ -1,0 +1,89 @@
+.alarm-log {
+    &-title-box {
+      height: 20px;
+      line-height: 20px;
+      margin: 0 0 20px 7px;
+      &-title {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.85);
+        vertical-align: middle;
+      }
+  
+      &-img {
+        width: 10px;
+        height: 100%;
+        display: inline-block;
+      }
+    }
+  
+    &-dot {
+      width: 120px;
+      height: 24px;
+      border-radius: 12px;
+      color: #fff;
+      line-height: 24px;
+      &-circular {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background-color: #fff;
+        border-radius: 6px;
+        margin: 6px 14px 0 6px;
+      }
+      &-title {
+        font-size: 16px;
+        color: #fff;
+      }
+      &-time {
+        color: rgba(0, 0, 0, 0.65);
+        font-size: 14px !important;
+        text-align: right;
+      }
+    }
+    &-default {
+      span {
+        font-size: 14px !important;
+        color: rgba(0, 0, 0, 0.65);
+      }
+  
+      &-content {
+        display: flex;
+        width: 319px;
+      }
+    }
+  }
+  .alarm-generate {
+    background-color: rgba(244, 22, 15, 1);
+  }
+  
+  .alarm-handle {
+    background-color: rgba(36, 179, 179, 1);
+  }
+  
+  .alarm-edit {
+    background-color: rgba(24, 144, 255, 1);
+  }
+  :deep(.el-dialog__body) {
+    max-height: 521px;
+    overflow-y: auto;
+  }
+  :deep(.el-timeline-item__wrapper) {
+    top: 30px !important;
+  }
+  :deep(.el-timeline-item__tail) {
+    top: 11px !important;
+    left: 10px;
+  }
+  :deep(.el-timeline) {
+    padding-left: 9px;
+  }
+  :deep(.el-timeline-item) {
+    padding-bottom: 50px;
+  }
+  :deep(.el-timeline-item__dot) {
+    width: 100%;
+    justify-content: space-between !important;
+  }

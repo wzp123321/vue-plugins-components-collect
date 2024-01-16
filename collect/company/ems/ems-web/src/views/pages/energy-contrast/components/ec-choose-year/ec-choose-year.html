@@ -1,0 +1,47 @@
+<div class="ec-choose-year">
+  <el-popover
+    placement="bottom"
+    popper-class="month-popper"
+    :show-arrow="false"
+    v-model:visible="visible"
+    :width="297"
+    trigger="click"
+  >
+    <template #reference>
+      <div :class="['month-select',  chooseYear?.length && !visible ? 'month-clear' : '']">
+        <div class="inputBox">
+          <span v-for="(item, index) in chooseYear" :key="index">
+            {{ item }}
+            <i @click="deleteYearItem(item, index)" class="el-icon-close"></i>
+          </span>
+          <p v-if="chooseYear.length == 0">请选择年份</p>
+        </div>
+        <!-- 图标 -->
+        <i class="iconfont icon-Calendar"></i>
+        <i class="iconfont icon-Close-Circle-Fill" @click.stop="onClear"></i>
+      </div>
+    </template>
+    <div class="yearHead flex-row-center-center">
+      <div class="up" @click="changeYearPage(true)">
+        <i class="iconfont icon-doubleleft"></i>
+      </div>
+      <div class="yearClass">
+        {{ yearList[0].value }}-{{ yearList[11].value }}
+      </div>
+      <div class="down" @click="changeYearPage(false)">
+        <i class="iconfont icon-a-doubleright"></i>
+      </div>
+    </div>
+    <div class="monthBox">
+      <div
+        class="monthItem"
+        @click="clickYearItem(index)"
+        :class="chooseYear.includes(item.value) ? 'activeMonth' : ''"
+        v-for="(item, index) in yearList"
+        :key="index"
+      >
+        <span> {{ item.value }}</span>
+      </div>
+    </div>
+  </el-popover>
+</div>

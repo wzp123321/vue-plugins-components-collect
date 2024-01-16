@@ -1,0 +1,11 @@
+<div class="home-component-container flex flex-column">
+  <!-- 头部 -->
+  <div class="home-component-container--header flex-row-justify-center">
+    <h6 :title="headTitle">{{ headTitle }}</h6>
+    <slot name="header"></slot>
+  </div>
+  <!-- 内容区 -->
+  <div class="home-component-container--box">
+    <slot name="box"></slot>
+  </div>
+</div>

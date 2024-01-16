@@ -1,0 +1,111 @@
+.cost-detail {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: hidden;
+  padding: 10px 16px;
+
+  min-width: 1111px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+
+  background-color: rgba(240, 244, 249, 1);
+
+  :deep(.el-loading-mask) {
+    background-color: transparent !important;
+  }
+
+  .cd-title {
+    font-size: 16px;
+  }
+
+  .cd-content {
+    flex: auto;
+    margin-top: 10px;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 12px;
+
+    border-radius: 8px;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.15);
+
+    padding: 0 12px 15px 12px;
+
+    min-width: auto;
+
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      height: 36px;
+      margin-top: 4px;
+
+      label {
+        height: 14px;
+        padding-left: 8px;
+        font-size: 14px;
+        line-height: 14px;
+        border-left: 4px solid #1890ff;
+        color: var(--color-text-title);
+      }
+    }
+
+    &-body {
+      flex: auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+  }
+
+  :deep(.cd-message) {
+    color: var(--color-text-title);
+
+    > i {
+      visibility: hidden;
+
+      &::before {
+        content: '';
+
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        border: 1px solid var(--color-primary);
+        border-top-color: transparent;
+        border-radius: 50%;
+
+        animation: loading 888ms linear infinite;
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.cd-ts-popover-dialog {
+  padding: 0px !important;
+}
+:deep(.cd-ts-popover-dialog) {
+  padding: 0px !important;
+}

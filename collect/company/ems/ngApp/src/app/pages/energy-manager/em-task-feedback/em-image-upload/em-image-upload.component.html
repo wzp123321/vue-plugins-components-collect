@@ -1,0 +1,17 @@
+<div class="image-list">
+  <div class="image-container" *ngFor="let attachPath of value; index as i">
+    <img
+      [src]="attachPath.fileUrl"
+      alt="图片"
+      class="image"
+      (error)="imageLoadError($event)"
+      (load)="imageLoad($event)"
+    />
+    <img (click)="deleteImage(i)" src="assets/img/energy-manager/icon-delete.svg" alt="" class="icon--delete" />
+  </div>
+  <div class="image-container image-container--no-image" *ngIf="value.length < 6">
+    <img src="assets/img/energy-manager/camera.svg" alt="" class="image" (click)="showPOP($event)" />
+  </div>
+</div>
+<p class="comment">最多上传6张照片(选填)</p>
+<!-- <app-ems-radio-pop-up [dataList]=photographPopList (implementChange)="measureStatusChange($event)" [needMap]="false"  [showPop]="pop"></app-ems-radio-pop-up> -->

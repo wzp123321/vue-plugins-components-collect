@@ -1,0 +1,58 @@
+.tb-select-list {
+  border-right: 1px solid #eee;
+  text-align: left;
+  width: 32%;
+  height: 100%;
+  padding: 0 10px;
+
+  .el-input {
+    margin-bottom: 24px;
+  }
+
+  &-data {
+    min-height: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+
+    &-item {
+      cursor: pointer;
+      display: block;
+      padding: 10px 0 10px 6px;
+      color: #333;
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+
+      span {
+        display: block;
+        max-width: 100%;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      :deep(.el-icon-check) {
+        position: absolute;
+        top: 13px;
+        right: 1px;
+        color: #06a5ff;
+      }
+    }
+
+    &-item.active-span {
+      background-color: rgba(186, 231, 255, 1) !important;
+      color: var(--iot-font-color-root);
+    }
+    &-item:not(.active-span):hover {
+      background-color: rgba(230, 247, 255, 1) !important;
+      color: var(--iot-font-color-root);
+    }
+  }
+
+  .data-none {
+    span {
+      color: rgba(0, 0, 0, 0.25);
+    }
+  }
+}

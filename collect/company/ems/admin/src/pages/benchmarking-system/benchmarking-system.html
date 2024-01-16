@@ -1,0 +1,93 @@
+<div class="benchmarking-system">
+  <page-common title="对标体系" :showSearch="true" :isSubHead="true">
+    <template v-slot:pageSearch>
+      <!-- 头部 -->
+      <el-form :inline="true" :model="formInline" class="demo-form-inline" @submit.native.prevent>
+        <el-form-item>
+          <el-input
+            v-inputFilter:search
+            placeholder="输入对标体系"
+            :maxlength="100"
+            v-model="formInline.search"
+            @keyup.enter="onSearch"
+            style="width: 240px"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">查询</el-button>
+          <el-button @click="onReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+    <template v-slot:pageSubHead>
+      <el-button type="primary" @click="onAddDialogShow" size="small">新 增</el-button>
+    </template>
+    <template v-slot:pageContent>
+      <div class="benchmarkingTable" v-loading="loading">
+        <el-table
+          v-if="!loading"
+          :header-cell-style="{ background: '#edf5fc', color: 'rgba(0, 0, 0, 0.85)' }"
+          :data="tableData"
+          stripe
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+          ref="multipleTable"
+        >
+          <el-table-column prop="index" label="序号" width="80" align="center">
+            <template #default="scope"> {{ (pageNum - 1) * pageSize + scope.$index + 1 }} </template>
+          </el-table-column>
+          <el-table-column prop="systemName" label="对标医院" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="regionTypeText" label="所属地区" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="systemLevelText" label="医院等级" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="systemTypeText" label="医院类型" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="heatingModeText" label="供暖方式" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="coolingModeText" label="供冷方式" show-overflow-tooltip> </el-table-column>
+          <el-table-column prop="address" label="操作" width="220" align="center">
+            <template #default="scope">
+              <span
+                :class="['operate-span', scope.row.id != '1' ? 'mr16' : 'mr44']"
+                @click="onEnergyCodeUpdate(scope.row)"
+                >编辑</span
+              >
+              <el-popconfirm
+                v-if="scope.row.id != '1'"
+                title="确认删除该条数据吗?"
+                confirmButtonText="确定"
+                cancelButtonText="取消"
+                cancelButtonType="default"
+                @confirm="onEnergyCodeDelete(scope.row.id)"
+              >
+                <template #reference>
+                  <span v-if="scope.row.id != '1'" class="delete-span">删除</span>
+                </template>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+        </el-table>
+        <ems-pagination
+          v-show="!loading && total > 0"
+          :current-page="pageNum"
+          :page-sizes="pageSizes"
+          @size-change="onPageSizeChange"
+          @current-change="onCurrentChange"
+          :page-size="pageSize"
+          :total="total"
+        ></ems-pagination>
+      </div>
+    </template>
+  </page-common>
+</div>
+<AddAndEditDialog
+  v-drag
+  :rows="rows"
+  :Region="Region"
+  :HospitalLevel="HospitalLevel"
+  :HospitalType="HospitalType"
+  :HeatingMode="HeatingMode"
+  :CoolingMode="CoolingMode"
+  :key="nums"
+  :dialogAdd="dialogAdd"
+  @addOK="getList"
+>
+</AddAndEditDialog>

@@ -1,0 +1,20 @@
+.sub-title {
+  position: relative;
+  padding-left: 16px;
+  line-height: 23px;
+
+  .title {
+    color: var(--color-text-title);
+  }
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background-color: var(--iot-color-active);
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+}

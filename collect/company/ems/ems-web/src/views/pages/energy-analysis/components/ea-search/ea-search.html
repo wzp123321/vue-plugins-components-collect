@@ -1,0 +1,69 @@
+<div class="ea-search">
+  <div class="search-form">
+    <el-form :inline="true" :model="formSearch" @submit.native.prevent>
+      <el-form-item label="能耗模型">
+        <el-select
+          class="energy-model"
+          v-model="formSearch.radioValue"
+          placeholder="请选择能耗模型"
+          @change="treeRadioChange"
+        >
+          <el-option
+            v-for="(item, index) in treeTypeList"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="能源类型">
+        <tree-select
+          :placeholder="'请选择能源类型'"
+          v-model:modelValue="formSearch.energyCode"
+          v-model:treeData="computedEnergyCodeList"
+          :defaultExpandAll="true"
+          :nodeKey="'code'"
+          :defaultProps="{ children: 'childEnergyCode', label: 'name' }"
+          width="370px"
+          @select-change="energyChange"
+        ></tree-select>
+      </el-form-item>
+      <el-form-item label="分析对象">
+        <tree-select
+          :placeholder="'请选择分析对象'"
+          v-model:modelValue="formSearch.treeId"
+          :treeData="treeIdList"
+          :defaultProps="FGetElTreeDefaultProps()"
+          :showSearch="true"
+          :loading="treeLoading"
+          width="370px"
+          :disabledProps="disabledProps"
+          :expanedKeys="treeIdExpandedKeys"
+        ></tree-select>
+      </el-form-item>
+      <el-form-item label="能源指标" v-if="formSearch.radioValue !== energyModel.科室">
+        <el-select class="energy-value-mean" v-model="formSearch.valueMean" placeholder="请选择能源指标">
+          <el-option
+            v-for="(item, index) in valueMeanList"
+            :key="index"
+            :label="item.name"
+            :value="item.code"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <dateTimeUnitPicker
+        :timeUnitList="timeUnitData"
+        v-model:timeUnit="formSearch.timeUnit"
+        v-model:value="formSearch.date"
+        :isNewQuickTiming="true"
+        :isShowTimeUnit="showTimeUnit"
+        :showDateScope="showDateScope"
+        :disableDateCb="formSearch.radioValue === energyModel.科室 ? disableDateCb : ''"
+      ></dateTimeUnitPicker>
+      <el-form-item>
+        <button primary @click="onSubmit">查询</button>
+        <button @click="onReset">重置</button>
+      </el-form-item>
+    </el-form>
+  </div>
+</div>

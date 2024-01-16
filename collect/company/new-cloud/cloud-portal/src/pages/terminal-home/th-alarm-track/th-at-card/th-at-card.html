@@ -1,0 +1,13 @@
+<div class="th-at-card flex-row-start-center">
+  <div class="charts-container">
+    <th-at-charts :alarmTrackVO="alarmTrackVO"></th-at-charts>
+  </div>
+  <div class="data">
+    <div class="data-title" :style="{ color: alarmTrackVO.color }">{{ alarmTrackVO.alarmLevelName ?? '' }}</div>
+    <div class="flex data-num" :style="{ color: alarmTrackVO.color }">
+      <span class="data-count">{{ alarmTrackVO.handledValue ?? '--' }}</span>
+      <span class="data-icon"> / </span>
+      <span class="data-total">{{ alarmTrackVO.totalValue ?? '--' }}</span>
+    </div>
+  </div>
+</div>

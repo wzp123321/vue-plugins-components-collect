@@ -1,0 +1,78 @@
+// 时分秒范围选择
+.el-picker__popper.el-popper {
+  .el-time-range-picker.el-picker-panel {
+    > .el-time-range-picker__content {
+      padding: 18px 16px 16px;
+
+      > .el-time-range-picker__cell {
+        padding: 0;
+
+        > .el-time-range-picker__header {
+          margin-bottom: 8px;
+        }
+
+        > .el-time-range-picker__body.el-time-panel__content {
+          border: 1px solid var(--color-text-border);
+        }
+
+        .el-time-panel__content::before,
+        .el-time-panel__content::after {
+          display: none;
+        }
+      }
+
+      > .el-time-range-picker__cell + .el-time-range-picker__cell {
+        padding-left: 18px;
+      }
+    }
+  }
+
+  .el-time-panel__content::before,
+  .el-time-panel__content::after {
+    display: none;
+  }
+
+  .el-time-spinner {
+    .el-scrollbar.el-time-spinner__wrapper + .el-scrollbar.el-time-spinner__wrapper {
+      border-left: 1px solid var(--color-text-divider);
+    }
+
+    ul.el-scrollbar__view.el-time-spinner__list {
+      > li.el-time-spinner__item {
+        font-size: 14px;
+        color: var(--color-text-primary);
+      }
+
+      > li.el-time-spinner__item.active {
+        color: var(--color-text-title);
+        background-color: var(--color-hover);
+        font-weight: normal;
+      }
+
+      > li.el-time-spinner__item.disabled {
+        color: var(--color-text-disable);
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+  }
+
+  .el-time-panel__footer {
+    border-top: 1px solid var(--color-text-divider);
+    padding: 7px 0 8px;
+    height: 39px;
+
+    button {
+      height: 24px;
+      line-height: 24px;
+    }
+
+    .el-time-panel__btn.confirm {
+      padding: 0 8px;
+      color: var(--color-default);
+      background-color: var(--color-primary);
+      font-size: 14px;
+      border-radius: 2px;
+      font-weight: normal;
+    }
+  }
+}

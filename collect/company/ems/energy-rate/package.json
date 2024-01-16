@@ -1,0 +1,41 @@
+{
+  "name": "energy-rate",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint --cache --ext .ts,.vue src",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@arco-iconbox/vue-te": "^0.0.4",
+    "@tiansu/tools": "^1.0.2",
+    "@tiansu/ts-web-package": "^1.2.9",
+    "asmcrypto.js": "^2.3.2",
+    "axios": "^0.22.0",
+    "crypto-js": "^4.1.1",
+    "echarts": "^5.4.3",
+    "less": "^4.1.3",
+    "rxjs": "^7.8.1",
+    "rxjs-compat": "^6.6.7",
+    "vue": "^3.2.37",
+    "vue-router": "^4.2.4",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.1.1",
+    "@types/node": "^20.4.5",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@vitejs/plugin-vue": "^3.1.0",
+    "date-fns": "^2.30.0",
+    "lodash": "^4.17.21",
+    "typescript": "^4.6.4",
+    "vite": "^3.1.0",
+    "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-require-transform": "^1.0.21",
+    "vue-eslint-parser": "^9.3.1",
+    "vue-tsc": "^0.40.4"
+  }
+}

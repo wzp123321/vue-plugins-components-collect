@@ -1,0 +1,22 @@
+.check-icon {
+  width: 18px;
+  height: 18px;
+
+  &.done {
+    fill: #1890ff;
+  }
+
+  &.delay {
+    fill: #FF8113;
+  }
+
+  &.todo {
+    fill: #D3D3D3;
+  }
+}
+
+.alarm-icon {
+  width: 18px;
+  height: 18px;
+  fill: #F75B57;
+}

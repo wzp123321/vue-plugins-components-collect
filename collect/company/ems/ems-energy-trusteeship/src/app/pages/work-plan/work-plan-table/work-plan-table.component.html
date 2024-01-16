@@ -1,0 +1,159 @@
+<div id="work-plan-table">
+  <nz-spin [nzSpinning]="isLoading">
+    <table style="width: 100%">
+      <thead>
+        <tr>
+          <th style="width: 60px">序号</th>
+          <th>计划编码</th>
+          <th>计划名称</th>
+          <th>计划描述</th>
+          <th>执行周期</th>
+          <th>计划状态</th>
+          <th>生效时间</th>
+          <th>录入时间</th>
+          <th style="width: 180px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of list">
+          <td>{{ item.index }}</td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.code"
+          >
+            {{ item.code }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.name"
+          >
+            {{ item.name }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.description"
+          >
+            {{ item.description || "--" }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="mapPeriod(item.period)"
+          >
+            {{ mapPeriod(item.period) }}
+          </td>
+          <td>
+            <div
+              class="state-container"
+              [class.active]="mapStateStyleActive(item.state)"
+              [class.danger]="mapStateStyleDanger(item.state)"
+            >
+              {{ mapState(item.state) }}
+            </div>
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.effectiveTime"
+          >
+            {{ item.effectiveTime }}
+          </td>
+          <td
+            ellipsis
+            nz-tooltip
+            nzTooltipPlacement="bottom"
+            nzTooltipOverlayClassName="tooltip-table"
+            [nzTooltipArrowPointAtCenter]="true"
+            [nzTooltipTitle]="item.entryTime"
+          >
+            {{ item.entryTime }}
+          </td>
+          <td>
+            <div class="button-group">
+              <button
+                text
+                routerLink="form"
+                [queryParams]="{
+                  title: '计划详情',
+                  id: item.id,
+                  readonly: true
+                }"
+                [disabled]="isLoading"
+              >
+                详情
+              </button>
+              <button
+                text
+                routerLink="form"
+                [queryParams]="{ title: '编辑计划', id: item.id }"
+                [disabled]="isLoading || !mapUpdateCapability(item.state)"
+              >
+                编辑
+              </button>
+              <button
+                text
+                danger
+                [disabled]="isLoading"
+                nz-popconfirm
+                nzPopconfirmPlacement="topRight"
+                [nzPopconfirmOverlayStyle]="{ transform: 'translateX(7px)' }"
+                [nzPopconfirmArrowPointAtCenter]="true"
+                [nzPopconfirmBackdrop]="true"
+                [nzPopconfirmTitle]="mapDeleteConfirmTitle(item.state)"
+                nzOkText="确定"
+                (nzOnConfirm)="toDelete(item.id)"
+              >
+                删除
+              </button>
+              <button
+                [class.ghost]="!mapMoreButtonVisibility(item.state)"
+                text
+                [disabled]="isLoading"
+                nz-popover
+                nzPopoverPlacement="bottom"
+                nzPopoverOverlayClassName="button"
+                [nzPopoverOverlayStyle]="{ transform: 'translateY(-10px)' }"
+                [nzPopoverArrowPointAtCenter]="true"
+                nzPopoverTrigger="click"
+                [nzPopoverBackdrop]="true"
+                [nzPopoverContent]="popoverMore"
+              >
+                <i nz-icon nzType="more" nzTheme="outline"></i>
+                <ng-template #popoverMore>
+                  <button panel (click)="toChangeState(item.id, item.state)">
+                    {{ mapMoreButtonText(item.state) }}
+                  </button>
+                </ng-template>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </nz-spin>
+
+  <div class="empty-table" [class.none]="list?.length || isLoading">
+    <img src="assets/img/common/common-data-none.svg" alt="暂无数据" />
+    <span>暂无数据</span>
+  </div>
+
+  <ems-pagination class="mt12"></ems-pagination>
+</div>

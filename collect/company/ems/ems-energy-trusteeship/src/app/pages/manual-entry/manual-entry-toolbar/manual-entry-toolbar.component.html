@@ -1,0 +1,33 @@
+<div class="me-toolbar">
+  <button (click)="toExport()">{{ isExporting ? '正在批量导出' : '批量导出' }}</button>
+  <!-- <button (click)="toImport()">批量导入</button> -->
+  <div class="me-toolbar-upload">
+    <nz-upload
+      [(nzFileList)]="fileList"
+      [nzBeforeUpload]="beforeUpload"
+      [nzAccept]="acceptFileTypes"
+      [nzMultiple]="false"
+      class="mbim-upload-list"
+      [nzLimit]="1"
+      [nzShowUploadList]="false"
+    >
+      <button>批量导入</button>
+    </nz-upload>
+  </div>
+  <button (click)="toDownload()">{{ isDownloading ? '正在下载模版' : '下载模版' }}</button>
+  <button primary (click)="newAddInput()">录入</button>
+</div>
+<app-manual-entry-batch-import
+  [isVisible]="batchImportShow"
+  (meOnHideModal)="importHideModal($event)"
+></app-manual-entry-batch-import>
+<app-manual-entry-form
+  [isVisibleForm]="showEntryModal"
+  (meOnHideModalForm)="handleHideModal($event)"
+></app-manual-entry-form>
+<!-- 批量导入错误列表 -->
+<app-manual-entry-import-error-list
+  [errorModalVisible]="errorListModelShow"
+  (meOnHideModal)="handleHideErrorModal($event)"
+>
+</app-manual-entry-import-error-list>

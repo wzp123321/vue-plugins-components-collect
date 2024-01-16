@@ -1,0 +1,28 @@
+.group-configuration {
+  height: 500px;
+  overflow: hidden;
+
+  &-tree {
+    overflow: hidden;
+
+    .ra-tree-check {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+
+      .ra-tree-check--data {
+        flex: 1 1 auto;
+      }
+    }
+  }
+
+  &-table {
+    margin-left: 16px;
+    flex: 1;
+  }
+  // :deep(.el-dialog__body){
+  //     max-height: 660px !important;
+  //     overflow: auto;
+  // }
+}

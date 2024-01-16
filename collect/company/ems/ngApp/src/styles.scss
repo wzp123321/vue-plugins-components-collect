@@ -1,0 +1,114 @@
+@import "assets/style/common";
+@import "assets/style/reset";
+
+@font-face {
+  font-family: "DINPro Medium";
+  font-style: normal;
+  font-weight: normal;
+  src: local("DINPro Medium"),
+    url("./assets/font/DINPro-Medium tr.woff") format("woff");
+}
+
+@font-face {
+  font-family: "DINPro Bold";
+  font-style: normal;
+  font-weight: normal;
+  src: local("DINPro Bold"),
+    url("./assets/font/DINPro-Bold tr.woff") format("woff");
+}
+
+@font-face {
+  font-family: "DINPro Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("DINPro Regular"),
+    url("./assets/font/DINPro-Regular.woff.ttf") format("woff");
+}
+
+.DinPro-Medium {
+  font-family: "DINPro Medium";
+}
+
+.DinPro-Bold {
+  font-family: "DINPro Bold";
+}
+
+.DinPro-Regular {
+  font-family: "DINPro Regular";
+}
+
+::-webkit-scrollbar,
+* ::-webkit-scrollbar {
+  display: none !important;
+  background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+::ng-deep .scroll-bar-indicator {
+  opacity: 0;
+  display: none;
+}
+::ng-deep ion-content main.inner-scroll {
+  position: unset;
+}
+
+ion-content {
+  // --offset-bottom: auto!important;
+  // --overflow: hidden;
+  overflow: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &main.inner-scroll {
+    position: unset;
+  }
+}
+ion-infinite-scroll.md.infinite-scroll-enabled.hydrated {
+  overflow: scroll !important;
+  height: 100% !important;
+}
+ 
+input, textarea  {
+  caret-color: #1283FF;
+}
+::selection { 
+  background-color: rgba(18, 131, 255, 0.5); 
+} 
+::-moz-selection { 
+  background-color: rgba(18, 131, 255, 0.5);  
+} 
+::-webkit-selection { 
+  background-color: rgba(18, 131, 255, 0.5);  
+}
+// 日历
+::ng-deep .am-calendar .single-month .row .cell .date-wrapper .selected-single {
+  border-radius: 5px;
+}   
+::ng-deep .am-calendar .confirm-panel {
+  display: none;
+}
+::ng-deep  .am-calendar .header .right {
+  display: none;
+}
+::ng-deep .am-calendar .header {
+  padding: 15px 0px;
+}
+::ng-deep .am-calendar .header .left {
+  right: 15px;
+  left: auto;
+  top: auto;
+  color: #4E4E4E;
+  width: 28px;
+  height: 28px;
+}
+::ng-deep .am-calendar .single-month .row .cell .date-wrapper .date-selected {
+  background: rgba(18, 131, 255, 1);
+}
+::ng-deep .am-calendar .header .left .am-icon {
+  width: 28px !important;
+  height: 28px !important;
+}

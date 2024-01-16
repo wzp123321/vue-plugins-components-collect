@@ -1,0 +1,155 @@
+<div class="threshold-config">
+  <page-common title="阈值设置" :showSearch="false">
+    <template v-slot:pageContent>
+      <!-- 表格 start -->
+      <el-table :data="configList" v-loading="loading">
+        <el-table-column prop="thresholdName" label="阈值名称" align="center" :show-overflow-tooltip="true">
+        </el-table-column>
+        <el-table-column prop="general" label="普通异常值" align="center">
+          <template #default="scope">
+            <span v-if="!scope.row._edit"> {{ formatEmptyValue(scope.row.general, "%") }} </span>
+            <el-input
+              v-if="scope.row._edit"
+              v-model="scope.row.general"
+              :maxlength="scope.row.thresholdType == '6' ? 10 : 5"
+              @input="
+                  (val: any) => {
+                    val = val.replace(/[^\d.]/g, ''); //不允许输入数字和.以外的东西
+                    if (val.length > 1) {
+                      if (scope.row.thresholdType == '6') {
+                        if (!val.match(/(1000000000)|(\d{0,9}(\.\d{0,2})?)/)[0]) {
+                          val = '';
+                        } else {
+                          val = val.match(/(1000000000)|(\d{0,9}(\.\d{0,2})?)/)[0]
+                            .replace(/^(-?)0+(\d)/, '$1$2') // 删除多余的前置0
+                            .replace(/^(-?)\./, '$10.'); // 插入纯小数的整数0
+                        }
+                      } else {
+                        if (!val.match(/(100)|(\d{0,2}(\.\d{0,2})?)/)[0]) {
+                          val = '';
+                        } else {
+                          val = val.match(/(100)|(\d{0,2}(\.\d{0,2})?)/)[0]
+                            .replace(/^(-?)0+(\d)/, '$1$2') // 删除多余的前置0
+                            .replace(/^(-?)\./, '$10.'); // 插入纯小数的整数0
+                        }
+                      }
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+              @blur="
+                  (e: any) => {
+                    let val = '';
+                    if (e.target.value.slice(-1) == '.') {
+                      val = e.target.value.slice(0, -1);
+                    } else {
+                      val = e.target.value;
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+            >
+              <template #append>%</template>
+            </el-input>
+          </template>
+        </el-table-column>
+        <el-table-column prop="serious" label="严重异常值" align="center">
+          <template #default="scope">
+            <span v-if="!scope.row._edit"> {{ formatEmptyValue(scope.row.serious, "%") }} </span>
+            <el-input
+              v-if="scope.row._edit"
+              v-model="scope.row.serious"
+              :maxlength="scope.row.thresholdType == '6' ? 10 : 5"
+              @input="
+                  (val: any) => {
+                    val = val.replace(/[^\d.]/g, ''); //不允许输入数字和.以外的东西
+                    if (val.length > 1) {
+                      if (scope.row.thresholdType == '6') {
+                        if (!val.match(/(1000000000)|(\d{0,9}(\.\d{0,2})?)/)[0]) {
+                          val = '';
+                        } else {
+                          val = val.match(/(1000000000)|(\d{0,9}(\.\d{0,2})?)/)[0]
+                            .replace(/^(-?)0+(\d)/, '$1$2') // 删除多余的前置0
+                            .replace(/^(-?)\./, '$10.'); // 插入纯小数的整数0
+                        }
+                      } else {
+                        if (!val.match(/(100)|(\d{0,2}(\.\d{0,2})?)/)[0]) {
+                          val = '';
+                        } else {
+                          val = val.match(/(100)|(\d{0,2}(\.\d{0,2})?)/)[0]
+                            .replace(/^(-?)0+(\d)/, '$1$2') // 删除多余的前置0
+                            .replace(/^(-?)\./, '$10.'); // 插入纯小数的整数0
+                        }
+                      }
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+              @blur="
+                  (e: any) => {
+                    let val = '';
+                    if (e.target.value.slice(-1) == '.') {
+                      val = e.target.value.slice(0, -1);
+                    } else {
+                      val = e.target.value;
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+            >
+              <template #append>%</template>
+            </el-input>
+          </template>
+        </el-table-column>
+        <el-table-column prop="deadband" label="死区值" align="center">
+          <template #default="scope">
+            <span v-if="!scope.row._edit"> {{ formatEmptyValue(scope.row.deadband) }} </span>
+            <el-input
+              v-if="scope.row._edit"
+              v-model="scope.row.deadband"
+              maxlength="10"
+              @input="
+                  (val: any) => {
+                    val = val.replace(/[^\d.]/g, ''); //不允许输入数字和.以外的东西
+                    if (val.length > 1) {
+                      if (!val.match(/(\d{0,10}(\.\d{0,2})?)/)[0]) {
+                        val = '';
+                      } else {
+                        val = val.match(/(\d{0,10}(\.\d{0,2})?)/)[0]
+                          .replace(/^(-?)0+(\d)/, '$1$2') // 删除多余的前置0
+                          .replace(/^(-?)\./, '$10.'); // 插入纯小数的整数0
+                      }
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+              @blur="
+                  (e: any) => {
+                    let val = '';
+                    if (e.target.value.slice(-1) == '.') {
+                      val = e.target.value.slice(0, -1);
+                    } else {
+                      val = e.target.value;
+                    }
+                    scope.row[scope.column.property] = val;
+                  }
+                "
+            ></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="180">
+          <template #default="scope">
+            <div v-show="scope.row._edit">
+              <span class="operate-span" @click="handleSave(scope.$index, scope.row)">保存 </span>
+              <span class="operate-span" @click="handleCancel">取消</span>
+            </div>
+            <span v-show="!scope.row._edit" class="operate-span" @click="handleEdit(scope.$index, scope.row)"
+              >编辑
+            </span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!-- 表格 end -->
+    </template>
+  </page-common>
+</div>

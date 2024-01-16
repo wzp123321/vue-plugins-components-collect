@@ -1,0 +1,44 @@
+#work-plan-form-basic {
+  & > .form-item-container {
+    padding-left: 12px;
+
+    display: grid;
+    grid-template-columns: 56px auto;
+    place-content: stretch;
+    place-items: center stretch;
+    gap: 16px 8px;
+
+    .form-textarea {
+      &-label {
+        align-self: flex-start;
+      }
+      &-container {
+        max-width: 660px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+
+        & > .textarea-counter {
+          align-self: flex-end;
+          height: 0px;
+
+          transform: translate(-10px, -22px);
+
+          &::after {
+            content: attr(data-count);
+
+            height: 22px;
+
+            color: fade(black, 25%);
+
+            line-height: 22px;
+            font-size: 14px;
+            font-weight: 400;
+          }
+        }
+      }
+    }
+  }
+}

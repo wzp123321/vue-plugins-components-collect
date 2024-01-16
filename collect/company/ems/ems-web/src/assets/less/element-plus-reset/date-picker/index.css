@@ -1,0 +1,18 @@
+@import url('./el-time-picker.less');
+@import url('./el-date-range-picker.less');
+@import url('./el-month-picker.less');
+@import url('./el-year-picker.less');
+@import url('./el-date-picker.less');
+
+/* 处理通用table样式带来的影响 */
+.el-picker__popper.el-popper table > tbody > tr:nth-child(even) > td {
+  background-color: transparent;
+}
+
+.el-picker__popper.el-popper table > tbody > tr:hover > td {
+  background-color: transparent !important;
+}
+
+.el-picker__popper.el-popper .el-popper__arrow {
+  display: none;
+}

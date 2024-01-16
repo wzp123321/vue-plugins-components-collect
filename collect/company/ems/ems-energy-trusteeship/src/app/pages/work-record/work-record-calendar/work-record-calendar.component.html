@@ -1,0 +1,52 @@
+<div id="work-record-calendar">
+  <div class="calendar-header">
+    <h4>工作表</h4>
+    <div>
+      <button class="calendar-button-today" [attr.selected]="isToday" (click)="selectToday()">今天</button>
+      <nz-select
+        class="ml8"
+        style="width: 90px"
+        [nzOptionHeightPx]="36"
+        [nzBackdrop]="true"
+        [(ngModel)]="year"
+        (nzScrollToBottom)="addYearOptions()"
+        (nzOpenChange)="resetYearOptions($event)"
+      >
+        <nz-option *ngFor="let option of yearOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+      </nz-select>
+      <nz-select class="ml8" style="width: 74px" [nzOptionHeightPx]="36" [nzBackdrop]="true" [(ngModel)]="month">
+        <nz-option *ngFor="let option of monthOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+      </nz-select>
+    </div>
+  </div>
+
+  <nz-spin flexible="true" nzDelay="233" [nzSpinning]="isLoading">
+    <div class="calendar-body">
+      <label *ngFor="let option of weekOptions">{{ option.label }}</label>
+      <div
+        *ngFor="let day of calendar"
+        class="calendar-day-container"
+        [class.selected]="mapSelected(day.date)"
+        [class.disabled]="!mapSameMonth(day.date)"
+        (click)="selectDate(day.date)"
+        (wheel)="onWheelScroll.emit($event)"
+      >
+        <div class="calendar-day-date" [class.today]="mapToday(day.date)">{{ day.date?.getDate() }}</div>
+        <div [class.none]="!day.planned" [ngSwitch]="mapSameMonth(day.date) && mapHistoricalDate(day.date)">
+          <img *ngSwitchCase="true" [src]="mapScoreSymbol(day.score)" alt="" />
+          <img *ngSwitchDefault src="assets/icon/work-record/wr-score-none.svg" alt="" />
+        </div>
+        <div
+          *ngIf="day.planned && mapHistoricalDate(day.date)"
+          class="calendar-day-score-container"
+          style="grid-column-start: span 2"
+          [class.danger]="day.score < 60"
+          [class.success]="day.score >= 90"
+        >
+          <span class="calendar-day-score-number">{{ day.score || 0 }}</span>
+          <span class="calendar-day-score-text">分</span>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>

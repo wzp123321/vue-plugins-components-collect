@@ -1,0 +1,145 @@
+<div class="ea-device-detail">
+  <!-- 左侧设备列表 start -->
+  <div class="dd-left">
+    <module-subhead :title="treeName + '关联设备'"></module-subhead>
+    <div class="device-list-wrap" v-loading="deviceListLoading">
+      <div class="device-list" v-if="deviceList && deviceList.length > 0">
+        <div
+          class="device-list-item text-overflow"
+          :class="{ 'device-select': devSelect === item.deviceID && devPointNumber === item.pointNumber }"
+          v-for="(item, index) in deviceList"
+          :key="index"
+          @click="deviceOnClick(item.deviceID, item.standardPointCode, item.pointNumber, item.energyCode)"
+          :title="item.deviceName"
+        >
+          {{ item.deviceName }}
+        </div>
+      </div>
+      <no-data v-if="(!deviceList || deviceList.length === 0) && !deviceListLoading"></no-data>
+    </div>
+  </div>
+  <!-- 左侧设备列表 end -->
+  <div class="dd-right">
+    <div class="dd-right-top">
+      <!-- 能耗分析头部操作 start -->
+      <div class="dd-right-top-head">
+        <module-subhead :title="tableColumnName"></module-subhead>
+        <div class="dd-right-top-head-operate">
+          <icon-switch-button v-model="switchIconSelect" :switchItems="compSwitchTableLineChartIcons">
+          </icon-switch-button>
+          <button
+            class="ml12"
+            @click="exportTable"
+            primary
+            v-show="energyTableList && energyTableList.length > 0 &&
+                  !barChartLoading && switchIconSelect === 1"
+          >
+            {{ exportLoading ? '正在导出' : '导出'}}
+          </button>
+        </div>
+      </div>
+      <!-- 能耗分析头部操作 end -->
+      <div class="dd-right-top-content" v-loading="barChartLoading">
+        <!-- 能耗分析图表 start -->
+        <ea-line-bar-chart
+          v-if="barChart && !barChartLoading"
+          v-show="switchIconSelect === 2"
+          :valueMean="searchParam.valueMean"
+          :chartWidth="'827px'"
+          :height="270"
+          :barData="barChart.barChartSeriesList"
+          :yAxisItems="barChart.yaxisItemList"
+          :xAxisTimes="barChart.xaxisTimes"
+          :legendDataException="barChart.legendDataList"
+          :unit="barChart.timeUnit"
+          :legendSelected="false"
+          :timeSection="timeSection"
+          :compareTitle="barChart.barChartSeriesList?.length ? barChart.barChartSeriesList[0].energyType.indexOf('能耗') === -1 ?
+                     barChart.barChartSeriesList[0].energyType + '能耗' : barChart.barChartSeriesList[0].energyType.replace('能耗能耗', '能耗') : ''"
+        >
+        </ea-line-bar-chart>
+        <!-- 能耗分析图表 end -->
+        <!-- 能耗分析表格 start -->
+        <div class="dd-right-top-table" v-show="switchIconSelect === 1">
+          <energy-consumption-detail
+            v-if="energyTableList && energyTableList.length > 0 && !barChartLoading"
+            :listData="energyTableList"
+            :columnName="tableColumnName"
+            :unit="tableUnit"
+            :unitTime="searchParam.timeUnit"
+            :timeSection="timeSection"
+            :valueMean="tableValueMean"
+            :tableHeight="294"
+          >
+          </energy-consumption-detail>
+        </div>
+        <!-- 能耗分析表格 end -->
+        <no-data v-if="!barChart && !barChartLoading"></no-data>
+      </div>
+    </div>
+    <div class="dd-right-bottom">
+      <el-row :gutter="24">
+        <!-- 能耗统计分析 start -->
+        <el-col :span="12">
+          <module-subhead :title="'能耗统计分析'"></module-subhead>
+          <div class="dd-right-statistical" v-loading="statisticalLoading">
+            <statistical-analysis :data="statisticalData" v-if="statisticalData && !statisticalLoading">
+            </statistical-analysis>
+            <no-data v-if="!statisticalData && !statisticalLoading"></no-data>
+          </div>
+        </el-col>
+        <!-- 能耗统计分析 end -->
+        <!-- 设备信息 start -->
+        <el-col :span="12">
+          <module-subhead :title="'设备信息'"></module-subhead>
+          <div class="dd-right-detail" v-loading="deviceDetailLoading">
+            <el-row :gutter="24" v-if="deviceDetail && !deviceDetailLoading">
+              <el-col :span="12">
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">设备编号</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.devNumber)">
+                    {{ formatEmptyValue(deviceDetail.devNumber) }}
+                  </div>
+                </div>
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">设备类别</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.category)">
+                    {{ formatEmptyValue(deviceDetail.category) }}
+                  </div>
+                </div>
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">安装位置</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.location)">
+                    {{ formatEmptyValue(deviceDetail.location) }}
+                  </div>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">设备型号</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.devType)">
+                    {{ formatEmptyValue(deviceDetail.devType) }}
+                  </div>
+                </div>
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">设备性质</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.nature)">
+                    {{ formatEmptyValue(deviceDetail.nature) }}
+                  </div>
+                </div>
+                <div class="dd-right-detail-item">
+                  <div class="dd-right-detail-title">隶属机构</div>
+                  <div class="dd-right-detail-value text-overflow" :title="formatEmptyValue(deviceDetail.affiliations)">
+                    {{ formatEmptyValue(deviceDetail.affiliations) }}
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+            <no-data v-if="!deviceDetail && !deviceDetailLoading"></no-data>
+          </div>
+        </el-col>
+        <!-- 设备信息 end -->
+      </el-row>
+    </div>
+  </div>
+</div>

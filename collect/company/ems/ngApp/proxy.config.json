@@ -1,0 +1,20 @@
+{
+  "/energy-ems": {
+    "target": "http://192.168.50.34:7800/energy/ems-api/",
+    "pathRewrite": {
+      "^/energy-ems": ""
+    }
+  },
+  "/gateway/v1": {
+    "target": "http://192.168.50.126:10130/gateway/v1/",
+    "pathRewrite": {
+      "^/gateway/v1": ""
+    }
+  },
+  "/temp_file": {
+    "target": "http://36.152.29.162:50243",
+    "pathRewrite": {
+      "^temp_file": "temp_file"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<div class="card-box">
+  <div class="card-head">
+    <div class="card-head-title">
+      {{ headTitle }}
+      <span
+        v-if="componentCode === 'ZJ011'"
+        @click="associationDownLoad"
+        class="card-head-downBtn"
+        :class="'isShow_' + uid"
+      >
+        导出
+      </span>
+      <span
+        v-if="componentCode === 'ZJ007' || componentCode === 'ZJ002' || componentCode === 'ZJ003' || componentCode === 'ZJ005' || componentCode ==='ZJ006' ||   componentCode === 'ZJ011' || componentCode === 'ZJ004' || componentCode === 'ZJ013'"
+        @click="goDetail(componentCode, uid)"
+        class="card-head-downBtn"
+      >
+        详情
+      </span>
+
+      <span v-if="componentCode === 'ZJ011'">{{isDownLoadBtnShow}}</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <slot name="cardBody"></slot>
+  </div>
+</div>

@@ -1,0 +1,147 @@
+.home-kaa-card {
+  width: 100%;
+  border-radius: 4px;
+  background-color: var(--portal-compare-card-bg);
+  box-shadow: 0px 2px 4px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+  padding-bottom: 8px;
+  transition: all ease-in-out 0.3s;
+
+  .tag-box {
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    background-color: #1890ff;
+    border-bottom-right-radius: 4px;
+    border-top-left-radius: 4px;
+    display: inline-block;
+    text-align: center;
+    font-size: 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .cost-item-info {
+    padding-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .cost-item-name {
+      line-height: 22px;
+      font-size: 14px;
+      // margin-right: 6px;
+      color: var(--portal-compare-card-font);
+    }
+
+    .cost-item-unit {
+      line-height: 20px;
+      font-size: 12px;
+      color: var(--iot-font-color-root);
+    }
+  }
+
+  .cost-item-value-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'DINPro Medium';
+    cursor: pointer;
+
+    .cost-item-value {
+      text-align: center;
+      max-width: 90%;
+      flex: 1;
+      margin-top: 4px;
+      color: rgba(0, 0, 0, 0.85);
+      line-height: 32px;
+      font-size: 24px;
+    }
+  }
+
+  .cost-compare-container {
+    font-size: 14px;
+    line-height: 23px;
+    color: var(--iot-font-color-root);
+    display: flex;
+    justify-content: center;
+    margin: 0;
+
+    // 数值过大溢出时的样式
+    &.wrap-compare {
+      font-size: 14px;
+      line-height: 23px;
+      color: var(--iot-font-color-root);
+      display: flex;
+      justify-content: center;
+      margin: 0;
+
+      .cost-compare-items-wrapper {
+        display: block;
+        text-align: center;
+
+        .cost-compare-item {
+          margin: 0;
+          text-align: left;
+          display: block;
+        }
+      }
+    }
+
+    .cost-compare-items-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      max-width: 86%;
+
+      .cost-compare-item {
+        flex-basis: 50%;
+        margin: 0;
+        text-align: left;
+        display: flex;
+        justify-content: flex-start;
+        max-width: 100%;
+
+        &:last-child {
+          margin-left: 0;
+        }
+
+        .cost-compare-trend {
+          margin-left: 8px;
+
+          .icon-up-down {
+            cursor: pointer;
+            padding-right: 4px;
+            height: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .icon-fair {
+            width: 14px;
+            height: 4px;
+            background: #d8d8d8;
+            display: inline-block;
+            margin: 0 4px 4px 0.5px;
+          }
+        }
+
+        .cost-compare-value {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          word-break: break-word;
+          font-family: 'DINPro Medium';
+        }
+
+        .cost-compare-type:last-of-type {
+          margin-left: 30px;
+        }
+      }
+    }
+  }
+}

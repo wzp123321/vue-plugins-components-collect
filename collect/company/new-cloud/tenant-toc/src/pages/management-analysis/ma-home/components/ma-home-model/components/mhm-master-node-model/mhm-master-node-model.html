@@ -1,0 +1,73 @@
+<!-- 
+   主节点12个月的详情信息： 头部+内容部分 start\end与当前时间无关
+  -->
+<div id="mhm-master-node-model">
+  <!-- calendar切换 -->
+  <div class="mhm-mnm-calendar">
+    <!-- <img src="../../../../../../../assets/images/management-analysis/ma-home-model/ma-home-model-bg.svg" /> -->
+    <div class="mhm-mnm-calendar-left" v-show="isLeftClick" @click="leftChange()"></div>
+    <div class="mhm-mnm-calendar-left-no" v-show="!isLeftClick" @click="leftChange()"></div>
+    <div class="mhm-mnm-calendar-time">{{yearTime}}年</div>
+    <div class="mhm-mnm-calendar-right" v-show="isRightClick" @click="rightChange()"></div>
+    <div class="mhm-mnm-calendar-right-no" v-show="!isRightClick" @click="rightChange()"></div>
+  </div>
+
+  <!-- calendar line icon-->
+  <div class="mhm-mnm-line">
+    <div class="mhm-mnm-line-group">
+      <div class="mhm-mnm-line-group-rectangle"></div>
+    </div>
+    <div class="mhm-mnm-line-group">
+      <div class="mhm-mnm-line-group-rectangle"></div>
+    </div>
+  </div>
+
+  <!-- contents 12个月 -->
+  <div class="mhm-mnm-body" v-loading="mhmMaster.isLoading">
+    <div class="mhm-mnm-contents" v-if="!mhmMaster.isEmpty && nodeMonthData.length > 0">
+      <div
+        class="mhm-mnm-contents-month"
+        v-for="(item, index) in nodeMonthData"
+        :class="{'mhm-mnm-contents-month-no': !item.value || item.value === null, 'mhm-mnm-contents-month-normal': +item.value >= 0 && item.value != null, 'mhm-mnm-contents-month-serious': +item.value < 0}"
+      >
+        <div class="mhm-mnm-contents-month-header">
+          <span class="mhm-mnm-contents-month-header-text">{{item.month}}月</span>
+          <span
+            :class="{'mhm-mnm-contents-month-header-icon': +item.maxOrMinStatus === 1, 'mhm-mnm-contents-month-header-icon-hight': +item.maxOrMinStatus === 2}"
+          >
+          </span>
+        </div>
+
+        <div class="mhm-mnm-contents-month-body">
+          <el-tooltip
+            class="tips"
+            effect="dark"
+            :content="String(item.value === null ? '--' : item.value)"
+            placement="bottom"
+            :offset="4"
+            :show-after="500"
+          >
+            <span
+              class="mhm-mnm-contents-month-body-text"
+              :class="{ 'mhm-mnm-contents-month-body-text-normal': +item.status === 1, 'mhm-mnm-contents-month-body-text-serious': +item.status === 2}"
+            >
+              {{item.value}}
+            </span>
+          </el-tooltip>
+
+          <span
+            class="mhm-mnm-contents-month-body-unit"
+            :class="{ 'mhm-mnm-contents-month-body-text-normal': +item.status === 1, 'mhm-mnm-contents-month-body-text-serious': +item.status === 2}"
+          >
+            {{item.unit}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mhm-mnm-empty flex-column-center-center" v-if="mhmMaster.isEmpty && !mhmMaster.isLoading">
+      <img src="@/assets/images/management-analysis/ma-home-model/ma-home-model-no-data.svg" alt="" />
+      <p>暂无数据</p>
+    </div>
+  </div>
+</div>

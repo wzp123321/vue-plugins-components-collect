@@ -1,0 +1,32 @@
+<div class="transformer-form">
+  <el-form
+    :inline="true"
+    :model="formSearch"
+    class="demo-form-inline"
+    @submit.native.prevent
+  >
+    <el-form-item label="能效节点">
+      <tree-select
+        ref="treeSelect"
+        :maxLength="7"
+        :placeholder="'请选择能效节点'"
+        v-model="formSearch.energyEfficiencySelected"
+        node-key="id"
+        :multiple="true"
+        :treeData="energyEfficiency"
+        :defaultExpandAll="true"
+        :defaultProps="defaultProps"
+      >
+      </tree-select>
+    </el-form-item>
+    <dateTimeUnitPicker
+      :timeUnitList="timeUnitData"
+      v-model:timeUnit="formSearch.timeUnit"
+      v-model:value="formSearch.date"
+    ></dateTimeUnitPicker>
+    <el-form-item>
+      <button primary @click="onSubmit">查询</button>
+      <button @click="onReset">重置</button>
+    </el-form-item>
+  </el-form>
+</div>

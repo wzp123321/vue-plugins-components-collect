@@ -1,0 +1,11 @@
+<ng-container *ngIf="checkStatus !== null && ['done', 'delay', 'todo'].includes(checkStatus)">
+  <svg class="icon check-icon" [ngClass]="checkStatus" aria-hidden="true">
+    <use xlink:href="#icon-Check"></use>
+  </svg>
+</ng-container>
+
+<ng-container *ngIf="checkStatus === 'undone'">
+  <svg class="icon alarm-icon" aria-hidden="true">
+    <use xlink:href="#icon-Warning"></use>
+  </svg>
+</ng-container>

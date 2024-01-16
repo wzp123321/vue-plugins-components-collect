@@ -1,0 +1,255 @@
+<div class="pm-view">
+  <page-container title="项目信息" :hasSearch="false">
+    <template v-slot:pageContent>
+      <div style="height: 100%" class="flex flex-column" v-loading="loading">
+        <div
+          :class="[isIframeLoad ? 'flex-row-end-center' :'flex-row-start-center','pm-view-btn']"
+          v-if="(!isIframeLoad || editorBtnShowFlag) &&!loading"
+        >
+          <div class="flex-row-start-center gap10" v-if="!isIframeLoad">
+            <div class="flex-row-start-center gap10" @click="onBack">
+              <icon-backward />
+              <span>返回</span>
+            </div>
+            <div class="pm-cb-bb-divider"></div>
+            <span class="name">{{ projectDetail?.projectBasicInfoVO?.projectName }}</span>
+          </div>
+          <button primary v-if="isIframeLoad && editorBtnShowFlag" @click="toEditor">编辑</button>
+        </div>
+        <div class="pm-view--container" v-if="!loading">
+          <div class="base-form">
+            <h5>项目基本信息</h5>
+            <div class="common-container">
+              <div class="common-key">项目编码</div>
+              <div class="common-value">
+                <div style="height: 36px" v-for="item in projectDetail?.projectBasicInfoVO?.projectNumber">
+                  {{ isNull(item) }}
+                </div>
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">
+                托管周期
+                <el-tooltip effect="dark" content="合同约定" placement="right">
+                  <img class="desc-ico" src="../../../assets/images/project-manage/pm-question-mark.svg" alt="mark" />
+                </el-tooltip>
+              </div>
+              <div class="common-value">
+                <div class="common-value-mb14">{{ isNull(projectDetail?.projectBasicInfoVO?.trusteeshipDate)}}</div>
+                <div>首托管期{{ projectDetail?.projectBasicInfoVO?.firstBatch ?? '12' }}个月</div>
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">项目状态</div>
+              <div class="common-value">
+                {{ getNameOfCode(projectDetail?.projectBasicInfoVO?.status, projectStatusList) }}
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">所属地区</div>
+              <div class="common-value">
+                {{ getNameOfCode(projectDetail?.projectBasicInfoVO?.province, provinceList) }}
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">所属大区</div>
+              <div class="common-value">{{ getNameOfCode(projectDetail?.projectBasicInfoVO?.region, regionList) }}</div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">能源经理</div>
+              <div class="common-value">{{ isNull(projectDetail?.projectBasicInfoVO?.energyManager) }}</div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">能源类型</div>
+              <div class="common-value">
+                {{ getEnergyName(projectDetail?.projectBasicInfoVO?.energyPriceInfoList) }}
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">验收时间</div>
+              <div class="common-value">
+                <div class="common-value-mb14">{{ isNull(projectDetail?.projectBasicInfoVO?.acceptanceTime) }}</div>
+                <div v-if="projectDetail?.projectBasicInfoVO?.acceptanceTime">
+                  建设期收入{{projectDetail?.projectBasicInfoVO.buildingIncome ?? '--'}}元
+                </div>
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">绑定项目</div>
+              <div class="common-value">{{ returnBindProject() }}</div>
+            </div>
+          </div>
+          <div class="contract-form">
+            <h5>合同信息</h5>
+            <div class="common-container">
+              <div class="common-key">托管类型</div>
+              <div class="common-value">
+                {{ getNameOfCode(projectDetail?.contractInfoVO?.hostingType, trusteeshipTypeList) }}
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">项目风险评级</div>
+              <div class="common-value">
+                {{ getNameOfCode(projectDetail?.contractInfoVO?.riskRating, riskRatingList) }}
+              </div>
+            </div>
+            <div class="common-container">
+              <div class="common-key">基准类型</div>
+              <div class="common-value">
+                {{ getNameOfCode(projectDetail?.contractInfoVO?.benchmarkType, standardTypeList) }} {{
+                mapGrowRate(projectDetail?.contractInfoVO?.benchmarkType, projectDetail?.contractInfoVO?.growthRate) }}
+              </div>
+            </div>
+            <!-- 收益分享模式 -->
+            <div class="common-container">
+              <div class="common-key">收益分享模式</div>
+              <div class="common-value" v-if="projectDetail?.contractInfoVO?.shareModel?.length !==0">
+                <h6 class="common-value-mb14">{{ mapTiansuFlag() ? '节能收益天溯分享模式' : '保证伙伴收益型' }}</h6>
+                <!-- 天溯 -->
+                <div class="common-value-mb14" v-if="mapTiansuFlag()">
+                  <p
+                    class="common-value-align-center common-value-active common-value-mb14"
+                    @click="handleFormulaViewShow(
+                    projectDetail?.contractInfoVO?.shareModel?.[0]?.incomeShareObject,
+                    projectDetail?.contractInfoVO?.shareModel?.[0]?.incomeShareType,
+                  )"
+                  >
+                    <icon-sheet-view style="margin-right: 8px" />
+                    <span>收益分成</span>
+                  </p>
+                  <p>{{ projectDetail?.contractInfoVO?.shareModel?.[0]?.remark ?? '--' }}</p>
+                </div>
+                <!-- 保证伙伴收益型 -->
+                <div v-else>
+                  <div
+                    v-for="item in shareModelList"
+                    :key="item.grainSharingObject"
+                    class="common-value-mb14 common-value-active common-value-align-center"
+                  >
+                    <label>{{ item.grainSharingObjectName }}</label>
+                    <div
+                      style="margin-left: 8px"
+                      v-for="cItem in item.grainSharingTypeList"
+                      :key="cItem.grainSharingType"
+                      class="common-value-align-center"
+                      @click="handleFormulaViewShow(item.grainSharingObject, cItem.grainSharingType)"
+                    >
+                      <icon-sheet-view style="margin-right: 8px" />
+                      <span>{{ cItem?.grainSharingTypeName }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="common-value" v-else>--</div>
+            </div>
+            <!-- 单价调差方式 -->
+            <div class="common-container">
+              <div class="common-key">单价调差方式</div>
+              <div class="common-value" v-if="projectDetail?.contractInfoVO?.priceAdjustmentType?.length !== 0">
+                <div class="common-value-price" v-for="item in projectDetail?.contractInfoVO?.priceAdjustmentType">
+                  {{ mapPriceAdjustmentLabel(item) }}
+                </div>
+              </div>
+              <div class="common-value" v-else>--</div>
+            </div>
+            <!-- 项目收入计算 -->
+            <div class="common-container">
+              <div class="common-key">项目收入计算</div>
+              <div class="common-value" v-if="projectDetail?.contractInfoVO?.nodePeriod.length">
+                <div
+                  class="common-value-price"
+                  v-for="item in projectDetail?.contractInfoVO?.nodePeriod"
+                  :key="item.nodeId"
+                >
+                  {{ mapNodePeriodLabel(item) }}
+                </div>
+              </div>
+              <div v-else>--</div>
+            </div>
+            <!-- 核算涉及费用 -->
+            <div class="common-container">
+              <div class="common-key">核算涉及费用</div>
+              <div class="common-value" v-if="projectDetail?.contractInfoVO?.feeNodeType.length">
+                <template v-for="item in projectDetail?.contractInfoVO?.feeNodeType" :key="item">
+                  <p class="common-value-mb14" v-if="!mapDataConfigureFlag(Number(item.feeType))">
+                    {{ mapFeeNodeLabel(item) }}
+                  </p>
+                  <p
+                    class="common-value-mb14 common-value-active common-value-align-center"
+                    v-else
+                    @click="handleConfigureDialogShow(Number(item.feeType), Number(item.feeType))"
+                  >
+                    <icon-sheet-view />
+                    <span>{{ mapFeeNodeLabel(item) }}</span>
+                  </p>
+                </template>
+              </div>
+              <div class="common-value" v-else>--</div>
+            </div>
+          </div>
+          <div class="hosting-form">
+            <h5>托管详情</h5>
+            <div class="deposit-area">
+              <h3>托管区域及合同单价</h3>
+              <div class="deposit-area-item" v-for="item in projectDetail?.hostingDetailVO?.hostingAreaInfoList">
+                <div class="dai-header">
+                  <span class="dai-name-container">
+                    <component
+                      :title="item.name"
+                      :is="mapEnergyIconClass(item.name)"
+                      :style="{color: mapEnergyIconColor(item.name)}"
+                      style="margin-right: 3px"
+                    ></component>
+                    {{item.name}}
+                  </span>
+                  <span style="color: rgba(0, 0, 0, 0.25)" v-show="item?.isSubregion">分区托管</span>
+                </div>
+                <div :class="['dai-content', item?.isSubregion ? 'list' : '']">
+                  <template class="dai-area-item" v-if="item?.isSubregion">
+                    <template v-for="priceItem in item?.price">
+                      <span class="area-key" :title="priceItem?.areaName">{{ priceItem?.areaName }}</span>
+                      <span class="area-value" :title="returnPrice(priceItem?.priceType, priceItem?.value, item?.name)">
+                        {{ returnPrice(priceItem?.priceType, priceItem?.value, item?.name) }}
+                      </span>
+                    </template>
+                  </template>
+                  <div
+                    v-else
+                    class="dai-area-nosubregion"
+                    :title="returnPrice(item?.price?.[0]?.priceType,item?.price?.[0]?.value,item?.name)"
+                  >
+                    {{ returnPrice(item?.price?.[0]?.priceType,item?.price?.[0]?.value,item?.name) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="energy-project">
+              <h3>节能项目</h3>
+              <template v-if=" projectDetail?.hostingDetailVO?.energyConservationList?.length">
+                <div class="ep-container" v-for="item in projectDetail?.hostingDetailVO?.energyConservationList">
+                  <div class="ep-key">{{ item?.projectName }}</div>
+                  <div
+                    class="ep-value"
+                    :title="`${item?.energyName}${item?.treeName ? `(${item?.treeName})` : ''}${item?.regionName ? '--'
+                  +item?.regionName : ''}`"
+                  >
+                    {{ `${item?.energyName}${item?.treeName ? `(${item?.treeName})` : ''}${item?.regionName ? '--'
+                    +item?.regionName : ''}` }}
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <p class="energy-project-empty">暂无项目</p>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </page-container>
+  <!-- 查看公式 -->
+  <PvFormulaView ref="formulaViewRef"></PvFormulaView>
+  <!-- 数据配置 -->
+  <pm-income-config ref="incomeConfigureRef"></pm-income-config>
+</div>

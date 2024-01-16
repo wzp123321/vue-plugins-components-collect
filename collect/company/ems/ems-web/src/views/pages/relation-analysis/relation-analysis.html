@@ -1,0 +1,125 @@
+<div class="relation-analysis">
+  <page-common :title="'关联分析'" :isSubHead="false" :showSearch="true" style="min-width: 1415px;">
+    <template v-slot:pageSearch>
+      <PageSearch
+        v-model:loading="loading"
+        @search="onPageSearch"
+        @reset="onReset"
+        @initialSearch="initialSearch"
+        @error="onError"
+      >
+      </PageSearch>
+    </template>
+    <template v-slot:pageContent>
+      <div class="flex flex-column" style="height: 100%" v-loading="loading">
+        <div class="flex-row-justify-center" style="margin-bottom: 24px">
+          <module-subhead :title="'关联系数'"></module-subhead>
+          <switch-button
+            v-model="queryForm.correlationStatus"
+            :switchItems="relationTypes"
+            @switch-button-change="onRelationTypeChange"
+          ></switch-button>
+        </div>
+        <div class="flex flex-column" v-if="!hasAbnormal && !loading">
+          <!-- 关联系数 -->
+          <div class="relation-analysis-card" v-if="correlationValueList?.length">
+            <AnalysisParamCard
+              v-for="(item, index) in correlationValueList"
+              :key="'card_' + index"
+              :paramInfo="item"
+              :index="index"
+              :queryForm="queryForm"
+              :hasDataView="
+                  correlationValueList && correlationValueList.length > 1
+                "
+              @selectParam="value => onParamSelect(value, index)"
+            ></AnalysisParamCard>
+          </div>
+          <div class="charts_wrap mt24" v-if="correlationValueList?.length">
+            <div class="flex-row-justify-center">
+              <module-subhead :title="'图表展示'"></module-subhead>
+              <switch-button
+                v-if="timeUnitList && timeUnitList.length > 1"
+                v-model="queryForm.timeUnit"
+                :switchItems="timeUnitList"
+                @switch-button-change="onTimeUnitChange"
+              ></switch-button>
+            </div>
+            <div style="height: 340px">
+              <RaMultiaxialChart
+                v-if="!hasAbnormal && seriesData && seriesData.length > 0"
+                :seriesData="seriesData"
+                :unit="timeUnitStr"
+                :xAxisTime="xaxisTimes"
+                :yAxisItems="yaxisItemList"
+              ></RaMultiaxialChart>
+            </div>
+          </div>
+          <div class="mt28" v-if="!hasAbnormal && !loading && paramNames?.length">
+            <div class="flex-row-justify-center mb19">
+              <module-subhead :title="'数据明细'"></module-subhead>
+              <div>
+                <el-button type="primary" v-if="tableDataSource && tableDataSource.length" @click="getTableDataExport"
+                  >{{exportLoading ? '正在导出' : '导出'}}</el-button
+                >
+              </div>
+            </div>
+            <table class="container-data-table" style="width: 100%">
+              <thead>
+                <tr>
+                  <th style="width: 60px">序号</th>
+                  <th>时间</th>
+                  <th v-for="(item, index) in paramNames" :key="'params_'+index">
+                    <span v-html="item"></span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in   tableDataSource.slice((pageNum - 1) * pageSize,  pageNum * pageSize)"
+                  :key="index"
+                >
+                  <td style="width: 60px">{{ index + 1}}</td>
+                  <el-tooltip
+                    class="item"
+                    effect="dark"
+                    :show-after="500"
+                    :content="item.xaxisTime || '--'"
+                    placement="bottom"
+                    :offset="-4"
+                  >
+                    <td>{{ item.xaxisTime }}</td>
+                  </el-tooltip>
+                  <td v-for="(childItem, childIndex) in item.colValueList" :key="childIndex">
+                    <span v-if="Object.prototype.toString.call(childItem) === '[object Null]'">--</span>
+                    <el-tooltip
+                      v-else
+                      class="item"
+                      effect="dark"
+                      :show-after="500"
+                      :content="thousandSeparation(childItem) ?? '--'"
+                      placement="bottom"
+                    >
+                      <span>{{ thousandSeparation(childItem) ?? '--' }}</span>
+                    </el-tooltip>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <el-pagination
+              :current-page="pageNum"
+              :page-sizes="pageSizes"
+              @size-change="onPageSizeChange"
+              @current-change="onCurrentChange"
+              :page-size="pageSize"
+              layout="total, prev, pager, next, sizes, jumper"
+              :total="tableDataSource.length"
+            >
+            </el-pagination>
+          </div>
+        </div>
+        <no-data :title="errorMessage" v-if="hasAbnormal && !loading"></no-data>
+      </div>
+    </template>
+  </page-common>
+</div>

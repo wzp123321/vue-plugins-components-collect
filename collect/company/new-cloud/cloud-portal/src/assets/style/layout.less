@@ -1,0 +1,75 @@
+// 设计尺寸（百分）
+@size-width: 19.2;
+@size-height: 10.8;
+@size-radio: 16 / 9;
+
+:root {
+  font-size: calc(100vh / @size-height);
+  @media screen and (max-aspect-ratio: @size-radio) {
+    font-size: calc(100vw / @size-width);
+  }
+}
+
+html {
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+}
+
+body {
+  width: unit(@size-width, rem);
+  height: unit(@size-height, rem);
+  margin: auto;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  background-color: transparent;
+}
+
+/* 全局元素默认样式控制 */
+* {
+  /* 布局 */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+
+  /* 外观 */
+  outline: none;
+
+  /* 文本 */
+  line-height: 0.22rem;
+  font-size: 0.14rem;
+  font-weight: 400;
+  word-break: keep-all;
+  white-space: nowrap;
+
+  /* 滚动条 -Firefox */
+  scrollbar-width: thin;
+}
+/* 滚动条 -Chrome */
+*::-webkit-scrollbar {
+  width: 0.08rem;
+  height: 0.08rem;
+}
+*::-webkit-scrollbar-thumb {
+  // background-color: fade(black, 25%);
+  background-color: rgba(54, 129, 255, 1);
+  border-radius: 4px;
+
+  transition-duration: 233ms;
+}
+*::-webkit-scrollbar-thumb:hover {
+  // background-color: fade(black, 45%);
+  background-color: rgba(54, 129, 255, 1);
+}
+*::-webkit-scrollbar-thumb:active {
+  // background-color: fade(black, 65%);
+  background-color: rgba(54, 129, 255, 1);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}

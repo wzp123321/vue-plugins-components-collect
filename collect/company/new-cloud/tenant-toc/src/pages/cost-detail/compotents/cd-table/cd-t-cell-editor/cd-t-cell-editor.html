@@ -1,0 +1,14 @@
+<textarea
+  rows="1"
+  id="cd-t-cell-editor"
+  class="cd-t-cell-editor"
+  v-model="textEditor.text"
+  v-show="textEditor.visible"
+  :style="{width: textEditor.width, top: textEditor.position.top, left: textEditor.position.left}"
+  maxlength="200"
+  @input="textEditor.filterInput"
+  @keydown="keyDown"
+  @blur="handleBlur"
+  @change="textEditor.change"
+></textarea>
+<div class="cd-t-cell-text-hidden">{{ textEditor.text }}</div>

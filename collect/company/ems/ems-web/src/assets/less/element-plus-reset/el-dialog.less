@@ -1,0 +1,40 @@
+.el-dialog {
+  &__header {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 12px 20px;
+    background-color: var(--color-table-header);
+    border: none;
+    border-radius: 3px 3px 0 0;
+
+    .el-dialog__title {
+      color: var(--color-primary);
+      line-height: 24px;
+      font-size: 16px;
+      font-weight: 400;
+
+      font-family: PingFangSC-Medium;
+    }
+
+    .el-dialog__headerbtn {
+      top: 8px;
+      right: 20px;
+      color: #00000073;
+
+      i {
+        font-size: 20px;
+      }
+    }
+  }
+
+  &__body {
+    padding: 20px 20px 16px;
+  }
+
+  &__footer {
+    text-align: right !important;
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-text-border);
+  }
+}

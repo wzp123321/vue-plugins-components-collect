@@ -1,0 +1,89 @@
+.emdp-dates {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .emdp-dates-container {
+    height: 36px;
+    line-height: 36px;
+    width: 300px;
+    border: 1px solid #dcdfe6;
+    border-radius: 5px;
+
+    .emdp-dates-container-list {
+      height: 26px;
+      width: 96%;
+      white-space: normal;
+    }
+
+    .ems-iconfont.icon-qingkong {
+      position: absolute;
+      top: 8px;
+      right: 0;
+      font-size: 18px;
+      color: rgba(0, 0, 0, 0.25);
+      display: none;
+
+      &:hover {
+        color: rgba(0, 0, 0, 0.45);
+      }
+    }
+
+    i {
+      font-size: 14px;
+      color: #545488;
+    }
+
+    .dateSection {
+      width: 200px;
+    }
+
+    .inputPosition {
+      width: 100%;
+      height: 100%;
+      position: sticky;
+      top: 0;
+    }
+
+    :deep(.el-input__inner) {
+      opacity: 0;
+    }
+
+    span {
+      margin: 2px 6px 2px 2px;
+      line-height: 22px;
+      overflow: hidden;
+      color: rgba(0, 0, 0, 0.65);
+      background-color: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 2px;
+      cursor: default;
+      transition: padding 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+      display: inline-block;
+      padding: 0 3px 0 10px;
+      box-sizing: border-box;
+
+      i {
+        margin-left: 4px;
+        margin-right: 0;
+      }
+    }
+  }
+
+  i {
+    margin-right: 5px;
+    margin-left: -10px;
+    color: #52acff;
+    font-size: 20px;
+
+    :hover {
+      cursor: pointer;
+    }
+  }
+
+  &.emdp-dates-allowclear:hover {
+    .ems-iconfont.icon-qingkong {
+      display: inline-block;
+    }
+  }
+}

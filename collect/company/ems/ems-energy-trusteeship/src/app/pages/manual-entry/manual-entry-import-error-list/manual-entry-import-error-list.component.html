@@ -1,0 +1,41 @@
+<!--模板导入错误列表Modal-->
+<div class="me-import-error-list">
+  <nz-modal
+    [(nzVisible)]="errorModalVisible"
+    nzTitle="错误原因"
+    (nzOnCancel)="handleErrorModalCancel()"
+    nzWidth="680px"
+    nzMaskClosable="false"
+    [nzStyle]="{ top: '19vh' }"
+    [nzFooter]="null"
+    nzClassName="me-batch-import-modal"
+    [nzContent]="errorDetailsModalContent"
+  >
+    <ng-template #errorDetailsModalContent>
+      <table style="width: 100%">
+        <thead>
+          <tr>
+            <th style="width: 60px">序号</th>
+            <th style="width: 40%">模板位置</th>
+            <th style="width: 60%" [ngClass]="{ pr20: importResult.length * 48 > 258 }">详细信息</th>
+          </tr>
+        </thead>
+      </table>
+      <div class="scroll-y-tbody">
+        <table>
+          <tbody>
+            <tr *ngFor="let item of importResult; let i = index">
+              <td class="default-txt" style="width: 60px">{{ (errorPageIndex - 1) * errorPageSize + i + 1 }}</td>
+              <td class="default-txt text-hidden" style="width: 40%" [title]="item.position">{{ item.position }}</td>
+              <td class="default-txt text-gesture text-hidden" [title]="item.detail" style="width: 60%">
+                {{ item.detail }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- <ems-pagination class="mt12" *ngIf="errorDetailsList?.length > 5"></ems-pagination> -->
+    </ng-template>
+  </nz-modal>
+</div>

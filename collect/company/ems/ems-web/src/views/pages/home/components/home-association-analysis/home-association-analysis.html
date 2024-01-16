@@ -1,0 +1,33 @@
+<h-component-container :headTitle="title">
+  <template v-slot:header>
+    <button text @click="linkToDetailPage">详情</button>
+    <button text @click="onExport" v-if="tableData?.length">导出</button>
+  </template>
+  <template v-slot:box
+    ><div class="home-association-analysis">
+      <div class="an-switch--wrap">
+        <switch-button
+          v-model="switchSelect"
+          :switchItems="switchItems"
+          @switch-button-change="switchChange"
+        ></switch-button>
+      </div>
+      <div class="an-table" v-loading="isLoding">
+        <association-analysis-table
+          v-show="!isLoding && !isNoConfig"
+          :tableData="tableData"
+          :emptyText="isNoDataMsg"
+        ></association-analysis-table>
+        <!-- 无数据时 start -->
+        <!-- <no-data
+          :title="isNoDataMsg"
+          v-if="!isLoding && isNoData && !isNoConfig"
+        ></no-data> -->
+        <!-- 无数据时 end -->
+        <!-- 无配置时 start -->
+        <no-data :imgUrl="noConfigImg" :title="isNoConfigMsg" v-if="!isLoding && !isNoData && isNoConfig"></no-data>
+        <!-- 无配置时 end -->
+      </div>
+    </div></template
+  >
+</h-component-container>

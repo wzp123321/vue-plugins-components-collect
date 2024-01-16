@@ -1,0 +1,29 @@
+<el-dialog
+  v-model="dialogVisible"
+  :title="dialogTitle"
+  :width="dialogWidth"
+  @close="closeDialog"
+  custom-class="ma-home-model-dialog"
+  destroy-on-close
+>
+  <div class="ma-home-model" :style="mapBackgroundUrl(showComponentName)">
+    <div class="ma-home-model-button-left" @click="changeMode('left')"></div>
+    <div class="ma-home-model-button-right" @click="changeMode('right')"></div>
+    <div>
+      <component
+        :is="showComponentName"
+        :dialogTitle="dialogTitle"
+        :tableDataName="tableDataName"
+        :tableData="tableData"
+        :treeList="treeList"
+        :showComponentId="showComponentId"
+        :tableEchartsData="tableEchartsData"
+        :chartList="chartList"
+        :loadingStatus="loadingStatus"
+        @changeComponents="changeComponents"
+        @back="back"
+        @changeTab="changeTab"
+      ></component>
+    </div>
+  </div>
+</el-dialog>

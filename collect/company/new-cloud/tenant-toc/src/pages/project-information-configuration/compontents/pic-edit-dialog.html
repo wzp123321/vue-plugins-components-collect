@@ -1,0 +1,70 @@
+<div class="pic-edit-dialog">
+  <el-dialog
+    title="编辑项目信息"
+    v-model="picEditDialogform.picEditDialogVisible"
+    :close-on-click-modal="false"
+    width="520px"
+    @close="cancel"
+  >
+    <el-form :model="picEditDialogform" :rules="rules" ref="ruleForm" label-width="100px" label-position="right">
+      <el-form-item> </el-form-item>
+      <el-form-item label="上传logo" prop="uploadLogo" class="uploadLogo">
+        <el-upload
+          class="uploadLogo-uploader"
+          action="/tenantConfig/updateTenantConfig"
+          name="imageFile"
+          :auto-upload="true"
+          :show-file-list="false"
+          :before-upload="beforeAvatarUpload"
+          :http-request="noHelp"
+        >
+          <div
+            class="uploadLogo-uploader__container flex-row-center-center"
+            style="width: 180px; height: 180px"
+            @mouseover.stop="onMouseOver"
+            @mouseleave.stop="onMouseOut"
+          >
+            <img v-if="picEditDialogform.uploadLogo" :src="picEditDialogform.uploadLogo" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon">
+              <plus />
+            </el-icon>
+            <!-- 删除 -->
+            <span v-if="picEditDialogform.uploadLogo && isShowDel" class="uploadLogo-uploader__container_look">
+              <span class="uploadLogo-uploader__container_look_icon">
+                <span class="uploadLogo-uploader__container_look_icon_del" @click.stop="handleRemove">
+                  <el-icon><Delete /></el-icon>
+                </span>
+              </span>
+            </span>
+          </div>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="ems版本" prop="emsVersion">
+        <el-select v-model="picEditDialogform.emsVersion" placeholder="请选择ems版本" style="width: 100%">
+          <el-option
+            v-for="(item, index) in emsVersionList"
+            :key="'emsVersion_' + index"
+            :label="item.name"
+            :value="item.code"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="ems端侧地址" prop="emsAddress">
+        <input
+          placeholder="请输入"
+          v-textInputFilter
+          v-model.trim="picEditDialogform.emsAddress"
+          maxlength="128"
+          autocomplete="off"
+          class="pic-edit-dialog-form-input"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="onSubmit">确认</el-button>
+      </span>
+    </template>
+  </el-dialog>
+</div>

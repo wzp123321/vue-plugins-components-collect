@@ -1,0 +1,250 @@
+<div class="me-form">
+  <nz-modal
+    [(nzVisible)]="isVisibleForm"
+    [nzStyle]="{ top: '5vh' }"
+    nzTitle="数据录入"
+    nzWidth="658px"
+    nzMaskClosable="false"
+    [nzFooter]="modalFooter"
+    (nzOnCancel)="handleCancel()"
+    nzClassName="me-batch-import-modal-add"
+    [nzContent]="modalContent"
+  >
+    <ng-template #modalContent>
+      <div class="me-form-content">
+        <div class="item-container">
+          <label class="item-container-text">能源类型</label>
+          <nz-tree-select
+            #elementEnergyTypeTree
+            class="item-container-select"
+            style="width: 405px"
+            [nzExpandedKeys]="energyExpandKeys"
+            [nzNodes]="energyList"
+            nzShowSearch
+            nzPlaceHolder="请选择能源类型"
+            nzAllowClear="false"
+            [(ngModel)]="energyCode"
+            (ngModelChange)="
+              energyChange($event, elementEnergyTypeTree.getSelectedNodeList())
+            "
+            [nzBackdrop]="true"
+          ></nz-tree-select>
+        </div>
+
+        <div class="item-container">
+          <label class="item-container-text">录入对象</label>
+          <div class="item-container-object">
+            <app-manual-entry-object
+              [placeholder]="'请选择录入对象'"
+              [width]="405"
+              (meoTSubmitSelectChange)="submitSelectChange($event)"
+            >
+            </app-manual-entry-object>
+          </div>
+        </div>
+
+        <div class="item-container">
+          <label class="item-container-text">录入值类型</label>
+          <nz-select
+            style="width: 405px"
+            id="valueType"
+            name="valueType"
+            [(ngModel)]="energyType"
+            (ngModelChange)="valueTypeChange($event)"
+            nzPlaceHolder="请选择录入值类型"
+            [nzAllowClear]="false"
+            [nzDropdownClassName]="'me-value-type'"
+            [nzOptionHeightPx]="36"
+          >
+            <nz-option
+              *ngFor="let item of valueTypeData"
+              [nzValue]="item.value"
+              [nzLabel]="item.name"
+            ></nz-option>
+          </nz-select>
+          <i
+            info
+            nz-icon
+            nzType="question-circle"
+            nzTooltipTitle="录入的表头值直接查找前序的表头值进行分摊，但仅能处理15天内的数据"
+            nzTooltipPlacement="right"
+            nz-tooltip
+            *ngIf="energyType === '2'"
+            class="item-container-icon"
+          ></i>
+        </div>
+        <!-- 是否分摊 -->
+        <div class="item-container" *ngIf="energyType === '1'">
+          <label for="isShare" class="item-container-text">是否分摊</label>
+          <nz-radio-group
+            [(ngModel)]="isShareType"
+            (ngModelChange)="isShareChange()"
+            style="width: 405px"
+            class="item-share-type"
+          >
+            <label nz-radio nzValue="1">是</label>
+            <label nz-radio nzValue="2" checked>否</label>
+          </nz-radio-group>
+        </div>
+        <!-- 分摊规则 -->
+        <div
+          class="item-container"
+          *ngIf="energyType === '1' && isShareType === '1'"
+        >
+          <label for="isShare" class="item-container-text">分摊规则</label>
+          <nz-radio-group
+            [(ngModel)]="ShareType"
+            class="item-allocation-rules"
+            (ngModelChange)="shareTypeChange($event)"
+          >
+            <label nz-radio nzValue="1">平均分摊</label>
+            <label nz-radio nzValue="2" [nzDisabled]="disabledClick === '2'"
+              >同比比例分摊</label
+            >
+            <label nz-radio nzValue="3" [nzDisabled]="disabledClick === '3'"
+              >环比比例分摊</label
+            >
+          </nz-radio-group>
+        </div>
+        <!-- 数据时间 -->
+        <div class="item-container">
+          <label
+            for="valueDate"
+            class="item-container-text"
+            *ngIf="!ShareType || energyType !== '1' || isShareType !== '1'"
+            >数据时间</label
+          >
+          <label
+            for="valueDate"
+            class="item-container-text"
+            *ngIf="ShareType && energyType === '1' && isShareType === '1'"
+            >分摊时间</label
+          >
+          <div class="item-data-time">
+            <app-manual-entry-quick-time
+              *ngIf="energyType === '1'"
+              [itemArray]="shortCutData"
+              [itemSelected]="shortCutSelect"
+              (itemOnSelect)="shortcutOnSelect($event)"
+            >
+            </app-manual-entry-quick-time>
+            <nz-month-picker
+              *ngIf="shortCutSelect === 2 && energyType === '1'"
+              [ngStyle]="{ width: '265px', height: '36px' }"
+              [nzDisabledDate]="disabledDateMonth"
+              [(ngModel)]="dateMonth"
+              [nzAllowClear]="false"
+              [nzPlaceHolder]="'请选择月份'"
+              (ngModelChange)="dateModelChange($event)"
+            >
+            </nz-month-picker>
+            <nz-date-picker
+              *ngIf="
+                energyType === '2' ||
+                !energyType ||
+                (energyType === '1' &&
+                  isShareType === '2' &&
+                  shortCutSelect !== 2)
+              "
+              [ngStyle]="{
+                width: energyType === '0' ? '265px' : '405px',
+                height: '36px'
+              }"
+              [(ngModel)]="queryDate"
+              [nzDisabledDate]="
+                energyType === '2' ? disabledDate : disabledDateType
+              "
+              [nzAllowClear]="false"
+              [nzShowToday]="false"
+              [nzPlaceHolder]="'请选择日期'"
+              (ngModelChange)="dateOnChange($event)"
+            >
+            </nz-date-picker>
+            <nz-range-picker
+              *ngIf="
+                energyType === '1' &&
+                shortCutSelect !== 2 &&
+                isShareType === '1'
+              "
+              [ngStyle]="{ width: '265px', height: '36px' }"
+              [nzDisabledDate]="disabledDateRange"
+              [(ngModel)]="dateRange"
+              (ngModelChange)="dateModelrangeChange($event)"
+              name="dateRange"
+              id="dateRange"
+              [nzAllowClear]="false"
+              nzSeparator="～"
+            >
+            </nz-range-picker>
+          </div>
+          {{ shareTypeChange(ShareType) }}
+          <!-- 先不加 -->
+          <!-- <i info  
+                      nz-icon
+                      nzType="question-circle"
+                      [nzTooltipTitle]="titleTemplate"
+                      nzTooltipPlacement="right" 
+                      nz-tooltip
+                      *ngIf="ShareType == 1 && energyType === '1'  && isShareType === '1' && shortCutSelect === 2"
+                      class="item-container-icon"
+                    ></i>
+                    <ng-template #titleTemplate let-thing> 
+                      <span>平均分摊至当月</span>
+                    </ng-template> -->
+        </div>
+        <!-- 录入值 -->
+        <div class="item-container">
+          <label for="entryValue" class="item-container-text">录入值</label>
+          <div
+            class="item-container-input-unit"
+            #entryValueBox
+            (click)="modalShowPopoer()"
+          >
+            <!-- 表头值4位  消耗值2位 -->
+            <input
+              #inputElement
+              id="energyValueId"
+              nz-input
+              placeholder="请输入数值"
+              style="width: 405px"
+              emsInputFilter_ExcludeNumber
+              [emsInputFilterNumberConfig]="{
+                integer: 10,
+                decimal: energyType === '2' ? 4 : 2
+              }"
+              [(emsInputFilterModel)]="entryValue"
+              [(ngModel)]="entryValue"
+              (focus)="getObjectEnery()"
+              autocomplete="off"
+            />
+
+            <span
+              class="item-container-unit"
+              [innerHTML]="entryValueUnit"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </nz-modal>
+</div>
+
+<ng-template #modalFooter>
+  <button (click)="handleCancel()">取消</button>
+  <button nz-button nzType="primary" (click)="dataEntrySubmit()">确认</button>
+</ng-template>
+
+<!-- 录入值的弹窗 -->
+<div
+  *ngIf="isHistroyShow && energyType !== '2' && entryValueHistory"
+  class="backdrop"
+  (click)="backdrop($event)"
+>
+  <div
+    class="entry-value-history"
+    (click)="entryValueClick(entryValueHistory)"
+    [ngStyle]="popoverStyle"
+  >
+    <div class="history-item">{{ entryValueHistory }}</div>
+  </div>
+</div>
