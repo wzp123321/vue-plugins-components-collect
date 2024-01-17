@@ -1,8 +1,8 @@
 /*
  * @Author: wanzp
  * @Date: 2023-02-10 22:13:43
- * @LastEditors: wanzp
- * @LastEditTime: 2023-06-04 19:19:31
+ * @LastEditors: wzp123321 wanzhipengx@163.com
+ * @LastEditTime: 2024-01-17 21:41:05
  * @Description:
  */
 import { RouteRecordRaw } from 'vue-router';
@@ -21,6 +21,13 @@ const cssComponents: RouteRecordRaw[] = [
       name: 'Grid布局',
     },
     component: () => import('../../pages/css/css-grid/css-grid.vue'),
+  },
+  {
+    path: '/css-flex',
+    meta: {
+      name: 'Flex布局',
+    },
+    component: () => import('../../pages/css/css-flex/css-flex.vue'),
   },
   {
     path: '/css-whitespace-wordbreak-wordwrap',
