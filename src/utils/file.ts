@@ -153,4 +153,25 @@ export const mapFileMD5 = (file: File): Promise<string | null> => {
   });
 };
 
-// export const
+/**
+ * 文件分片
+ * @param file
+ * @returns
+ */
+export const mapFileChunks = (file: File) => {
+  const CHUNK_SIZE = 1024 * 1024 * 10; // 每个文件切片大小定为10MB .
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const chunks = [];
+  for (let index = 0; index < totalChunks; index++) {
+    const start = index * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    const chunk = file.slice(start, end);
+
+    chunks.push({
+      index,
+      data: chunk,
+    });
+  }
+
+  return chunks;
+};
