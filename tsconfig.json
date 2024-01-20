@@ -15,5 +15,6 @@
     "types": ["element-plus/global"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["collect/**/*.ts", "collect/**/*.d.ts", "collect/**/*.tsx", "collect/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

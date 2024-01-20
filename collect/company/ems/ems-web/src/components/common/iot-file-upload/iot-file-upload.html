@@ -1,8 +1,0 @@
-<el-upload class="iot-file-upload" action="#" :show-file-list="false" :accept="extension"
-    :before-upload="beforeAvatarUpload" :http-request="noHelp">
-    <div class="iot-file-upload__container flex-row-center-center" v-if="!isCustom">
-        <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-        <el-icon class="el-icon-plus avatar-uploader-icon flex-row-center-center" v-else></el-icon>
-    </div>
-    <slot v-else></slot>
-</el-upload>

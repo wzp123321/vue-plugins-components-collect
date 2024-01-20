@@ -1,9 +1,0 @@
-<div class="switch-button">
-    <div class="switch-button--wrap" v-if="switchItems && switchItems.length > 0">
-        <span class="switch-button-item" :class="{ 'switch-button-item-selected': itemSelected === item.value }"
-            @click="onSwitchItem(item)" :title="item.label.length > 8 ? item.label : ''"
-            v-for="(item, index) in resetSwitchItem(switchItems)" :key="index">
-            {{ item.label }}
-        </span>
-    </div>
-</div>

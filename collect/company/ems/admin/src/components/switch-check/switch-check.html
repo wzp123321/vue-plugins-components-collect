@@ -1,5 +1,0 @@
-<div class="switch-check" v-if="switchItems && switchItems.length > 0">
-    <span class="switch-check-item" :class="{'switch-check-item-selected': itemSelected === item.code}"
-        @mousedown="onSwitchItem(item)" :title="item.name.length > 8 ? item.title : ''"
-        v-for="(item, index) in resetSwitchItem(switchItems)" :key="index">{{ item.name }}</span>
-</div>

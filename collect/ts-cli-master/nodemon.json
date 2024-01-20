@@ -1,5 +1,0 @@
-{
-  "watch": ["src"],
-  "ext": "ts",
-  "exec": "rimraf lib && tsc --outDir lib --module CommonJS"
-}

@@ -132,9 +132,9 @@ export function FDownLoadHandler(url: string, name?: string): Promise<void> {
 /**
  * 获取文件md5
  * @param file
- * @returns
+ * @returns {Promise<string | null>}
  */
-export const mapFileMD5 = (file: File) => {
+export const mapFileMD5 = (file: File): Promise<string | null> => {
   return new Promise((resolve) => {
     if (!file) {
       resolve(null);
