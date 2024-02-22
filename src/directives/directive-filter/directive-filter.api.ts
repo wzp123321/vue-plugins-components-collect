@@ -24,14 +24,16 @@ export interface IDirectiveTextBindingVO {
 /**
  * @param integral 整数位
  * @param decimal 小数位
- * @param negative 是否支持负数
+ * @param negativeFlag 是否支持负数
+ * @param zeroFlag 是否支持0
  * @param min 最小
  * @param max 最大
  */
 export interface IDirectiveNumberBindingVO {
   integral: number;
   decimal: number;
-  negative: boolean;
+  negativeFlag: boolean;
+  zeroFlag: boolean;
   min: number | null;
   max: number | null;
 }

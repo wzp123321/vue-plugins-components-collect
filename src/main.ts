@@ -1,3 +1,4 @@
+
 import { createApp } from 'vue';
 import App from './App.vue';
 import { createPinia } from 'pinia';
@@ -9,7 +10,7 @@ import './assets/style/global.less';
 import 'element-plus/dist/index.css';
 import './assets/test-color.js';
 
-import registerInputFilter from './directives/inputFilter';
+import registerInputFilter from './directives/directive-filter';
 import { registerAntv } from './components/index';
 
 const app = createApp(App);

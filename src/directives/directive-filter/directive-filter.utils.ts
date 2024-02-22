@@ -1,33 +1,12 @@
 /*
  * @Author: wanzp
  * @Date: 2023-04-26 21:15:54
- * @LastEditors: wanzp
- * @LastEditTime: 2023-06-24 13:03:32
+ * @LastEditors: wzp123321 wanzhipengx@163.com
+ * @LastEditTime: 2024-02-22 21:10:48
  * @Description:
  */
-import { DirectiveBinding, VNode } from 'vue';
+import { DirectiveBinding } from 'vue';
 import { IDirectiveNumberBindingVO, IDirectiveTextBindingVO } from './directive-filter.api';
-
-type AssignerFn = (value: any) => void;
-
-export function onCompositionEnd(e: Event) {
-  const target = e.target as any;
-  if (target.composing) {
-    target.composing = false;
-    target.dispatchEvent(new Event('input'));
-  }
-}
-
-export const invokeArrayFns = (fns: Function[], arg?: any) => {
-  for (let i = 0; i < fns.length; i++) {
-    fns[i](arg);
-  }
-};
-
-export const getModelAssigner = (vnode: VNode): AssignerFn => {
-  const fn = vnode.props!['onUpdate:modelValue'] || (__COMPAT__ && vnode.props!['onModelCompat:input']);
-  return Array.isArray(fn) ? (value) => invokeArrayFns(fn, value) : fn;
-};
 
 /**
  * "123-foo" will be parsed to 123
@@ -38,9 +17,14 @@ export const looseToNumber = (val: any): any => {
   return isNaN(n) ? val : n;
 };
 
-export function addEventListener(el: Element, event: string, handler: EventListener, options?: EventListenerOptions) {
+export const addEventListener = (
+  el: Element,
+  event: string,
+  handler: EventListener,
+  options?: EventListenerOptions,
+) => {
   el.addEventListener(event, handler, options);
-}
+};
 
 export function removeEventListener(
   el: Element,
@@ -49,11 +33,6 @@ export function removeEventListener(
   options?: EventListenerOptions,
 ) {
   el.removeEventListener(event, handler, options);
-}
-
-function isObject(value: { [key: string]: any }) {
-  var type = typeof value;
-  return value != null && (type == 'object' || type == 'function');
 }
 
 export const deduplicate = (target: string, symbol: string): string => {
@@ -72,7 +51,7 @@ export const deduplicate = (target: string, symbol: string): string => {
  * @param binding 指令传参
  * @returns
  */
-export function handleTextFilter(domValue: string, binding: DirectiveBinding<IDirectiveTextBindingVO>) {
+export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDirectiveTextBindingVO>) => {
   const regExp = binding?.value?.regExp;
   const allowSpace =
     Object.prototype.toString.call(binding?.value?.allowSpace) === '[object Boolean]'
@@ -95,7 +74,7 @@ export function handleTextFilter(domValue: string, binding: DirectiveBinding<IDi
     domValue = domValue.replace(/[^\x00-\xff]/g, '');
   }
   return domValue;
-}
+};
 
 /**
  * 数字过滤
@@ -103,18 +82,26 @@ export function handleTextFilter(domValue: string, binding: DirectiveBinding<IDi
  * @param binding 指令传参
  * @returns
  */
-export function handleNumberFilter(domValue: string, binding: DirectiveBinding<IDirectiveNumberBindingVO>) {
+export const handleNumberFilter = (domValue: string, binding: DirectiveBinding<IDirectiveNumberBindingVO>) => {
+  // 小数位
   const decimal = binding?.value?.decimal ?? 4;
-  const negative = binding?.value?.negative ?? false;
+  // 是否支持负数
+  const negativeFlag =
+    Object.prototype.toString.call(binding?.value?.negativeFlag) === '[object Boolean]'
+      ? binding?.value?.negativeFlag
+      : false;
+  // 是否支持0
+  const zeroFlag =
+    Object.prototype.toString.call(binding?.value?.zeroFlag) === '[object Boolean]' ? binding?.value?.zeroFlag : false;
+  // 正数
   const integral = binding?.value?.integral ?? 10;
+  // 最小值
   const min = binding?.value?.min;
+  // 最大值
   const max = binding?.value?.max;
-  const reg = new RegExp(String.raw`[^0-9${Math.ceil(decimal ?? 0) > 0 ? '.' : ''}${negative ? '-' : ''}]`, 'g');
-  console.log('decimal------------------------------------------------------', decimal);
-  console.log('negative-----------------------------------------------------', negative);
-  console.log('integral-----------------------------------------------------', integral);
+  // 正则
+  const reg = new RegExp(String.raw`[^0-9${Math.ceil(decimal ?? 0) > 0 ? '.' : ''}${negativeFlag ? '-' : ''}]`, 'g');
   domValue = domValue.replace(reg, '');
-  console.log(domValue);
   let symbol = '';
   // 处理符号
   if (domValue.substring(0, 1) === '-') {
@@ -136,19 +123,26 @@ export function handleNumberFilter(domValue: string, binding: DirectiveBinding<I
   }
   console.log(domValue);
 
-  // 处理小数点及小数位数
-  if (domValue.includes('.')) {
-    domValue = deduplicate(domValue, '.');
-    const temp = domValue.split('.');
-    domValue = `${temp[0]}.${
-      temp[1]?.substring(0, (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number) ?? ''
-    }`;
+  // 是否支持0
+  if (!zeroFlag && domValue.substring(0, 1) === '0') {
+    domValue = '';
   }
   console.log(domValue);
 
   // 处理头部多余的0
   if (domValue.length > 1) {
     domValue = domValue.replace(/^0+(?!\.)/, '');
+  }
+  console.log(domValue);
+
+  // 处理小数点及小数位数
+  if (domValue.includes('.')) {
+    domValue = deduplicate(domValue, '.');
+    const temp = domValue.split('.');
+    domValue = `${temp[0]}.${temp[1]?.substring(
+      0,
+      (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number,
+    ) ?? ''}`;
   }
   console.log(domValue);
 
@@ -181,4 +175,4 @@ export function handleNumberFilter(domValue: string, binding: DirectiveBinding<I
   console.log(domValue);
 
   return domValue;
-}
+};
