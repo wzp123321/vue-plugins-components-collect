@@ -5,32 +5,22 @@
  * @Last Modified by: zpwan
  * @Last Modified time: 2022-11-09 11:04:59
  */
-import { ref } from 'vue'
-import * as echarts from 'echarts/core'
-import { EffectScatterChart, MapChart, ScatterChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
-import { EChartsType, init, EChartsOption } from 'echarts'
-import {
-  EffectScatterSeriesOption,
-  ScatterSeriesOption,
-} from 'echarts/types/dist/shared'
+import { ref } from 'vue';
+import * as echarts from 'echarts/core';
+import { EffectScatterChart, MapChart, ScatterChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+import { EChartsType, init, EChartsOption } from 'echarts';
+import { EffectScatterSeriesOption, ScatterSeriesOption } from 'echarts/types/dist/shared';
 
-import mapConfig from './map/map-config.json'
-import mapChina from './map/map-china.json'
-import mapChinaMerge from './map/map-china-merge.json'
-import texture from './images/ch-map-texture.png'
+import mapConfig from './map/map-config.json';
+import mapChina from './map/map-china.json';
+import mapChinaMerge from './map/map-china-merge.json';
+import texture from './images/ch-map-texture.png';
 
-echarts.use([
-  CanvasRenderer,
-  MapChart,
-  ScatterChart,
-  EffectScatterChart,
-  GridComponent,
-  TooltipComponent,
-])
-echarts.registerMap('china', mapChina as any)
-echarts.registerMap('china-merge', mapChinaMerge as any)
+echarts.use([CanvasRenderer, MapChart, ScatterChart, EffectScatterChart, GridComponent, TooltipComponent]);
+echarts.registerMap('china', mapChina as any);
+echarts.registerMap('china-merge', mapChinaMerge as any);
 
 enum CH_EProfitState {
   亏损 = 1,
@@ -40,25 +30,25 @@ enum CH_EProfitState {
 }
 
 interface CH_IProjectInfo {
-  readonly id: string
-  readonly code: string
-  readonly tag?: string // 能源事件跳转标记
-  readonly name: string // 项目名称
-  readonly coordinate: [number | undefined, number | undefined] // 坐标
-  readonly alarm: boolean // 新能源事件告警
-  readonly state: number // 盈利情况 1-亏损 2-低盈利 3-中盈利 4-高盈利
-  readonly profitState: CH_EProfitState // 项目状态 1-已签约未进场 2-建设期 3-运营期
-  readonly start: string // 托管开始时间
-  readonly end: string // 托管结束时间
-  readonly manager: string // 能源经理
-  readonly surplus: { value: number; unit: string } // 盈余
+  readonly id: string;
+  readonly code: string;
+  readonly tag?: string; // 能源事件跳转标记
+  readonly name: string; // 项目名称
+  readonly coordinate: [number | undefined, number | undefined]; // 坐标
+  readonly alarm: boolean; // 新能源事件告警
+  readonly state: number; // 盈利情况 1-亏损 2-低盈利 3-中盈利 4-高盈利
+  readonly profitState: CH_EProfitState; // 项目状态 1-已签约未进场 2-建设期 3-运营期
+  readonly start: string; // 托管开始时间
+  readonly end: string; // 托管结束时间
+  readonly manager: string; // 能源经理
+  readonly surplus: { value: number; unit: string }; // 盈余
 }
 
 class ChartMapService {
   //#region
-  private _customId = ref<string>('')
-  public myEhart?: EChartsType
-  private readonly _option: echarts.EChartsCoreOption = {}
+  private _customId = ref<string>('');
+  public myEhart?: EChartsType;
+  private readonly _option: echarts.EChartsCoreOption = {};
   private projects: CH_IProjectInfo[] = [
     {
       id: '312312',
@@ -88,39 +78,39 @@ class ChartMapService {
       manager: '12321312',
       surplus: { value: 123131, unit: 'string' },
     },
-  ]
+  ];
   //#endregion
 
   //#region
   public get customChartId(): string {
-    return this._customId.value
+    return this._customId.value;
   }
   //#endregion
   constructor() {
-    this._customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`
+    this._customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`;
   }
   //#region 初始化charts
   initCharts() {
-    const ele = document.getElementById(this._customId.value)
+    const ele = document.getElementById(this._customId.value);
 
     if (!ele) {
-      console.warn('未加载容器')
-      return
+      console.warn('未加载容器');
+      return;
     }
-    this.myEhart = init(ele)
-    this._option.grid = this.mapGrid()
-    this._option.tooltip = this.mapTooltip()
-    this._option.geo = this.mapGeo()
-    this._option.series = this.mapSeries()
+    this.myEhart = init(ele);
+    this._option.grid = this.mapGrid();
+    this._option.tooltip = this.mapTooltip();
+    this._option.series = this.mapSeries();
+    this._option.geo = this.mapGeo();
 
-    this.myEhart.setOption(this._option)
+    this.myEhart.setOption(this._option);
 
-    this.initPoints(this.projects)
+    this.initPoints(this.projects);
   }
   //#endregion
   //#region mapGrid
   mapGrid(): EChartsOption['grid'] {
-    return { top: 0, right: 0, bottom: 0, left: 0 }
+    return { top: 0, right: 0, bottom: 0, left: 0 };
   }
   //#endregion
   //#region mapTooltip
@@ -153,14 +143,13 @@ class ChartMapService {
               <span class="ch-map-tooltip-value">32131231/span>
             </div>
           </div>
-        `
-
-        return template
+        `;
+        return template;
       },
       backgroundColor: 'rgba(6, 39, 65, 1)',
       borderColor: 'rgba(54, 129, 255, 1)',
       borderWidth: 1,
-    }
+    };
   }
   //#endregion
   //#region mapGeo
@@ -189,7 +178,7 @@ class ChartMapService {
       emphasis: undefined,
       select: undefined,
       silent: true,
-    }
+    };
   }
   //#endregion
   //#region mapSeries
@@ -206,11 +195,49 @@ class ChartMapService {
         borderWidth: 1,
         shadowBlur: 20,
         shadowColor: 'rgba(109, 178, 236, 0.5)',
+        // 鼠标滑过高亮状态
+        // emphasis: {
+        //   borderColor: '#29bbd8',
+        //   areaColor: '#3bb8f7', //'rgba(59, 184, 247, 1)',
+        //   shadowBlur: 3,
+        //   borderWidth: 1,
+        //   shadowOffsetX: 2,
+        //   shadowOffsetY: 2,
+        //   shadowColor: '#3bb8f7',
+        //   opacity: 0.8,
+        // },
+      },
+      // 城市名称
+      label: {
+        color: 'red', //文字颜色
+        show: true,
+        formatter: function(params) {
+          return params.name;
+        },
       },
       emphasis: undefined,
-      select: undefined,
+      // select: undefined,
+      //这个就是鼠标点击后高亮状态，地图想要展示的配置
+      select: {
+        disabled: false, //可以被选中
+        label: {
+          show: true,
+          color: '#fff',
+        },
+        //相关配置项很多，可以参考echarts官网
+        itemStyle: {
+          borderColor: '#29bbd8',
+          areaColor: '#3bb8f7', //'rgba(59, 184, 247, 1)',
+          shadowBlur: 3,
+          borderWidth: 1,
+          shadowOffsetX: 2,
+          shadowOffsetY: 2,
+          shadowColor: '#3bb8f7',
+          opacity: 0.8,
+        },
+      },
       silent: true,
-    }
+    };
   }
   //#endregion
   //#region initPoints
@@ -248,43 +275,43 @@ class ChartMapService {
         data: [],
         zlevel: 100,
       },
-    ]
+    ];
 
     projects.forEach((project: any) => {
       const item: { [key: string]: any } = {
         name: project.name,
         value: [...project.coordinate, project],
-      }
+      };
 
       if (project.alarm) {
-        ;(series[1].data as any[]).push(item)
+        (series[1].data as any[]).push(item);
       } else {
-        item.symbolSize = [24, 33] || [16, 22]
-        item.groupId = project.state
+        item.symbolSize = [24, 33] || [16, 22];
+        item.groupId = project.state;
         switch (project.profitState) {
           case CH_EProfitState.亏损:
-            item.symbol = `image://${mapConfig.mark.deficit}`
-            break
+            item.symbol = `image://${mapConfig.mark.deficit}`;
+            break;
           case CH_EProfitState.低盈利:
-            item.symbol = `image://${mapConfig.mark.low}`
-            break
+            item.symbol = `image://${mapConfig.mark.low}`;
+            break;
           case CH_EProfitState.中盈利:
-            item.symbol = `image://${mapConfig.mark.middle}`
-            break
+            item.symbol = `image://${mapConfig.mark.middle}`;
+            break;
           case CH_EProfitState.高盈利:
-            item.symbol = `image://${mapConfig.mark.high}`
-            break
+            item.symbol = `image://${mapConfig.mark.high}`;
+            break;
           default:
-            break
+            break;
         }
-        ;(series[0].data as any[]).push(item)
+        (series[0].data as any[]).push(item);
       }
-    })
+    });
 
-    this._option.series = series
-    this.myEhart?.setOption(this._option)
+    this._option.series = series;
+    this.myEhart?.setOption(this._option);
   }
   //#endregion
 }
 
-export default ChartMapService
+export default ChartMapService;
