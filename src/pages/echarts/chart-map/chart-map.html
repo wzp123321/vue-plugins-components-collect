@@ -5,8 +5,21 @@
     <img class="cm-header-rect-left" src="../../../assets/images/echarts/echarts-map-header-rect-left.png" alt="" />
     <img class="cm-header-rect-right" src="../../../assets/images/echarts/echarts-map-header-rect-right.png" alt="" />
   </div>
-  <div class="cm-container" placement="center">
-    <div class="cm-container-map" :id="chartMapService.customChartId"></div>
-    <div class="cm-panel"></div>
+  <div class="cm-container">
+    <div class="cm-container-item left-top">
+      <cm-bar></cm-bar>
+    </div>
+    <div class="cm-container-item left-bottom">
+      <cm-line></cm-line>
+    </div>
+    <div class="cm-container-item middle-center">
+      <div class="cm-container-map" :id="chartMapService.customChartId"></div>
+    </div>
+    <div class="cm-container-item right-top">
+      <cm-water></cm-water>
+    </div>
+    <div class="cm-container-item right-bottom">
+      <cm-gauge></cm-gauge>
+    </div>
   </div>
 </div>

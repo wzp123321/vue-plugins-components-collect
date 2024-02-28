@@ -47,7 +47,7 @@ interface CH_IProjectInfo {
 class ChartMapService {
   //#region
   private _customId = ref<string>('');
-  public myEhart?: EChartsType;
+  public myEchart?: EChartsType;
   private readonly _option: echarts.EChartsCoreOption = {};
   private projects: CH_IProjectInfo[] = [
     {
@@ -89,6 +89,11 @@ class ChartMapService {
   constructor() {
     this._customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`;
   }
+  resize() {
+    if (this.myEchart) {
+      this.myEchart.resize();
+    }
+  }
   //#region 初始化charts
   initCharts() {
     const ele = document.getElementById(this._customId.value);
@@ -97,13 +102,13 @@ class ChartMapService {
       console.warn('未加载容器');
       return;
     }
-    this.myEhart = init(ele);
+    this.myEchart = init(ele);
     this._option.grid = this.mapGrid();
     this._option.tooltip = this.mapTooltip();
     this._option.series = this.mapSeries();
     this._option.geo = this.mapGeo();
 
-    this.myEhart.setOption(this._option);
+    this.myEchart.setOption(this._option);
 
     this.initPoints(this.projects);
   }
@@ -309,7 +314,7 @@ class ChartMapService {
     });
 
     this._option.series = series;
-    this.myEhart?.setOption(this._option);
+    this.myEchart?.setOption(this._option);
   }
   //#endregion
 }

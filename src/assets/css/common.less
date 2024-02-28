@@ -2,30 +2,17 @@
 @import '../style/global.less';
 @import url('../iconfont/index.less');
 
-each(range(999), {
-    .font@{value} {
-      font-size: @value * 1px;
-    }
-    .mt@{value} {
-      margin-top: @value * 1px;
-    }
-  
-    .mr@{value} {
-      margin-right: @value * 1px;
-    }
-  
-    .mb@{value} {
-      margin-bottom: @value * 1px;
-    }
-  
-    .ml@{value} {
-      margin-left: @value * 1px;
-    }
+// 设计尺寸（百分）
+@size-width: 19.2;
+@size-height: 10.8;
+@size-radio: 16 / 9;
 
-    .h@{value} {
-      height: @value * 1px;
-    }
-  });
+:root {
+  font-size: calc(100vh / @size-height);
+  @media screen and (max-aspect-ratio: @size-radio) {
+    font-size: calc(100vw / @size-width);
+  }
+}
 
 .module {
   width: calc(50% - 8px);
