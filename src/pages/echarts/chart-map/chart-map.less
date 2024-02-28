@@ -3,48 +3,91 @@
   height: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  background-image: url('../../../assets/images/echarts/echarts-map-bg.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 20px;
 
-  > .ch-background {
+  .cm-header {
+    position: relative;
     width: 100%;
-    height: 100%;
-    z-index: 0;
+    height: 60px;
+    min-height: 60px;
+    background-image: url('../../../assets/images/echarts/echarts-map-header-bg.png');
+    background-repeat: no-repeat;
 
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    pointer-events: none;
-
-    &.ghost {
-      visibility: hidden;
-    }
-  }
-
-  > .cm-container {
-    z-index: 10;
-    overflow: hidden;
-    position: absolute;
-    backface-visibility: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
 
-    &[placement='center'] {
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      animation: appear-from-center 1111ms ease-out;
+    .cm-header-title {
+      position: relative;
+      text-align: center;
+      background-size: cover;
+      color: transparent;
+      height: 60px;
+      line-height: 60px;
+
+      .cm-header-title-text {
+        position: relative;
+        top: 4px;
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        width: 100%;
+        background: linear-gradient(92deg, #0072ff 0%, #00eaff 48.8525390625%, #01aaff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
     }
 
+    .cm-header-light {
+      position: absolute;
+      bottom: -26px;
+      background-image: url('../../../assets/images/echarts/echarts-map-header-light.png');
+      background-position: 80px center;
+      width: 100%;
+      height: 56px;
+    }
+
+    .cm-header-rect-left {
+      position: absolute;
+      top: -2px;
+      left: 11%;
+    }
+
+    .cm-header-rect-right {
+      position: absolute;
+      top: -2px;
+      right: 11%;
+    }
+  }
+
+  > .cm-container {
+    flex: auto;
+    z-index: 10;
+    overflow: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
     > .cm-container-map {
-      width: 1120px;
-      height: 880px;
+      width: 100%;
+      height: 100%;
 
       * {
         width: 100%;
         height: 100%;
       }
+    }
+
+    .cm-panel {
+      width: 360px;
+      height: 100%;
     }
   }
 }

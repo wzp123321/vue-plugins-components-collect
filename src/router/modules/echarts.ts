@@ -4,7 +4,7 @@ const components: RouteRecordRaw[] = [
   {
     path: '/echarts-map',
     meta: {
-      name: '地球',
+      name: '大屏-地球',
     },
     component: () => import('../../pages/echarts/chart-map/chart-map.vue'),
   },

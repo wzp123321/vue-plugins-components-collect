@@ -1,14 +1,12 @@
 <div class="chart-map">
-  <video class="cm-background" autoplay muted @play="startAnimation">
-    <source src="@/assets/images/echarts/echarts-bg.webm" type="video/webm" />
-  </video>
-  <video ref="elLoopVideo" class="ch-background ghost" muted loop>
-    <source
-      src="@/assets/images/echarts/echarts-bg-loop.mp4"
-      type="video/mp4"
-    />
-  </video>
-  <div v-show="showMap" class="cm-container" placement="center">
+  <div class="cm-header">
+    <div class="cm-header-title"><span class="cm-header-title-text">地球大屏</span></div>
+    <div class="cm-header-light"></div>
+    <img class="cm-header-rect-left" src="../../../assets/images/echarts/echarts-map-header-rect-left.png" alt="" />
+    <img class="cm-header-rect-right" src="../../../assets/images/echarts/echarts-map-header-rect-right.png" alt="" />
+  </div>
+  <div class="cm-container" placement="center">
     <div class="cm-container-map" :id="chartMapService.customChartId"></div>
+    <div class="cm-panel"></div>
   </div>
 </div>
