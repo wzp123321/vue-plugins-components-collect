@@ -3,11 +3,14 @@
 </template>
 
 <script lang="ts" setup>
+import * as echarts from 'echarts';
 import { onMounted, onUnmounted } from 'vue';
 import { useECharts } from '../../../../hook/useECharts';
-import { EChartsOption, format } from 'echarts';
+import { EChartsOption } from 'echarts';
+import { formatFontSize } from '@/utils';
 
 const { chartRef, addResize, removeResize, initCharts } = useECharts();
+
 /**
  * 生成配置
  */
@@ -19,123 +22,243 @@ const mapOptions = (): EChartsOption => {
         type: 'shadow',
       },
     },
+    legend: [
+      {
+        bottom: '2.5%',
+        left: '60%',
+        textStyle: {
+          color: '#fff',
+          fontSize: formatFontSize(10),
+          fontFamily: '微软雅黑',
+        },
+        itemWidth: formatFontSize(10),
+        itemHeight: formatFontSize(10),
+        data: [
+          {
+            name: '1',
+            icon: 'rect',
+          },
+        ],
+      },
+      {
+        data: [
+          {
+            name: '2',
+            icon: 'rect',
+          },
+        ],
+        itemWidth: formatFontSize(10),
+        itemHeight: formatFontSize(2),
+        bottom: '2.5%',
+        left: '40%',
+        textStyle: {
+          color: '#fff',
+          fontSize: formatFontSize(10),
+        },
+      },
+    ],
     grid: {
+      top: '16%',
+      right: '10%',
       left: '10%',
-      right: '8%',
-      top: '8%',
-      bottom: '24%',
+      bottom: '20%',
     },
-    xAxis: {
-      type: 'category',
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      axisLabel: {
-        fontSize: 10,
+    xAxis: [
+      {
+        type: 'category',
+        axisLabel: {
+          color: '#fff',
+          interval: 0,
+          fontSize: formatFontSize(10),
+        },
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: '#0a3e98',
+          },
+        },
+        axisTick: {
+          show: false,
+        },
+        splitLine: {
+          show: false,
+          lineStyle: {
+            color: '#195384',
+            type: 'dotted',
+          },
+        },
+        data: ['1月', '2月', '3月', '4月', '5月'],
       },
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: {
-        fontSize: 10,
+    ],
+    yAxis: [
+      {
+        type: 'value',
+        name: 'c',
+        min: 0,
+        nameTextStyle: {
+          color: '#fff',
+          fontSize: formatFontSize(12),
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#0a3e98',
+          },
+        },
+        axisTick: {
+          show: false,
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#0a3e98',
+            type: 'dotted',
+          },
+        },
+        axisLabel: {
+          formatter: '{value}',
+          color: '#fff',
+          fontSize: formatFontSize(10),
+        },
       },
-    },
-    legend: {
-      itemHeight: 10,
-      itemWidth: 10,
-      textStyle: {
-        fontSize: 10,
-        color: 'rgba(255, 255, 255, 0.65)',
+      {
+        type: 'value',
+        name: '%',
+        min: 0,
+        nameTextStyle: {
+          color: '#fff',
+          fontSize: formatFontSize(10),
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#0a3e98',
+          },
+        },
+        axisTick: {
+          show: false,
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#0a3e98',
+            type: 'dotted',
+          },
+        },
+        axisLabel: {
+          formatter: '{value}',
+          color: '#fff',
+          fontSize: formatFontSize(10),
+        },
       },
-      bottom: 10,
-      formatter: (name: string) => {
-        return format.truncateText(name, 100, '14px Microsoft Yahei', '…', {});
-      },
-    },
+    ],
     series: [
       {
-        name: 'Direct',
-        type: 'bar',
-        emphasis: {
-          focus: 'series',
+        name: '1',
+        type: 'pictorialBar',
+        symbolSize: [formatFontSize(6), formatFontSize(4)],
+        symbolOffset: [formatFontSize(0), formatFontSize(-6)],
+        symbolPosition: 'end',
+        z: 12,
+        // "barWidth": "0",
+        tooltip: {
+          show: false,
         },
-        data: [320, 332, 301, 334, 390, 330, 320],
+        color: '#008ed7',
+        data: ['43', '19', '18', '32', '17'],
       },
       {
-        name: 'Email',
-        type: 'bar',
-        stack: 'Ad',
-        emphasis: {
-          focus: 'series',
+        name: '',
+        type: 'pictorialBar',
+        symbolSize: [formatFontSize(6), formatFontSize(4)],
+        symbolOffset: [0, formatFontSize(4)],
+        z: 12,
+        tooltip: {
+          show: false,
         },
-        data: [120, 132, 101, 134, 90, 230, 210],
+        color: '#00abff',
+        data: ['43', '19', '18', '32', '17'],
       },
       {
-        name: 'Union Ads',
         type: 'bar',
-        stack: 'Ad',
-        emphasis: {
-          focus: 'series',
-        },
-        data: [220, 182, 191, 234, 290, 330, 310],
-      },
-      {
-        name: 'Video Ads',
-        type: 'bar',
-        stack: 'Ad',
-        emphasis: {
-          focus: 'series',
-        },
-        data: [150, 232, 201, 154, 190, 330, 410],
-      },
-      {
-        name: 'Search Engine',
-        type: 'bar',
-        data: [862, 1018, 964, 1026, 1679, 1600, 1570],
-        emphasis: {
-          focus: 'series',
-        },
-        markLine: {
-          lineStyle: {
-            type: 'dashed',
+        //silent: true,
+        barWidth: formatFontSize(6),
+        barGap: '10%', // Make series be overlap
+        barCateGoryGap: '10%',
+        itemStyle: {
+          normal: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 0.7, [
+              {
+                offset: 0,
+                color: '#00d7ff',
+              },
+              {
+                offset: 1,
+                color: '#00abff',
+              },
+            ]),
+            opacity: 1,
           },
-          data: [[{ type: 'min' }, { type: 'max' }]],
         },
+        data: ['43', '19', '18', '32', '17'],
       },
       {
-        name: 'Baidu',
-        type: 'bar',
-        barWidth: 5,
-        stack: 'Search Engine',
-        emphasis: {
-          focus: 'series',
+        name: '2',
+        type: 'line',
+        yAxisIndex: 1,
+        symbol: 'circle', // 默认是空心圆（中间是白色的），改成实心圆
+        // smooth: true,
+        lineStyle: {
+          normal: {
+            width: formatFontSize(2),
+            color: '#29a5d5', // 线条颜色
+          },
         },
-        data: [620, 732, 701, 734, 1090, 1130, 1120],
-      },
-      {
-        name: 'Google',
-        type: 'bar',
-        stack: 'Search Engine',
-        emphasis: {
-          focus: 'series',
+        itemStyle: {
+          normal: {
+            color: '#071c33', //拐点颜色
+            borderColor: '#2db6e9', //拐点边框颜色
+            borderWidth: formatFontSize(1), //拐点边框大小
+            // label: {
+            //    show: true, //开启显示
+            //    color: '#fff',
+            //    position: 'top', //在上方显示
+            //    formatter: function (res) {
+            //       if (res.value) {
+            //          return res.value
+            //       } else {
+            //          return 0
+            //       }
+            //    },
+            // },
+          },
         },
-        data: [120, 132, 101, 134, 290, 230, 220],
-      },
-      {
-        name: 'Bing',
-        type: 'bar',
-        stack: 'Search Engine',
-        emphasis: {
-          focus: 'series',
+        symbolSize: formatFontSize(6), //设定实心点的大小
+        areaStyle: {
+          normal: {
+            //线性渐变，前4个参数分别是x0,y0,x2,y2(范围0~1);相当于图形包围盒中的百分比。如果最后一个参数是‘true’，则该四个值是绝对像素位置。
+            color: new echarts.graphic.LinearGradient(
+              0,
+              0,
+              0,
+              1,
+              [
+                {
+                  offset: 0,
+                  color: '#29a5d530',
+                },
+                {
+                  offset: 0.6,
+                  color: '#29a5d520',
+                },
+                {
+                  offset: 1,
+                  color: '#29a5d510',
+                },
+              ],
+              false,
+            ),
+          },
         },
-        data: [60, 72, 71, 74, 190, 130, 110],
-      },
-      {
-        name: 'Others',
-        type: 'bar',
-        stack: 'Search Engine',
-        emphasis: {
-          focus: 'series',
-        },
-        data: [62, 82, 91, 84, 109, 110, 120],
+        data: [40, 50, 35, 41, 85],
       },
     ],
   };
@@ -143,10 +266,10 @@ const mapOptions = (): EChartsOption => {
 
 onMounted(() => {
   initCharts(mapOptions());
-  addResize;
+  addResize();
 });
 onUnmounted(() => {
-  removeResize;
+  removeResize();
 });
 </script>
 

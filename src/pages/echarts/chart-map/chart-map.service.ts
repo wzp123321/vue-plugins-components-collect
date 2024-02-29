@@ -22,13 +22,6 @@ echarts.use([CanvasRenderer, MapChart, ScatterChart, EffectScatterChart, GridCom
 echarts.registerMap('china', mapChina as any);
 echarts.registerMap('china-merge', mapChinaMerge as any);
 
-enum CH_EProfitState {
-  亏损 = 1,
-  低盈利,
-  中盈利,
-  高盈利,
-}
-
 interface CH_IProjectInfo {
   readonly id: string;
   readonly code: string;
@@ -37,7 +30,6 @@ interface CH_IProjectInfo {
   readonly coordinate: [number | undefined, number | undefined]; // 坐标
   readonly alarm: boolean; // 新能源事件告警
   readonly state: number; // 盈利情况 1-亏损 2-低盈利 3-中盈利 4-高盈利
-  readonly profitState: CH_EProfitState; // 项目状态 1-已签约未进场 2-建设期 3-运营期
   readonly start: string; // 托管开始时间
   readonly end: string; // 托管结束时间
   readonly manager: string; // 能源经理
@@ -58,7 +50,6 @@ class ChartMapService {
       coordinate: [117.348611, 40.581141],
       alarm: false,
       state: 1,
-      profitState: 1,
       start: '312312',
       end: '312312',
       manager: '12321312',
@@ -72,7 +63,6 @@ class ChartMapService {
       coordinate: [116.599629, 34.014324],
       alarm: false,
       state: 1,
-      profitState: 1,
       start: '312312',
       end: '312312',
       manager: '12321312',
@@ -214,8 +204,9 @@ class ChartMapService {
       },
       // 城市名称
       label: {
-        color: 'red', //文字颜色
+        color: 'rgb(255,255,255)', //文字颜色
         show: true,
+        fontSize: 10,
         formatter: function(params) {
           return params.name;
         },
@@ -291,24 +282,27 @@ class ChartMapService {
       if (project.alarm) {
         (series[1].data as any[]).push(item);
       } else {
+        /**
+         * 地图上的图标
+         */
         item.symbolSize = [24, 33] || [16, 22];
         item.groupId = project.state;
-        switch (project.profitState) {
-          case CH_EProfitState.亏损:
-            item.symbol = `image://${mapConfig.mark.deficit}`;
-            break;
-          case CH_EProfitState.低盈利:
-            item.symbol = `image://${mapConfig.mark.low}`;
-            break;
-          case CH_EProfitState.中盈利:
-            item.symbol = `image://${mapConfig.mark.middle}`;
-            break;
-          case CH_EProfitState.高盈利:
-            item.symbol = `image://${mapConfig.mark.high}`;
-            break;
-          default:
-            break;
-        }
+        // switch (project.profitState) {
+        //   case CH_EProfitState.亏损:
+        //     item.symbol = `image://${mapConfig.mark.deficit}`;
+        //     break;
+        //   case CH_EProfitState.低盈利:
+        //     item.symbol = `image://${mapConfig.mark.low}`;
+        //     break;
+        //   case CH_EProfitState.中盈利:
+        //     item.symbol = `image://${mapConfig.mark.middle}`;
+        //     break;
+        //   case CH_EProfitState.高盈利:
+        //     item.symbol = `image://${mapConfig.mark.high}`;
+        //     break;
+        //   default:
+        //     break;
+        // }
         (series[0].data as any[]).push(item);
       }
     });

@@ -6,6 +6,7 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useECharts } from '../../../../hook/useECharts';
 import { EChartsOption } from 'echarts';
+import { formatFontSize } from '@/utils';
 
 const { chartRef, addResize, removeResize, initCharts } = useECharts();
 /**
@@ -14,17 +15,18 @@ const { chartRef, addResize, removeResize, initCharts } = useECharts();
 const mapOptions = (): EChartsOption => {
   return {
     grid: {
-      top: '0',
-      bottom: '0',
-      left: '0',
-      right: '0',
+      top: '0%',
+      bottom: '0%',
+      left: '0%',
+      right: '0%',
     },
     series: [
       {
         type: 'gauge',
+        center: ['50%', '60%'],
         axisLine: {
           lineStyle: {
-            width: 30,
+            width: formatFontSize(20),
             color: [
               [0.3, '#67e0e3'],
               [0.7, '#37a2da'],
@@ -38,30 +40,32 @@ const mapOptions = (): EChartsOption => {
           },
         },
         axisTick: {
-          distance: -30,
-          length: 8,
+          distance: formatFontSize(-50),
+          length: formatFontSize(10),
           lineStyle: {
             color: '#fff',
-            width: 2,
+            width: formatFontSize(2),
           },
         },
         splitLine: {
-          distance: -30,
-          length: 30,
+          distance: formatFontSize(-50),
+          length: formatFontSize(30),
           lineStyle: {
             color: '#fff',
-            width: 4,
+            width: formatFontSize(4),
           },
         },
         axisLabel: {
           color: 'inherit',
-          distance: 40,
-          fontSize: 16,
+          distance: formatFontSize(46),
+          fontSize: formatFontSize(12),
         },
         detail: {
           valueAnimation: true,
           formatter: '{value} km/h',
           color: 'inherit',
+          fontSize: formatFontSize(18),
+          offset: formatFontSize(40),
         },
         data: [
           {
@@ -75,10 +79,10 @@ const mapOptions = (): EChartsOption => {
 
 onMounted(() => {
   initCharts(mapOptions());
-  addResize;
+  addResize();
 });
 onUnmounted(() => {
-  removeResize;
+  removeResize();
 });
 </script>
 
