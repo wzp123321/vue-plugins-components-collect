@@ -9,3 +9,9 @@ declare module '*.vue' {
 
 declare var __COMPAT__: boolean;
 declare module 'crypto-js';
+
+declare global {
+  interface Window {
+    createObjectURL: any;
+  }
+}

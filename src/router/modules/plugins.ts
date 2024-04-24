@@ -64,6 +64,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-draggable-formula/plugins-draggable-formula.vue'),
   },
+  {
+    path: '/plugin-word-pdf-preview',
+    meta: {
+      name: '文件预览下载',
+    },
+    component: () => import('../../pages/plugins/plugin-word-pdf-preview/plugin-word-pdf-preview.vue'),
+  },
 ];
 
 export default pluginRoutes;

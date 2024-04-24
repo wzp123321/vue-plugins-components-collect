@@ -10,6 +10,9 @@
   "dependencies": {
     "@antv/g6": "^4.8.2",
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "@vue-office/docx": "^1.6.1",
+    "@vue-office/excel": "^1.7.7",
+    "@vue-office/pdf": "^2.0.2",
     "@vueuse/core": "^9.6.0",
     "ant-design-vue": "^3.2.11",
     "asmcrypto.js": "^2.3.2",

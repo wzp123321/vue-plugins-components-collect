@@ -11,6 +11,15 @@ dependencies:
   '@fortawesome/fontawesome-free':
     specifier: ^5.14.0
     version: 5.15.4
+  '@vue-office/docx':
+    specifier: ^1.6.1
+    version: 1.6.1(vue-demi@0.14.7)(vue@3.3.4)
+  '@vue-office/excel':
+    specifier: ^1.7.7
+    version: 1.7.7(vue-demi@0.14.7)(vue@3.3.4)
+  '@vue-office/pdf':
+    specifier: ^2.0.2
+    version: 2.0.2(vue-demi@0.14.7)(vue@3.3.4)
   '@vueuse/core':
     specifier: ^9.6.0
     version: 9.13.0(vue@3.3.4)
@@ -720,6 +729,51 @@ packages:
       '@vue/compiler-sfc': 3.3.4
       '@vue/reactivity': 3.3.4
     dev: true
+
+  /@vue-office/docx@1.6.1(vue-demi@0.14.7)(vue@3.3.4):
+    resolution: {integrity: sha512-DKB0F7b5tv4MvZO/nYdKiUUGXAD3LmZeHLQLodYg+c4Rap8w1EeU1DTJxXumq88xCggVrM69Qx+ocVIpq4eSYQ==}
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.7.1
+      vue: ^2.0.0 || >=3.0.0
+      vue-demi: ^0.14.6
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.4
+      vue-demi: 0.14.7(vue@3.3.4)
+    dev: false
+
+  /@vue-office/excel@1.7.7(vue-demi@0.14.7)(vue@3.3.4):
+    resolution: {integrity: sha512-8kdKcYz7sIZYN9X5KraD/JVohDY8zReBlcXaerIPBaASm9r1mq1mSE6WUr6KlER/bzoPxH8IU5CSTebt8s84mw==}
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.7.1
+      vue: ^2.0.0 || >=3.0.0
+      vue-demi: ^0.14.6
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.4
+      vue-demi: 0.14.7(vue@3.3.4)
+    dev: false
+
+  /@vue-office/pdf@2.0.2(vue-demi@0.14.7)(vue@3.3.4):
+    resolution: {integrity: sha512-bQFqGxSOnKbvCS7OoJniYoTz1VIm1XOrRD27Msorxny9NFJ8RsQK1A4uhlnISJRFMaUwp1qlcVE9jMAhsiIyjg==}
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.7.1
+      vue: ^2.0.0 || >=3.0.0
+      vue-demi: ^0.14.6
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.4
+      vue-demi: 0.14.7(vue@3.3.4)
+    dev: false
 
   /@vue/compiler-core@3.3.4:
     resolution: {integrity: sha512-cquyDNvZ6jTbf/+x+AgM2Arrp6G4Dzbb0R64jiG804HRMfRiFXWI6kqUVqZ6ZR0bQhIoQjB4+2bhNtVwndW15g==}
@@ -2871,6 +2925,21 @@ packages:
         optional: true
     dependencies:
       vue: 3.3.4
+
+  /vue-demi@0.14.7(vue@3.3.4):
+    resolution: {integrity: sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^3.0.0-0 || ^2.6.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.4
+    dev: false
 
   /vue-observe-visibility@2.0.0-alpha.1(vue@3.3.4):
     resolution: {integrity: sha512-flFbp/gs9pZniXR6fans8smv1kDScJ8RS7rEpMjhVabiKeq7Qz3D9+eGsypncjfIyyU84saU88XZ0zjbD6Gq/g==}
