@@ -5,9 +5,12 @@
       <el-button @click="handlePreview">预览</el-button>
       <el-button>下载</el-button>
     </section>
-    <section class="pwpp-file-list">
-      <p v-for="item in fileList" :key="item.name">{{ item.name }}</p>
-    </section>
+    <ul class="pwpp-file-list">
+      <li v-for="item in fileList" :key="item.name">
+        <span class="pwpp-file-list-name">{{ item.name }}</span>
+        <span @click="handleFileDelete(item.name)">x</span>
+      </li>
+    </ul>
     <section class="pwpp-preview" v-if="fileList && fileList?.length > 0">
       <VueOfficeDocx
         v-if="[DOCX_ACCEPT_EXTENSIONS['.doc'], DOCX_ACCEPT_EXTENSIONS['.docx'] + ''].includes(fileType)"
@@ -52,7 +55,9 @@ import {
   PDF_ACCEPT_EXTENSIONS_STR,
 } from '../../../config/enum';
 import '@vue-office/docx/lib/index.css';
-
+/**
+ * 文件类型
+ */
 const fileType = computed<string>(() => {
   console.log(fileList.value);
   return fileList.value.length > 0 ? fileList.value[0].type : '';
@@ -64,9 +69,14 @@ const ACCEPTS = `${XLSX_ACCEPT_EXTENSIONS_STR},${DOCX_ACCEPT_EXTENSIONS_STR},${P
 
 const { fileList, transferFileToUrl, handleFileChoose } = useFileHandler();
 
+const handleFileDelete = (name: string) => {
+  fileList.value = fileList.value.filter((item) => item.name !== name);
+};
+/**
+ * 文件预览
+ */
 const handlePreview = () => {
   fileSrc.value = transferFileToUrl(fileList.value[0]);
-  console.log();
 };
 
 const handleRendered = () => {
@@ -92,9 +102,28 @@ const handleError = () => {
     gap: 12px;
   }
 
+  .pwpp-file-list {
+    width: 400px;
+    li {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+
+    li:hover {
+      background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .pwpp-file-list-name {
+      flex: auto;
+    }
+  }
+
   .pwpp-preview {
     flex: auto;
     width: 100%;
+    overflow-y: auto;
 
     .vue-office-docx {
       height: 100%;
