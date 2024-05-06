@@ -16,6 +16,7 @@ import {
   SpotLight,
   AmbientLight,
 } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 let scene: Scene;
 let sunMesh: Mesh;
@@ -85,6 +86,9 @@ function initThree() {
   aLight.intensity = 0.3;
   scene.add(aLight);
 
+  // 轨道控制器
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.update();
   // 绘制
   renderer = new WebGLRenderer({ alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);

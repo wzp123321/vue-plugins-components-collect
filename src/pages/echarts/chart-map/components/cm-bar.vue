@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import * as echarts from 'echarts';
 import { onMounted, onUnmounted } from 'vue';
-import { useECharts } from '../../../../hook/useECharts';
+import { useECharts } from '../../../../hooks/useECharts';
 import { EChartsOption } from 'echarts';
 import { formatFontSize } from '@/utils';
 
