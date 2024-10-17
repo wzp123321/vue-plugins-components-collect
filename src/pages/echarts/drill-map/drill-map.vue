@@ -1,15 +1,14 @@
 <template>
   <div class="drill-map">
     <!-- 返回按钮 -->
-    <button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回</button>
+    <button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回上一级</button>
     <div class="dm-map" ref="chartRef"></div>
   </div>
 </template>
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { EChartsType, registerMap } from 'echarts';
+import { EChartsType, registerMap, EChartsOption } from 'echarts';
 import { useECharts } from '@/hooks';
-import { CommonObject } from '@/services/common.api';
 import { message } from 'ant-design-vue';
 
 defineOptions({
@@ -31,12 +30,13 @@ const getMapJson = async (code: string) => {
 /**
  * 回去配置
  */
-const getMapChartOptions = (mapName: string, mapData: any): CommonObject => {
+const getMapChartOptions = (mapName: string, mapData: any): EChartsOption => {
   return {
     // 鼠标悬浮提示
     tooltip: {
       show: true,
-      formatter: function (params: any) {
+      borderColor: 'rgba(0, 0, 0, 0.15)',
+      formatter: (params: any) => {
         // 根据需要进行数据处理或格式化操作
         if (params && params.data) {
           const { addressCode, name, data } = params.data;
@@ -56,18 +56,22 @@ const getMapChartOptions = (mapName: string, mapData: any): CommonObject => {
       calculable: true,
       seriesIndex: [0],
       inRange: {
-        color: ['#00467F', '#A5CC82'], // 蓝绿
+        color: ['#ff1c1c', '#9ef8ff'], // 蓝绿
       },
     },
     // geo地图
     geo: {
       map: mapName,
       roam: true,
-      select: false,
+      select: {
+        disabled: true,
+      },
+      aspectScale: 1.2, // 缩放
       // 图形上的文本标签，可用于说明图形的一些数据信息，比如值，名称等。
       selectedMode: 'single',
+      // 地图上的文本
       label: {
-        show: true,
+        show: false,
       },
       emphasis: {
         itemStyle: {
@@ -204,8 +208,8 @@ const initMap = async () => {
 };
 
 const back = () => {
-  drillCodes.value.unshift();
-  currentMapCode.value = drillCodes.value.length === 1 ? '100000_full' : drillCodes.value[drillCodes.value.length - 1];
+  drillCodes.value.pop();
+  currentMapCode.value = drillCodes.value.length === 0 ? '100000_full' : drillCodes.value[drillCodes.value.length - 1];
   initMap();
 };
 
@@ -231,8 +235,8 @@ onUnmounted(() => {
   }
 
   > .dm-map {
-    width: 1000px;
-    height: 600px;
+    width: 100%;
+    height: 100%;
   }
 }
 </style>
