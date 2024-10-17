@@ -1,23 +1,31 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ESNext",
     "useDefineForClassFields": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "strict": true,
-    "jsx": "preserve",
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "types": ["element-plus/global"],
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "moduleResolution": "Node",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "exclude": ["collect/**/*.ts", "collect/**/*.d.ts", "collect/**/*.tsx", "collect/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

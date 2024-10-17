@@ -1,8 +1,8 @@
 /*
  * @Author: wzp123321 wanzhipengx@163.com
  * @Date: 2024-01-20 14:51:57
- * @LastEditors: wzp123321 wanzhipengx@163.com
- * @LastEditTime: 2024-01-20 14:52:05
+ * @LastEditors: wanzp wanzp@tiansu-china.com
+ * @LastEditTime: 2024-10-17 10:31:32
  * @FilePath: \vue-plugins-components-collect\src\utils\refresh-toekn.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -24,9 +24,9 @@ service.interceptors.request.use(
     // 带上token发起请求
     const userInfoStore = useUserInfoStore(),
       { auth } = storeToRefs(userInfoStore);
-
-    auth && (config.headers.auth = auth.value);
-
+    if (config && config.headers) {
+      auth && (config.headers.auth = auth.value);
+    }
     return config;
   },
   (error) => {
@@ -73,7 +73,7 @@ service.interceptors.response.use(
         // token请求成功
         if (status === 200) {
           // 请求成功，更新token到pinia
-          userInfoStore.$patch((state) => {
+          userInfoStore.$patch(() => {
             // state.auth = message;
           });
         } else {

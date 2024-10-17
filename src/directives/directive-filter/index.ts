@@ -42,7 +42,7 @@ const registerInputFilter = (app: App) => {
     created(el, binding) {
       addEventByType(el, binding);
     },
-    beforeMount(el, binding) {},
+    beforeMount(_el, _binding) {},
     mounted(el, binding) {
       el.value = filter(el, binding);
     },

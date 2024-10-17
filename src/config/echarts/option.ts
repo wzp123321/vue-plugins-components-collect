@@ -1,3 +1,4 @@
+import { CommonObject } from '@/services/common.api';
 import echartsConstant from './constant';
 import { formatter } from '@/config/echarts/utils';
 
@@ -12,7 +13,7 @@ const {
   CHARTS_TOOLTIP_TEXT_COLOR,
 } = echartsConstant;
 
-const echartsOption: GlobalModule.CommonObject = {
+const echartsOption: CommonObject = {
   // line tooltips公共配置
   ECHARTS_LINECHART_TOOLTIP_OPTION: {
     trigger: 'axis',
@@ -53,13 +54,7 @@ const echartsOption: GlobalModule.CommonObject = {
         },
       },
     },
-    position: (
-      pos: GlobalModule.CommonObject,
-      params: GlobalModule.CommonObject,
-      dom: HTMLElement,
-      rect: string,
-      size: GlobalModule.CommonObject
-    ) => {
+    position: (pos: CommonObject, _params: CommonObject, _dom: HTMLElement, _rect: string, size: CommonObject) => {
       const obj = [];
       if (size.viewSize[0] - (pos[0] + size.contentSize[0] + 30) > 0) {
         obj.push(pos[0] + 30);

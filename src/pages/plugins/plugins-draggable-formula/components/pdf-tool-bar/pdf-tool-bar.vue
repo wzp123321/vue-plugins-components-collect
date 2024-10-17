@@ -83,7 +83,7 @@ const store = dragStore();
 /**
  * 拖拽开始
  */
-const handleDragStart = (event: Event) => {
+const handleDragStart = () => {
   store.setDragFlag(true);
 };
 /**

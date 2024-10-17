@@ -6,7 +6,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed } from 'vue';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 import { RecycleScroller } from 'vue-virtual-scroller';
@@ -36,13 +35,6 @@ for (let i = 0; i < 1000; i++) {
     size: 48,
   });
 }
-
-const list = computed(() => {
-  return new Array(1000).fill({
-    id: (Math.random() * 10000000).toFixed(0),
-    name: (Math.random() * 10000).toFixed(0),
-  });
-});
 </script>
 <style lang="less" scoped>
 #vue-virtual-scroller {

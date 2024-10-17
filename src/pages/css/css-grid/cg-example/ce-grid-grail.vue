@@ -4,21 +4,25 @@
     <header>header</header>
     <aside>aside-left</aside>
     <article>article</article>
-    <aside>aside-right</aside>
-    <footer>footer</footer>
+    <!-- <aside>aside-right</aside>
+    <footer>footer</footer> -->
   </div>
 </template>
 <script lang="ts" setup></script>
 <style lang="less" scoped>
 .ce-grid-grail {
   display: grid;
-  grid-template-columns: 150px auto 150px;
-  grid-auto-rows: minmax(150px, auto);
+  grid-template-columns: 160px auto;
+  grid-auto-rows: auto 72px;
   gap: 1em;
 
   header,
   footer {
-    grid-column: 1/4;
+    grid-column: 2/3;
+  }
+
+  aside {
+    grid-row: 1/3;
   }
 
   header,

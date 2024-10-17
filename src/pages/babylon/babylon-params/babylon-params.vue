@@ -22,8 +22,8 @@ function initBaBy() {
   camera.attachControl(canvas, true);
 
   // 点位数组
-  const myPoints = [new BABYLON.Vector3(4, 4, 4), new BABYLON.Vector3(0, 1, 1), new BABYLON.Vector3(1, 1, 0)];
-  const line1 = BABYLON.MeshBuilder.CreateLines('firstLine', { points: myPoints }, scene);
+  // const myPoints = [new BABYLON.Vector3(4, 4, 4), new BABYLON.Vector3(0, 1, 1), new BABYLON.Vector3(1, 1, 0)];
+  // const line1 = BABYLON.MeshBuilder.CreateLines('firstLine', { points: myPoints }, scene);
 
   const dnaPoints = [];
   var deltaTheta = 0.1;

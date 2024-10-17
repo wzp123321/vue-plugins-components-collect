@@ -46,7 +46,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 const MAX_LENGTH = 200;
-import { Radio, RadioGroup, Button, message } from 'ant-design-vue';
+import { Button, message } from 'ant-design-vue';
 
 import Crypto from 'crypto-js';
 import CryptoAES from './utils/aes';

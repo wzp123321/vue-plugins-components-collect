@@ -5,7 +5,7 @@
       <pdf-condition-group
         v-for="(item, index) in draggableFormulaService.groupList"
         :groupInfo="item"
-        @copy="draggableFormulaService.copyGroup(item, index)"
+        @copy="draggableFormulaService.copyGroup(item as any, index)"
         @delete="draggableFormulaService.deleteGroup(index)"
       ></pdf-condition-group>
     </template>

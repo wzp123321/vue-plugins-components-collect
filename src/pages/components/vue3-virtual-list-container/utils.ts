@@ -13,7 +13,7 @@ export function uuid() {
 }
 
 export function mock(length = 1000, editing: boolean = false): CD_CostDetailConvertVO[] {
-  return Array.from({ length }, index => {
+  return Array.from({ length }, (_index) => {
     return {
       id: randomId(),
       projectNumber: `${randomId()}`,

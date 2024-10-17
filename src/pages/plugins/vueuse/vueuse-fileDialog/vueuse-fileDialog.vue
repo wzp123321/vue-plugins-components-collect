@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useFileDialog } from '@vueuse/core';
+// import { useFileDialog } from '@vueuse/core';
 
-const { files, open, reset } = useFileDialog();
+// const { open } = useFileDialog();
 </script>
 
 <template>
   <div class="vueuse-fileDialog" id="vueuse-fileDialog">
     <h1>-选择文件</h1>
-    <button @click="open">选择文件</button>
+    <!-- <button @click="open">选择文件</button> -->
   </div>
 </template>
 <style lang="less" scoped>

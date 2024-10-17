@@ -4,16 +4,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {
-  init,
-  EChartsType,
-  EChartsOption,
-  TooltipComponentOption,
-  XAXisComponentOption,
-  YAXisComponentOption,
-  SeriesOption,
-  LegendComponentOption,
-} from 'echarts';
+import { init, EChartsType, EChartsOption } from 'echarts';
 import { computed, onMounted } from 'vue';
 
 let chartInstance: EChartsType;

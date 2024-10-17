@@ -30,6 +30,7 @@ import { mapColor } from '../../../../utils';
     height: 100px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    // grid-template-columns: fit-content(100px) fit-content(100px) 40px auto; 
   }
 }
 </style>

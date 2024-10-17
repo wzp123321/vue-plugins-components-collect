@@ -7,11 +7,14 @@ declare module '*.vue' {
   export default component;
 }
 
-declare var __COMPAT__: boolean;
-declare module 'crypto-js';
+
 
 declare global {
   interface Window {
     createObjectURL: any;
   }
 }
+
+declare var __COMPAT__: boolean;
+declare module 'crypto-js';
+declare module 'vue-virtual-scroller'

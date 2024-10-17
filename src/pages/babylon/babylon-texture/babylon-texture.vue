@@ -1,8 +1,8 @@
 <!--
  * @Author: wanzp
  * @Date: 2023-03-22 20:42:43
- * @LastEditors: wanzp
- * @LastEditTime: 2023-03-27 22:40:22
+ * @LastEditors: wanzp wanzp@tiansu-china.com
+ * @LastEditTime: 2024-10-17 11:01:21
  * @Description: 
 -->
 <template>
@@ -30,8 +30,8 @@ function initBaBy() {
   scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
   // 灯光
-  const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
-  const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
+  // const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
+  // const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
 
   // 立方体
   const boxShape = BABYLON.MeshBuilder.CreateBox(

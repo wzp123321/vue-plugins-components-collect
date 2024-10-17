@@ -53,6 +53,8 @@ import {
   useNow,
   useDateFormat,
   useTimeAgo,
+MaybeComputedElementRef,
+MaybeElement,
 } from '@vueuse/core';
 
 import MousePosition from './vueuse-mouseposition/vueuse-mouseposition.vue';
@@ -109,7 +111,7 @@ const handleLastChange = () => {
 };
 // 实现拖拽
 const dragRef = ref<HTMLElement | null>(null);
-const { x, y, style } = useDraggable(dragRef, {
+const { x, y, style } = useDraggable(dragRef as any, {
   initialValue: {
     x: 740,
     y: 140,
@@ -118,7 +120,7 @@ const { x, y, style } = useDraggable(dragRef, {
 
 // 获取html元素的信息 相当于getComputedStyle
 const elboundingRef = ref<HTMLElement | null>(null);
-const ElementBoundingInfo = useElementBounding(elboundingRef);
+const ElementBoundingInfo = useElementBounding(elboundingRef as MaybeComputedElementRef<MaybeElement>);
 
 // 判断元素是否出现在视口内 同功能的组件：UseElementVisibility
 const visibleRef = ref(null);
@@ -132,6 +134,7 @@ const IntersectionObserverTargetIsVisible = ref(false);
 
 const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isIntersecting }], observerElement) => {
   IntersectionObserverTargetIsVisible.value = isIntersecting;
+  console.log(observerElement);
 });
 
 // let count = ref<number>(0);

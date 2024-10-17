@@ -59,7 +59,6 @@ const getOptions = (): EChartsOption => {
           width: 66,
           height: 66,
           opacity: 1,
-          lineHeight: 40,
           fill: 'rgba(0,0,0,0.3)',
           stroke: 'rgba(0,0,0,0.3)',
         },
@@ -132,7 +131,6 @@ const getOptions = (): EChartsOption => {
         style: {
           stroke: 'red',
           fill: 'red',
-          lineHeight: 2,
         },
       },
     ],

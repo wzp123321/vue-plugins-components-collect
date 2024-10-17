@@ -73,7 +73,7 @@ const mapOptions = (): EChartsOption => {
           },
         ],
       },
-    ],
+    ] as any,
   };
 };
 

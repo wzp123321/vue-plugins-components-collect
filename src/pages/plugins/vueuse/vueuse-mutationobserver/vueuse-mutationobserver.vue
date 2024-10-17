@@ -3,7 +3,7 @@
     <h1>-监听样式或类名变化</h1>
     <button @click="handleAdd">添加</button>
     <ul ref="mutationobserverRef" :style="{ color }" :class="className">
-      <li v-for="(item, index) in list">
+      <li v-for="item in list">
         {{ item.name }}
       </li>
     </ul>

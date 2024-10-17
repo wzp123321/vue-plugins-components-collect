@@ -1,7 +1,9 @@
+import { CommonObject } from "@/services/common.api";
+
 /**
  * echarts通用变量
  */
-const echartsConstant: GlobalModule.CommonObject = {
+const echartsConstant: CommonObject = {
   // 饼状图色卡顺序(10个一循环)
   CHARTS_PIE_MAIN_COLOR: [
     '#00B261',

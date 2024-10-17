@@ -142,7 +142,7 @@ class ChartMapService {
       confine: false,
       className: 'ch-map-tooltip',
       position: 'right',
-      formatter: (params) => {
+      formatter: (_params) => {
         const template = `
           <div class="ch-map-tooltip-header">
             <span class="ch-map-tooltip-icon" rank="1231"></span>

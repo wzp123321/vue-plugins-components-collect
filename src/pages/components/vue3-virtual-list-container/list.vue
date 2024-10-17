@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { ref, toRefs, defineComponent, onMounted, watch } from 'vue';
+import { ref, toRefs, defineComponent, onMounted } from 'vue';
 
 interface Props {
   data: any[];

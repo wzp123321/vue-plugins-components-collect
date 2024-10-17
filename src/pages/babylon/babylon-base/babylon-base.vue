@@ -32,11 +32,11 @@ const initBaBy = () => {
     camera.attachControl(canvas, true);
 
     // 添加一组灯光到场景
-    const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
-    const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
+    // const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
+    // const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
 
     // 添加一个球体到场景中
-    const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', { diameter: 2 }, scene);
+    // const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', { diameter: 2 }, scene);
 
     return scene;
   };

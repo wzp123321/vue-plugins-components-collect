@@ -182,7 +182,6 @@ const mapOptions = (): EChartsOption => {
         //silent: true,
         barWidth: formatFontSize(6),
         barGap: '10%', // Make series be overlap
-        barCateGoryGap: '10%',
         itemStyle: {
           normal: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 0.7, [
@@ -196,8 +195,8 @@ const mapOptions = (): EChartsOption => {
               },
             ]),
             opacity: 1,
-          },
-        },
+          } as any,
+        } as any,
         data: ['43', '19', '18', '32', '17'],
       },
       {
@@ -210,8 +209,8 @@ const mapOptions = (): EChartsOption => {
           normal: {
             width: formatFontSize(2),
             color: '#29a5d5', // 线条颜色
-          },
-        },
+          } as any,
+        } as any,
         itemStyle: {
           normal: {
             color: '#071c33', //拐点颜色
@@ -229,8 +228,8 @@ const mapOptions = (): EChartsOption => {
             //       }
             //    },
             // },
-          },
-        },
+          } as any,
+        } as any,
         symbolSize: formatFontSize(6), //设定实心点的大小
         areaStyle: {
           normal: {
@@ -256,8 +255,8 @@ const mapOptions = (): EChartsOption => {
               ],
               false,
             ),
-          },
-        },
+          } as any,
+        } as any,
         data: [40, 50, 35, 41, 85],
       },
     ],

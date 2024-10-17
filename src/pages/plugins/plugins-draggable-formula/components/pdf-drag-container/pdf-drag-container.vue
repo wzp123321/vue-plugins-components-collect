@@ -74,14 +74,12 @@ const dragFlag = computed(() => {
 /**
  * 新增
  */
-const addFormula = (a: any, b: any) => {
-  compExpressionList.value = compExpressionList.value.map(
-    (item, index): GPS_IIndexVO => {
-      let res = cloneDeep(item);
-      res.id = `front${index}`;
-      return res;
-    },
-  );
+const addFormula = (_a: any, _b: any) => {
+  compExpressionList.value = compExpressionList.value.map((item, index): GPS_IIndexVO => {
+    let res = cloneDeep(item);
+    res.id = `front${index}`;
+    return res;
+  });
 
   emits('update:modelValue', compExpressionList.value);
 };

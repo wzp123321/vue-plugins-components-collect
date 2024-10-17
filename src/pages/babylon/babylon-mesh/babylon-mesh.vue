@@ -84,8 +84,8 @@ function initBaby() {
   groundShape.position.y = -2;
 
   // 灯光
-  const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
-  const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
+  // const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
+  // const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
 
   engine.runRenderLoop(function () {
     scene.render();

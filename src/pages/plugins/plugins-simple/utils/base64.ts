@@ -1,7 +1,6 @@
 import CryptoJS from 'crypto-js';
 
 //encrypt
-const rawStr = 'hello world!';
 
 const encrypt = (text: string) => {
   var wordArray = CryptoJS.enc.Utf8.parse(text);

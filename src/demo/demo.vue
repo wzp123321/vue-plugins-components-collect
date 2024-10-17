@@ -20,7 +20,6 @@
 <script lang="ts" setup>
 import type { TableColumnCtx } from 'element-plus';
 import { reactive, ref } from 'vue';
-import { throttle, debounce, cloneDeep } from 'lodash';
 
 interface User {
   id: string;
@@ -28,7 +27,7 @@ interface User {
   amount1: string;
   amount2: string;
   amount3: number;
-  rowSpan: number
+  rowSpan: number;
 }
 
 interface SpanMethodProps {
@@ -39,19 +38,18 @@ interface SpanMethodProps {
 }
 
 const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProps) => {
+  console.log(row, column);
   if (columnIndex === 0) {
     if (rowIndex === 0) {
       return {
         rowspan: 3,
         colspan: 1,
       };
-
     } else if (rowIndex === 3) {
       return {
         rowspan: 4,
         colspan: 1,
       };
-
     } else {
       return {
         rowspan: 0,
@@ -59,7 +57,6 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
       };
     }
   }
-
 };
 
 const tableData = ref<User[]>([
@@ -121,7 +118,7 @@ const tableData = ref<User[]>([
   },
 ]);
 
-let trNode: HTMLElement
+let trNode: HTMLElement;
 const handleMouseDown = (event: MouseEvent, row: User, index: number) => {
   currentRow.id = row.id;
   currentRow.name = row.name;
@@ -131,19 +128,18 @@ const handleMouseDown = (event: MouseEvent, row: User, index: number) => {
   currentIndex.value = index;
 
   // https://deepinout.com/javascript/javascript-questions/195_77259549-how-to-change-cursor-while-dragging-in-dragstart-or-dragover-in-javascript.html#:~:text=draggableElement.addEventListener%28%27dragstart%27%2C%20function%28event%29%20%7B%20%2F%2F%20%E8%AE%BE%E7%BD%AE%E6%8B%96%E5%8A%A8%E6%97%B6%E7%9A%84%E5%85%89%E6%A0%87%E6%A0%B7%E5%BC%8F%E4%B8%BA%22move%22%20event.dataTransfer.effectAllowed%20%3D,%27move%27%3B%20%2F%2F%20%E4%BF%AE%E6%94%B9%E6%8B%96%E5%8A%A8%E6%97%B6%E6%98%BE%E7%A4%BA%E7%9A%84%E5%9B%BE%E6%A0%87%20event.dataTransfer.setDragImage%28draggableElement%2C%200%2C%200%29%3B%20%7D%29%3B
-  const target = event.target as HTMLElement
+  const target = event.target as HTMLElement;
   if (target) {
-    trNode = target.parentNode?.parentNode?.parentNode as HTMLElement
-    trNode.setAttribute('draggable', 'true')
-    trNode.addEventListener('dragstart', handleDragStart)
-    trNode.addEventListener('dragover', handleDragOver)
-    trNode.addEventListener('drop', handleDrop)
-    console.log(target, target.parentNode?.parentNode?.parentNode,);
-
+    trNode = target.parentNode?.parentNode?.parentNode as HTMLElement;
+    trNode.setAttribute('draggable', 'true');
+    trNode.addEventListener('dragstart', handleDragStart);
+    trNode.addEventListener('dragover', handleDragOver);
+    trNode.addEventListener('drop', handleDrop);
+    console.log(target, target.parentNode?.parentNode?.parentNode);
   }
   // :draggable="true" @dragstart="handleDragStart(row, $index)" @drop="handleDrop($event, row, $index)"
   // @dragover="handleDragOver($event, row, $index)"
-}
+};
 
 const currentIndex = ref(-1);
 // 当前拖拽行
@@ -161,12 +157,12 @@ const handleDragStart = () => {
 };
 /**
  * drop 目标元素 被拖放的元素在目标元素上同时鼠标放开触发的事件
- * @param event 
+ * @param event
  */
 const handleDrop = (event: Event) => {
   console.log('event-------------', event);
   if (trNode) {
-    trNode.removeAttribute('draggable')
+    trNode.removeAttribute('draggable');
   }
   // if (row.id === currentRow.id) {
   //   console.log('handleDrop -----------------', dragFlag.value, currentIndex.value, row, index);
@@ -183,8 +179,8 @@ const handleDrop = (event: Event) => {
   // }
 };
 const handleDragOver = (event: Event) => {
-  event.preventDefault()
-}
+  event.preventDefault();
+};
 </script>
 <style lang="less" scoped>
 .demo {

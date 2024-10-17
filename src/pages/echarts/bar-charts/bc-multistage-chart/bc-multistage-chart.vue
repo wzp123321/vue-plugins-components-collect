@@ -8,11 +8,6 @@ import {
   init,
   EChartsType,
   EChartsOption,
-  TooltipComponentOption,
-  XAXisComponentOption,
-  YAXisComponentOption,
-  SeriesOption,
-  LegendComponentOption,
 } from 'echarts';
 import { computed, onMounted } from 'vue';
 

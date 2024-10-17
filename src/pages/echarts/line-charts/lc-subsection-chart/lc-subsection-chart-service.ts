@@ -153,7 +153,7 @@ class AlarmChartService<T> {
                     <div style="color: ${valueColor};">${alarmVO.thresholdValue}</div>
                 </div>`;
       },
-      position: (point, params, dom, rect, size) => [
+      position: (point, _params, _dom, _rect, size) => [
         point[0] + size.contentSize[0] + 40 < size.viewSize[0] ? point[0] + 34 : point[0] - 34 - size.contentSize[0],
         8,
       ],

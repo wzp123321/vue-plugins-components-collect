@@ -45,7 +45,7 @@ export const mapTagStyle = (type: PGS_ESymbolType) => {
 };
 
 // 指标列表
-export const mockList: GPS_IIndexVO[] = Array.from({ length: 10 }, (item, index) => ({
+export const mockList: GPS_IIndexVO[] = Array.from({ length: 10 }, (_item, index) => ({
   indexType: PGS_ESymbolType.基础,
   name: `测试-${index}`,
   id: index + '',

@@ -162,7 +162,7 @@ const pageList = (): number[] => {
       return [index.value - 2, index.value - 1, index.value, index.value + 1, index.value + 2];
     }
   } else {
-    return Array.from({ length: pageCount() - 2 }, (v, k) => k + 2);
+    return Array.from({ length: pageCount() - 2 }, (_v, k) => k + 2);
   }
 };
 /**
@@ -260,7 +260,7 @@ watch(
 );
 watch(
   () => props.total,
-  (newVal) => {
+  () => {
     if (index.value > pageCount() && pageCount() !== 0) {
       setIndex(index.value);
     }

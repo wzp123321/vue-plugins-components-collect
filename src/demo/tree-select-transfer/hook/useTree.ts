@@ -1,5 +1,4 @@
 import { ref } from 'vue';
-import { Tst_ITreeCheckEvent, Tst_ITreeNodeData } from '../tree-select-transfer.api';
 
 export const useTree = () => {
   // 树
@@ -11,7 +10,7 @@ export const useTree = () => {
   // 展开节点
   const expandedKeys = ref<number[]>([]);
   // 初始化
-  const initTreeChecked = (checked: number[], expanded: number[]) => {
+  const initTreeChecked = (checked: number[], _expanded: number[]) => {
     treeCheckedKeys.value = [...checked];
     expandedKeys.value = [...checked];
   };

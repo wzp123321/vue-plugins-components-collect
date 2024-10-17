@@ -120,7 +120,7 @@ export const floatDivide = (arg1: number, arg2: number) => {
 };
 
 // 全屏
-const requestFullScreen = (element: any) => {
+export const requestFullScreen = (element: any) => {
   const requestMethod =
     element.requestFullscreen ||
     element.webkitRequestFullscreen ||
@@ -139,7 +139,7 @@ const requestFullScreen = (element: any) => {
 /**
  * 退出全屏
  */
-const exitFullscreen = () => {
+export const exitFullscreen = () => {
   if (document.exitFullscreen) {
     document.exitFullscreen();
   } else if ((document as any).msExitFullscreen) {

@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType, nextTick, onMounted } from 'vue';
+import { PropType, onMounted } from 'vue';
 import { ElCheckbox } from 'element-plus';
 // 类型
 import { Tst_IDefaultProps, Tst_ITreeCheckEvent, Tst_ITreeNodeData } from './tree-select-transfer.api';
@@ -99,7 +99,7 @@ const { treeRef, filerTreeLabel, treeCheckedKeys, expandedKeys, initTreeChecked,
 /**
  * 树选中
  */
-const handleTreeCheck = (data: Tst_ITreeNodeData, event: Tst_ITreeCheckEvent<Tst_ITreeNodeData>) => {
+const handleTreeCheck = (_data: Tst_ITreeNodeData, event: Tst_ITreeCheckEvent<Tst_ITreeNodeData>) => {
   const { checkedKeys, checkedNodes } = event;
   if (props.limit && checkedKeys?.length > props.limit) {
     message.error(`最多选择${props.limit}个`);
@@ -110,7 +110,7 @@ const handleTreeCheck = (data: Tst_ITreeNodeData, event: Tst_ITreeCheckEvent<Tst
   initCheckedList(checkedNodes);
 };
 // 列表
-const { checkedList, filerListLabel, initCheckedList, removeCheckedItem, clearChecked } = useCheckedList();
+const { checkedList, filerListLabel, initCheckedList, removeCheckedItem } = useCheckedList();
 /**
  * 单个删除
  * @param index

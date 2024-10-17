@@ -4,7 +4,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed,  } from 'vue';
 import { init } from 'echarts';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';

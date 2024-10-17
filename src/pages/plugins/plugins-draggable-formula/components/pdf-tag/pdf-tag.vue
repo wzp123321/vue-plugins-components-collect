@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits(['deleteItem', 'valueChange']);
 
 // 输入框
-const value = toRef<string>(props.value);
+const value = toRef(props, 'value');
 
 const style = computed(() => {
   return mapTagStyle(props.indexType);

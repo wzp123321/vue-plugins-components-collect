@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useFullscreen } from '@vueuse/core';
 const iframeRef = ref(null);
-const { isFullscreen, isSupported, enter, exit, toggle } = useFullscreen(iframeRef, {
+const { isFullscreen, isSupported, exit, toggle } = useFullscreen(iframeRef, {
   autoExit: true,
 });
 </script>

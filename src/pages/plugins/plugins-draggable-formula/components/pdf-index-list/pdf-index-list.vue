@@ -26,7 +26,6 @@
 </template>
 <script lang="ts" setup>
 import dragStore from '../../../../../store/modules/drag';
-import { RadioButton, RadioGroup } from 'ant-design-vue';
 
 import draggable from 'vuedraggable';
 import { mapTagStyle, mockList, indexTypeList } from './pdf-index-list.api';
