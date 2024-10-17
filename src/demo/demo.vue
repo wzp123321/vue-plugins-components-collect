@@ -38,7 +38,6 @@ interface SpanMethodProps {
 }
 
 const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProps) => {
-  console.log(row, column);
   if (columnIndex === 0) {
     if (rowIndex === 0) {
       return {
@@ -46,6 +45,7 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
         colspan: 1,
       };
     } else if (rowIndex === 3) {
+      console.log(row, column);
       return {
         rowspan: 4,
         colspan: 1,

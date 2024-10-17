@@ -13,6 +13,7 @@ export const useECharts = () => {
       chartInstance = init(chartRef.value);
       chartInstance.setOption(options);
     }
+    return chartInstance;
   };
   /**
    * 缩放

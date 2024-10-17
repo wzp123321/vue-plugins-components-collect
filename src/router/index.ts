@@ -35,8 +35,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  console.log(from);
+router.beforeEach((to, _from, next) => {
   document.title = (to.meta?.name as string) ?? '收集系统';
 
   next();

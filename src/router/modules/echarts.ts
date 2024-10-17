@@ -9,6 +9,13 @@ const components: RouteRecordRaw[] = [
     component: () => import('../../pages/echarts/chart-map/chart-map.vue'),
   },
   {
+    path: '/drill-map',
+    meta: {
+      name: '下钻-地球',
+    },
+    component: () => import('../../pages/echarts/drill-map/drill-map.vue'),
+  },
+  {
     path: '/echarts-province',
     meta: {
       name: '省份',
