@@ -1,7 +1,7 @@
 <template>
   <div class="vueuse-longpress" id="vueuse-longpress">
     <h1>-实现鼠标长按</h1>
-    <button ref="lonePressRef">实现长按</button>
+    <a-button ref="lonePressRef">实现长按</a-button>
   </div>
 </template>
 <script lang="ts" setup>

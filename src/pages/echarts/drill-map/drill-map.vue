@@ -1,7 +1,7 @@
 <template>
   <div class="drill-map">
     <!-- 返回按钮 -->
-    <button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回上一级</button>
+    <a-button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回上一级</a-button>
     <div class="dm-map" ref="chartRef"></div>
   </div>
 </template>

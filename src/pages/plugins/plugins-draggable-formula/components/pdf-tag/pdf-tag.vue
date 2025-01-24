@@ -3,7 +3,7 @@
     <!-- 普通标签 -->
     <span v-if="!props.editable">{{ props.name }}</span>
     <!-- 可编辑 -->
-    <input v-if="props.editable" class="pt-input" type="text" :value="value" @input="handleInput" />
+    <a-input v-if="props.editable" class="pt-input" type="text" :value="value" @input="handleInput" />
     <!-- 图标 -->
     <i class="ems-iconfont icon-fork" title="删除" @click="handleDelete"></i>
   </div>

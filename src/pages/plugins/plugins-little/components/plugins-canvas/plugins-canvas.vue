@@ -1,6 +1,6 @@
 <template>
   <div class="plugins-canvas" id="plugins-canvas">
-    <h5>基础操作</h5>
+    <h5>Canvas基础</h5>
     <div class="plugins-canvas-base">
       <div class="plugins-canvas-base-item">
         <span>三角形</span>
@@ -36,7 +36,7 @@ onMounted(() => {
 
   .plugins-canvas-base {
     display: grid;
-    grid-template-columns: repeat(5, 20%);
+    grid-template-columns: repeat(2, 50%);
     gap: 16px;
 
     .plugins-canvas-base-item {

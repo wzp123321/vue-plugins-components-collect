@@ -5,14 +5,14 @@
     </div>
 
     <div class="tool-group">
-      <button title="上一页" icon :disabled="!canLeft()" @click="jumpLeft(1)">
+      <a-button title="上一页" icon :disabled="!canLeft()" @click="jumpLeft(1)">
         <i class="ems-iconfont icon-left"></i>
-      </button>
+      </a-button>
 
-      <button radio :selected="1 === index" @click="selectPage(1)">
+      <a-button radio :selected="1 === index" @click="selectPage(1)">
         {{ 1 }}
-      </button>
-      <button
+      </a-button>
+      <a-button
         v-if="canJumpLeft()"
         title="向前5页"
         icon
@@ -23,13 +23,13 @@
       >
         <i v-if="!isJumpLeftActive" class="ems-iconfont icon-shenglvehao"></i>
         <i v-if="isJumpLeftActive" class="ems-iconfont icon-doubleleft"></i>
-      </button>
+      </a-button>
 
-      <button v-for="page in pageList()" radio :selected="page === index" @click="selectPage(page)">
+      <a-button v-for="page in pageList()" radio :selected="page === index" @click="selectPage(page)">
         {{ page }}
-      </button>
+      </a-button>
 
-      <button
+      <a-button
         v-if="canJumpRight()"
         title="向后5页"
         class="cp-no-border"
@@ -40,21 +40,25 @@
       >
         <i v-if="!isJumpRightActive" class="ems-iconfont icon-shenglvehao"></i>
         <i v-if="isJumpRightActive" class="ems-iconfont icon-a-doubleright"></i>
-      </button>
-      <button v-if="pageCount() > 1" radio :selected="pageCount() === index" @click="selectPage(pageCount())">
+      </a-button>
+      <a-button v-if="pageCount() > 1" radio :selected="pageCount() === index" @click="selectPage(pageCount())">
         {{ pageCount() }}
-      </button>
+      </a-button>
 
-      <button title="下一页" icon :disabled="!canRight()" @click="jumpRight(1)">
+      <a-button title="下一页" icon :disabled="!canRight()" @click="jumpRight(1)">
         <i class="ems-iconfont icon-Right"></i>
-      </button>
+      </a-button>
 
-      <el-select class="tool-select-size" :popper-append-to-body="false" v-model="size" @change="selectPageSize">
-        <el-option v-for="option of pageSizeOptions" :label="option.label" :value="option.value"></el-option>
-      </el-select>
+      <a-select class="tool-select-size" :popper-append-to-body="false" v-model="size" @change="selectPageSize">
+        <a-select-option
+          v-for="option of pageSizeOptions"
+          :label="option.label"
+          :value="option.value"
+        ></a-select-option>
+      </a-select>
 
       <label>跳至</label>
-      <input
+      <a-input
         v-inputFilter:positiveNumber
         :value="index"
         class="tool-input-index"

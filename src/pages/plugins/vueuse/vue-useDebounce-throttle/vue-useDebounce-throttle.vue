@@ -1,7 +1,7 @@
 <template>
   <div class="vue-useDebounce-throttle" id="vue-useDebounce-throttle">
-    <button @click="handleDebounce">debounce函数</button>
-    <button @click="handleThrottle">throttle函数</button>
+    <a-button @click="handleDebounce">debounce函数</a-button>
+    <a-button @click="handleThrottle">throttle函数</a-button>
   </div>
 </template>
 <script lang="ts" setup>

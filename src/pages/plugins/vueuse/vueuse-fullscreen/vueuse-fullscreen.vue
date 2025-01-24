@@ -9,8 +9,8 @@ const { isFullscreen, isSupported, exit, toggle } = useFullscreen(iframeRef, {
 
 <template>
   <div id="vueuse-fullscreen" class="vueuse-fullscreen">
-    <button @click="toggle">FullScreen</button>
-    <button @click="exit">取消全屏</button>
+    <a-button @click="toggle">FullScreen</a-button>
+    <a-button @click="exit">取消全屏</a-button>
     <p>是否全屏----{{ isFullscreen }}</p>
     <p>是否支持全屏----{{ isSupported }}</p>
     <iframe src="https://www.bilibili.com/" ref="iframeRef" frameborder="0"></iframe>

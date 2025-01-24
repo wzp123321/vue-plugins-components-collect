@@ -1,6 +1,6 @@
 <template>
   <div class="year-range-picker can-clear" id="year-range-picker">
-    <el-popover
+    <a-popover
       :teleported="false"
       placement="bottom"
       :showArrow="false"
@@ -11,11 +11,17 @@
       <template #reference>
         <div class="yrp-trigger">
           <div class="yrp-input start-year">
-            <input type="text" size="12" :placeholder="props.placeholders[0]" autocomplete="off" :value="leftValue" />
+            <a-input type="text" size="12" :placeholder="props.placeholders[0]" autocomplete="off" :value="leftValue" />
           </div>
           <span class="yrp-separator">~</span>
           <div class="yrp-input start-year">
-            <input type="text" size="12" :placeholder="props.placeholders[1]" autocomplete="off" :value="rightValue" />
+            <a-input
+              type="text"
+              size="12"
+              :placeholder="props.placeholders[1]"
+              autocomplete="off"
+              :value="rightValue"
+            />
           </div>
           <i class="ems-iconfont icon-rili1"></i>
         </div>
@@ -70,7 +76,7 @@
           </ul>
         </div>
       </div>
-    </el-popover>
+    </a-popover>
     <i class="ems-iconfont icon-qingkong" @click="handleClear"></i>
   </div>
 </template>

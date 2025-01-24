@@ -1,9 +1,9 @@
 <template>
   <div class="plugin-word-pdf-preview">
     <section class="pwpp-btn">
-      <el-button @click="handleFileChoose(ACCEPTS)">选择文件</el-button>
-      <el-button @click="handlePreview">预览</el-button>
-      <el-button>下载</el-button>
+      <a-button @click="handleFileChoose(ACCEPTS)">选择文件</a-button>
+      <a-button @click="handlePreview">预览</a-button>
+      <a-button>下载</a-button>
     </section>
     <ul class="pwpp-file-list">
       <li v-for="item in fileList" :key="item.name">

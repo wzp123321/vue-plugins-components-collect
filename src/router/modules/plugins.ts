@@ -2,13 +2,6 @@ import { RouteRecordRaw } from 'vue-router';
 
 const pluginRoutes: RouteRecordRaw[] = [
   {
-    path: '/plugins-simple',
-    meta: {
-      name: '简易插件',
-    },
-    component: () => import('../../pages/plugins/plugins-simple/plugins-simple.vue'),
-  },
-  {
     path: '/vue3SlideVerify',
     meta: {
       name: '滑动验证',
@@ -37,13 +30,6 @@ const pluginRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
   },
   {
-    path: '/plugins-canvas',
-    meta: {
-      name: 'Canvas',
-    },
-    component: () => import('../../pages/plugins/plugins-canvas/plugins-canvas.vue'),
-  },
-  {
     path: '/plugins-draggable-formula',
     meta: {
       name: '拖拽公式',
@@ -57,6 +43,14 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugin-word-pdf-preview/plugin-word-pdf-preview.vue'),
   },
+  {
+    path: '/pluginsLittle',
+    meta: {
+      name: '小插件',
+    },
+    component: () => import('../../pages/plugins/plugins-little/plugins-little.vue'),
+  },
+
   {
     path: '/plugins-webrtc',
     meta: {

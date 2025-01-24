@@ -9,7 +9,9 @@
     <ems-aside :menuList="menuList" :selectedMenu="selectedMenu"></ems-aside>
     <!-- 侧边菜单 end -->
     <a-layout-content class="main-container__content flex flex-column">
-      <router-view></router-view>
+      <div class="main-container__content-wrapper">
+        <router-view></router-view>
+      </div>
     </a-layout-content>
   </a-layout-content>
 </a-layout>

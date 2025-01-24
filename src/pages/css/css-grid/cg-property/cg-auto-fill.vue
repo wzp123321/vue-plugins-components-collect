@@ -3,7 +3,7 @@
     <div class="caf-fill">
       <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
-    <el-divider />
+    <a-divider />
     <div class="caf-fit">
       <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>

@@ -6,18 +6,18 @@
       <!-- 托管期 -->
       <div class="pcg-tool-period">
         <label>适用于</label>
-        <el-select placeholder="开始托管期">
-          <el-option :value="1" label="测试1"></el-option>
-        </el-select>
+        <a-select placeholder="开始托管期">
+          <a-select-option :value="1" label="测试1"></a-select-option>
+        </a-select>
         <em>-</em>
-        <el-select placeholder="结束托管期">
-          <el-option :value="1" label="测试1"></el-option>
-        </el-select>
+        <a-select placeholder="结束托管期">
+          <a-select-option :value="1" label="测试1"></a-select-option>
+        </a-select>
       </div>
       <!-- 按钮 -->
       <div class="pcg-tool-btn">
-        <button @click="handleCopy">复制</button>
-        <button @click="handleDelete">删除</button>
+        <a-button @click="handleCopy">复制</a-button>
+        <a-button @click="handleDelete">删除</a-button>
       </div>
     </section>
     <!-- 条件组 -->
@@ -37,7 +37,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ElSelect, ElOption } from 'element-plus';
 import pdfExpressionContainer from '../pdf-drag-container/pdf-drag-container.vue';
 
 interface Props {

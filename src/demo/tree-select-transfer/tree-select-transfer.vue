@@ -2,16 +2,16 @@
   <div class="tree-select-transfer">
     <div class="tst-box is-left">
       <div class="tst-box-header">
-        <el-checkbox>待选({{ mapDataTotal() }})</el-checkbox>
+        <a-checkbox>待选({{ mapDataTotal() }})</a-checkbox>
         <!-- 插槽 -->
         <slot name="headerRight"></slot>
       </div>
       <div class="tst-box-body">
         <!-- 搜索框 -->
         <div class="tst-box-body-filter">
-          <el-input v-model="filerTreeLabel" placeholder="请输入" />
+          <a-input v-model="filerTreeLabel" placeholder="请输入" />
         </div>
-        <el-tree
+        <a-tree
           ref="treeRef"
           :data="treeList"
           :props="props.defaultProps"
@@ -31,7 +31,7 @@
       <div class="tst-box-body">
         <!-- 搜索框 -->
         <div class="tst-box-body-filter">
-          <el-input v-model="filerListLabel" placeholder="请输入" />
+          <a-input v-model="filerListLabel" placeholder="请输入" />
         </div>
         <!-- 列表 -->
         <ul class="tst-right-list" v-if="checkedList.length > 0">
@@ -50,7 +50,6 @@
 
 <script lang="ts" setup>
 import { PropType, onMounted } from 'vue';
-import { ElCheckbox } from 'element-plus';
 // 类型
 import { Tst_IDefaultProps, Tst_ITreeCheckEvent, Tst_ITreeNodeData } from './tree-select-transfer.api';
 // hook

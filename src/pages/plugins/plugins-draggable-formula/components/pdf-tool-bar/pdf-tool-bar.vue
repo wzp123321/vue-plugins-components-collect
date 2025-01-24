@@ -66,7 +66,7 @@
         </template>
       </draggable>
     </div>
-    <button primary>保存</button>
+    <a-button primary>保存</a-button>
   </div>
 </template>
 <script lang="ts" setup>

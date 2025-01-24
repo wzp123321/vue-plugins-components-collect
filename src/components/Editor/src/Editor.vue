@@ -1,64 +1,64 @@
 <script lang="ts" setup>
-import { PropType } from 'vue'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { i18nChangeLanguage, IDomEditor, IEditorConfig } from '@wangeditor/editor'
-import { propTypes } from '@/utils/propTypes'
-import { isNumber } from '@/utils/is'
-import { ElMessage } from 'element-plus'
-import { useLocaleStore } from '@/store/modules/locale'
-import { getRefreshToken, getTenantId } from '@/utils/auth'
-import { getUploadUrl } from '@/components/UploadFile/src/useUpload'
+import { PropType } from 'vue';
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { i18nChangeLanguage, IDomEditor, IEditorConfig } from '@wangeditor/editor';
+import { propTypes } from '@/utils/propTypes';
+import { isNumber } from '@/utils/is';
+import { useLocaleStore } from '@/store/modules/locale';
+import { getRefreshToken, getTenantId } from '@/utils/auth';
+import { getUploadUrl } from '@/components/UploadFile/src/useUpload';
+import { message } from 'ant-design-vue';
 
-defineOptions({ name: 'Editor' })
+defineOptions({ name: 'Editor' });
 
-type InsertFnType = (url: string, alt: string, href: string) => void
+type InsertFnType = (url: string, alt: string, href: string) => void;
 
-const localeStore = useLocaleStore()
+const localeStore = useLocaleStore();
 
-const currentLocale = computed(() => localeStore.getCurrentLocale)
+const currentLocale = computed(() => localeStore.getCurrentLocale);
 
-i18nChangeLanguage(unref(currentLocale).lang)
+i18nChangeLanguage(unref(currentLocale).lang);
 
 const props = defineProps({
   editorId: propTypes.string.def('wangeEditor-1'),
   height: propTypes.oneOfType([Number, String]).def('500px'),
   editorConfig: {
     type: Object as PropType<Partial<IEditorConfig>>,
-    default: () => undefined
+    default: () => undefined,
   },
   readonly: propTypes.bool.def(false),
-  modelValue: propTypes.string.def('')
-})
+  modelValue: propTypes.string.def(''),
+});
 
-const emit = defineEmits(['change', 'update:modelValue'])
+const emit = defineEmits(['change', 'update:modelValue']);
 
 // 编辑器实例，必须用 shallowRef
-const editorRef = shallowRef<IDomEditor>()
+const editorRef = shallowRef<IDomEditor>();
 
-const valueHtml = ref('')
+const valueHtml = ref('');
 
 watch(
   () => props.modelValue,
   (val: string) => {
-    if (val === unref(valueHtml)) return
-    valueHtml.value = val
+    if (val === unref(valueHtml)) return;
+    valueHtml.value = val;
   },
   {
-    immediate: true
-  }
-)
+    immediate: true,
+  },
+);
 
 // 监听
 watch(
   () => valueHtml.value,
   (val: string) => {
-    emit('update:modelValue', val)
-  }
-)
+    emit('update:modelValue', val);
+  },
+);
 
 const handleCreated = (editor: IDomEditor) => {
-  editorRef.value = editor
-}
+  editorRef.value = editor;
+};
 
 // 编辑器配置
 const editorConfig = computed((): IEditorConfig => {
@@ -69,20 +69,20 @@ const editorConfig = computed((): IEditorConfig => {
       customAlert: (s: string, t: string) => {
         switch (t) {
           case 'success':
-            ElMessage.success(s)
-            break
+            message.success(s);
+            break;
           case 'info':
-            ElMessage.info(s)
-            break
+            message.info(s);
+            break;
           case 'warning':
-            ElMessage.warning(s)
-            break
+            message.warning(s);
+            break;
           case 'error':
-            ElMessage.error(s)
-            break
+            message.error(s);
+            break;
           default:
-            ElMessage.info(s)
-            break
+            message.info(s);
+            break;
         }
       },
       autoFocus: false,
@@ -101,7 +101,7 @@ const editorConfig = computed((): IEditorConfig => {
           headers: {
             Accept: '*',
             Authorization: 'Bearer ' + getRefreshToken(), // 使用 getRefreshToken() 方法，而不使用 getAccessToken() 方法的原因：Editor 无法方便的刷新访问令牌
-            'tenant-id': getTenantId()
+            'tenant-id': getTenantId(),
           },
 
           // 超时时间，默认为 10 秒
@@ -113,28 +113,28 @@ const editorConfig = computed((): IEditorConfig => {
           // 上传之前触发
           onBeforeUpload(file: File) {
             // console.log(file)
-            return file
+            return file;
           },
           // 上传进度的回调函数
           onProgress(progress: number) {
             // progress 是 0-100 的数字
-            console.log('progress', progress)
+            console.log('progress', progress);
           },
           onSuccess(file: File, res: any) {
-            console.log('onSuccess', file, res)
+            console.log('onSuccess', file, res);
           },
           onFailed(file: File, res: any) {
-            alert(res.message)
-            console.log('onFailed', file, res)
+            alert(res.message);
+            console.log('onFailed', file, res);
           },
           onError(file: File, err: any, res: any) {
-            alert(err.message)
-            console.error('onError', file, err, res)
+            alert(err.message);
+            console.error('onError', file, err, res);
           },
           // 自定义插入图片
           customInsert(res: any, insertFn: InsertFnType) {
-            insertFn(res.data, 'image', res.data)
-          }
+            insertFn(res.data, 'image', res.data);
+          },
         },
         ['uploadVideo']: {
           server: getUploadUrl(),
@@ -149,7 +149,7 @@ const editorConfig = computed((): IEditorConfig => {
           headers: {
             Accept: '*',
             Authorization: 'Bearer ' + getRefreshToken(), // 使用 getRefreshToken() 方法，而不使用 getAccessToken() 方法的原因：Editor 无法方便的刷新访问令牌
-            'tenant-id': getTenantId()
+            'tenant-id': getTenantId(),
           },
 
           // 超时时间，默认为 30 秒
@@ -161,63 +161,63 @@ const editorConfig = computed((): IEditorConfig => {
           // 上传之前触发
           onBeforeUpload(file: File) {
             // console.log(file)
-            return file
+            return file;
           },
           // 上传进度的回调函数
           onProgress(progress: number) {
             // progress 是 0-100 的数字
-            console.log('progress', progress)
+            console.log('progress', progress);
           },
           onSuccess(file: File, res: any) {
-            console.log('onSuccess', file, res)
+            console.log('onSuccess', file, res);
           },
           onFailed(file: File, res: any) {
-            alert(res.message)
-            console.log('onFailed', file, res)
+            alert(res.message);
+            console.log('onFailed', file, res);
           },
           onError(file: File, err: any, res: any) {
-            alert(err.message)
-            console.error('onError', file, err, res)
+            alert(err.message);
+            console.error('onError', file, err, res);
           },
           // 自定义插入图片
           customInsert(res: any, insertFn: InsertFnType) {
-            insertFn(res.data, 'mp4', res.data)
-          }
-        }
+            insertFn(res.data, 'mp4', res.data);
+          },
+        },
       },
-      uploadImgShowBase64: true
+      uploadImgShowBase64: true,
     },
-    props.editorConfig || {}
-  )
-})
+    props.editorConfig || {},
+  );
+});
 
 const editorStyle = computed(() => {
   return {
-    height: isNumber(props.height) ? `${props.height}px` : props.height
-  }
-})
+    height: isNumber(props.height) ? `${props.height}px` : props.height,
+  };
+});
 
 // 回调函数
 const handleChange = (editor: IDomEditor) => {
-  emit('change', editor)
-}
+  emit('change', editor);
+};
 
 // 组件销毁时，及时销毁编辑器
 onBeforeUnmount(() => {
-  const editor = unref(editorRef.value)
+  const editor = unref(editorRef.value);
 
   // 销毁，并移除 editor
-  editor?.destroy()
-})
+  editor?.destroy();
+});
 
 const getEditorRef = async (): Promise<IDomEditor> => {
-  await nextTick()
-  return unref(editorRef.value) as IDomEditor
-}
+  await nextTick();
+  return unref(editorRef.value) as IDomEditor;
+};
 
 defineExpose({
-  getEditorRef
-})
+  getEditorRef,
+});
 </script>
 
 <template>

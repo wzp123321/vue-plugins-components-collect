@@ -1,8 +1,8 @@
 <!--
  * @Author: wanzp
  * @Date: 2023-05-22 21:24:52
- * @LastEditors: wanzp
- * @LastEditTime: 2023-06-23 20:12:29
+ * @LastEditors: wanzp wanzp@tiansu-china.com
+ * @LastEditTime: 2025-01-24 15:05:48
  * @Description: 
 -->
 <template>
@@ -11,13 +11,13 @@
       <h5>文本过滤（默认）</h5>
       <div class="flex-row-start-center" style="padding: 16px 0">
         <label class="mr8">是否允许中文</label>
-        <el-switch v-model="textFilterParams.allowChinese" @change="handleTextClear" />
+        <a-switch v-model:checked="textFilterParams.allowChinese" @change="handleTextClear" />
         <label class="mr8 ml16">是否允许空格</label>
-        <el-switch v-model="textFilterParams.allowSpace" @change="handleTextClear" />
+        <a-switch v-model:checked="textFilterParams.allowSpace" @change="handleTextClear" />
         <label class="mr8 ml16">自定义正则</label>
         <span>{{ regText }}</span>
       </div>
-      <input
+      <a-input
         type="text"
         v-model="testText"
         v-inputFilter:text="{

@@ -13,7 +13,7 @@
     <div class="pseudo-class">
       <div class="item pseudo-class-hover">hover</div>
       <div class="item pseudo-class-focus">
-        <input type="text" placeholder="focus" />
+        <a-input type="text" placeholder="focus" />
       </div>
       <div class="item pseudo-class-active">active</div>
       <div class="item pseudo-class-first-child">

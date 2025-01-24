@@ -5,8 +5,8 @@
       <video id="pw-container-video"></video>
     </div>
     <footer class="pw-footer">
-      <el-button @click="handleStart">打开</el-button>
-      <el-button @click="handleClose">关闭</el-button>
+      <a-button @click="handleStart">打开</a-button>
+      <a-button @click="handleClose">关闭</a-button>
     </footer>
   </div>
 </template>
@@ -22,7 +22,7 @@ const handleStart = async () => {
     audio: true,
     video: true,
   });
-  const video = document.getElementById('pw-container-video');
+  const video = document.getElementById('pw-container-video') as any;
   if (video) {
     // 将音视频流赋值video
     video.srcObject = stream;
@@ -32,7 +32,7 @@ const handleStart = async () => {
 };
 
 const handleClose = async () => {
-  const video = document.getElementById('pw-container-video');
+  const video = document.getElementById('pw-container-video') as any;
   if (video) {
     video.srcObject = null;
     console.log(stream.getVideoTracks(), stream.getTracks());

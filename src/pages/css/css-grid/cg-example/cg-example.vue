@@ -1,17 +1,17 @@
 <template>
   <div class="cg-example">
     <ceGridFixedWidth></ceGridFixedWidth>
-    <el-divider />
+    <a-divider />
     <ceGridHalve></ceGridHalve>
-    <el-divider />
+    <a-divider />
     <ceGridAuto></ceGridAuto>
-    <el-divider />
+    <a-divider />
     <ceGridCenter></ceGridCenter>
-    <el-divider />
+    <a-divider />
     <ceGridSpaceBetween></ceGridSpaceBetween>
-    <el-divider />
+    <a-divider />
     <ceGridGrail></ceGridGrail>
-    <el-divider />
+    <a-divider />
     <ceGridReseau></ceGridReseau>
   </div>
 </template>

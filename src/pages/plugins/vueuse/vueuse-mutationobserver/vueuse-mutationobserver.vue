@@ -1,7 +1,7 @@
 <template>
   <div class="vueuse-mutationobserver" id="vueuse-mutationobserver">
     <h1>-监听样式或类名变化</h1>
-    <button @click="handleAdd">添加</button>
+    <a-button @click="handleAdd">添加</a-button>
     <ul ref="mutationobserverRef" :style="{ color }" :class="className">
       <li v-for="item in list">
         {{ item.name }}
