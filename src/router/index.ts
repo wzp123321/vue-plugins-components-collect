@@ -28,6 +28,8 @@ const routes: RouteRecordRaw[] = [
   ...babyRoutes,
   ...directiveRoutes,
   ...semantizationRoutes,
+  { path: '/:pathMatch(.*)*', name: 'Other', component: () => import('../demo/demo.vue') },
+
 ];
 
 const router = createRouter({

@@ -13,6 +13,11 @@
         <div>我是cf-inline-flex</div>
       </div>
     </common-card>
+
+    <div class="ce-two">
+      <div class="ce-two-1">1</div>
+      <div class="ce-two-2">2</div>
+    </div>
   </div>
 </template>
 
@@ -26,6 +31,22 @@
 
   .cf-inline-flex {
     display: inline-flex;
+  }
+
+  .ce-two {
+    display: flex;
+    align-items: flex-start;
+
+    .ce-two-1 {
+      width: 100px;
+      height: 100px;
+      background: red;
+    }
+    .ce-two-2 {
+      flex: 1;
+      height: 200px;
+      background: blue;
+    }
   }
 }
 </style>

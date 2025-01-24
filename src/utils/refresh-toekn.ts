@@ -2,7 +2,7 @@
  * @Author: wzp123321 wanzhipengx@163.com
  * @Date: 2024-01-20 14:51:57
  * @LastEditors: wanzp wanzp@tiansu-china.com
- * @LastEditTime: 2024-10-17 10:31:32
+ * @LastEditTime: 2025-01-24 09:53:34
  * @FilePath: \vue-plugins-components-collect\src\utils\refresh-toekn.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -38,11 +38,11 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   async (res) => {
-    const { statu } = res.data,
+    const { status } = res.data,
       { url, method, params } = res.config;
 
     // token过期
-    if (statu === 456) {
+    if (status === 456) {
       const reqConfig = { url, method, params };
 
       //  更新token中，先将请求配置push到reqLists，token更新完成后再重新发起请求

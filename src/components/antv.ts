@@ -2,10 +2,10 @@
  * @Author: wanzp
  * @Date: 2023-08-13 21:18:29
  * @LastEditors: wanzp wanzp@tiansu-china.com
- * @LastEditTime: 2024-10-17 16:13:39
+ * @LastEditTime: 2024-12-11 14:28:42
  * @Description:
  */
-import { Menu, MenuItem, SubMenu, TabPane, Tabs, Divider, Button } from 'ant-design-vue';
+import { Menu, MenuItem, SubMenu, TabPane, Tabs, Divider, Button, } from 'ant-design-vue';
 import { App } from 'vue';
 import CommonCard from './common-card/common-card.vue';
 

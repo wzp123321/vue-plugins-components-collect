@@ -9,7 +9,7 @@
       </div>
       <span>22222222</span>
     </div>
-    <a-divider />
+    <el-divider />
     <div class="cd-inline-diplay">
       <span>1111111111</span>
       <div class="cd-inline-display-container">

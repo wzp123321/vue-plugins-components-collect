@@ -57,6 +57,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugin-word-pdf-preview/plugin-word-pdf-preview.vue'),
   },
+  {
+    path: '/plugins-webrtc',
+    meta: {
+      name: 'webRTC',
+    },
+    component: () => import('../../pages/plugins/plugins-webrtc/plugins-webrtc.vue'),
+  },
 ];
 
 export default pluginRoutes;

@@ -3,7 +3,7 @@
     <div class="caf-fill">
       <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
-    <a-divider />
+    <el-divider />
     <div class="caf-fit">
       <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
@@ -30,7 +30,7 @@ import { mapColor } from '../../../../utils';
     height: 100px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    // grid-template-columns: fit-content(100px) fit-content(100px) 40px auto; 
+    // grid-template-columns: fit-content(100px) fit-content(100px) 40px auto;
   }
 }
 </style>
