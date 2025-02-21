@@ -1,13 +1,13 @@
-import { RouteRecordRaw } from 'vue-router'
+import { RouteRecordRaw } from 'vue-router';
 
 const pluginRoutes: RouteRecordRaw[] = [
   {
-    path: '/animation/countDown',
+    path: '/animations',
     meta: {
-      name: '倒计时',
+      name: '动画大全',
     },
-    component: () => import('../../pages/animations/count-down/count-down.vue'),
+    component: () => import('../../pages/animations/animations.vue'),
   },
-]
+];
 
-export default pluginRoutes
+export default pluginRoutes;
