@@ -1,5 +1,5 @@
 <template>
-  <div id="ems-pagination">
+  <div class="component-pagination">
     <div>
       <label>共{{ total }}条</label>
     </div>
@@ -48,7 +48,6 @@
       <a-button title="下一页" icon :disabled="!canRight()" @click="jumpRight(1)">
         <i class="ems-iconfont icon-Right"></i>
       </a-button>
-
       <a-select class="tool-select-size" :popper-append-to-body="false" v-model="size" @change="selectPageSize">
         <a-select-option
           v-for="option of pageSizeOptions"
@@ -71,7 +70,9 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref, watch, onMounted, PropType } from 'vue';
-
+defineOptions({
+  name: 'ComponentPagination',
+});
 const emit = defineEmits(['update:currentPage', 'update:pageSize', 'size-change', 'current-change']);
 const props = defineProps({
   // 当前页码
@@ -280,7 +281,7 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#ems-pagination {
+.component-pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;

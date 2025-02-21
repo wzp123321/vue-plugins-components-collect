@@ -43,6 +43,7 @@ const getMapChartOptions = (mapName: string, mapData: any): EChartsOption => {
           // 返回自定义的tooltip内容
           return `addressCode: 【${addressCode}】<br>name: ${name}<br>data: ${data}`;
         }
+        return '';
       },
     },
     // 左下角的数据颜色条
@@ -154,7 +155,7 @@ const getMapChartOptions = (mapName: string, mapData: any): EChartsOption => {
         },
         zlevel: 1,
       },
-    ],
+    ] as any,
   };
 };
 
@@ -169,9 +170,9 @@ const initMap = async () => {
   const jsonData = await getMapJson(currentMapCode.value);
   // 注册地图
   registerMap(currentMapCode.value, jsonData);
-  const mapData = jsonData.features.map((item: { properties: any }) => {
-    const data = (Math.random() * 8 + 2).toFixed(0); // 随机数
-    const tempValue = item.properties.center ? [...item.properties.center, data] : item.properties.center;
+  const mapData: any = jsonData.features.map((item: { properties: any }) => {
+    const data: any = (Math.random() * 8 + 2).toFixed(0); // 随机数
+    const tempValue: any = item.properties.center ? [...item.properties.center, data] : item.properties.center;
     return {
       name: item.properties.name,
       value: tempValue, // 中心点经纬度

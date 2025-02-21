@@ -2,49 +2,18 @@
  * @Author: wanzp
  * @Date: 2023-08-13 21:18:29
  * @LastEditors: wanzp wanzp@tiansu-china.com
- * @LastEditTime: 2025-01-24 17:08:24
+ * @LastEditTime: 2025-02-21 15:29:25
  * @Description:
  */
-import {
-  Menu,
-  MenuItem,
-  SubMenu,
-  TabPane,
-  Tabs,
-  Divider,
-  Button,
-  Radio,
-  Row,
-  Col,
-  Card,
-  Switch,
-  Input,
-  RadioGroup,
-  Textarea,
-} from 'ant-design-vue';
+import Antd from 'ant-design-vue';
 import { App } from 'vue';
 import CommonCard from './common-card/common-card.vue';
+import CommonPageContainer from './common-page-container/common-page-container.vue';
 
-const components = [
-  Menu,
-  MenuItem,
-  SubMenu,
-  TabPane,
-  Tabs,
-  Divider,
-  CommonCard,
-  Button,
-  Radio,
-  Row,
-  Col,
-  Card,
-  Switch,
-  Input,
-  RadioGroup,
-  Textarea,
-];
+const components = [CommonCard, CommonPageContainer];
 
 const registerAntv = (app: App) => {
+  app.use(Antd);
   components.forEach((c) => {
     app.component(c.name, c);
   });

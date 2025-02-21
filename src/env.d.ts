@@ -7,8 +7,6 @@ declare module '*.vue' {
   export default component;
 }
 
-
-
 declare global {
   interface Window {
     createObjectURL: any;
@@ -17,4 +15,6 @@ declare global {
 
 declare var __COMPAT__: boolean;
 declare module 'crypto-js';
-declare module 'vue-virtual-scroller'
+declare module 'vue-virtual-scroller';
+declare module '@arco-iconbox/vue-te';
+declare module 'qrcode';

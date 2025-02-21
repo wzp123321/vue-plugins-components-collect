@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@antv/g6": "^4.8.2",
+    "@arco-iconbox/vue-te": "^0.0.57",
     "@fortawesome/fontawesome-free": "^5.14.0",
     "@vue-office/docx": "^1.6.1",
     "@vue-office/excel": "^1.7.7",
@@ -36,6 +37,7 @@
     "lint": "^0.8.19",
     "lodash": "^4.17.21",
     "pinia": "^2.2.4",
+    "qrcode": "^1.5.4",
     "rxjs": "^7.5.7",
     "spark-md5": "^3.0.2",
     "three": "^0.147.0",

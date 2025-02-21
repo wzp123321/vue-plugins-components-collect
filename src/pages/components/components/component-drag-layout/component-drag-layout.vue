@@ -1,5 +1,5 @@
 <template>
-  <div class="common-drag-layout">
+  <div class="component-drag-layout">
     <div class="cdl-left" :style="{ width: sidebarWidth + 'px' }">
       <!-- 左侧内容 -->
       <div class="cdl-left-content">
@@ -30,7 +30,7 @@ let isDragging = false;
 let startX = 0;
 let startWidth = 0;
 
-const startDragging = (event) => {
+const startDragging = (event: MouseEvent) => {
   isDragging = true;
   startX = event.clientX;
   startWidth = sidebarWidth.value;
@@ -38,7 +38,7 @@ const startDragging = (event) => {
   document.addEventListener('mouseup', stopDragging);
 };
 
-const doDrag = (event) => {
+const doDrag = (event: MouseEvent) => {
   if (isDragging) {
     const newWidth = startWidth + (event.clientX - startX);
     sidebarWidth.value = Math.max(minWidth, newWidth);
@@ -53,9 +53,9 @@ const stopDragging = () => {
 </script>
 
 <style lang="less" scoped>
-.common-drag-layout {
+.component-drag-layout {
   display: flex;
-  height: 100vh;
+  height: 400px;
 
   .cdl-left {
     background-color: #f4f4f4;

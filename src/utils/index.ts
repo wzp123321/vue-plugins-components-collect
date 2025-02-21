@@ -1,3 +1,4 @@
+import { CommonRes } from '@/services/common.api';
 import dayjs from 'dayjs';
 
 /**
@@ -198,3 +199,16 @@ export const formatFontSize = (value: number): number => {
   const fontSize = clientWidth / 1920;
   return value * fontSize;
 };
+
+/**
+ * 响应处理
+ * @param res 响应体
+ * @returns 返回数据
+ * @throws 异常信息
+ */
+export function FResHandler<T = void>(res: CommonRes<T>): T {
+  if (res?.success) {
+    return res.data;
+  }
+  throw res?.message ?? '未知原因';
+}

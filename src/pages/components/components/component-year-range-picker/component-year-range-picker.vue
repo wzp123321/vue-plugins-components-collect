@@ -1,5 +1,5 @@
 <template>
-  <div class="year-range-picker can-clear" id="year-range-picker">
+  <div class="component-year-range-picker can-clear" id="component-year-range-picker">
     <a-popover
       :teleported="false"
       placement="bottom"
@@ -82,7 +82,11 @@
 </template>
 <script lang="ts" setup name="YearRangePicker">
 import { onMounted, PropType, ref, watch } from 'vue';
-import { DEFAULT_WIDTH, DEFAULT_HEIGHT, YRP_IYearVO, YRP_EPosition } from './year-range-picker.api';
+import { DEFAULT_WIDTH, DEFAULT_HEIGHT, YRP_IYearVO, YRP_EPosition } from './model';
+
+defineOptions({
+  name: 'ComponentYearRangePicker',
+});
 
 const emits = defineEmits(['update:modelValue', 'change']);
 const props = defineProps({
@@ -189,7 +193,7 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#year-range-picker {
+#component-year-range-picker {
   position: relative;
   width: 360px;
   height: 36px;
@@ -375,3 +379,4 @@ onMounted(() => {
   }
 }
 </style>
+./model

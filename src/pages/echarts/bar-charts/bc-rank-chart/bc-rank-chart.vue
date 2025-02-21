@@ -8,7 +8,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, computed, ref, onUnmounted } from 'vue';
-import { init } from 'echarts';
+import { EChartsType, init } from 'echarts';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';
@@ -54,7 +54,7 @@ const yPosition = ref<{ top: string; left: string }>({
   top: '',
   left: '',
 });
-let echartIns = ref<any>(null);
+let echartIns: EChartsType;
 
 function getBarLegendData() {
   return lineChartDataList?.length

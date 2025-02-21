@@ -1,33 +1,47 @@
-<!--
- * @Author: wanzp
- * @Date: 2023-06-06 09:00:47
- * @LastEditors: wanzp
- * @LastEditTime: 2023-06-20 15:05:17
- * @Description: Description
--->
 <template>
-  <div class="components common-container">
-    <div class="cc-item h360">
-      <YearRangePicker v-model="dates"></YearRangePicker>
-    </div>
+  <div class="components-little">
+    <h5>所有小组件</h5>
+    <a-row :gutter="20">
+      <a-col :span="12">
+        <a-card class="box-card">
+          <h5>二维码生成器</h5>
+          <ComponentQrCode></ComponentQrCode>
+        </a-card>
+      </a-col>
+      <a-col :span="12">
+        <a-card class="box-card">
+          <h5>自定义分页器</h5>
+          <ComponentPagination></ComponentPagination>
+        </a-card>
+      </a-col>
+      <a-col :span="12">
+        <a-card class="box-card">
+          <h5>拖拽布局</h5>
+          <ComponentDragLayout></ComponentDragLayout>
+        </a-card>
+      </a-col>
+    </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
-import YearRangePicker from './year-range-picker/year-range-picker.vue';
+import { ComponentQrCode, ComponentPagination, ComponentDragLayout } from './components';
 
-const dates = ref<Date[]>([new Date(2017, 1, 1), new Date()]);
+defineOptions({
+  name: 'ComponentsLittle',
+});
 </script>
 <style lang="less" scoped>
-.components {
+.components-little {
   width: 100%;
   height: 100%;
 
-  .cc-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  :deep(.ant-col) {
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    .ant-card {
+      height: 360px;
+    }
   }
 }
 </style>
