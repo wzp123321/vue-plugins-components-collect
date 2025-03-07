@@ -8,10 +8,14 @@ import './assets/css/common.less';
 import './assets/style/global.less';
 import './assets/test-color.js';
 
+import ElementPlus from 'element-plus';
+import 'element-plus/dist/index.css';
+
 import registerInputFilter from './directives/directive-filter';
 import { registerAntv } from './components/index';
 
 const app = createApp(App);
 registerAntv(app);
+app.use(ElementPlus);
 
 app.use(createPinia()).use(registerInputFilter).use(router).mount('#app');
