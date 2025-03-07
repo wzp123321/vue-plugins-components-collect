@@ -1,6 +1,6 @@
 <template>
-  <el-tree style="max-width: 600px" :data="props.data" v-bind="$attrs" @node-click="handleClick">
-    <template #default="{ node, data }">
+  <el-tree style="max-width: 600px" :data="props.data" v-bind="$attrs">
+    <template #default="{ data }">
       <div class="tree-node" @mouseenter="handleMouseEnter(data)">
         <span>{{ data.label }}</span>
         <span class="desc" v-if="data.desc">{{ data.desc }}</span>
@@ -9,18 +9,19 @@
   </el-tree>
 </template>
 
+<script lang="ts"></script>
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ data: any[] }>(), {
+interface Tree {
+  label: string;
+  id: string;
+  children?: Tree[];
+}
+const props = withDefaults(defineProps<{ data: Tree[] }>(), {
   data: () => [],
 });
-const emit = defineEmits(['mouseenter', 'node-click']);
-const handleMouseEnter = (data: any) => {
+const emit = defineEmits(['mouseenter']);
+const handleMouseEnter = (data: Tree) => {
   emit('mouseenter', data);
-};
-
-const handleClick = (data: any) => {
-  console.log(data);
-  emit('node-click', data);
 };
 </script>
 

@@ -12,11 +12,17 @@
           <AnimationRollParallax></AnimationRollParallax>
         </a-card>
       </a-col>
+      <a-col :span="12">
+        <a-card class="box-card">
+          <AnimationRecharge></AnimationRecharge>
+        </a-card>
+      </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { CountDown, AnimationRollParallax } from './components';
+import { CountDown, AnimationRollParallax, AnimationRecharge } from './components';
+
 defineOptions({
   name: 'Animations',
 });

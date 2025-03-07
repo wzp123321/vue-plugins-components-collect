@@ -1,4 +1,6 @@
 <template>
+  <el-button type="primary" @click="submit">确认</el-button>
+
   <div class="editor-container">
     <TreeCom class="editor-tree" :data="state.paramsData" @node-click="insertTag"></TreeCom>
     <div class="editor-content">
@@ -20,12 +22,18 @@
   </div>
 </template>
 
+<script lang="ts"></script>
 <script lang="ts" setup>
-import { nextTick, reactive } from 'vue';
+import { nextTick, reactive, onMounted } from 'vue';
 import TreeCom from './components/tree.vue';
 import DescCom from './components/desc.vue';
 import { useCodemirror, functionDescription } from '.';
-import { Tree } from '@/types/common';
+
+interface Tree {
+  label: string;
+  id: string;
+  children?: Tree[];
+}
 
 const state = reactive({
   visible: false,
@@ -64,12 +72,11 @@ const state = reactive({
   info: {},
 });
 
-const { code, view, editorRef, init, destroyed, insertText } = useCodemirror();
+const { view, editorRef, init, destroyed, insertText } = useCodemirror();
 /**
  * @description 插入标签
  */
 const insertTag = (data: Tree) => {
-  console.log(data);
   if (!data.children) {
     insertText(`${data.id}.${data.label}`);
   }
@@ -78,7 +85,6 @@ const insertTag = (data: Tree) => {
  * @description 插入函数
  */
 const insertFn = (data: Tree) => {
-  console.log(data);
   if (!data.children) {
     insertText(`${data.label}`, 'fn');
   }
@@ -92,26 +98,42 @@ const hoverFn = (data: Tree) => {
     state.info = info;
   }
 };
+
+const convertToObjects = (content: string) => {
+  // 使用正则表达式匹配并转换内容
+  const regex = /\[\[([0-9]+)\.([^\]]+)\]\]|([^\[\]]+)/g;
+  const result = [];
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    if (match[1] && match[2]) {
+      // 匹配到 ID 和参数名
+      result.push({ id: match[1], name: match[2] });
+    } else if (match[3]) {
+      // 匹配到其他文本
+      result.push({ text: match[3] });
+    }
+  }
+
+  console.log(result);
+};
 /**
  * @description 获取数据
  */
 const submit = () => {
   const data = view.value?.state.doc;
-  console.log(data);
+  convertToObjects(data);
+  console.log('获取数据', data);
 };
-const open = () => {
-  state.visible = true;
+
+onMounted(() => {
+  destroyed();
+});
+
+onMounted(() => {
   nextTick(() => {
     init();
   });
-};
-const close = () => {
-  destroyed();
-  state.visible = false;
-};
-
-defineExpose({
-  open,
 });
 </script>
 
