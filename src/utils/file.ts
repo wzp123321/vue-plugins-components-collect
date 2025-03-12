@@ -1,4 +1,5 @@
 import SparkMD5 from 'spark-md5';
+import html2canvas from 'html2canvas';
 
 /**
  * 响应结果
@@ -174,4 +175,28 @@ export const mapFileChunks = (file: File) => {
   }
 
   return chunks;
+};
+
+/**
+ * dom导出成图片
+ * @param {HTMLElement} element
+ * @param {string} name
+ * @param {number} width
+ */
+export const handleElementToImage = async (element: HTMLElement, name: string, width: number) => {
+  try {
+    // 使用 html2canvas 对临时容器进行截图
+    const canvas = await html2canvas(element, {
+      width,
+    });
+    const dataURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = name;
+    link.click();
+  } catch (error) {
+    console.error('导出图片失败:', error);
+  } finally {
+    document.body.removeChild(element);
+  }
 };
