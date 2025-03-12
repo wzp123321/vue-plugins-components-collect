@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { EChartsType, init, EChartsOption } from 'echarts';
 
 export const useECharts = () => {
-  let chartInstance: EChartsType;
+  let chartInstance: EChartsType | undefined;
   //  ref
   const chartRef = ref<HTMLElement>();
   /**
@@ -11,7 +11,7 @@ export const useECharts = () => {
   const initCharts = (options: EChartsOption) => {
     if (chartRef.value) {
       chartInstance = init(chartRef.value);
-      chartInstance.setOption(options);
+      chartInstance!.setOption(options);
     }
     return chartInstance;
   };
@@ -20,19 +20,21 @@ export const useECharts = () => {
    */
   const resize = () => {
     if (chartInstance) {
-      chartInstance.resize();
+      chartInstance!.resize();
     }
   };
   const addResize = () => {
-    window.addEventListener('resize', resize);
+    window.onresize = resize;
   };
   const removeResize = () => {
     window.removeEventListener('resize', resize);
   };
 
   return {
+    chartInstance,
     chartRef,
     initCharts,
+    resize,
     addResize,
     removeResize,
   };

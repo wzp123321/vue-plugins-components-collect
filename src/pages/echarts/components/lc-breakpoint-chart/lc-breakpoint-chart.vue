@@ -4,15 +4,13 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, computed,  } from 'vue';
+import { onMounted, computed } from 'vue';
 import { init } from 'echarts';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';
 
-const customChartId = computed(() => {
-  return 'charts_' + (Math.random() * 1000).toFixed(0);
-});
+const customChartId = computed(() => `charts_${(Math.random() * 1000).toFixed(0)}`);
 
 let echartIns: any;
 
@@ -79,11 +77,11 @@ function getEchartsOptions() {
                                 <span style="display:inline-block;padding-right:6px">${
                                   item.seriesName || '--'
                                 }：</span>${
-            Object.prototype.toString.call(item.value) !== '[object Null]' &&
-            Object.prototype.toString.call(item.value) !== '[object Undefined]'
-              ? thousandSeparation(item.value)
-              : '--'
-          }
+                                  Object.prototype.toString.call(item.value) !== '[object Null]' &&
+                                  Object.prototype.toString.call(item.value) !== '[object Undefined]'
+                                    ? thousandSeparation(item.value)
+                                    : '--'
+                                }
                                 <span style="display:inline-block">${
                                   Object.prototype.toString.call(item.value) !== '[object Null]' &&
                                   Object.prototype.toString.call(item.value) !== '[object Undefined]'

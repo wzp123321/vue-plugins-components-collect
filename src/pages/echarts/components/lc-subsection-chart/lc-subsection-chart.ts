@@ -9,12 +9,12 @@ import { defineComponent, onMounted } from 'vue';
 
 import AlarmChartService from './lc-subsection-chart-service';
 
+
 export default defineComponent({
   name: 'AlarmChart',
   props: {
     dataSource: {
       type: Object,
-      default: {},
     },
   },
   setup(props) {

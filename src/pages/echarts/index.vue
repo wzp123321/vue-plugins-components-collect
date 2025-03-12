@@ -1,30 +1,36 @@
 <template>
   <div class="echarts">
-    <h5>所有小组件</h5>
+    <h5>ECharts图表</h5>
     <a-row :gutter="20">
       <a-col :span="12">
         <a-card class="box-card">
-          <h5>二维码生成器</h5>
-          <ComponentQrCode></ComponentQrCode>
+          <h5>南丁格尔玫瑰图</h5>
+          <NightingaleCharts></NightingaleCharts>
         </a-card>
       </a-col>
       <a-col :span="12">
         <a-card class="box-card">
-          <h5>自定义分页器</h5>
-          <ComponentPagination></ComponentPagination>
+          <h5>折线区域图</h5>
+          <LcAreaChart></LcAreaChart>
         </a-card>
       </a-col>
       <a-col :span="12">
         <a-card class="box-card">
-          <h5>拖拽布局</h5>
-          <ComponentDragLayout></ComponentDragLayout>
+          <h5>折线断点图</h5>
+          <LcBreakPointChart></LcBreakPointChart>
+        </a-card>
+      </a-col>
+      <a-col :span="12">
+        <a-card class="box-card">
+          <h5>折线图</h5>
+          <LcSubsectionChart></LcSubsectionChart>
         </a-card>
       </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { ComponentQrCode, ComponentPagination, ComponentDragLayout } from './components';
+import { NightingaleCharts, LcAreaChart, LcBreakPointChart, LcSubsectionChart } from './components';
 
 defineOptions({
   name: 'ComponentsLittle',
@@ -39,8 +45,12 @@ defineOptions({
     padding-top: 10px;
     padding-bottom: 10px;
 
-    .ant-card {
+    .ant-card,
+    .ant-card-body {
       height: 360px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
   }
 }

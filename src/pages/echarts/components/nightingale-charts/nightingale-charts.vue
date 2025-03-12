@@ -1,61 +1,82 @@
 <template>
   <div class="nightingale-charts">
     <header class="nc-header">
-      <span>能耗玫瑰图</span>
-      <te-button :disabled="imgExporting" link @click="handleExportCombinedImage">
+      <a-button :disabled="imgExporting" link @click="handleExportCombinedImage">
+        导出图片
         <icon-export />
-      </te-button>
+      </a-button>
     </header>
     <section class="nc-body">
       <div class="nc-container">
         <div ref="chartRef"></div>
       </div>
-      <te-scrollbar
-        v-if="nightingaleChartsDataList.rightChildrenBarInfo?.length > 0"
-        class="nc-cards"
-        max-height="420px"
-      >
-        <div ref="cardsRef">
-          <nc-item-card
-            v-for="(item, index) in nightingaleChartsDataList.rightChildrenBarInfo"
-            :unit="nightingaleChartsDataList.unit"
-            :data="item"
-            :index="item.dataIndex"
-            :color="mapCardColor(Number(item.dataIndex))"
-            v-model:checkedCardId="checkedCardId"
-            @check="handleCheck"
-          ></nc-item-card>
+      <div class="nc-cards" ref="cardsRef">
+        <div
+          v-for="(item, index) in nightingaleChartsDataList.childrenBarInfo"
+          :key="index"
+          class="erm-item-card"
+          :style="{ background: mapBackground(item.treeId, index) }"
+          @click="handleCheck(item.treeId, item.treeName)"
+        >
+          <section class="eic-header">
+            <em :style="{ backgroundColor: mapCardColor(index) }"></em>
+            <span class="eic-header-name" :title="item.treeName ?? '-'">{{ item.treeName ?? '-' }}</span>
+          </section>
+          <section class="eic-content">
+            <div class="eic-content-data">
+              <span class="data-value" :title="item.valueSum !== null ? thousandSeparation(item.valueSum) : ''">
+                {{ item.valueSum !== null ? thousandSeparation(item.valueSum) : '-' }}
+              </span>
+              <span class="data-unit" v-if="item.valueSum !== null">kWh</span>
+            </div>
+            <div class="eic-content-data">
+              <span class="data-value" :title="item.percentSum !== null ? String(item.percentSum) : '-'">
+                {{ item.percentSum ?? '-' }}
+              </span>
+              <span class="data-unit" v-if="item.percentSum !== null">%</span>
+            </div>
+          </section>
         </div>
-      </te-scrollbar>
+      </div>
     </section>
   </div>
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { useECharts } from '@/hooks';
+import { useEChartsInit } from '@/hooks';
 import { IconExport } from '@arco-iconbox/vue-te';
-import { nightingaleChartsDataList } from './model';
+import { nightingaleChartsDataList, roseMinMaxRate } from '../model';
 import { EChartsOption, EChartsType } from 'echarts';
-import { handleElementToImage } from '@/utils';
 import { cloneDeep } from 'lodash';
+import { handleElementToImage } from '@/utils/file';
+import { cardLinearBackgroundColors, pieColors } from '@/config/echarts/newConstant';
+import { floatMultiply, thousandSeparation } from '@/utils';
+import { CommonObject } from '@/services/common.api';
 
 defineOptions({
   name: 'NightingaleCharts',
 });
 
-const { chartRef, initCharts, resize } = useECharts();
+const { chartRef, initCharts } = useEChartsInit();
+
+// 当前高亮卡片id
+const checkedCardId = ref<number | null>(null);
+let originName = '';
+let chartInstance: EChartsType | undefined;
+/**
+ * 卡片背景
+ */
+const mapBackground = (treeId: number | null, index?: number) =>
+  checkedCardId.value !== null && treeId !== null && checkedCardId.value === treeId
+    ? cardLinearBackgroundColors[(index as number) % cardLinearBackgroundColors.length]
+    : 'transparent';
 
 /**
  * 卡片颜色
  * @param {number} index
  */
-const mapCardColor = (index: number) => {
-  return pieColors[index % pieColors.length];
-};
+const mapCardColor = (index: number) => pieColors[index % pieColors.length];
 
-// 当前高亮卡片id
-const checkedCardId = ref<number | null>(null);
-let originName = '';
 /**
  * 卡片选中
  * @param {number | null} id
@@ -82,15 +103,17 @@ const handleCheck = (id: number | null, name: string) => {
 
 const mapChartOptions = (): EChartsOption => {
   // 拿到所有的value值
-  const values = nightingaleChartsDataList?.rightChildrenBarInfo
+  const values = nightingaleChartsDataList?.childrenBarInfo
     ?.map((item) => item.valueSum)
     ?.filter((item) => item !== null);
   // 最大值
-  const maxValue = values?.[0];
+  const maxValue = values?.[0] as number;
   // 临界值：最大值的roseMinMaxRate
   const criticalValue = maxValue !== null ? floatMultiply(maxValue, roseMinMaxRate) : 0;
 
-  const newColors = nightingaleChartsDataList?.rightChildrenBarInfo?.map((item) => pieColors?.[item.dataIndex]);
+  const newColors = nightingaleChartsDataList?.childrenBarInfo?.map(
+    (_, index) => pieColors?.[(index as number) % pieColors.length],
+  );
 
   return {
     color: newColors,
@@ -118,15 +141,13 @@ const mapChartOptions = (): EChartsOption => {
           show: false,
         },
         data:
-          (props?.stackChartInfo?.rightChildrenBarInfo?.map((item) => ({
+          (nightingaleChartsDataList?.childrenBarInfo?.map((item) => ({
             id: item?.treeId,
             name: item?.treeName,
             // 找到最小能看得见的一个临界值，比如最大值的十分之一，所有比这个临界值小的都赋值成这个临界值(0除外)
             value:
-              item?.valueSum !== null && criticalValue !== null
-                ? item.valueSum !== 0 && item.valueSum < criticalValue
-                  ? criticalValue
-                  : item.valueSum
+              item?.valueSum !== null && criticalValue !== null && item.valueSum !== 0 && item.valueSum < criticalValue
+                ? criticalValue
                 : item?.valueSum,
             // value: item?.valueSum !== null ? Math.pow(item?.valueSum, 0.099) : item?.valueSum,
             percentSum: item?.percentSum,
@@ -136,9 +157,7 @@ const mapChartOptions = (): EChartsOption => {
   };
 };
 
-let chartInstance: EChartsType | undefined = undefined;
 const cardsRef = ref<InstanceType<typeof HTMLElement>>();
-const dataRef = ref<InstanceType<typeof HTMLElement>>();
 // 导出图片中
 const imgExporting = ref(false);
 /**
@@ -146,17 +165,9 @@ const imgExporting = ref(false);
  */
 const handleExportCombinedImage = async () => {
   imgExporting.value = true;
-  if (chartRef.value && dataRef.value) {
+  if (chartRef.value && cardsRef.value) {
     const parentEle = document.querySelector('.nightingale-charts') as HTMLElement;
     const width = parentEle.clientWidth;
-    // 等待 ECharts 图表渲染完成
-    // await new Promise<void>((resolve) => {
-    //   chartInstance?.on('finished', () => {
-    //     resolve();
-    //   });
-    //   chartInstance?.dispatchAction({ type: 'refresh' });
-    // });
-    //
     // 创建临时容器
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
@@ -174,15 +185,13 @@ const handleExportCombinedImage = async () => {
     // 复制元素到临时容器
     const imageEle = document.createElement('img');
     imageEle.src = imgData;
-    imageEle.style.width = '192px';
+    imageEle.style.width = '378px';
     imageEle.style.height = 'auto';
-    const dataClone = dataRef.value.cloneNode(true) as HTMLElement;
 
     const imgContainer = document.createElement('div');
     // imgContainer.style.height = '192px';
     imgContainer.style.textAlign = 'center';
     imgContainer.appendChild(imageEle);
-    tempContainer.appendChild(dataClone);
     tempContainer.appendChild(imgContainer);
     if (cardsRef.value) {
       const cardsClone = cardsRef.value.cloneNode(true) as HTMLElement;
@@ -194,13 +203,7 @@ const handleExportCombinedImage = async () => {
     }
     // 将临时容器添加到文档中
     document.body.appendChild(tempContainer);
-    const { energyCodeName } = nightingaleChartsDataList;
-    const { startTime, endTime, timeUnit } = props.dateParams;
-    handleElementToImage(
-      tempContainer,
-      mapExportFileName(props.treeName, energyCodeName, startTime, endTime, timeUnit, '能耗玫瑰图'),
-      width,
-    );
+    handleElementToImage(tempContainer, '能耗玫瑰图', width);
     imgExporting.value = false;
   } else {
     imgExporting.value = false;
@@ -213,8 +216,7 @@ onMounted(() => {
   if (chartRef.value) {
     const option = mapChartOptions();
     chartInstance = initCharts(option);
-
-    chartInstance &&
+    if (chartInstance) {
       chartInstance.on('click', (params: CommonObject) => {
         if (params && params.componentType === 'series') {
           const id = params.data.id === checkedCardId.value ? null : params.data.id;
@@ -222,17 +224,18 @@ onMounted(() => {
           handleCheck(id, name);
         }
       });
-
-    handleChartResize(resize);
+    }
   }
 });
 </script>
 <style lang="less" scoped>
 .nightingale-charts {
   width: 100%;
+  flex: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--te-space-16);
+  gap: 16px;
+  overflow: hidden;
 
   > .nc-header {
     display: flex;
@@ -247,23 +250,96 @@ onMounted(() => {
     }
   }
 
-  > .nc-container {
-    width: 100%;
-    height: 192px;
+  > .nc-body {
+    display: flex;
+    flex: auto;
+    overflow: hidden;
 
-    > div:first-child,
-    canvas {
-      width: 100%;
+    > .nc-container {
+      flex: 1;
       height: 100%;
-    }
-  }
 
-  > .nc-cards :deep(.te-scrollbar__view) {
-    > div {
+      > div:first-child,
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    > .nc-cards {
+      flex: 1;
+      overflow-y: auto;
       width: 100%;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
+
+      .erm-item-card {
+        width: 100%;
+        height: 69px;
+        min-height: 69px;
+        padding: 8px 16px 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 9px;
+        cursor: pointer;
+
+        > .eic-header {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          line-height: 20px;
+          gap: var(--te-space-4);
+          overflow: hidden;
+
+          > em {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+          }
+
+          > span {
+            display: block;
+            flex: auto;
+            font-size: var(--te-font-size-b12);
+            color: var(--te-text-color-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        > .eic-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-left: 16px;
+          line-height: 24px;
+
+          > .eic-content-data {
+            display: flex;
+            align-items: center;
+            gap: var(--te-space-4);
+
+            > .data-value {
+              color: var(--te-text-color-primary);
+              font-size: var(--te-font-size-h16);
+              font-family: D-DIN;
+              font-weight: 700;
+              line-height: 16px;
+            }
+
+            > .data-unit {
+              color: var(--te-text-color-primary);
+              font-size: var(--te-font-size-b12);
+              font-weight: 400;
+              line-height: 20px;
+            }
+          }
+        }
+      }
     }
   }
 }

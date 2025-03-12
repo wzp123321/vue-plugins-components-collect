@@ -1,15 +1,4 @@
-/**
- * 堆叠图
- */
-export interface NightingaleChartsData {
-  unit: string;
-  energyCodeName: string;
-  treeEnergy: number | null;
-  balanceRate: number | null;
-  xaxisTimes: number[];
-  childrenBarInfo: NightingaleChartsChildrenBarInfo[];
-  rightChildrenBarInfo?: EsRightStackChildrenBarInfo[];
-}
+export const roseMinMaxRate = 1/20
 
 /**
  * 堆叠图子节点信息
@@ -21,16 +10,25 @@ export interface NightingaleChartsChildrenBarInfo {
   percentSum: number | null;
   valueList: (number | null)[];
   percentList: (number | null)[];
+  dataIndex?: number;
 }
+
+
 
 /**
- * 堆叠图子节点信息
+ * 堆叠图
  */
-export interface EsRightStackChildrenBarInfo extends NightingaleChartsChildrenBarInfo {
-  dataIndex: number;
+export interface NightingaleChartsData {
+  unit: string;
+  energyCodeName: string;
+  treeEnergy: number | null;
+  balanceRate: number | null;
+  xaxisTimes: number[];
+  childrenBarInfo: NightingaleChartsChildrenBarInfo[];
 }
 
-/*********************************常量*******************************/
+
+
 export const nightingaleChartsDataList: NightingaleChartsData = {
   unit: 'kWh',
   energyCodeName: '电',
@@ -75,7 +73,7 @@ export const nightingaleChartsDataList: NightingaleChartsData = {
     {
       treeId: 1859027518582797,
       treeName: '本溪院区',
-      valueSum: 98633.87,
+      valueSum: 93.87,
       percentSum: 15.0,
       valueList: [
         6662.35, 7478.62, 4914.27, 7457.63, 6294.63, 6427.35, 6948.53, 7703.23, 7004.79, 6824.86, 6582.58, 4819.82,

@@ -33,23 +33,25 @@ const alarmVO = {
 };
 
 class AlarmChartService<T> {
-  //#region
   private _is_init = ref<boolean>(false);
+
   private _dataSource = ref<T>();
+
   private _customChartId = ref<string>('');
+
   private echartsInstance?: EChartsType;
-  //#endregion
-  //#region
+
   public get customChartId(): string {
     return this._customChartId.value;
   }
+
   constructor(params: T) {
     this._customChartId.value = `charts_${(Math.random() * 10000).toFixed(0)}`;
     this._is_init.value = true;
     this._dataSource.value = params;
   }
-  //#region 初始化
-  initChart() {
+
+  public initChart = () => {
     if (!this._is_init.value) {
       console.warn('请先初始化服务！');
       return;
@@ -62,74 +64,8 @@ class AlarmChartService<T> {
     this.echartsInstance = init(containerEle);
     const options = this.getEchartsOptions();
     this.echartsInstance.setOption(options);
-  }
-  //#endregion
-  //#region 获取echarts配置
-  getEchartsOptions(): EChartsOption {
-    const unit = 'kWh';
-    return {
-      title: {
-        text: `单位（${unit}）`,
-        textStyle: {
-          color: TEXT_SECOND_PRIMARY_COLOR,
-          fontSize: 14,
-        },
-        top: 20,
-        left: 10,
-      },
-      tooltip: this.getTooltip(),
-      grid: {
-        left: '2%',
-        right: '2%',
-        bottom: '3%',
-        containLabel: true,
-      },
-      xAxis: this.getXaxis(),
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: (params: number) => {
-            return params === alarmVO.thresholdValue ? '' : params + '';
-          },
-          color: TEXT_PRIMARY_COLOR,
-        },
-        axisTick: {
-          show: true,
-          lineStyle: {
-            color: XIAS_LINE_COLOR, // 轴线颜色
-          },
-        },
-        axisLine: {
-          show: true,
-          lineStyle: {
-            color: XIAS_LINE_COLOR, // 轴线颜色
-          },
-        },
-        splitLine: {
-          show: false,
-        },
-      },
-      visualMap: {
-        show: false,
-        // 根据值来显示不同颜色
-        pieces: [
-          {
-            gt: 0,
-            lte: alarmVO.thresholdValue,
-            color: NORMAL_COLOR,
-          },
-          {
-            gt: alarmVO.thresholdValue,
-            color: DANGER_COLOR,
-          },
-        ],
-        seriesIndex: 0,
-      },
-      series: this.getSeries(),
-    };
-  }
-  //#endregion
-  //#region tooltip
+  };
+
   getTooltip(): EChartsOption['tooltip'] {
     return {
       trigger: 'axis',
@@ -179,8 +115,7 @@ class AlarmChartService<T> {
       },
     };
   }
-  //#endregion
-  //#region xaxis
+
   getXaxis(): XAXisComponentOption {
     return {
       type: 'category',
@@ -199,8 +134,65 @@ class AlarmChartService<T> {
       },
     };
   }
-  //#endregion
-  //#region series
+
+  getMarkPoint(): MarkPointComponentOption {
+    const data = [];
+    if (
+      Object.prototype.toString.call(alarmVO?.outOfLimitValue) !== '[object Null]' &&
+      Object.prototype.toString.call(alarmVO?.outOfLimitValue) !== '[object Undefined]' &&
+      alarmVO?.data?.length
+    ) {
+      let xAxis = '';
+      alarmVO.data.forEach((item, index) => {
+        if (item === alarmVO.outOfLimitValue) {
+          xAxis = `${alarmVO.xaxis[index]}`;
+        }
+      });
+      data.push({
+        xAxis,
+        yAxis: alarmVO.outOfLimitValue,
+        name: '越限值',
+        value: '越限值',
+        itemStyle: {
+          borderWidth: 0,
+        },
+        label: {
+          color: TEXT_PRIMARY_COLOR,
+          position: [16, -6],
+        },
+      });
+    }
+    if (
+      Object.prototype.toString.call(alarmVO?.peakValue) !== '[object Null]' &&
+      Object.prototype.toString.call(alarmVO?.peakValue) !== '[object Undefined]' &&
+      alarmVO?.data?.length
+    ) {
+      let xAxis = '';
+      alarmVO.data.forEach((item, index) => {
+        if (item === alarmVO.peakValue) {
+          xAxis = `${alarmVO.xaxis[index]}`;
+        }
+      });
+      data.push({
+        xAxis,
+        yAxis: alarmVO.peakValue,
+        value: '峰值点',
+        name: '峰值点',
+        itemStyle: {
+          borderWidth: 0,
+        },
+        label: {
+          color: TEXT_PRIMARY_COLOR,
+          position: [12, -10],
+        },
+      });
+    }
+    return {
+      symbolSize: 0, // 容器大小
+      data,
+    };
+  }
+
   getSeries(): EChartsOption['series'] {
     return [
       {
@@ -248,120 +240,58 @@ class AlarmChartService<T> {
       },
     ];
   }
-  //#endregion
-  //#region markpoint
-  getMarkPoint(): MarkPointComponentOption {
-    const data = [];
-    if (
-      Object.prototype.toString.call(alarmVO?.outOfLimitValue) !== '[object Null]' &&
-      Object.prototype.toString.call(alarmVO?.outOfLimitValue) !== '[object Undefined]' &&
-      alarmVO?.data?.length
-    ) {
-      let xAxis = '';
-      alarmVO.data.forEach((item, index) => {
-        if (item === alarmVO.outOfLimitValue) {
-          xAxis = alarmVO.xaxis[index] + '';
-        }
-      });
-      data.push({
-        xAxis,
-        yAxis: alarmVO.outOfLimitValue,
-        name: '越限值',
-        value: '越限值',
-        itemStyle: {
-          borderWidth: 0,
+
+  getsymbolStyle = (color: string, shodowColor: string): any => ({
+    color: {
+      type: 'radial',
+      x: 0.5,
+      y: 0.5,
+      r: 0.5,
+      colorStops: [
+        {
+          offset: 0,
+          color,
         },
-        label: {
-          color: TEXT_PRIMARY_COLOR,
-          position: [16, -6],
+        {
+          offset: 0.2,
+          color,
         },
-      });
-    }
-    if (
-      Object.prototype.toString.call(alarmVO?.peakValue) !== '[object Null]' &&
-      Object.prototype.toString.call(alarmVO?.peakValue) !== '[object Undefined]' &&
-      alarmVO?.data?.length
-    ) {
-      let xAxis = '';
-      alarmVO.data.forEach((item, index) => {
-        if (item === alarmVO.peakValue) {
-          xAxis = alarmVO.xaxis[index] + '';
-        }
-      });
-      data.push({
-        xAxis,
-        yAxis: alarmVO.peakValue,
-        value: '峰值点',
-        name: '峰值点',
-        itemStyle: {
-          borderWidth: 0,
+        {
+          offset: 0.3,
+          color,
         },
-        label: {
-          color: TEXT_PRIMARY_COLOR,
-          position: [12, -10],
+        {
+          offset: 0.4,
+          color,
         },
-      });
-    }
-    return {
-      symbolSize: 0, // 容器大小
-      data,
-    };
-  }
-  //#region 获取symbolStyle
-  getsymbolStyle(color: string, shodowColor: string): any {
-    return {
-      color: {
-        type: 'radial',
-        x: 0.5,
-        y: 0.5,
-        r: 0.5,
-        colorStops: [
-          {
-            offset: 0,
-            color,
-          },
-          {
-            offset: 0.2,
-            color,
-          },
-          {
-            offset: 0.3,
-            color,
-          },
-          {
-            offset: 0.4,
-            color,
-          },
-          {
-            offset: 0.5,
-            color,
-          },
-          {
-            offset: 0.6,
-            color: shodowColor,
-          },
-          {
-            offset: 0.7,
-            color: shodowColor,
-          },
-          {
-            offset: 0.8,
-            color: shodowColor,
-          },
-          {
-            offset: 0.9,
-            color: shodowColor,
-          },
-          {
-            offset: 1,
-            color: shodowColor,
-          },
-        ],
-      },
-    };
-  }
-  //#endregion
-  //#region 判断是否展示点
+        {
+          offset: 0.5,
+          color,
+        },
+        {
+          offset: 0.6,
+          color: shodowColor,
+        },
+        {
+          offset: 0.7,
+          color: shodowColor,
+        },
+        {
+          offset: 0.8,
+          color: shodowColor,
+        },
+        {
+          offset: 0.9,
+          color: shodowColor,
+        },
+        {
+          offset: 1,
+          color: shodowColor,
+        },
+      ],
+    },
+  });
+
   getDataIsShowDot(data: string[] | number[]) {
     if (data && data.length && data.length > 0) {
       let arrItem = {};
@@ -463,11 +393,71 @@ class AlarmChartService<T> {
         }
       });
       return arrData;
-    } else {
-      return data;
     }
+    return data;
   }
-  //#endregion
+
+  getEchartsOptions(): EChartsOption {
+    const unit = 'kWh';
+    return {
+      title: {
+        text: `单位（${unit}）`,
+        textStyle: {
+          color: TEXT_SECOND_PRIMARY_COLOR,
+          fontSize: 14,
+        },
+        top: 20,
+        left: 10,
+      },
+      tooltip: this.getTooltip(),
+      grid: {
+        left: '2%',
+        right: '2%',
+        bottom: '3%',
+        containLabel: true,
+      },
+      xAxis: this.getXaxis(),
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: (params: number) => (params === alarmVO.thresholdValue ? '' : `${params}`),
+          color: TEXT_PRIMARY_COLOR,
+        },
+        axisTick: {
+          show: true,
+          lineStyle: {
+            color: XIAS_LINE_COLOR, // 轴线颜色
+          },
+        },
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: XIAS_LINE_COLOR, // 轴线颜色
+          },
+        },
+        splitLine: {
+          show: false,
+        },
+      },
+      visualMap: {
+        show: false,
+        // 根据值来显示不同颜色
+        pieces: [
+          {
+            gt: 0,
+            lte: alarmVO.thresholdValue,
+            color: NORMAL_COLOR,
+          },
+          {
+            gt: alarmVO.thresholdValue,
+            color: DANGER_COLOR,
+          },
+        ],
+        seriesIndex: 0,
+      },
+      series: this.getSeries(),
+    };
+  }
 }
 
 export default AlarmChartService;

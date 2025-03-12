@@ -2,6 +2,13 @@ import { RouteRecordRaw } from 'vue-router';
 
 const components: RouteRecordRaw[] = [
   {
+    path: '/echarts',
+    meta: {
+      name: 'eChart集合',
+    },
+    component: () => import('../../pages/echarts/index.vue'),
+  },
+  {
     path: '/echarts-map',
     meta: {
       name: '大屏-地球',
@@ -21,13 +28,6 @@ const components: RouteRecordRaw[] = [
       name: '省份',
     },
     component: () => import('../../pages/echarts/chart-province/chart-province.vue'),
-  },
-  {
-    path: '/echarts-line',
-    meta: {
-      name: '折线图',
-    },
-    component: () => import('../../pages/echarts/line-charts/line-charts.vue'),
   },
   {
     path: '/echarts-water-ball',
