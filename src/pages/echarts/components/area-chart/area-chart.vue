@@ -1,5 +1,5 @@
 <template>
-  <div class="lc-area-chart" id="lc-area-chart">
+  <div class="area-chart" id="area-chart">
     <div :id="customChartId"></div>
   </div>
 </template>
@@ -115,7 +115,7 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#lc-area-chart {
+#area-chart {
   width: 100%;
   height: 100%;
   > div,

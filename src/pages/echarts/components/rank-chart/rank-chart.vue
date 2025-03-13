@@ -1,5 +1,5 @@
 <template>
-  <div id="bc-rank-chart" class="bc-rank-chart">
+  <div id="rank-chart" class="rank-chart">
     <div :id="customChartId" class="echarts-container"></div>
     <p v-show="yaxisShowFlag && yaxisText" :style="{ ...yPosition }">
       {{ yaxisText }}
@@ -76,7 +76,7 @@ function getYData() {
 function getSeriesData() {
   return lineChartDataList.map((item, index) => {
     const { name, value } = item;
-    const dataArr = setArray(index + 1);
+    const dataArr: any = setArray(index + 1);
     dataArr.pop();
     dataArr.push({
       value,
@@ -96,7 +96,7 @@ function getSeriesData() {
  * 获取后缀
  */
 function setArray(index: number = 1) {
-  const suffixes = [];
+  const suffixes: any = [];
   for (let idx = 0; idx < index; idx++) {
     suffixes.push({
       value: 0,
@@ -206,7 +206,7 @@ onUnmounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#bc-rank-chart {
+#rank-chart {
   position: relative;
   width: 100%;
   height: 100%;
@@ -215,7 +215,9 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
 
-    * {
+    > div,
+    > div > div,
+    canvas {
       width: 100%;
       height: 100%;
     }

@@ -1,5 +1,7 @@
-import { format } from 'echarts';
-import { CommonObject } from '../../services/common.api';
+import { EChartsType, format } from 'echarts';
+import { CommonObject, CommonTimeUnit } from '../../services/common.api';
+import { format as DateFnsFormat } from 'date-fns';
+
 /**
  * echarts工具函数模块
  */
@@ -265,6 +267,74 @@ export const formatter = (value: string) => {
     value = `${(Number(value) / 1000000).toFixed(0)}M`;
   }
   return value;
+};
+
+/**
+ * eCharts图表导出成图片
+ * @param {EChartsType} myChart
+ * @param {string} name
+ */
+export const handleChartToImage = (myChart: EChartsType, name: string) => {
+  // 获取图表的图片数据 URL
+  const imgData = myChart.getDataURL({
+    type: 'png', // 图片类型，支持 'png' 和 'jpeg'
+    pixelRatio: 2, // 分辨率比例，默认为 1
+    backgroundColor: '#fff', // 背景颜色，默认为图表背景色
+  });
+
+  // 创建一个链接元素用于下载
+  const link = document.createElement('a');
+  link.download = name; // 设置下载的文件名
+  link.href = imgData;
+  document.body.appendChild(link);
+  link.click(); // 触发下载
+  document.body.removeChild(link); // 下载后移除元素
+};
+
+/**
+ * 重置name 为name后面添加后缀避免出现同样的name
+ * @param count 次数
+ * @param name
+ * @returns
+ */
+export const resetLegendName = (count: number, name: string) => {
+  let resetName = name;
+  for (let i = 0; i < count; i++) {
+    resetName += '\uFEFF';
+  }
+  return resetName;
+};
+
+/**
+ * 处理x轴时间戳
+ * @param param timeStamp 时间戳
+ * @param param timeUnit 时间颗粒 （0 10分钟 1小时  2天  3月  4年）
+ */
+export const resetXAxisTime = (timeStamp: number, timeUnit: any) => {
+  let data = '';
+  const date = new Date(timeStamp);
+  if (timeUnit) {
+    switch (timeUnit) {
+      case CommonTimeUnit.MINUTES:
+        data = DateFnsFormat(date, 'HH:mm') === '00:00' ? DateFnsFormat(date, 'M.d') : DateFnsFormat(date, 'HH:mm');
+        break;
+      case CommonTimeUnit.HOUR:
+        data = DateFnsFormat(date, 'HH:mm') === '00:00' ? DateFnsFormat(date, 'M.d') : DateFnsFormat(date, 'HH:mm');
+        break;
+      case CommonTimeUnit.DAY:
+        data = DateFnsFormat(date, 'M.d');
+        break;
+      case CommonTimeUnit.MONTH:
+        data = DateFnsFormat(date, 'yyyy.M');
+        break;
+      case CommonTimeUnit.YEAR:
+        data = DateFnsFormat(date, 'yyyy');
+        break;
+      case 'default':
+        break;
+    }
+  }
+  return data;
 };
 
 export default echartsUtils;

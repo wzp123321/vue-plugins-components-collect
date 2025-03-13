@@ -7,8 +7,7 @@
  */
 import { defineComponent, onMounted } from 'vue';
 
-import AlarmChartService from './lc-subsection-chart-service';
-
+import AlarmChartService from './subsection-chart-service';
 
 export default defineComponent({
   name: 'AlarmChart',

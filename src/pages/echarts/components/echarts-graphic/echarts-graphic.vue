@@ -7,8 +7,7 @@
 import { computed, onMounted } from 'vue';
 import { EChartsOption, init } from 'echarts';
 
-const imgUrl = new URL('../../../assets/images/echarts/v2-147b681f501c12a4ac4da7ed3c5e3b16_b.png', import.meta.url)
-  .href;
+const imgUrl = new URL('@/assets/images/echarts/v2-147b681f501c12a4ac4da7ed3c5e3b16_b.png', import.meta.url).href;
 
 const customChartId = computed(() => {
   return `charts_${(Math.random() * 100000000).toFixed(0)}`;
@@ -158,9 +157,11 @@ const handleGroupClick = (e: any) => {
 
   .eg-charts-container {
     width: 100%;
-    height: 400px;
+    height: 100%;
 
-    * {
+    > div,
+    > div > div,
+    canvas {
       width: 100%;
       height: 100%;
     }

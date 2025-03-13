@@ -1,5 +1,5 @@
 <template>
-  <div id="lc-breakpoint-chart" class="lc-breakpoint-chart">
+  <div id="breakpoint-chart" class="breakpoint-chart">
     <div :id="customChartId" class="echarts-container"></div>
   </div>
 </template>
@@ -182,7 +182,7 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-.lc-breakpoint-chart {
+.breakpoint-chart {
   width: 100%;
   height: 100%;
 

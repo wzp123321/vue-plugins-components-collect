@@ -36,3 +36,14 @@ export interface CommonListOrdersType {
   asc: boolean;
   column: string;
 }
+
+/**
+ * 时间颗粒度
+ */
+export enum CommonTimeUnit {
+  MINUTES = '10m', // 十分钟
+  HOUR = '1h', // 1小时
+  DAY = '1d', // 天
+  MONTH = '1M', // 月
+  YEAR = '1y',
+}

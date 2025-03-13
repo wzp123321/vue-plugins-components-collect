@@ -1,4 +1,17 @@
-export const roseMinMaxRate = 1/20
+import {
+  NightingaleCharts,
+  AreaChart,
+  BreakPointChart,
+  SubsectionChart,
+  WaterBallChart,
+  MultistageChart,
+  RankChart,
+  PmChart,
+  EchartsGraphic,
+  StackBar,
+} from './index';
+
+export const roseMinMaxRate = 1 / 20;
 
 /**
  * 堆叠图子节点信息
@@ -13,8 +26,6 @@ export interface NightingaleChartsChildrenBarInfo {
   dataIndex?: number;
 }
 
-
-
 /**
  * 堆叠图
  */
@@ -26,8 +37,6 @@ export interface NightingaleChartsData {
   xaxisTimes: number[];
   childrenBarInfo: NightingaleChartsChildrenBarInfo[];
 }
-
-
 
 export const nightingaleChartsDataList: NightingaleChartsData = {
   unit: 'kWh',
@@ -118,3 +127,46 @@ export const nightingaleChartsDataList: NightingaleChartsData = {
     },
   ],
 };
+
+export const customComponents: { description: string; component: any }[] = [
+  {
+    description: '南丁格尔玫瑰图',
+    component: NightingaleCharts,
+  },
+  {
+    description: '堆叠图',
+    component: StackBar,
+  },
+  {
+    description: '折线区域图',
+    component: AreaChart,
+  },
+  {
+    description: '折线断点图',
+    component: BreakPointChart,
+  },
+  {
+    description: '折线打点图',
+    component: SubsectionChart,
+  },
+  {
+    description: '水球',
+    component: WaterBallChart,
+  },
+  {
+    description: '柱状图悬浮展示y轴文本',
+    component: RankChart,
+  },
+  {
+    description: '柱状堆叠图',
+    component: MultistageChart,
+  },
+  {
+    description: '柱状横向图',
+    component: PmChart,
+  },
+  {
+    description: '自定义水印',
+    component: EchartsGraphic,
+  },
+];

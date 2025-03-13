@@ -1,14 +1,10 @@
 <template>
-  <div class="bc-multistage-chart" id="bc-multistage-chart">
+  <div class="multistage-chart" id="multistage-chart">
     <div :id="chartId"></div>
   </div>
 </template>
 <script lang="ts" setup>
-import {
-  init,
-  EChartsType,
-  EChartsOption,
-} from 'echarts';
+import { init, EChartsType, EChartsOption } from 'echarts';
 import { computed, onMounted } from 'vue';
 
 let chartInstance: EChartsType;
@@ -32,11 +28,11 @@ function initChart() {
   chartInstance.setOption(options);
 }
 function getChartOptions(): EChartsOption {
-  let xAxisData = [];
-  let data1 = [];
-  let data2 = [];
-  let data3 = [];
-  let data4 = [];
+  let xAxisData: string[] = [];
+  let data1: number[] = [];
+  let data2: number[] = [];
+  let data3: number[] = [];
+  let data4: number[] = [];
   for (let i = 0; i < 10; i++) {
     xAxisData.push('Class' + i);
     data1.push(+(Math.random() * 2).toFixed(2));
@@ -109,11 +105,13 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#bc-multistage-chart {
+#multistage-chart {
   width: 100%;
   height: 100%;
 
-  * {
+  > div,
+  > div > div,
+  canvas {
     width: 100%;
     height: 100%;
   }

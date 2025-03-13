@@ -1,5 +1,5 @@
 <template>
-  <div class="bc-pm-chart" id="bc-pm-chart">
+  <div class="pm-chart" id="pm-chart">
     <div :id="chartId"></div>
   </div>
 </template>
@@ -105,11 +105,13 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-#bc-pm-chart {
+#pm-chart {
   width: 100%;
   height: 100%;
 
-  * {
+  > div,
+  > div > div,
+  canvas {
     width: 100%;
     height: 100%;
   }

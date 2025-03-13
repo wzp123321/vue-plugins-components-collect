@@ -1,6 +1,7 @@
 import { CommonObject } from '@/services/common.api';
 import echartsConstant from './constant';
 import { formatter } from '@/config/echarts/utils';
+import { newEChartsConstant } from './newConstant';
 
 /**
  * 通用配置
@@ -173,6 +174,98 @@ const echartsOption: CommonObject = {
     textStyle: {
       fontSize: 14,
       color: CHARTS_AXIS_TEXT_COLOR,
+    },
+  },
+};
+
+// 配置
+/**
+ * 通用echart图表配置
+ */
+export const commonEChartOption: { [key: string]: any } = {
+  // line category axis
+  LINE_CHART_CATEGORY_AXIS_OPTION: {
+    type: 'category',
+    nameTextStyle: {
+      color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      fontSize: 14,
+      padding: [46, 0, 0, 0],
+    },
+    axisLine: {
+      lineStyle: {
+        color: newEChartsConstant.CHARTS_AXIS_LINE_COLOR,
+      },
+    },
+    // 轴文本
+    axisLabel: {
+      color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      margin: 16,
+      fontSize: 14,
+    },
+    // 刻度
+    axisTick: {
+      show: false,
+    },
+    // 分割线
+    splitLine: {
+      lineStyle: {
+        color: newEChartsConstant.CHARTS_SPLIT_LINE_COLOR,
+      },
+    },
+  },
+  // echarts value axis
+  LINE_CHART_VALUE_AXIS_OPTION: {
+    type: 'value',
+    offset: 0,
+    axisLine: {
+      show: true,
+      lineStyle: {
+        color: newEChartsConstant.CHARTS_AXIS_LINE_COLOR,
+      },
+    },
+    axisTick: {
+      lineStyle: {
+        color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      },
+      length: 2,
+    },
+    axisLabel: {
+      color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      fontSize: newEChartsConstant.CHARTS_FONT_SIZE_14,
+      lineHeight: 22,
+      formatter,
+    },
+    splitLine: {
+      show: true,
+    },
+    boundaryGap: [0, 0.01],
+  },
+  Y_AXIS_OPTION: {
+    type: 'value',
+    nameTextStyle: {
+      color: newEChartsConstant.CHARTS_AXIS_TEXT_SHADOW_COLOR,
+    },
+    offset: 0,
+    axisLine: {
+      show: false,
+    },
+    axisTick: {
+      lineStyle: {
+        color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      },
+      length: 2,
+    },
+    axisLabel: {
+      color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+      fontSize: 14,
+      lineHeight: 22,
+    },
+    splitLine: {
+      show: true,
+      lineStyle: {
+        color: 'rgba(0, 0, 0, 0.15)',
+        type: 'dashed',
+      },
     },
   },
 };

@@ -16,7 +16,7 @@
           :key="index"
           class="erm-item-card"
           :style="{ background: mapBackground(item.treeId, index) }"
-          @click="handleCheck(item.treeId, item.treeName)"
+          @click="handleCheck(item.treeId, item.treeName, index)"
         >
           <section class="eic-header">
             <em :style="{ backgroundColor: mapCardColor(index) }"></em>
@@ -43,6 +43,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
+import useChartStore from '@/store/modules/chart';
 import { useEChartsInit } from '@/hooks';
 import { IconExport } from '@arco-iconbox/vue-te';
 import { nightingaleChartsDataList, roseMinMaxRate } from '../model';
@@ -58,7 +59,7 @@ defineOptions({
 });
 
 const { chartRef, initCharts } = useEChartsInit();
-
+const chartStore = useChartStore();
 // 当前高亮卡片id
 const checkedCardId = ref<number | null>(null);
 let originName = '';
@@ -81,8 +82,10 @@ const mapCardColor = (index: number) => pieColors[index % pieColors.length];
  * 卡片选中
  * @param {number | null} id
  * @param {string} name
+ * @param {number} index
  */
-const handleCheck = (id: number | null, name: string) => {
+const handleCheck = (id: number | null, name: string, index: number) => {
+  chartStore.setSelectedCardDataIndex(index);
   if (chartInstance) {
     if (originName) {
       chartInstance.dispatchAction({
@@ -141,7 +144,7 @@ const mapChartOptions = (): EChartsOption => {
           show: false,
         },
         data:
-          (nightingaleChartsDataList?.childrenBarInfo?.map((item) => ({
+          (nightingaleChartsDataList?.childrenBarInfo?.map((item, index) => ({
             id: item?.treeId,
             name: item?.treeName,
             // 找到最小能看得见的一个临界值，比如最大值的十分之一，所有比这个临界值小的都赋值成这个临界值(0除外)
@@ -151,6 +154,7 @@ const mapChartOptions = (): EChartsOption => {
                 : item?.valueSum,
             // value: item?.valueSum !== null ? Math.pow(item?.valueSum, 0.099) : item?.valueSum,
             percentSum: item?.percentSum,
+            dataIndex: index,
           })) as any) ?? [],
       },
     ],
@@ -221,7 +225,8 @@ onMounted(() => {
         if (params && params.componentType === 'series') {
           const id = params.data.id === checkedCardId.value ? null : params.data.id;
           const name = params.data.name;
-          handleCheck(id, name);
+          const dataIndex = params.data.dataIndex;
+          handleCheck(id, name, dataIndex);
         }
       });
     }
