@@ -161,7 +161,7 @@ const getMapChartOptions = (mapName: string, mapData: any): EChartsOption => {
 
 // 历史下钻节点
 const drillCodes = ref<string[]>([]);
-let chartInstance: EChartsType;
+let chartInstance: EChartsType | undefined = undefined;
 /**
  * 初始化
  */
@@ -204,8 +204,10 @@ const initMap = async () => {
       initMap();
     }
   };
-  chartInstance.off('click', handleClick);
-  chartInstance.on('click', handleClick);
+  if (chartInstance) {
+    chartInstance.off('click', handleClick);
+    chartInstance.on('click', handleClick);
+  }
 };
 
 const back = () => {

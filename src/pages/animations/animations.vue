@@ -2,26 +2,17 @@
   <div class="animations-little">
     <h5>动画大全</h5>
     <a-row :gutter="20">
-      <a-col :span="12">
+      <a-col v-for="item in customComponents" :span="12">
         <a-card class="box-card">
-          <CountDown></CountDown>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card class="box-card">
-          <AnimationRollParallax></AnimationRollParallax>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card class="box-card">
-          <AnimationRecharge></AnimationRecharge>
+          <h5>{{ item.description }}</h5>
+          <component :is="item.component"></component>
         </a-card>
       </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { CountDown, AnimationRollParallax, AnimationRecharge } from './components';
+import { customComponents } from './components/model';
 
 defineOptions({
   name: 'Animations',

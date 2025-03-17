@@ -121,7 +121,7 @@ const convertToObjects = (content: string) => {
  * @description 获取数据
  */
 const submit = () => {
-  const data = view.value?.state.doc;
+  const data: any = view.value?.state.doc;
   convertToObjects(data);
   console.log('获取数据', data);
 };

@@ -27,8 +27,6 @@ defineOptions({
   name: 'EsStackChart',
 });
 
-const emit = defineEmits(['dataZoom']);
-
 const { chartRef, initCharts } = useEChartsInit();
 // x轴
 const mapXAxis = () => {
@@ -211,10 +209,6 @@ onMounted(() => {
   if (chartRef.value) {
     chartInstance = initCharts(mapChartOptions());
     if (chartInstance) {
-      // chartInstance.off('dataZoom');
-      // chartInstance.on('dataZoom', function (event: any) {
-      //   emit('dataZoom', event, 'line');
-      // });
       chartInstance.off('globalout');
       chartInstance.on('globalout', function () {
         setTimeout(() => {
