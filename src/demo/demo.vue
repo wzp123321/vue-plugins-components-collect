@@ -1,174 +1,197 @@
 <template>
-  <el-button type="primary" @click="submit">确认</el-button>
-
-  <div class="editor-container">
-    <TreeCom class="editor-tree" :data="state.paramsData" @node-click="insertTag"></TreeCom>
-    <div class="editor-content">
-      <div class="editor-main" ref="editorRef"></div>
-      <div class="fn">
-        <div class="fn-list">
-          <TreeCom
-            :default-expand-all="true"
-            :data="state.fnData"
-            @node-click="insertFn"
-            @mouseenter="hoverFn"
-          ></TreeCom>
-        </div>
-        <div class="fn-desc">
-          <DescCom v-bind="state.info"></DescCom>
-        </div>
-      </div>
+  <div>
+    <div class="top-buttons">
+      <div>工具栏：</div>
+      <el-button v-for="item in buttonList" type="primary" @click="getValue(item.value)">{{ item.label }}</el-button>
     </div>
+    <div ref="textRef" id="editor" :contenteditable="true" @blur="onBlur"></div>
+    <button @click="getSpan({ label: '商品价格', value: '[V2]' })">商品价格</button>
+    <button @click="getSpan({ label: '商品数量', value: '[V1]' })">商品数量</button>
+    <button @click="getTextAndParams">获取公式</button>
   </div>
 </template>
 
-<script lang="ts"></script>
 <script lang="ts" setup>
-import { nextTick, reactive, onMounted } from 'vue';
-import TreeCom from './components/tree.vue';
-import DescCom from './components/desc.vue';
-import { useCodemirror, functionDescription } from '.';
+import { ref, shallowRef, onMounted } from 'vue';
 
-interface Tree {
-  label: string;
-  id: string;
-  children?: Tree[];
-}
-
-const state = reactive({
-  visible: false,
-  paramsData: [
-    {
-      label: '参数1',
-      id: '1',
-    },
-    {
-      label: '参数2',
-      id: '2',
-    },
-    {
-      label: '参数3',
-      id: '3',
-    },
-  ],
-  fnData: [
-    {
-      label: '常用函数',
-      id: '1',
-      children: [
-        {
-          label: 'SUM',
-          desc: '求和',
-          id: '1-1',
-        },
-        {
-          label: 'IF',
-          desc: '条件判断',
-          id: '1-2',
-        },
-      ],
-    },
-  ],
-  info: {},
+const textRef = ref(null);
+const selection = shallowRef(null);
+const range = shallowRef(null);
+const props = defineProps({
+  isEdit: {
+    type: Boolean,
+    default: false,
+  },
+  textValue: {
+    type: String,
+    default: '',
+  },
 });
-
-const { view, editorRef, init, destroyed, insertText } = useCodemirror();
+const buttonList = [
+  { label: '+', value: '+' },
+  { label: '-', value: '-' },
+  { label: '×', value: '*' },
+  { label: '÷', value: '/' },
+  { label: '<', value: '<' },
+  { label: '>', value: '>' },
+  { label: '>=', value: '>=' },
+  { label: '<=', value: '<=' },
+  { label: '=', value: '=' },
+  { label: '()', value: '()' },
+  { label: '%', value: '%' },
+  { label: '与', value: '&' },
+  { label: '或', value: '|' },
+];
+const dataList = [
+  { label: '商品价格', value: 'price' },
+  { label: '商品数量', value: 'num' },
+];
 /**
- * @description 插入标签
+ * 失焦后重置光标位置，这里不重置位置，会造成bug，例如点击生成的span光标消失，再次点击生成span的按钮，会在最后光标停留的span标签里面再插入span，就会造成bug
  */
-const insertTag = (data: Tree) => {
-  if (!data.children) {
-    insertText(`${data.id}.${data.label}`);
+const onBlur = () => {
+  selection.value = window.getSelection();
+  range.value = selection.value?.getRangeAt(0);
+  //如果最后的光标停留在text节点，那么就把光标移动至editor的最后面
+  if (range.value.endContainer.nodeType === Node.TEXT_NODE) {
+    // 检查结束节点是否为文本节点
+    resetCursor();
   }
 };
+
 /**
- * @description 插入函数
- */
-const insertFn = (data: Tree) => {
-  if (!data.children) {
-    insertText(`${data.label}`, 'fn');
-  }
-};
-/**
- * @description 鼠标悬停展示函数描述
- */
-const hoverFn = (data: Tree) => {
-  const info = functionDescription(data.label);
-  if (info) {
-    state.info = info;
+ * 重置光标位置
+ * */
+const resetCursor = () => {
+  const parentElement = document.getElementById('editor') as HTMLElement; // 获取结束节点的父元素
+  let ran = document.createRange();
+  ran.selectNodeContents(parentElement);
+  ran.collapse(false);
+  let sel = window.getSelection();
+  if (sel) {
+    sel?.removeAllRanges();
+    sel?.addRange(ran);
+    range.value = sel.getRangeAt(0);
   }
 };
 
-const convertToObjects = (content: string) => {
-  // 使用正则表达式匹配并转换内容
-  const regex = /\[\[([0-9]+)\.([^\]]+)\]\]|([^\[\]]+)/g;
-  const result = [];
-  let match;
+/**
+ *  点击工具栏按钮添加文本节点
+ */
+const getValue = (value) => {
+  // 创建一个文本节点
+  const textNode = document.createTextNode(value);
+  // 在光标位置插入文本节点
+  range.value?.insertNode(textNode);
+  // 移动光标到文本节点的末尾
+  range.value?.setStartAfter(textNode);
+  // 折叠光标到文本节点的末尾
+  range.value?.collapse(true);
+  // 移除所有选区 不移除selection会到聚焦点击的文本
+  selection.value?.removeAllRanges();
+  // 添加选区
+  selection.value?.addRange(range.value);
+};
 
-  while ((match = regex.exec(content)) !== null) {
-    if (match[1] && match[2]) {
-      // 匹配到 ID 和参数名
-      result.push({ id: match[1], name: match[2] });
-    } else if (match[3]) {
-      // 匹配到其他文本
-      result.push({ text: match[3] });
+/**
+ *  点击参数生成span标签
+ */
+const getSpan = (params) => {
+  // 创建前缀
+  let prefix = `<span contenteditable="false" disabled="disabled" class="fn-param" data-param="${params.value}">`;
+  // 创建后缀
+  let suffix = '</span>';
+  // 创建span元素
+  let el = document.createElement('span');
+  // 将前缀和后缀插入span元素
+  el.innerHTML = prefix + params.label + suffix;
+  // 去掉外层的span
+
+  let frag = document.createDocumentFragment();
+  let node = frag.appendChild(el.firstChild);
+
+  // 插入tag
+  range.value?.insertNode(node);
+  // 设置光标
+  range.value?.setStartAfter(node);
+  range.value?.collapse(true);
+  // 不移除selection会到聚焦点击的文本
+  selection.value?.removeAllRanges();
+  // 添加选区
+  selection.value?.addRange(range.value);
+};
+
+/**
+ * 获取构建的html里面的文本和参数
+ */
+const getTextAndParams = () => {
+  // 获取文本中的参数元素
+  let editor = document.getElementById('editor');
+  let result = '';
+  // 遍历编辑器的子节点，包括文本节点
+  editor.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      result += node.textContent; // 获取文本节点内容
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
+      result += node.dataset.param; // 获取 span 的 data-param 属性值
+    }
+  });
+
+  // 返回文本
+  let data = {
+    value: result,
+    label: textRef.value?.innerText,
+  };
+  console.log(data, data.value.split(/(\[.*?\])/).filter(Boolean));
+  return data;
+};
+
+onMounted(() => {
+  resetCursor();
+  if (props.textValue) {
+    reviewFn(props.textValue);
+  }
+});
+const reviewFn = (data) => {
+  // 拆分公式并处理每个部分
+  const parts = data.split(/(\W)/); // 按照非字母字符分割公式
+  console.log(parts);
+  for (let i = 0; i < parts.length; i++) {
+    let index = dataList.findIndex((item) => item.value === parts[i]);
+    if (index > -1) {
+      getSpan(dataList[index]);
+    } else {
+      getValue(parts[i]);
     }
   }
-
-  console.log(result);
 };
-/**
- * @description 获取数据
- */
-const submit = () => {
-  const data: any = view.value?.state.doc;
-  convertToObjects(data);
-  console.log('获取数据', data);
-};
-
-onMounted(() => {
-  destroyed();
-});
-
-onMounted(() => {
-  nextTick(() => {
-    init();
-  });
-});
 </script>
 
 <style lang="less" scoped>
-.editor-container {
-  position: relative;
-  .editor-tree {
-    width: 200px;
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-  }
-  .editor-content {
-    margin-left: 210px;
-    display: flex;
-    flex-direction: column;
-    .editor-main {
-      border: 1px solid #ccc;
-      height: 200px;
-    }
-    .fn {
-      display: flex;
-      height: 200px;
-      > div {
-        flex: 1;
-        border: 1px solid #ccc;
-      }
-    }
-  }
-}
-:deep(.cm-focused) {
+#editor {
+  width: 100%;
+  height: 150px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 20px;
+  word-break: break-all;
   outline: none;
 }
-:deep(.cm-gutters) {
-  display: none;
+.top-buttons {
+  margin: 5px;
+  display: flex;
+  align-items: center;
+}
+:deep(.fn-param) {
+  padding: 4px;
+  background: #0e66b720;
+  border-radius: 5px;
+  color: #0e66b7;
+  margin: 4px;
+  display: inline-block;
 }
 </style>
