@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { EChartsType, init, EChartsOption } from 'echarts';
 
 export const useEChartsInit = () => {
-  let chartInstance: EChartsType | undefined ;
+  let chartInstance: EChartsType | undefined;
   //  ref
   const chartRef = ref<HTMLElement>();
   /**

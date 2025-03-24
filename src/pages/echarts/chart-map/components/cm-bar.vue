@@ -5,11 +5,11 @@
 <script lang="ts" setup>
 import * as echarts from 'echarts';
 import { onMounted, onUnmounted } from 'vue';
-import { useECharts } from '../../../../hooks/useECharts';
+import { useEChartsInit } from '../../../../hooks/useEChartsInit';
 import { EChartsOption } from 'echarts';
 import { formatFontSize } from '@/utils';
 
-const { chartRef, addResize, removeResize, initCharts } = useECharts();
+const { chartRef, addResize, removeResize, initCharts } = useEChartsInit();
 
 /**
  * 生成配置
@@ -283,4 +283,4 @@ onUnmounted(() => {
   }
 }
 </style>
-../../../../hooks/useECharts
+../../../../hooks/useEChartsInit

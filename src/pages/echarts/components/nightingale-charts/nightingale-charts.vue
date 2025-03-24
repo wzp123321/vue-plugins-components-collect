@@ -52,7 +52,7 @@ import { cloneDeep } from 'lodash';
 import { handleElementToImage } from '@/utils/file';
 import { cardLinearBackgroundColors, pieColors } from '@/config/echarts/newConstant';
 import { floatMultiply, thousandSeparation } from '@/utils';
-import { CommonObject } from '@/services/common.api';
+import { ICommonObject } from '@/services/common.api';
 
 defineOptions({
   name: 'NightingaleCharts',
@@ -221,7 +221,7 @@ onMounted(() => {
     const option = mapChartOptions();
     chartInstance = initCharts(option);
     if (chartInstance) {
-      chartInstance.on('click', (params: CommonObject) => {
+      chartInstance.on('click', (params: ICommonObject) => {
         if (params && params.componentType === 'series') {
           const id = params.data.id === checkedCardId.value ? null : params.data.id;
           const name = params.data.name;

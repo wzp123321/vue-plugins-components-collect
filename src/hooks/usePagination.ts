@@ -1,9 +1,9 @@
 import { pageSizes } from '@/config';
-import { CommonPaginationQueryParams } from '@/services/common.api';
+import { ICommonPaginationQueryParams } from '@/services/common.api';
 import { reactive, ref } from 'vue';
 
 export const usePagination = () => {
-  const paginationParams = reactive<CommonPaginationQueryParams>({
+  const paginationParams = reactive<ICommonPaginationQueryParams>({
     pageNum: 1,
     pageSize: pageSizes?.[0],
     searchCount: true,

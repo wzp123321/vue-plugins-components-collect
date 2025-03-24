@@ -1,4 +1,4 @@
-import { CommonRes } from '@/services/common.api';
+import { ICommonRes } from '@/services/common.api';
 
 export * from './date';
 export * from './number';
@@ -63,7 +63,7 @@ export const formatFontSize = (value: number): number => {
  * @returns 返回数据
  * @throws 异常信息
  */
-export function FResHandler<T = void>(res: CommonRes<T>): T {
+export function FResHandler<T = void>(res: ICommonRes<T>): T {
   if (res?.success) {
     return res.data;
   }

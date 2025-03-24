@@ -1,4 +1,4 @@
-import { CommonFileUploadErrorDetail, CommonRes } from '@/services/common.api';
+import { ICommonFileUploadErrorDetail, ICommonRes } from '@/services/common.api';
 import { postRequest } from '@/services/request';
 import { FResHandler } from '@/utils';
 import { message } from 'ant-design-vue';
@@ -6,11 +6,11 @@ import { ref } from 'vue';
 
 interface FileUploadResponse {
   success: boolean;
-  detailList: CommonFileUploadErrorDetail[];
+  detailList: ICommonFileUploadErrorDetail[];
 }
 
 interface FileUploadErrorRes {
-  errorMessageList: CommonFileUploadErrorDetail[];
+  errorMessageList: ICommonFileUploadErrorDetail[];
   successFlag: number;
 }
 
@@ -22,23 +22,24 @@ export const useFileImport = () => {
    * @param accept 允许的后缀
    * @returns 目标文件域
    */
-  const handleFileChoose = (accept?: string): Promise<File> => {
-    return new Promise((resolve, reject) => {
+  const handleFileChoose = (accept?: string): Promise<File> =>
+    new Promise((resolve, reject) => {
       const element = document.createElement('input');
       element.type = 'file';
-      accept && (element.accept = accept);
+      if (accept) {
+        element.accept = accept;
+      }
       element.click();
       element.onchange = () => {
         const file = element.files?.[0];
         if (file?.size) {
           resolve(file);
         } else {
-          reject('无法选取文件');
+          reject(new Error('无法选取文件'));
         }
         element.remove();
       };
     });
-  };
   // 校验文件
   const verifyUploadFile = (target: File, maxSize: number, accept: { [key: string]: string }): boolean => {
     if (target?.size > maxSize * 1024 * 1024) {
@@ -74,7 +75,7 @@ export const useFileImport = () => {
           formData.append(k, v);
         });
       }
-      const res: CommonRes<FileUploadErrorRes> = await postRequest(path, formData);
+      const res: ICommonRes<FileUploadErrorRes> = await postRequest(path, formData);
       const data = FResHandler(res);
       console.log(res);
       if (Array.isArray(data?.errorMessageList) && data?.errorMessageList?.length > 0) {
@@ -82,13 +83,12 @@ export const useFileImport = () => {
           success: false,
           detailList: data?.errorMessageList,
         };
-      } else {
-        message.success('导入成功');
-        return {
-          success: true,
-          detailList: [],
-        };
       }
+      message.success('导入成功');
+      return {
+        success: true,
+        detailList: [],
+      };
     } catch (error) {
       console.warn('批量导入年度明细模板', '-->', error);
       message.error(`导入失败，${error}`);

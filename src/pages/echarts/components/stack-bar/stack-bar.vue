@@ -21,7 +21,7 @@ import { commonEChartOption, newEChartsConstant, pieColors } from '@/config/echa
 import { IconExport } from '@arco-iconbox/vue-te';
 import { handleChartToImage, resetLegendName, resetXAxisTime } from '@/config/echarts/utils';
 import { nightingaleChartsDataList } from '../model';
-import { CommonTimeUnit } from '@/services/common.api';
+import { ECommonTimeUnit } from '@/services/common.api';
 
 defineOptions({
   name: 'EsStackChart',
@@ -29,36 +29,31 @@ defineOptions({
 
 const { chartRef, initCharts } = useEChartsInit();
 // x轴
-const mapXAxis = () => {
-  return {
-    data: nightingaleChartsDataList.xaxisTimes,
-    ...commonEChartOption.LINE_CHART_CATEGORY_AXIS_OPTION,
-    axisLabel: {
-      color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
-      margin: 16,
-      fontSize: 14,
-      formatter: function (params: number) {
-        return resetXAxisTime(Number(params), CommonTimeUnit.HOUR);
-      },
+const mapXAxis = () => ({
+  data: nightingaleChartsDataList.xaxisTimes,
+  ...commonEChartOption.LINE_CHART_CATEGORY_AXIS_OPTION,
+  axisLabel: {
+    color: newEChartsConstant.CHARTS_AXIS_TEXT_COLOR,
+    margin: 16,
+    fontSize: 14,
+    formatter(params: number) {
+      return resetXAxisTime(Number(params), ECommonTimeUnit.HOUR);
     },
-  };
-};
+  },
+});
 // series
-const mapSeries = (): any => {
-  return nightingaleChartsDataList.childrenBarInfo?.map((item, index) => {
-    return {
-      name: resetLegendName(index, item.treeName),
-      type: 'bar',
-      barMaxWidth: 16,
-      stack: 'total',
-      data: item.valueList?.map((cItem, cIndex) => ({
-        name: item?.treeName,
-        value: cItem,
-        percent: item.percentList?.[cIndex],
-      })),
-    };
-  });
-};
+const mapSeries = (): any =>
+  nightingaleChartsDataList.childrenBarInfo?.map((item, index) => ({
+    name: resetLegendName(index, item.treeName),
+    type: 'bar',
+    barMaxWidth: 16,
+    stack: 'total',
+    data: item.valueList?.map((cItem, cIndex) => ({
+      name: item?.treeName,
+      value: cItem,
+      percent: item.percentList?.[cIndex],
+    })),
+  }));
 /**
  * 配置
  */
@@ -91,13 +86,10 @@ const mapChartOptions = (): EChartsOption => {
       formatter: (params: any) => {
         let htmlStr = '';
         const filterList = params?.filter((item: any) => item?.data?.value !== null);
-        htmlStr =
-          '<div ><p style="color: rgba(0, 0, 0, 0.85);line-height: 22px">' +
-          formatDate(
-            new Date(Number(params?.[0]?.axisValueLabel)),
-            mapPickerSmallFormatByTimeUnit(CommonTimeUnit.HOUR),
-          ) +
-          '</p>';
+        htmlStr = `<div ><p style="color: rgba(0, 0, 0, 0.85);line-height: 22px">${formatDate(
+          new Date(Number(params?.[0]?.axisValueLabel)),
+          mapPickerSmallFormatByTimeUnit(ECommonTimeUnit.HOUR),
+        )}</p>`;
         htmlStr += '<div style="max-height: 200px;overflow-y: auto">';
         if (filterList.length > 0) {
           filterList?.forEach((item: any) => {
@@ -109,9 +101,9 @@ const mapChartOptions = (): EChartsOption => {
                 item?.data?.value !== null ? thousandSeparation(item?.data?.value) : '-'
               }</span>` +
               `<span style="color: rgba(0, 0, 0, 0.85);">${
-                item?.data?.percent !== null ? item?.data?.percent + '%' : '-'
-              }</span>`;
-            ('</div>');
+                item?.data?.percent !== null ? `${item?.data?.percent}%` : '-'
+              }</span>` +
+              '</div>';
           });
           htmlStr += '</div>';
           htmlStr += '</div>';
@@ -119,14 +111,14 @@ const mapChartOptions = (): EChartsOption => {
         return htmlStr;
       },
     },
-    dataZoom: newEChartsConstant.CHART_DATA_ZOOM((value) => {
-      return Number.isNaN(value) || Number(value) < 0 || Number(value) > nightingaleChartsDataList.xaxisTimes.length - 1
+    dataZoom: newEChartsConstant.CHART_DATA_ZOOM((value) =>
+      Number.isNaN(value) || Number(value) < 0 || Number(value) > nightingaleChartsDataList.xaxisTimes.length - 1
         ? ''
-        : resetXAxisTime(nightingaleChartsDataList.xaxisTimes[Number(value)], CommonTimeUnit.HOUR);
-    }),
+        : resetXAxisTime(nightingaleChartsDataList.xaxisTimes[Number(value)], ECommonTimeUnit.HOUR),
+    ),
     xAxis: mapXAxis(),
     yAxis: {
-      name: 'kWh' ?? '',
+      name: 'kWh',
       ...(commonEChartOption.Y_AXIS_OPTION as any),
     },
     series: mapSeries(),
@@ -134,7 +126,7 @@ const mapChartOptions = (): EChartsOption => {
   return options;
 };
 
-let chartInstance: EChartsType | undefined = undefined;
+let chartInstance: EChartsType | undefined;
 
 /**
  * 导出图表
@@ -149,14 +141,13 @@ const handleChartExport = () => {
  * @param {number} start
  * @param {number} end
  */
-const triggerDataZoom = (start: number, end: number) => {
+const triggerDataZoom = (start: number, end: number) =>
   chartInstance &&
-    chartInstance.dispatchAction({
-      type: 'dataZoom',
-      start: start,
-      end: end,
-    });
-};
+  chartInstance.dispatchAction({
+    type: 'dataZoom',
+    start,
+    end,
+  });
 
 /**
  * 堆叠图图例高亮事件
@@ -210,7 +201,7 @@ onMounted(() => {
     chartInstance = initCharts(mapChartOptions());
     if (chartInstance) {
       chartInstance.off('globalout');
-      chartInstance.on('globalout', function () {
+      chartInstance.on('globalout', () => {
         setTimeout(() => {
           chartInstance?.dispatchAction({
             type: 'hideTip',

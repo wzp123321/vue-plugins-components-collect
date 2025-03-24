@@ -1,4 +1,4 @@
-import { CommonRes } from '@/services/common.api';
+import { ICommonRes } from '@/services/common.api';
 import { ref } from 'vue';
 import SparkMD5 from 'spark-md5';
 import { message } from 'ant-design-vue';
@@ -93,7 +93,7 @@ export const useFileHandler = () => {
 
         if (blob.type.includes('json')) {
           reader.onloadend = (e) => {
-            const res: CommonRes<void> = JSON.parse(e.target?.result as string);
+            const res: ICommonRes<void> = JSON.parse(e.target?.result as string);
             reject(res?.message ?? '未知原因');
           };
           reader.readAsText(blob);

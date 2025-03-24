@@ -2,7 +2,9 @@
   <div>
     <div class="top-buttons">
       <div>工具栏：</div>
-      <el-button v-for="item in buttonList" type="primary" @click="getValue(item.value)">{{ item.label }}</el-button>
+      <el-button v-for="item in buttonList" :key="item.value" type="primary" @click="getValue(item.value)">
+        {{ item.label }}
+      </el-button>
     </div>
     <div ref="textRef" id="editor" :contenteditable="true" @blur="onBlur"></div>
     <button @click="getSpan({ label: '商品价格', value: '[V2]' })">商品价格</button>
@@ -14,9 +16,9 @@
 <script lang="ts" setup>
 import { ref, shallowRef, onMounted } from 'vue';
 
-const textRef = ref(null);
-const selection = shallowRef(null);
-const range = shallowRef(null);
+const textRef = ref<any>(null);
+const selection = shallowRef<any>(null);
+const range = shallowRef<any>(null);
 const props = defineProps({
   isEdit: {
     type: Boolean,
@@ -47,12 +49,27 @@ const dataList = [
   { label: '商品数量', value: 'num' },
 ];
 /**
+ * 重置光标位置
+ * */
+const resetCursor = () => {
+  const parentElement = document.getElementById('editor') as HTMLElement; // 获取结束节点的父元素
+  const ran = document.createRange();
+  ran.selectNodeContents(parentElement);
+  ran.collapse(false);
+  const sel = window.getSelection();
+  if (sel) {
+    sel?.removeAllRanges();
+    sel?.addRange(ran);
+    range.value = sel.getRangeAt(0);
+  }
+};
+/**
  * 失焦后重置光标位置，这里不重置位置，会造成bug，例如点击生成的span光标消失，再次点击生成span的按钮，会在最后光标停留的span标签里面再插入span，就会造成bug
  */
 const onBlur = () => {
   selection.value = window.getSelection();
   range.value = selection.value?.getRangeAt(0);
-  //如果最后的光标停留在text节点，那么就把光标移动至editor的最后面
+  // 如果最后的光标停留在text节点，那么就把光标移动至editor的最后面
   if (range.value.endContainer.nodeType === Node.TEXT_NODE) {
     // 检查结束节点是否为文本节点
     resetCursor();
@@ -60,25 +77,9 @@ const onBlur = () => {
 };
 
 /**
- * 重置光标位置
- * */
-const resetCursor = () => {
-  const parentElement = document.getElementById('editor') as HTMLElement; // 获取结束节点的父元素
-  let ran = document.createRange();
-  ran.selectNodeContents(parentElement);
-  ran.collapse(false);
-  let sel = window.getSelection();
-  if (sel) {
-    sel?.removeAllRanges();
-    sel?.addRange(ran);
-    range.value = sel.getRangeAt(0);
-  }
-};
-
-/**
  *  点击工具栏按钮添加文本节点
  */
-const getValue = (value) => {
+const getValue = (value: any) => {
   // 创建一个文本节点
   const textNode = document.createTextNode(value);
   // 在光标位置插入文本节点
@@ -96,19 +97,19 @@ const getValue = (value) => {
 /**
  *  点击参数生成span标签
  */
-const getSpan = (params) => {
+const getSpan = (params: any) => {
   // 创建前缀
-  let prefix = `<span contenteditable="false" disabled="disabled" class="fn-param" data-param="${params.value}">`;
+  const prefix = `<span contenteditable="false" disabled="disabled" class="fn-param" data-param="${params.value}">`;
   // 创建后缀
-  let suffix = '</span>';
+  const suffix = '</span>';
   // 创建span元素
-  let el = document.createElement('span');
+  const el = document.createElement('span') as any;
   // 将前缀和后缀插入span元素
   el.innerHTML = prefix + params.label + suffix;
   // 去掉外层的span
 
-  let frag = document.createDocumentFragment();
-  let node = frag.appendChild(el.firstChild);
+  const frag = document.createDocumentFragment();
+  const node = frag.appendChild(el.firstChild);
 
   // 插入tag
   range.value?.insertNode(node);
@@ -126,10 +127,10 @@ const getSpan = (params) => {
  */
 const getTextAndParams = () => {
   // 获取文本中的参数元素
-  let editor = document.getElementById('editor');
+  const editor = document.getElementById('editor') as any;
   let result = '';
   // 遍历编辑器的子节点，包括文本节点
-  editor.childNodes.forEach((node) => {
+  editor.childNodes.forEach((node: any) => {
     if (node.nodeType === Node.TEXT_NODE) {
       result += node.textContent; // 获取文本节点内容
     } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
@@ -138,26 +139,19 @@ const getTextAndParams = () => {
   });
 
   // 返回文本
-  let data = {
+  const data = {
     value: result,
     label: textRef.value?.innerText,
   };
   console.log(data, data.value.split(/(\[.*?\])/).filter(Boolean));
   return data;
 };
-
-onMounted(() => {
-  resetCursor();
-  if (props.textValue) {
-    reviewFn(props.textValue);
-  }
-});
-const reviewFn = (data) => {
+const reviewFn = (data: string) => {
   // 拆分公式并处理每个部分
   const parts = data.split(/(\W)/); // 按照非字母字符分割公式
   console.log(parts);
   for (let i = 0; i < parts.length; i++) {
-    let index = dataList.findIndex((item) => item.value === parts[i]);
+    const index = dataList.findIndex((item) => item.value === parts[i]);
     if (index > -1) {
       getSpan(dataList[index]);
     } else {
@@ -165,6 +159,12 @@ const reviewFn = (data) => {
     }
   }
 };
+onMounted(() => {
+  resetCursor();
+  if (props.textValue) {
+    reviewFn(props.textValue);
+  }
+});
 </script>
 
 <style lang="less" scoped>

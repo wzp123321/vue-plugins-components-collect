@@ -9,6 +9,7 @@ import {
   PmChart,
   EchartsGraphic,
   StackBar,
+  PieLongLabel,
 } from './index';
 
 export const roseMinMaxRate = 1 / 20;
@@ -16,7 +17,7 @@ export const roseMinMaxRate = 1 / 20;
 /**
  * 堆叠图子节点信息
  */
-export interface NightingaleChartsChildrenBarInfo {
+export interface INightingaleChartsChildrenBarInfo {
   treeId: number | null;
   treeName: string;
   valueSum: number | null;
@@ -29,16 +30,16 @@ export interface NightingaleChartsChildrenBarInfo {
 /**
  * 堆叠图
  */
-export interface NightingaleChartsData {
+export interface INightingaleChartsData {
   unit: string;
   energyCodeName: string;
   treeEnergy: number | null;
   balanceRate: number | null;
   xaxisTimes: number[];
-  childrenBarInfo: NightingaleChartsChildrenBarInfo[];
+  childrenBarInfo: INightingaleChartsChildrenBarInfo[];
 }
 
-export const nightingaleChartsDataList: NightingaleChartsData = {
+export const nightingaleChartsDataList: INightingaleChartsData = {
   unit: 'kWh',
   energyCodeName: '电',
   treeEnergy: 657559.07,
@@ -168,5 +169,9 @@ export const customComponents: { description: string; component: any }[] = [
   {
     description: '自定义水印',
     component: EchartsGraphic,
+  },
+  {
+    description: '长文本饼图',
+    component: PieLongLabel,
   },
 ];
