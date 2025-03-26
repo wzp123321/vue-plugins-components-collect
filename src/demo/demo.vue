@@ -6,7 +6,15 @@
         {{ item.label }}
       </el-button>
     </div>
-    <div ref="textRef" id="editor" :contenteditable="true" @blur="onBlur"></div>
+    <div ref="textRef" id="editor" :contenteditable="true" @input="onInput" @blur="onBlur"></div>
+    <!-- 下拉选择框 -->
+    <div v-if="showDropdown" :style="{ left: dropdownLeft + 'px', top: dropdownTop + 'px' }" class="dropdown">
+      <ul>
+        <li v-for="item in searchResults" :key="item.value" @click="selectItem(item)">
+          {{ item.label }}
+        </li>
+      </ul>
+    </div>
     <button @click="getSpan({ label: '商品价格', value: '[V2]' })">商品价格</button>
     <button @click="getSpan({ label: '商品数量', value: '[V1]' })">商品数量</button>
     <button @click="getTextAndParams">获取公式</button>
@@ -48,6 +56,13 @@ const dataList = [
   { label: '商品价格', value: 'price' },
   { label: '商品数量', value: 'num' },
 ];
+
+// 新增响应式数据
+const showDropdown = ref(false);
+const searchResults = ref([]);
+const dropdownLeft = ref(0);
+const dropdownTop = ref(0);
+
 /**
  * 重置光标位置
  * */
@@ -74,6 +89,7 @@ const onBlur = () => {
     // 检查结束节点是否为文本节点
     resetCursor();
   }
+  showDropdown.value = false;
 };
 
 /**
@@ -165,6 +181,34 @@ onMounted(() => {
     reviewFn(props.textValue);
   }
 });
+
+// 输入事件处理函数
+const onInput = () => {
+  const editor = document.getElementById('editor') as HTMLElement;
+  const text = editor.innerText;
+  const lastChar = text[text.length - 1];
+
+  if (lastChar === '#') {
+    searchResults.value = dataList;
+    showDropdown.value = true;
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      dropdownLeft.value = rect.left + window.pageXOffset;
+      dropdownTop.value = rect.bottom + window.pageYOffset;
+    }
+  } else {
+    showDropdown.value = false;
+  }
+};
+
+// 选择下拉项的处理函数
+const selectItem = (item) => {
+  getSpan(item);
+  showDropdown.value = false;
+};
 </script>
 
 <style lang="less" scoped>
@@ -193,5 +237,25 @@ onMounted(() => {
   color: #0e66b7;
   margin: 4px;
   display: inline-block;
+}
+.dropdown {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+.dropdown ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+.dropdown li {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.dropdown li:hover {
+  background-color: #f0f0f0;
 }
 </style>
