@@ -1,46 +1,42 @@
-export interface CommonObject {
+export interface ICommonObject {
   [key: string]: any;
 }
-
 /**
  * 响应结果
  */
-export interface CommonRes<T> {
+export interface ICommonRes<T> {
   code: number;
   data: T;
   message: string;
   success: boolean;
 }
-
 /**
  * 文件上传报错详情
  */
-export interface CommonFileUploadErrorDetail {
+export interface ICommonFileUploadErrorDetail {
   detail: string;
   position: string;
-}
-
-/**
- * 通用分页入参
- */
-export interface CommonPaginationQueryParams {
-  pageNum: number;
-  pageSize: number;
-  searchCount?: boolean;
-  orders?: CommonListOrdersType[];
 }
 /**
  * 排序
  */
-export interface CommonListOrdersType {
+export interface ICommonListOrdersType {
   asc: boolean;
   column: string;
 }
-
+/**
+ * 通用分页入参
+ */
+export interface ICommonPaginationQueryParams {
+  pageNum: number;
+  pageSize: number;
+  searchCount?: boolean;
+  orders?: ICommonListOrdersType[];
+}
 /**
  * 时间颗粒度
  */
-export enum CommonTimeUnit {
+export enum ECommonTimeUnit {
   MINUTES = '10m', // 十分钟
   HOUR = '1h', // 1小时
   DAY = '1d', // 天

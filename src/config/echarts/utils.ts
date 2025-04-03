@@ -1,5 +1,5 @@
 import { EChartsType, format } from 'echarts';
-import { CommonObject, CommonTimeUnit } from '../../services/common.api';
+import { ICommonObject, ECommonTimeUnit } from '../../services/common.api';
 import { format as DateFnsFormat } from 'date-fns';
 
 /**
@@ -11,7 +11,7 @@ const echartsUtils = {
    * @param color 颜色
    * @returns
    */
-  resetLineChartSeriesEmphasisItemStyle(color: string, scale: boolean = false): CommonObject {
+  resetLineChartSeriesEmphasisItemStyle(color: string, scale: boolean = false): ICommonObject {
     const itemStyle = {
       color: {
         type: 'radial',
@@ -97,7 +97,7 @@ const echartsUtils = {
    * @param seriesDatum data
    * @param color custom dashed line color
    */
-  getCommonDashedLineSeriesStyleOption(seriesDatum: CommonObject, color: string) {
+  getCommonDashedLineSeriesStyleOption(seriesDatum: ICommonObject, color: string) {
     const isSingleData: boolean = seriesDatum.data.length <= 1;
     const symbol = isSingleData ? 'circle' : 'none';
     const showSymbol = isSingleData;
@@ -134,7 +134,7 @@ const echartsUtils = {
   getDataIsShowDot(data: string[] | (number | null)[], color: string) {
     if (data && data.length && data.length > 0) {
       let arrItem = {};
-      const arrData: CommonObject[] = [];
+      const arrData: ICommonObject[] = [];
       data.forEach((item: any, index: number) => {
         if (
           index === 0 &&
@@ -315,19 +315,19 @@ export const resetXAxisTime = (timeStamp: number, timeUnit: any) => {
   const date = new Date(timeStamp);
   if (timeUnit) {
     switch (timeUnit) {
-      case CommonTimeUnit.MINUTES:
+      case ECommonTimeUnit.MINUTES:
         data = DateFnsFormat(date, 'HH:mm') === '00:00' ? DateFnsFormat(date, 'M.d') : DateFnsFormat(date, 'HH:mm');
         break;
-      case CommonTimeUnit.HOUR:
+      case ECommonTimeUnit.HOUR:
         data = DateFnsFormat(date, 'HH:mm') === '00:00' ? DateFnsFormat(date, 'M.d') : DateFnsFormat(date, 'HH:mm');
         break;
-      case CommonTimeUnit.DAY:
+      case ECommonTimeUnit.DAY:
         data = DateFnsFormat(date, 'M.d');
         break;
-      case CommonTimeUnit.MONTH:
+      case ECommonTimeUnit.MONTH:
         data = DateFnsFormat(date, 'yyyy.M');
         break;
-      case CommonTimeUnit.YEAR:
+      case ECommonTimeUnit.YEAR:
         data = DateFnsFormat(date, 'yyyy');
         break;
       case 'default':

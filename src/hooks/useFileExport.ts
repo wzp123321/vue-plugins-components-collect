@@ -22,27 +22,28 @@ export const useFileExport = () => {
    * @param url 源路径
    * @param name 输出文件名
    */
-  const useFileDownLoadHandler = (url: string, name?: string) => {
-    return new Promise((resolve, reject) => {
+  const useFileDownLoadHandler = (url: string, name?: string) =>
+    new Promise((resolve, reject) => {
       if (url) {
         const element = document.createElement('a');
         element.href = url;
-        name && (element.download = name);
+        if (name) {
+          element.download = name;
+        }
         element.click();
         element.remove();
         resolve(true);
       } else {
-        reject(`无法下载${name || '文件'}`);
+        reject(new Error(`无法下载${name || '文件'}`));
       }
     });
-  };
   /**
    * 二进制响应处理
    * @param blob 二进制流
    * @param name 输出文件名
    */
-  const useFileBlobHandler = (blob: Blob, name?: string) => {
-    return new Promise((resolve, reject) => {
+  const useFileBlobHandler = (blob: Blob, name?: string) =>
+    new Promise((resolve, reject) => {
       if (blob.size) {
         const reader = new FileReader();
 
@@ -61,10 +62,9 @@ export const useFileExport = () => {
           reader.readAsDataURL(blob);
         }
       } else {
-        reject(`无法获取${name || '文件'}`);
+        reject(new Error(`无法获取${name || '文件'}`));
       }
     });
-  };
 
   const handleFileExport = async (
     loading: Ref<boolean>,
@@ -87,11 +87,10 @@ export const useFileExport = () => {
       if (res?.size && res?.type.includes('json')) {
         mapUploadError(type, res);
         return false;
-      } else {
-        await useFileBlobHandler(res, name);
-        message.success(`${type}成功`);
-        return true;
       }
+      await useFileBlobHandler(res, name);
+      message.success(`${type}成功`);
+      return true;
     } catch (error) {
       if (error && (error as any).data) {
         mapUploadError(type, (error as any).data);

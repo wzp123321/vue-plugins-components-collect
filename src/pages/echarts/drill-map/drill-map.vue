@@ -8,14 +8,14 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { EChartsType, registerMap, EChartsOption } from 'echarts';
-import { useECharts } from '@/hooks';
+import { useEChartsInit } from '@/hooks';
 import { message } from 'ant-design-vue';
 
 defineOptions({
   name: 'DrillMap',
 });
 
-const { chartRef, initCharts, addResize, removeResize } = useECharts();
+const { chartRef, initCharts, addResize, removeResize } = useEChartsInit();
 
 // 当前层级code，默认
 const currentMapCode = ref('100000_full');
