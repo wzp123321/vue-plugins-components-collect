@@ -15,12 +15,19 @@
 import { customComponents } from './components/model';
 
 defineOptions({
-  name: 'Animations',
+  name: 'AnimationsLittle',
 });
 </script>
 <style lang="less" scoped>
-.animations {
+.animations-little {
   width: 100%;
-  height: 100%;
+
+  .ant-row {
+    row-gap: 20px;
+
+    .ant-card {
+      height: 100%;
+    }
+  }
 }
 </style>
