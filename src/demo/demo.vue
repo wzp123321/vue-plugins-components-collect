@@ -2,9 +2,9 @@
   <div>
     <div class="top-buttons">
       <div>工具栏：</div>
-      <el-button v-for="item in buttonList" :key="item.value" type="primary" @click="getValue(item.value)">
+      <a-button v-for="item in buttonList" :key="item.value" type="primary" @click="getValue(item.value)">
         {{ item.label }}
-      </el-button>
+      </a-button>
     </div>
     <div ref="textRef" id="editor" :contenteditable="true" @input="onInput" @blur="onBlur"></div>
     <!-- 下拉选择框 -->
@@ -22,6 +22,7 @@
 </template>
 
 <script lang="ts" setup>
+import { ICommonValueLabel } from '@/services/common.api';
 import { ref, shallowRef, onMounted } from 'vue';
 
 const textRef = ref<any>(null);
@@ -37,7 +38,7 @@ const props = defineProps({
     default: '',
   },
 });
-const buttonList = [
+const buttonList: ICommonValueLabel[] = [
   { label: '+', value: '+' },
   { label: '-', value: '-' },
   { label: '×', value: '*' },
@@ -59,7 +60,7 @@ const dataList = [
 
 // 新增响应式数据
 const showDropdown = ref(false);
-const searchResults = ref([]);
+const searchResults = ref<ICommonValueLabel[]>([]);
 const dropdownLeft = ref(0);
 const dropdownTop = ref(0);
 
@@ -205,7 +206,7 @@ const onInput = () => {
 };
 
 // 选择下拉项的处理函数
-const selectItem = (item) => {
+const selectItem = (item: ICommonValueLabel) => {
   getSpan(item);
   showDropdown.value = false;
 };

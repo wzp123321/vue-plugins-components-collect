@@ -32,7 +32,7 @@ const mapChartOptions = (): EChartsOption => ({
   tooltip: {
     trigger: 'item',
     formatter: '{a} <br/>{b} : {c} ({d}%)',
-    appendTo: 'body',
+    appendToBody: true,
     className: 'custom-tooltip',
   },
   legend: {

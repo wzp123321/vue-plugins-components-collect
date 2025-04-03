@@ -1,6 +1,10 @@
 export interface ICommonObject {
   [key: string]: any;
 }
+export interface ICommonValueLabel<T = string> {
+  value: T;
+  label: string;
+}
 /**
  * 响应结果
  */
