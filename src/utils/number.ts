@@ -182,3 +182,11 @@ export const thousandSeparation = (value: number, returnType?: string) => {
     return returnType ? returnType : '--';
   }
 };
+
+/**
+ * 获取给定范围的随机数
+ * @param min
+ * @param max
+ * @returns
+ */
+export const getRandomNumInScope = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;

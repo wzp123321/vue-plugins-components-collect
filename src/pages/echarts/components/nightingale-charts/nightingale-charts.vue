@@ -42,7 +42,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, shallowRef } from 'vue';
 import useChartStore from '@/store/modules/chart';
 import { useEChartsInit } from '@/hooks';
 import { IconExport } from '@arco-iconbox/vue-te';
@@ -63,7 +63,7 @@ const chartStore = useChartStore();
 // 当前高亮卡片id
 const checkedCardId = ref<number | null>(null);
 let originName = '';
-let chartInstance: EChartsType | undefined;
+let chartInstance = shallowRef<EChartsType | null>(null);
 /**
  * 卡片背景
  */
@@ -88,7 +88,7 @@ const handleCheck = (id: number | null, name: string, index: number) => {
   chartStore.setSelectedCardDataIndex(index);
   if (chartInstance) {
     if (originName) {
-      chartInstance.dispatchAction({
+      chartInstance.value?.dispatchAction({
         type: 'downplay',
         // 图例名称
         name: originName,
@@ -96,7 +96,7 @@ const handleCheck = (id: number | null, name: string, index: number) => {
     }
     checkedCardId.value = id === checkedCardId.value ? null : id;
     originName = cloneDeep(name);
-    chartInstance.dispatchAction({
+    chartInstance.value?.dispatchAction({
       type: checkedCardId.value === null ? 'downplay' : 'highlight',
       // 图例名称
       name,
@@ -181,7 +181,7 @@ const handleExportCombinedImage = async () => {
     tempContainer.style.display = 'flex';
     tempContainer.style.flexDirection = 'column';
     // 获取图表的图片数据 URL
-    const imgData = chartInstance!.getDataURL({
+    const imgData = chartInstance.value!.getDataURL({
       type: 'jpeg', // 图片类型，支持 'png' 和 'jpeg'
       pixelRatio: 2, // 分辨率比例，默认为 1
       backgroundColor: '#fff', // 背景颜色，默认为图表背景色
@@ -219,9 +219,9 @@ onMounted(() => {
   originName = '';
   if (chartRef.value) {
     const option = mapChartOptions();
-    chartInstance = initCharts(option);
+    chartInstance.value = initCharts(option);
     if (chartInstance) {
-      chartInstance.on('click', (params: ICommonObject) => {
+      chartInstance.value?.on('click', (params: ICommonObject) => {
         if (params && params.componentType === 'series') {
           const id = params.data.id === checkedCardId.value ? null : params.data.id;
           const name = params.data.name;

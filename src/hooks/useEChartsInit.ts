@@ -1,8 +1,8 @@
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { EChartsType, init, EChartsOption } from 'echarts';
 
 export const useEChartsInit = () => {
-  let chartInstance: EChartsType | undefined;
+  const chartInstance = shallowRef<EChartsType | null>(null);
   //  ref
   const chartRef = ref<HTMLElement>();
   /**
@@ -10,17 +10,17 @@ export const useEChartsInit = () => {
    */
   const initCharts = (options: EChartsOption) => {
     if (chartRef.value) {
-      chartInstance = init(chartRef.value);
-      chartInstance!.setOption(options);
+      chartInstance.value = init(chartRef.value);
+      chartInstance.value!.setOption(options);
     }
-    return chartInstance;
+    return chartInstance.value;
   };
   /**
    * 缩放
    */
   const resize = () => {
     if (chartInstance) {
-      chartInstance!.resize();
+      chartInstance.value!.resize();
     }
   };
   const addResize = () => {
@@ -28,6 +28,13 @@ export const useEChartsInit = () => {
   };
   const removeResize = () => {
     window.removeEventListener('resize', resize);
+  };
+  /**
+   * 销毁图表实例的函数，释放内存并清空引用
+   */
+  const disposeChart = () => {
+    chartInstance.value?.dispose(); // 调用 ECharts 的 dispose 方法销毁实例
+    chartInstance.value = null; // 清空 chartInstance 引用，避免内存泄漏
   };
 
   return {
@@ -37,5 +44,6 @@ export const useEChartsInit = () => {
     resize,
     addResize,
     removeResize,
+    disposeChart,
   };
 };

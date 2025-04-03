@@ -6,7 +6,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, shallowRef } from 'vue';
 import { EChartsType, registerMap, EChartsOption } from 'echarts';
 import { useEChartsInit } from '@/hooks';
 import { message } from 'ant-design-vue';
@@ -161,7 +161,7 @@ const getMapChartOptions = (mapName: string, mapData: any): EChartsOption => {
 
 // 历史下钻节点
 const drillCodes = ref<string[]>([]);
-let chartInstance: EChartsType | undefined = undefined;
+const chartInstance = shallowRef<EChartsType | null>(null);
 /**
  * 初始化
  */
@@ -183,9 +183,9 @@ const initMap = async () => {
   });
 
   if (chartInstance) {
-    chartInstance.dispose();
+    chartInstance.value!.dispose();
   }
-  chartInstance = initCharts(getMapChartOptions(currentMapCode.value, mapData));
+  chartInstance.value = initCharts(getMapChartOptions(currentMapCode.value, mapData));
   const handleClick = (param: any) => {
     // 只有点击地图才触发
     if (param.seriesType === 'map') {
@@ -205,8 +205,8 @@ const initMap = async () => {
     }
   };
   if (chartInstance) {
-    chartInstance.off('click', handleClick);
-    chartInstance.on('click', handleClick);
+    chartInstance.value?.off('click', handleClick);
+    chartInstance.value?.on('click', handleClick);
   }
 };
 

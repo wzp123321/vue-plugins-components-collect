@@ -7,7 +7,7 @@
 <script lang="ts" setup>
 import { useEChartsInit } from '@/hooks';
 import { EChartsOption, EChartsType } from 'echarts';
-import { onMounted } from 'vue';
+import { onMounted, shallowRef } from 'vue';
 
 defineOptions({
   name: 'PieLongLabel',
@@ -154,15 +154,15 @@ const mapChartOptions = (): EChartsOption => ({
     },
   ],
 });
-let chartInstance: EChartsType | undefined;
+let chartInstance= shallowRef<EChartsType | null>(null);
 onMounted(() => {
   if (chartRef.value) {
-    chartInstance = initCharts(mapChartOptions());
+    chartInstance.value = initCharts(mapChartOptions());
     if (chartInstance) {
-      chartInstance.off('globalout');
-      chartInstance.on('globalout', () => {
+      chartInstance.value?.off('globalout');
+      chartInstance.value?.on('globalout', () => {
         setTimeout(() => {
-          chartInstance?.dispatchAction({
+          chartInstance.value?.dispatchAction({
             type: 'hideTip',
           });
         }, 250);

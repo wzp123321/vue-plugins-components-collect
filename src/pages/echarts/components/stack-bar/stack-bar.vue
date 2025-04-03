@@ -12,7 +12,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, watch } from 'vue';
+import { onMounted, shallowRef, watch } from 'vue';
 import useChartStore from '@/store/modules/chart';
 import { useEChartsInit } from '@/hooks';
 import { formatDate, mapPickerSmallFormatByTimeUnit, thousandSeparation } from '@/utils';
@@ -126,14 +126,14 @@ const mapChartOptions = (): EChartsOption => {
   return options;
 };
 
-let chartInstance: EChartsType | undefined;
+let chartInstance = shallowRef<EChartsType | null>(null);
 
 /**
  * 导出图表
  */
 const handleChartExport = () => {
   if (chartRef.value && chartInstance !== undefined) {
-    handleChartToImage(chartInstance as EChartsType, '堆叠图');
+    handleChartToImage(chartInstance.value as EChartsType, '堆叠图');
   }
 };
 /**
@@ -143,7 +143,7 @@ const handleChartExport = () => {
  */
 const triggerDataZoom = (start: number, end: number) =>
   chartInstance &&
-  chartInstance.dispatchAction({
+  chartInstance.value?.dispatchAction({
     type: 'dataZoom',
     start,
     end,
@@ -159,7 +159,7 @@ const handleStackBarLegendHighlight = (dataIndex: number | null) => {
   if (chartInstance) {
     // 如果选中id为空，则全部高亮
     if (dataIndex === null) {
-      chartInstance?.dispatchAction({
+      chartInstance.value?.dispatchAction({
         type: 'legendAllSelect',
       });
     } else {
@@ -171,14 +171,14 @@ const handleStackBarLegendHighlight = (dataIndex: number | null) => {
         name = resetLegendName(dataIndex, name);
         nightingaleChartsDataList.childrenBarInfo.forEach((item, index) => {
           // 更新图例的选中状态
-          chartInstance?.dispatchAction({
+          chartInstance.value?.dispatchAction({
             type: 'legendUnSelect',
             name: resetLegendName(index, item.treeName),
           });
         });
 
         setTimeout(() => {
-          chartInstance?.dispatchAction({
+          chartInstance.value?.dispatchAction({
             type: 'legendSelect',
             name,
           });
@@ -198,12 +198,12 @@ watch(
 
 onMounted(() => {
   if (chartRef.value) {
-    chartInstance = initCharts(mapChartOptions());
+    chartInstance.value = initCharts(mapChartOptions());
     if (chartInstance) {
-      chartInstance.off('globalout');
-      chartInstance.on('globalout', () => {
+      chartInstance.value?.off('globalout');
+      chartInstance.value?.on('globalout', () => {
         setTimeout(() => {
-          chartInstance?.dispatchAction({
+          chartInstance.value?.dispatchAction({
             type: 'hideTip',
           });
         }, 250);
