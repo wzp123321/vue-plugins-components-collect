@@ -1,8 +1,8 @@
 /*
  * @Author: wanzp
  * @Date: 2023-02-10 22:13:43
- * @LastEditors: wzp123321 wanzhipengx@163.com
- * @LastEditTime: 2024-01-17 21:41:05
+ * @LastEditors: wanzp wanzp@tiansu-china.com
+ * @LastEditTime: 2025-04-07 15:32:26
  * @Description:
  */
 import { RouteRecordRaw } from 'vue-router';
@@ -56,6 +56,13 @@ const cssComponents: RouteRecordRaw[] = [
       name: 'CSS-毛玻璃',
     },
     component: () => import('../../pages/css/css-filter/css-filter.vue'),
+  },
+  {
+    path: '/css-semantization',
+    meta: {
+      name: '语义化标签',
+    },
+    component: () => import('../../pages/css/semantization/semantization.vue'),
   },
 ];
 

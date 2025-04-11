@@ -13,7 +13,7 @@ import threejsRoutes from '../../../router/modules/threejs';
 import cssRoutes from '../../../router/modules/css';
 import babyRoutes from '../../../router/modules/babylon';
 import directiveRoutes from '../../../router/modules/directive';
-import semantizationRoutes from '../../../router/modules/semantization';
+import deepSeekRoutes from '../../../router/modules/deep-seek';
 
 export const menuList = [
   // 动画管理
@@ -83,13 +83,13 @@ export const menuList = [
     meta: { name: 'CSS' },
     children: cssRoutes,
   },
-  // semantization
+  // deepSeek
   {
-    path: '/semantization',
+    path: '/deepSeek',
     icons: 'icon-library',
     hasIcon: true,
-    meta: { name: '语义化标签' },
-    children: semantizationRoutes,
+    meta: { name: 'DeepSeek实践' },
+    children: deepSeekRoutes,
   },
   // demo
   {

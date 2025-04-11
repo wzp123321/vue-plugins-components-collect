@@ -8,7 +8,7 @@ import threejsRoutes from './modules/threejs';
 import cssRoutes from './modules/css';
 import babyRoutes from './modules/babylon';
 import directiveRoutes from './modules/directive';
-import semantizationRoutes from './modules/semantization';
+import deepSeekRoutes from './modules/deep-seek';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -27,9 +27,8 @@ const routes: RouteRecordRaw[] = [
   ...cssRoutes,
   ...babyRoutes,
   ...directiveRoutes,
-  ...semantizationRoutes,
+  ...deepSeekRoutes,
   { path: '/:pathMatch(.*)*', name: 'Other', component: () => import('../demo/demo.vue') },
-
 ];
 
 const router = createRouter({

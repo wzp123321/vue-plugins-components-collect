@@ -2,6 +2,8 @@ import { ICommonRes } from '@/services/common.api';
 
 export * from './date';
 export * from './number';
+export * from './storage';
+export * from './gcm';
 
 // 全屏
 export const requestFullScreen = (element: any) => {
