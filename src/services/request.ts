@@ -68,7 +68,7 @@ export function checkAxiosPermission(code: number, message: string) {
  * 校验流文件，是否token过期
  * @param blob
  */
-function checkBlobPermission(blob: Blob) {
+const checkBlobPermission = (blob: Blob) => {
   if (blob.size && blob.type === 'application/json') {
     const reader = new FileReader();
     reader.onloadend = (e) => {
@@ -80,7 +80,7 @@ function checkBlobPermission(blob: Blob) {
     };
     reader.readAsText(blob);
   }
-}
+};
 
 /**
  * 添加请求前缀
@@ -109,4 +109,3 @@ const addToken = (config: AxiosRequestConfig): void => {
     'Content-Type': typeof config.params === 'string' ? 'text/plain; charset=utf-8' : 'application/json',
   };
 };
-

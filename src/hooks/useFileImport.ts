@@ -1,7 +1,7 @@
 import { ICommonFileUploadErrorDetail, ICommonRes } from '@/services/common.api';
-import { postRequest } from '@/services/request';
 import { FResHandler } from '@/utils';
 import { message } from 'ant-design-vue';
+import axios from 'axios';
 import { ref } from 'vue';
 
 interface FileUploadResponse {
@@ -75,7 +75,7 @@ export const useFileImport = () => {
           formData.append(k, v);
         });
       }
-      const res: ICommonRes<FileUploadErrorRes> = await postRequest(path, formData);
+      const res: ICommonRes<FileUploadErrorRes> = await axios.post(path, formData);
       const data = FResHandler(res);
       console.log(res);
       if (Array.isArray(data?.errorMessageList) && data?.errorMessageList?.length > 0) {
