@@ -1,0 +1,10 @@
+ignoredBuiltDependencies:
+  - '@fortawesome/fontawesome-free'
+  - '@vue-office/docx'
+  - '@vue-office/excel'
+  - '@vue-office/pdf'
+  - babylonjs
+  - core-js
+  - esbuild
+  - lint
+  - vue-demi
