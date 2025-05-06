@@ -69,7 +69,7 @@ export const useFileExport = () => {
   const handleFileExport = async (
     loading: Ref<boolean>,
     path: string,
-    type: string = '导出' || '下载',
+    type: string,
     params?: { [key: string]: any },
   ) => {
     if (loading.value) {
@@ -84,11 +84,11 @@ export const useFileExport = () => {
       const symbol = Object.getOwnPropertySymbols(res)[0];
       const name = symbol ? (res as any)[symbol] : '数据导出表.xlsx';
       // 如果是json
-      if (res?.size && res?.type.includes('json')) {
-        mapUploadError(type, res);
+      if (res.data?.size && res.data?.type.includes('json')) {
+        mapUploadError(type, res.data);
         return false;
       }
-      await useFileBlobHandler(res, name);
+      await useFileBlobHandler(res.data, name);
       message.success(`${type}成功`);
       return true;
     } catch (error) {
