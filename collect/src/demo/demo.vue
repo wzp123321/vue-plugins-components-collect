@@ -1,262 +1,103 @@
 <template>
-  <div>
-    <div class="top-buttons">
-      <div>工具栏：</div>
-      <a-button v-for="item in buttonList" :key="item.value" type="primary" @click="getValue(item.value)">
-        {{ item.label }}
-      </a-button>
-    </div>
-    <div ref="textRef" id="editor" :contenteditable="true" @input="onInput" @blur="onBlur"></div>
-    <!-- 下拉选择框 -->
-    <div v-if="showDropdown" :style="{ left: dropdownLeft + 'px', top: dropdownTop + 'px' }" class="dropdown">
-      <ul>
-        <li v-for="item in searchResults" :key="item.value" @click="selectItem(item)">
-          {{ item.label }}
-        </li>
-      </ul>
-    </div>
-    <button @click="getSpan({ label: '商品价格', value: '[V2]' })">商品价格</button>
-    <button @click="getSpan({ label: '商品数量', value: '[V1]' })">商品数量</button>
-    <button @click="getTextAndParams">获取公式</button>
-  </div>
+  {{ tableData }}
+  <el-table
+    :data="tableData"
+    row-key="id"
+    :default-expand-all="true"
+    :tree-props="{ children: 'children' }"
+    ref="tableRef"
+  >
+    <!-- 列定义 -->
+    <el-table-column prop="name" label="Name" />
+    <el-table-column label="操作">
+      <template #default="scope">
+        <span class="drag-handle">拖拽</span>
+      </template>
+    </el-table-column>
+  </el-table>
 </template>
 
-<script lang="ts" setup>
-import { ICommonValueLabel } from '@/services/common.api';
-import { ref, shallowRef, onMounted } from 'vue';
+<script setup>
+import { ref, onMounted } from 'vue';
+import { cloneDeep } from 'lodash';
+import Sortable from 'sortablejs';
 
-const textRef = ref<any>(null);
-const selection = shallowRef<any>(null);
-const range = shallowRef<any>(null);
-const props = defineProps({
-  isEdit: {
-    type: Boolean,
-    default: false,
+const tableData = ref([
+  {
+    id: 1,
+    name: 'Node 1',
+    children: [
+      { id: 2, name: 'Node 1-1' },
+      { id: 3, name: 'Node 1-2' },
+      { id: 7, name: 'Node 1-4' },
+    ],
   },
-  textValue: {
-    type: String,
-    default: '',
-  },
-});
-const buttonList: ICommonValueLabel[] = [
-  { label: '+', value: '+' },
-  { label: '-', value: '-' },
-  { label: '×', value: '*' },
-  { label: '÷', value: '/' },
-  { label: '<', value: '<' },
-  { label: '>', value: '>' },
-  { label: '>=', value: '>=' },
-  { label: '<=', value: '<=' },
-  { label: '=', value: '=' },
-  { label: '()', value: '()' },
-  { label: '%', value: '%' },
-  { label: '与', value: '&' },
-  { label: '或', value: '|' },
-];
-const dataList = [
-  { label: '商品价格', value: 'price' },
-  { label: '商品数量', value: 'num' },
-];
+  { id: 4, name: 'Node 2', children: [{ id: 5, name: 'Node 2-1' }] },
+  { id: 6, name: 'Node 3' },
+]);
 
-// 新增响应式数据
-const showDropdown = ref(false);
-const searchResults = ref<ICommonValueLabel[]>([]);
-const dropdownLeft = ref(0);
-const dropdownTop = ref(0);
+const tableRef = ref(null);
 
-/**
- * 重置光标位置
- * */
-const resetCursor = () => {
-  const parentElement = document.getElementById('editor') as HTMLElement; // 获取结束节点的父元素
-  const ran = document.createRange();
-  ran.selectNodeContents(parentElement);
-  ran.collapse(false);
-  const sel = window.getSelection();
-  if (sel) {
-    sel?.removeAllRanges();
-    sel?.addRange(ran);
-    range.value = sel.getRangeAt(0);
-  }
-};
-/**
- * 失焦后重置光标位置，这里不重置位置，会造成bug，例如点击生成的span光标消失，再次点击生成span的按钮，会在最后光标停留的span标签里面再插入span，就会造成bug
- */
-const onBlur = () => {
-  selection.value = window.getSelection();
-  range.value = selection.value?.getRangeAt(0);
-  // 如果最后的光标停留在text节点，那么就把光标移动至editor的最后面
-  if (range.value.endContainer.nodeType === Node.TEXT_NODE) {
-    // 检查结束节点是否为文本节点
-    resetCursor();
-  }
-  showDropdown.value = false;
-};
-
-/**
- *  点击工具栏按钮添加文本节点
- */
-const getValue = (value: any) => {
-  // 创建一个文本节点
-  const textNode = document.createTextNode(value);
-  // 在光标位置插入文本节点
-  range.value?.insertNode(textNode);
-  // 移动光标到文本节点的末尾
-  range.value?.setStartAfter(textNode);
-  // 折叠光标到文本节点的末尾
-  range.value?.collapse(true);
-  // 移除所有选区 不移除selection会到聚焦点击的文本
-  selection.value?.removeAllRanges();
-  // 添加选区
-  selection.value?.addRange(range.value);
-};
-
-/**
- *  点击参数生成span标签
- */
-const getSpan = (params: any) => {
-  // 创建前缀
-  const prefix = `<span contenteditable="false" disabled="disabled" class="fn-param" data-param="${params.value}">`;
-  // 创建后缀
-  const suffix = '</span>';
-  // 创建span元素
-  const el = document.createElement('span') as any;
-  // 将前缀和后缀插入span元素
-  el.innerHTML = prefix + params.label + suffix;
-  // 去掉外层的span
-
-  const frag = document.createDocumentFragment();
-  const node = frag.appendChild(el.firstChild);
-
-  // 插入tag
-  range.value?.insertNode(node);
-  // 设置光标
-  range.value?.setStartAfter(node);
-  range.value?.collapse(true);
-  // 不移除selection会到聚焦点击的文本
-  selection.value?.removeAllRanges();
-  // 添加选区
-  selection.value?.addRange(range.value);
-};
-
-/**
- * 获取构建的html里面的文本和参数
- */
-const getTextAndParams = () => {
-  // 获取文本中的参数元素
-  const editor = document.getElementById('editor') as any;
-  let result = '';
-  // 遍历编辑器的子节点，包括文本节点
-  editor.childNodes.forEach((node: any) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      result += node.textContent; // 获取文本节点内容
-    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
-      result += node.dataset.param; // 获取 span 的 data-param 属性值
-    }
-  });
-
-  // 返回文本
-  const data = {
-    value: result,
-    label: textRef.value?.innerText,
-  };
-  console.log(data, data.value.split(/(\[.*?\])/).filter(Boolean));
-  return data;
-};
-const reviewFn = (data: string) => {
-  // 拆分公式并处理每个部分
-  const parts = data.split(/(\W)/); // 按照非字母字符分割公式
-  console.log(parts);
-  for (let i = 0; i < parts.length; i++) {
-    const index = dataList.findIndex((item) => item.value === parts[i]);
-    if (index > -1) {
-      getSpan(dataList[index]);
-    } else {
-      getValue(parts[i]);
-    }
-  }
-};
 onMounted(() => {
-  resetCursor();
-  if (props.textValue) {
-    reviewFn(props.textValue);
-  }
+  const el = tableRef.value.$el.querySelector('.el-table__body-wrapper tbody');
+  Sortable.create(el, {
+    animation: 150,
+    handle: '.drag-handle', // 拖拽手柄
+    onEnd: (evt) => {
+      // 这里的old和new是两个元素在扁平化数组中的位置
+      const { oldIndex, newIndex } = evt;
+      if (oldIndex === newIndex) {
+        return;
+      }
+      // 获取扁平化数据（包含父子关系）
+      const cloneData = tableData.value;
+      const flatData = flattenTree(cloneData);
+      console.log(flatData, oldIndex, newIndex);
+      const movedItem = flatData[oldIndex];
+      const targetItem = flatData[newIndex];
+      console.log(movedItem, targetItem, movedItem.parentId !== targetItem.parentId);
+      // 确保只能在同级拖拽
+      if (movedItem.parentId !== targetItem.parentId) {
+        return;
+      }
+
+      const parent = findParent(cloneData, movedItem.id);
+      const children = parent ? parent.children : cloneData;
+      console.log('children', children);
+      const flatNewIndex = children?.findIndex((item) => item.id === targetItem.id);
+      const flatOldIndex = children?.findIndex((item) => item.id === movedItem.id);
+      console.log(flatNewIndex, flatOldIndex);
+      if (flatNewIndex > flatOldIndex) {
+        children.splice(flatNewIndex + 1, 0, movedItem);
+        children.splice(flatOldIndex, 1);
+      } else if (flatNewIndex < flatOldIndex) {
+        children.splice(flatNewIndex, 0, movedItem);
+        children.splice(flatOldIndex + 1, 1);
+      }
+    },
+  });
 });
 
-// 输入事件处理函数
-const onInput = () => {
-  const editor = document.getElementById('editor') as HTMLElement;
-  const text = editor.innerText;
-  const lastChar = text[text.length - 1];
+// 树形数据扁平化（带 parentId）
+const flattenTree = (tree, parentId = null) => {
+  const cloneData = cloneDeep(tree);
+  let result = [];
+  cloneData.forEach((node) => {
+    result.push({ ...node, parentId });
+    if (node.children) flattenTree(node.children, node.id);
+  });
+  return result;
+};
 
-  if (lastChar === '#') {
-    searchResults.value = dataList;
-    showDropdown.value = true;
-
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      dropdownLeft.value = rect.left + window.pageXOffset;
-      dropdownTop.value = rect.bottom + window.pageYOffset;
+// 查找父节点
+function findParent(tree, id, parent = null) {
+  for (const node of tree) {
+    if (node.id === id) return parent;
+    if (node.children) {
+      const found = findParent(node.children, id, node);
+      if (found) return found;
     }
-  } else {
-    showDropdown.value = false;
   }
-};
-
-// 选择下拉项的处理函数
-const selectItem = (item: ICommonValueLabel) => {
-  getSpan(item);
-  showDropdown.value = false;
-};
+  return null;
+}
 </script>
-
-<style lang="less" scoped>
-#editor {
-  width: 100%;
-  height: 150px;
-  padding: 10px;
-  box-sizing: border-box;
-  overflow: auto;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 20px;
-  word-break: break-all;
-  outline: none;
-}
-.top-buttons {
-  margin: 5px;
-  display: flex;
-  align-items: center;
-}
-:deep(.fn-param) {
-  padding: 4px;
-  background: #0e66b720;
-  border-radius: 5px;
-  color: #0e66b7;
-  margin: 4px;
-  display: inline-block;
-}
-.dropdown {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-}
-.dropdown ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-.dropdown li {
-  padding: 8px 16px;
-  cursor: pointer;
-}
-.dropdown li:hover {
-  background-color: #f0f0f0;
-}
-</style>

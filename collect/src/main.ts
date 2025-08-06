@@ -4,6 +4,7 @@ import { createPinia } from 'pinia';
 import router from './router/index';
 
 import 'ant-design-vue/dist/reset.css';
+import 'element-plus/dist/index.css'
 import './assets/css/common.less';
 import './assets/style/global.less';
 import './assets/test-color.js';
