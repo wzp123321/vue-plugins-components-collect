@@ -50,6 +50,7 @@ const defaultData = [
   { id: 6, name: 'Node 3' },
 ];
 
+const originTableData = ref(cloneDeep(defaultData));
 const tableData = ref(cloneDeep(defaultData));
 
 const tableRef = ref(null);
@@ -66,7 +67,7 @@ const handleExpanded = (a: any, b: any) => {
 };
 
 onMounted(() => {
-  const el = tableRef.value.$el.querySelector('.el-table__body-wrapper tbody');
+  const el = tableRef.value?.$el?.querySelector('.el-table__body-wrapper tbody');
   const rows = el.querySelectorAll('tr.el-table__row');
   const flatData = flattenTree(cloneDeep(tableData.value));
   console.log(rows);
@@ -103,7 +104,7 @@ onMounted(() => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === newIndex) return;
 
-      const cloneData = cloneDeep(defaultData);
+      const cloneData = cloneDeep(originTableData.value);
       const flatData = flattenTree(cloneData);
       const movedItem = flatData[oldIndex];
       const targetItem = flatData[newIndex];
@@ -141,8 +142,9 @@ onMounted(() => {
       tableData.value = [];
       nextTick(() => {
         setTimeout(() => {
+          originTableData.value = cloneDeep(cloneData);
           tableData.value = cloneDeep(cloneData);
-        }, 1);
+        }, 10);
       });
     },
   });
