@@ -19,12 +19,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { cloneDeep } from 'lodash';
 import Sortable from 'sortablejs';
-import { getArrayRound } from '@/utils';
 
-const tableData = ref([
+const defaultData = [
   {
     id: 1,
     name: 'Node 1',
@@ -49,7 +48,9 @@ const tableData = ref([
     ],
   },
   { id: 6, name: 'Node 3' },
-]);
+];
+
+const tableData = ref(cloneDeep(defaultData));
 
 const tableRef = ref(null);
 
@@ -80,6 +81,7 @@ onMounted(() => {
     animation: 150,
     handle: '.drag-handle',
     dataIdAttr: 'data-id',
+    forceFallback: true, // 强制使用 fallback 模式，避免直接修改 DOM
     // 禁止 sortablejs 自动更新 DOM
     setData: (dataTransfer, dragEl) => {
       dataTransfer.setData('Text', dragEl.textContent); // 仅设置必要数据
@@ -91,6 +93,7 @@ onMounted(() => {
 
       // 禁止跨层级拖拽
       if (draggedItem !== relatedItem) {
+        console.log(2222222);
         return false; // 阻止拖拽
       }
       return true;
@@ -100,20 +103,26 @@ onMounted(() => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === newIndex) return;
 
-      const flatData = flattenTree(cloneDeep(tableData.value));
+      const cloneData = cloneDeep(defaultData);
+      const flatData = flattenTree(cloneData);
       const movedItem = flatData[oldIndex];
       const targetItem = flatData[newIndex];
 
       // 1️⃣ 禁止跨层级拖拽
       if (movedItem.parentId !== targetItem.parentId) {
-        console.warn('禁止跨层级拖拽！');
+        tableData.value = [];
+        nextTick(() => {
+          setTimeout(() => {
+            tableData.value = cloneDeep(cloneData);
+          }, 1);
+        });
         // sortable?.cancel()
         return;
       }
 
       // 2️⃣ 找到父级和兄弟节点
-      const parent = findParent(tableData.value, movedItem.id);
-      const siblings = parent ? parent.children : tableData.value;
+      const parent = findParent(cloneData, movedItem.id);
+      const siblings = parent ? parent.children : cloneData;
 
       // 3️⃣ 找到 movedItem 和 targetItem 在 siblings 中的索引
       const movedIndex = siblings.findIndex((item) => item.id === movedItem.id);
@@ -127,7 +136,14 @@ onMounted(() => {
       // 4️⃣ 移动元素
       const [removed] = siblings.splice(movedIndex, 1);
       siblings.splice(targetIndex, 0, removed);
-      console.log('siblings---------------', siblings);
+      console.log('siblings---------------', defaultData, cloneData, siblings);
+
+      tableData.value = [];
+      nextTick(() => {
+        setTimeout(() => {
+          tableData.value = cloneDeep(cloneData);
+        }, 1);
+      });
     },
   });
 });
