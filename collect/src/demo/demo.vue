@@ -1,5 +1,14 @@
 <template>
-  <el-table :data="tableData" row-key="id" :tree-props="{ children: 'children' }" ref="tableRef">
+  <span>{{ tableData }}</span>
+  <span>{{ expandedKeys }}</span>
+  <el-table
+    :expand-row-keys="expandedKeys"
+    :data="tableData"
+    row-key="id"
+    :tree-props="{ children: 'children' }"
+    ref="tableRef"
+    @expand-change="handleExpanded"
+  >
     <el-table-column prop="name" label="Name" />
     <el-table-column label="操作">
       <template #default="scope">
@@ -9,10 +18,11 @@
   </el-table>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { cloneDeep } from 'lodash';
 import Sortable from 'sortablejs';
+import { getArrayRound } from '@/utils';
 
 const tableData = ref([
   {
@@ -23,11 +33,36 @@ const tableData = ref([
       { id: 3, name: 'Node 1-2' },
     ],
   },
-  { id: 4, name: 'Node 2', children: [{ id: 5, name: 'Node 2-1' }] },
+  {
+    id: 4,
+    name: 'Node 2',
+    children: [
+      { id: 5, name: 'Node 2-1' },
+      {
+        id: 7,
+        name: 'Node 2-2',
+        children: [
+          { id: 8, name: 'Node 2-2-1' },
+          { id: 9, name: 'Node 2-2-2' },
+        ],
+      },
+    ],
+  },
   { id: 6, name: 'Node 3' },
 ]);
 
 const tableRef = ref(null);
+
+const expandedKeys = ref(['1']);
+
+const handleExpanded = (a: any, b: any) => {
+  if (b) {
+    expandedKeys.value.push(a?.id + '');
+  } else {
+    expandedKeys.value = expandedKeys.value?.filter((item) => item + '' === a?.id + '');
+  }
+  console.log(a, b);
+};
 
 onMounted(() => {
   const el = tableRef.value.$el.querySelector('.el-table__body-wrapper tbody');
@@ -41,10 +76,14 @@ onMounted(() => {
     }
   }
 
-  const sortable = Sortable.create(el, {
+  Sortable.create(el, {
     animation: 150,
     handle: '.drag-handle',
     dataIdAttr: 'data-id',
+    // 禁止 sortablejs 自动更新 DOM
+    setData: (dataTransfer, dragEl) => {
+      dataTransfer.setData('Text', dragEl.textContent); // 仅设置必要数据
+    },
     onMove: (evt) => {
       const { dragged, related } = evt;
       const draggedItem = dragged?.getAttribute('data-parent-id');
@@ -57,6 +96,7 @@ onMounted(() => {
       return true;
     },
     onEnd: (evt) => {
+      evt.preventDefault(); // 阻止默认行为
       const { oldIndex, newIndex } = evt;
       if (oldIndex === newIndex) return;
 
@@ -87,6 +127,7 @@ onMounted(() => {
       // 4️⃣ 移动元素
       const [removed] = siblings.splice(movedIndex, 1);
       siblings.splice(targetIndex, 0, removed);
+      console.log('siblings---------------', siblings);
     },
   });
 });
