@@ -4,3 +4,5 @@ export { default as AnimationRollingOver } from './animation-rolling-over/animat
 export { default as AnimationSurround } from './animation-surround/animation-surround.vue';
 export { default as AnimationLightSwitch } from './animation-light-switch/animation-light-switch.vue';
 export { default as AnimationLottery } from './animation-lottery/animation-lottery.vue';
+export { default as AnimationClickHeart } from './animation-click-heart/animation-click-heart.vue';
+export { default as AnimationAddShoppingTrolley } from './animation-add-shopping-trolley/animation-add-shopping-trolley.vue';

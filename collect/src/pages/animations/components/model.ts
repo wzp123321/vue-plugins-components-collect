@@ -5,6 +5,8 @@ import {
   AnimationSurround,
   AnimationLightSwitch,
   AnimationLottery,
+  AnimationClickHeart,
+  AnimationAddShoppingTrolley,
 } from './index';
 export const customComponents: { description: string; component: any }[] = [
   {
@@ -30,5 +32,13 @@ export const customComponents: { description: string; component: any }[] = [
   {
     description: '幸运大抽奖',
     component: AnimationLottery,
+  },
+  {
+    description: '点击小红心',
+    component: AnimationClickHeart,
+  },
+  {
+    description: '加入购物车',
+    component: AnimationAddShoppingTrolley,
   },
 ];
