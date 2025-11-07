@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
 import vue from '@vitejs/plugin-vue';
 
@@ -28,7 +28,7 @@ export default ({ mode }) => {
     },
     // 开发选项
     server: {
-      port: 9999,
+      port: Number(loadEnv(mode, process.cwd()).VITE_DEV_SERVER_PORT),
       host: '0.0.0.0',
       fs: {
         strict: false, // 解决Unrestricted file system access  vite对根目录的访问做了限制

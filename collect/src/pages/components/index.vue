@@ -2,29 +2,17 @@
   <div class="components-little">
     <h5>所有小组件</h5>
     <a-row :gutter="20">
-      <a-col :span="12">
+      <a-col v-for="item in customComponents" :span="12">
         <a-card class="box-card">
-          <h5>二维码生成器</h5>
-          <ComponentQrCode></ComponentQrCode>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card class="box-card">
-          <h5>自定义分页器</h5>
-          <ComponentPagination></ComponentPagination>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card class="box-card">
-          <h5>拖拽布局</h5>
-          <ComponentDragLayout></ComponentDragLayout>
+          <h5>{{ item?.description }}</h5>
+          <component :is="item?.component"></component>
         </a-card>
       </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { ComponentQrCode, ComponentPagination, ComponentDragLayout } from './components';
+import { customComponents } from './components';
 
 defineOptions({
   name: 'ComponentsLittle',
