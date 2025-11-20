@@ -2,6 +2,13 @@ import { ICommonRes } from '@/services/common.api';
 import { ref } from 'vue';
 import SparkMD5 from 'spark-md5';
 import { message } from 'ant-design-vue';
+import CommonFileSuffixExcel from '@/assets/images/common/common-file-suffix-excel.svg';
+import CommonFileSuffixPdf from '@/assets/images/common/common-file-suffix-pdf.svg';
+import CommonFileSuffixWord from '@/assets/images/common/common-file-suffix-word.svg';
+import CommonFileSuffixPpt from '@/assets/images/common/common-file-suffix-ppt.svg';
+import CommonFileSuffixPng from '@/assets/images/common/common-file-suffix-png.svg';
+import CommonFileSuffixJpg from '@/assets/images/common/common-file-suffix-jpg.svg';
+import CommonFileSuffixUnknown from '@/assets/images/common/common-file-suffix-unknown.svg';
 
 export const useFileHandler = () => {
   // 文件列表
@@ -12,20 +19,32 @@ export const useFileHandler = () => {
    * @param multiple 是否支持多选
    * @returns 目标文件域
    */
-  const handleFileChoose = (accept: string, multiple: boolean = false) => {
-    const element = document.createElement('input');
-    element.multiple = multiple;
-    element.type = 'file';
-    accept && (element.accept = accept);
-    element.click();
-    element.onchange = () => {
-      if (element.files) {
-        console.log(123);
-        fileList.value = [...(element.files as any)];
+  const handleFileChoose = (accept: string, multiple: boolean = false): Promise<File | FileList> =>
+    new Promise((resolve, reject) => {
+      const element = document.createElement('input');
+      element.type = 'file';
+      if (accept) {
+        element.accept = accept;
       }
-      element.remove();
-    };
-  };
+      element.multiple = multiple;
+      element.click();
+      element.onchange = () => {
+        if (multiple) {
+          if (element.files) {
+            resolve(element.files);
+          }
+        } else {
+          const file = element.files?.[0];
+          if (file?.size) {
+            resolve(file);
+          } else {
+            reject('无法选取文件');
+          }
+        }
+
+        element.remove();
+      };
+    });
   /**
    * 文件转本地url
    * @param file
@@ -177,6 +196,51 @@ export const useFileHandler = () => {
 
     return chunks;
   };
+
+  /**
+   * 根据后缀名拿到响应icon
+   * @param name 后缀名
+   * @returns
+   */
+  const mapFileTypeIcon = (name: string): string => {
+    let ext = name.split('.').pop();
+    ext = ext?.toLocaleLowerCase();
+    switch (ext) {
+      case 'xls':
+      case 'xlsx':
+      case 'xlsm':
+        return CommonFileSuffixExcel;
+      case 'pdf':
+        return CommonFileSuffixPdf;
+      case 'doc':
+      case 'docx':
+        return CommonFileSuffixWord;
+      case 'pptx':
+        return CommonFileSuffixPpt;
+      case 'png':
+        return CommonFileSuffixPng;
+      case 'jpg':
+      case 'jpeg':
+        return CommonFileSuffixJpg;
+      default:
+        return CommonFileSuffixUnknown;
+    }
+  };
+  /**
+   * 文件大小格式化工具
+   * 将字节数转换为可读的格式 (B, KB, MB, GB, TB)
+   */
+  const formatFileSize = (bytes: number, decimals: number = 2): string => {
+    if (bytes === 0) return '0 B';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
   return {
     fileList,
     handleFileChoose,
@@ -186,5 +250,7 @@ export const useFileHandler = () => {
     verifyUpload,
     FBlobHandler,
     FDownLoadHandler,
+    mapFileTypeIcon,
+    formatFileSize,
   };
 };
