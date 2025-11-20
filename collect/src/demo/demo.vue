@@ -43,7 +43,7 @@ const handleStart = async () => {
   const accept = Object.keys(COMMON_ACCEPT_FILE_EXTENDS).join();
   const files = (await handleFileChoose(accept, true)) as FileList;
   fileList.value = [...files];
-  md5.value = await mapFileMD5(fileList[0]);
+  md5.value = (await mapFileMD5(fileList.value[0])) ?? '';
 };
 </script>
 
