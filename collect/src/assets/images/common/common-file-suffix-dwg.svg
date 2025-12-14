@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>dwg</title>
+    <g id="dwg" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g>
+            <rect id="矩形" fill="#000000" opacity="0" x="0" y="0" width="16" height="16"></rect>
+            <path d="M2.5,0.5 C2.3125,0.5 2.1125,0.575 1.975,0.725 C1.8375,0.875 1.75,1.0625 1.75,1.25 L1.75,14.75 C1.75,14.9375 1.825,15.1375 1.975,15.275 C2.125,15.425 2.3125,15.5 2.5,15.5 L13.5,15.5 C13.6875,15.5 13.8875,15.425 14.025,15.275 C14.175,15.125 14.25,14.9375 14.25,14.75 L14.25,4.75 L10,0.5 L2.5,0.5 Z" id="路径" fill="#71BF67"></path>
+            <text id="DWG" font-family="PingFangSC-Semibold, PingFang SC" font-size="4" font-weight="500" fill="#FFFFFF">
+                <tspan x="3.142" y="12">DWG</tspan>
+            </text>
+            <path d="M14.25,4.75 L10.75,4.75 C10.5625,4.75 10.3625,4.675 10.225,4.525 C10.075,4.3875 10,4.1875 10,4 L10,0.5 L14.25,4.75 Z" id="路径" fill="#BDE8B7"></path>
+        </g>
+    </g>
+</svg>
