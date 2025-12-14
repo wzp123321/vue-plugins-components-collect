@@ -6,12 +6,12 @@
  * @Description:
  */
 import Antd from 'ant-design-vue';
-import { ElTable, ElTableColumn } from 'element-plus';
+import { ElTable, ElTableColumn, ElButton } from 'element-plus';
 import { App } from 'vue';
 import CommonCard from './common-card/common-card.vue';
 import CommonPageContainer from './common-page-container/common-page-container.vue';
 
-const components = [CommonCard, CommonPageContainer, ElTable, ElTableColumn];
+const components = [CommonCard, CommonPageContainer, ElTable, ElTableColumn, ElButton];
 
 const registerAntv = (app: App) => {
   app.use(Antd);

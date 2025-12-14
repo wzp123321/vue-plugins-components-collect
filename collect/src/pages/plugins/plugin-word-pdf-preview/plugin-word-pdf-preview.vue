@@ -55,6 +55,8 @@ import {
   PDF_ACCEPT_EXTENSIONS_STR,
 } from '../../../config/enum';
 import '@vue-office/docx/lib/index.css';
+
+const { fileList, transferFileToUrl, handleFileChoose } = useFileHandler();
 /**
  * 文件类型
  */
@@ -66,8 +68,6 @@ const fileType = computed<string>(() => {
 const fileSrc = ref('');
 
 const ACCEPTS = `${XLSX_ACCEPT_EXTENSIONS_STR},${DOCX_ACCEPT_EXTENSIONS_STR},${PDF_ACCEPT_EXTENSIONS_STR}`;
-
-const { fileList, transferFileToUrl, handleFileChoose } = useFileHandler();
 
 const handleFileDelete = (name: string) => {
   fileList.value = fileList.value.filter((item) => item.name !== name);

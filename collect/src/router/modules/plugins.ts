@@ -44,6 +44,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/plugins/plugin-word-pdf-preview/plugin-word-pdf-preview.vue'),
   },
   {
+    path: '/plugin-table-export-excel',
+    meta: {
+      name: '表格导出excel',
+    },
+    component: () => import('../../pages/plugins/plugin-table-export-excel/plugin-table-export-excel.vue'),
+  },
+  {
     path: '/pluginsLittle',
     meta: {
       name: '小插件',

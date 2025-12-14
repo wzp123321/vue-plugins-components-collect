@@ -15,6 +15,10 @@ export default ({ mode }) => {
           find: '@',
           replacement: resolve(__dirname, 'src'),
         },
+        {
+          find: './cptable',
+          replacement: 'cptable',
+        },
       ],
       // 支持的后缀
       extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue', '.less'],
