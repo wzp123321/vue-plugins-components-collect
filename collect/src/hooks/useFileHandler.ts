@@ -179,8 +179,8 @@ export const useFileHandler = () => {
    * @param file
    * @returns
    */
-  const mapFileChunks = (file: File) => {
-    const CHUNK_SIZE = 1024 * 1024 * 10; // 每个文件切片大小定为10MB .
+  const mapFileChunks = (file: File, singleChunkSize: number = 10) => {
+    const CHUNK_SIZE = 1024 * 1024 * singleChunkSize; // 每个文件切片大小定为10MB .
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const chunks = [];
     for (let index = 0; index < totalChunks; index++) {
