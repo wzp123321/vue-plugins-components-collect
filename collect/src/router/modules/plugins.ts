@@ -58,6 +58,13 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-webrtc/plugins-webrtc.vue'),
   },
+  {
+    path: '/plugins-export-to-excel',
+    meta: {
+      name: 'pluginsExportToExcel',
+    },
+    component: () => import('../../pages/plugins/plugins-export-to-excel/plugins-export-to-excel.vue'),
+  },
 ];
 
 export default pluginRoutes;
