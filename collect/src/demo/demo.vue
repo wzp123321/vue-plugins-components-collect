@@ -123,7 +123,6 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { UploadFilled } from '@element-plus/icons-vue'
 import SparkMD5 from 'spark-md5'
 
 defineOptions({
@@ -618,4 +617,18 @@ function getChunkStatusText(status: string) {
     }
   }
 }
-</style>
+</style> -->
+
+<template>
+  <div>
+    <input type="file" @change="selectFile" />
+    <button @click="upload">上传</button>
+    <div v-if="progress > 0">上传进度：{{ progress }}%</div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useBigFileUpload } from './useBigFileUpload';
+
+const { file, progress, selectFile, upload } = useBigFileUpload();
+</script>

@@ -1,4 +1,3 @@
-import SparkMD5 from 'spark-md5';
 import html2canvas from 'html2canvas';
 
 /**
@@ -129,53 +128,6 @@ export function FDownLoadHandler(url: string, name?: string): Promise<void> {
     }
   });
 }
-
-/**
- * 获取文件md5
- * @param file
- * @returns {Promise<string | null>}
- */
-export const mapFileMD5 = (file: File): Promise<string | null> => {
-  return new Promise((resolve) => {
-    if (!file) {
-      resolve(null);
-      return;
-    }
-
-    const fileReader = new FileReader();
-    const spark = new SparkMD5.ArrayBuffer();
-    // 获取文件二进制数据
-    fileReader.readAsArrayBuffer(file);
-    fileReader.onload = (e: ProgressEvent) => {
-      spark.append((e.target as any).result);
-      const md5 = spark.end();
-      resolve(md5);
-    };
-  });
-};
-
-/**
- * 文件分片
- * @param file
- * @returns
- */
-export const mapFileChunks = (file: File) => {
-  const CHUNK_SIZE = 1024 * 1024 * 10; // 每个文件切片大小定为10MB .
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  const chunks = [];
-  for (let index = 0; index < totalChunks; index++) {
-    const start = index * CHUNK_SIZE;
-    const end = Math.min(start + CHUNK_SIZE, file.size);
-    const chunk = file.slice(start, end);
-
-    chunks.push({
-      index,
-      data: chunk,
-    });
-  }
-
-  return chunks;
-};
 
 /**
  * dom导出成图片
