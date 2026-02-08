@@ -7,6 +7,9 @@
   </div>
 </template>
 <script setup lang="ts">
+defineOptions({
+  name: 'CommonCard',
+})
 const props = defineProps({
   title: {
     type: String,

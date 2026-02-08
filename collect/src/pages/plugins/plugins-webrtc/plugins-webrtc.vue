@@ -5,8 +5,8 @@
       <video id="pw-container-video"></video>
     </div>
     <footer class="pw-footer">
-      <a-button @click="handleStart">打开</a-button>
-      <a-button @click="handleClose">关闭</a-button>
+      <el-button @click="handleStart">打开</el-button>
+      <el-button @click="handleClose">关闭</el-button>
     </footer>
   </div>
 </template>

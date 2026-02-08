@@ -1,7 +1,7 @@
 <template>
   <div class="vue-usevmediacontrolls" id="vue-usevmediacontrolls">
     <video ref="video" />
-    <a-button @click="playing = !playing">Play / Pause</a-button>
+    <el-button @click="playing = !playing">Play / Pause</el-button>
     <span>{{ currentTime }} / {{ duration }}</span>
   </div>
 </template>

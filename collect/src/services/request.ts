@@ -1,5 +1,5 @@
 import { FGetStorageData, FGetAuthorization } from '@/utils';
-import { Modal } from 'ant-design-vue';
+import { ElMessageBox } from 'element-plus';
 import axios, { AxiosRequestConfig } from 'axios';
 
 const FORBIDDEN_CODE = 401;
@@ -53,15 +53,13 @@ axios.interceptors.response.use(
  */
 export function checkAxiosPermission(code: number, message: string) {
   if (+code === FORBIDDEN_CODE) {
-    Modal.confirm({
-      title: '登录失效',
-      content: '登录信息已失效，请重新登录',
-      onOk() {
-        window.location.href = message;
-      },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onCancel() {},
-    });
+    ElMessageBox.confirm('登录信息已失效，请重新登录', '登录失效', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }).then(() => {
+      window.location.href = message;
+    }).catch(() => {});
   }
 }
 /**

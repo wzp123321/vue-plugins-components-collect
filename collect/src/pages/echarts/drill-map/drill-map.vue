@@ -1,15 +1,15 @@
 <template>
   <div class="drill-map">
     <!-- 返回按钮 -->
-    <a-button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回上一级</a-button>
+    <el-button class="dm-back" @click="back" v-if="drillCodes.length > 0">返回上一级</el-button>
     <div class="dm-map" ref="chartRef"></div>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, shallowRef } from 'vue';
+import { ref, onMounted, onUnmounted, shallowRef } } from 'vue';
 import { EChartsType, registerMap, EChartsOption } from 'echarts';
 import { useEChartsInit } from '@/hooks';
-import { message } from 'ant-design-vue';
+import { ElMessage } from 'element-plus';
 
 defineOptions({
   name: 'DrillMap',
@@ -194,7 +194,7 @@ const initMap = async () => {
       const mapName = level === 'district' ? addressCode : addressCode + '_full';
       // 防止最后一个层级被重复点击，返回上一级出错
       if (drillCodes.value[drillCodes.value.length - 1] === mapName) {
-        message.warning('已经是最下层了');
+        ElMessage.warning('已经是最下层了');
         return;
       }
       // 每次下转都记录下地图的name，在返回的时候使用

@@ -1,6 +1,6 @@
 import { ICommonFileUploadErrorDetail, ICommonRes } from '@/services/common.api';
 import { FResHandler } from '@/utils';
-import { message } from 'ant-design-vue';
+import { ElMessage, ElLoading } from 'element-plus';
 import axios from 'axios';
 import { ref } from 'vue';
 
@@ -43,19 +43,19 @@ export const useFileImport = () => {
   // 校验文件
   const verifyUploadFile = (target: File, maxSize: number, accept: { [key: string]: string }): boolean => {
     if (target?.size > maxSize * 1024 * 1024) {
-      message.error(`上传${target?.name ?? ''}失败，文件大小不能超过${maxSize}MB！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，文件大小不能超过${maxSize}MB！`);
       return false;
     }
     const suffix = target?.name?.substring(target?.name?.lastIndexOf('.'));
     if (!Object.keys(accept).includes(suffix)) {
-      message.error(`上传${target?.name ?? ''}失败，当前页面只支持上传${Object.keys(accept).join('/')}格式文件！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，当前页面只支持上传${Object.keys(accept).join('/')}格式文件！`);
       return false;
     }
     return true;
   };
   /**
    * 文件上传
-   * @param {string} path 上传接口地址
+   * @param {string} path 上传接口接口地址
    * @param {File} file 文件
    * @param {{ [key: string]: any }} params 参数
    * @returns {Promise<FileUploadResponse> }
@@ -65,7 +65,11 @@ export const useFileImport = () => {
     file: File,
     params?: { [key: string]: any },
   ): Promise<FileUploadResponse> => {
-    message.loading('文件上传中');
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: '文件上传中',
+      background: 'rgba(0, 0, 0, 0.7)',
+    });
     try {
       importing.value = true;
       const formData = new FormData();
@@ -79,19 +83,22 @@ export const useFileImport = () => {
       const data = FResHandler(res);
       console.log(res);
       if (Array.isArray(data?.errorMessageList) && data?.errorMessageList?.length > 0) {
+        loadingInstance.close();
         return {
           success: false,
           detailList: data?.errorMessageList,
         };
       }
-      message.success('导入成功');
+      loadingInstance.close();
+      ElMessage.success('导入成功');
       return {
         success: true,
         detailList: [],
       };
     } catch (error) {
+      loadingInstance.close();
       console.warn('批量导入年度明细模板', '-->', error);
-      message.error(`导入失败，${error}`);
+      ElMessage.error(`导入失败，${error}`);
       return {
         success: false,
         detailList: [],

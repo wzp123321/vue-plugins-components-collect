@@ -1,10 +1,10 @@
 <template>
   <div class="nightingale-charts">
     <header class="nc-header">
-      <a-button :disabled="imgExporting" link @click="handleExportCombinedImage">
+      <el-button :disabled="imgExporting" link @click="handleExportCombinedImage">
         导出图片
         <icon-export />
-      </a-button>
+      </el-button>
     </header>
     <section class="nc-body">
       <div class="nc-container">

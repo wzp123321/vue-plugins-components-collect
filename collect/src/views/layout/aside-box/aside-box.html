@@ -1,29 +1,49 @@
-<div
-  :class="['aside-box', isCollapse ? 'is-collapsed' : '', openSubMenuKeys?.length>0 ? 'is-open' : '', isHover ? 'is-hover' : '']"
->
-  <div
-    class="menu-list flex-column-justify-end"
-    style="z-index: 2200; position: relative; height: 100%"
-    @mouseover="onMouseOver"
-    @mouseleave="onMouseOut"
-  >
-    <a-menu
+<div class="aside-box">
+    <el-menu
       mode="vertical"
       :router="false"
-      v-model:selectedKeys="selectedMenu"
-      :subMenuOpenDelay="isHover ? 0.25 : 0"
-      @openChange="onSubMenuOpen"
+      :default-active="selectedMenu?.[0]"
     >
-      <AsideMenuItem :dataSource="menuList"></AsideMenuItem>
-    </a-menu>
-    <div class="aside-box-expand" style="width: 100%">
-      <div class="collapse-btn operate-btn" @click="onCollapseChange">
-        <img
-          class="collapse-btn-img"
-          src="../../../assets/images/common/common-menu-action.png"
-          alt=""
-        />
-      </div>
-    </div>
-  </div>
+      <template v-for="(item, index) in menuList" :key="'menu_' + index">
+        <el-menu-item
+          v-if="!item.children || item.children.length === 0"
+          :index="item.path"
+          :title="item.name"
+          @click="handleMenuLinkTo(item.path)"
+        >
+          <template #icon v-if="item.hasIcon">
+            <div class="menu-icon">
+              <i :class="['ems-iconfont', item.icons]"></i>
+            </div>
+          </template>
+          {{ item.meta.name }}
+        </el-menu-item>
+        <el-sub-menu
+          v-else
+          :index="item.path"
+          :popper-options="{ offset: [2, item.hasIcon ? 8 : 0] }"
+        >
+          <template #icon v-if="item.hasIcon">
+            <div class="menu-icon">
+              <i :class="['ems-iconfont', item.icons]"></i>
+            </div>
+          </template>
+          <template #title>{{ item.meta.name }}</template>
+          <el-menu-item
+            v-for="(child, childIndex) in item.children"
+            :key="'child_' + index + '_' + childIndex"
+            :index="child.path"
+            :title="child.name"
+            @click="handleMenuLinkTo(child.path)"
+          >
+            <template #icon v-if="child.hasIcon">
+              <div class="menu-icon">
+                <i :class="['ems-iconfont', child.icons]"></i>
+              </div>
+            </template>
+            {{ child.meta.name }}
+          </el-menu-item>
+        </el-sub-menu>
+      </template>
+    </el-menu>
 </div>

@@ -7,25 +7,25 @@
         <div class="flex-row-start-center">
           <textarea v-model="textCry" cols="50" rows="10" placeholder="请输入"></textarea>
           <div class="flex-column-start-center">
-            <a-radio-group v-model:value="checkedMethod">
-              <a-radio v-for="(item, index) in methods" :key="'method' + index" :value="item">{{ item }}</a-radio>
-            </a-radio-group>
+            <el-radio-group v-model="checkedMethod">
+              <el-radio v-for="(item, index) in methods" :key="'method' + index" :value="item">{{ item }}</el-radio>
+            </el-radio-group>
           </div>
           <div class="flex-column-start-center">
-            <a-radio-group v-model:value="cryptoType">
-              <a-radio
+            <el-radio-group v-model="cryptoType">
+              <el-radio
                 v-for="(item, index) in types"
                 :key="'type' + index"
                 :value="item"
                 :disabled="UN_DECRYPTO.includes(checkedMethod as any) && item === TYPE.解密"
               >
                 {{ item }}
-              </a-radio>
-            </a-radio-group>
+              </el-radio>
+            </el-radio-group>
           </div>
           <div class="flex-column-start-center">
-            <a-button type="primary" @click="onEncrypto">确认</a-button>
-            <a-button style="margin-top: 12px" @click="reset">重置</a-button>
+            <el-button type="primary" @click="onEncrypto">确认</el-button>
+            <el-button style="margin-top: 12px" @click="reset">重置</el-button>
           </div>
           <textarea v-model="cryptoText" cols="50" rows="10"></textarea>
         </div>
@@ -34,7 +34,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { message } from 'ant-design-vue';
+import { ElMessage } from 'element-plus';
 import Crypto from 'crypto-js';
 import CryptoAES from './utils/aes';
 import CryptoBase64 from './utils/base64';
@@ -69,7 +69,7 @@ const cryptoType = ref<string>(types[0]);
 // 加密
 const onEncrypto = () => {
   if (!checkedMethod.value) {
-    message.error('请选择加密方式');
+    ElMessage.error('请选择加密方式');
     return;
   }
   try {
@@ -87,7 +87,7 @@ const onEncrypto = () => {
         break;
     }
   } catch (e) {
-    message.error((e as any).message);
+    ElMessage.error((e as any).message);
   }
 };
 

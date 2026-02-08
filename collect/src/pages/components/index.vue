@@ -1,14 +1,14 @@
 <template>
   <div class="components-little">
     <h5>所有小组件</h5>
-    <a-row :gutter="20">
-      <a-col v-for="item in customComponents" :span="12">
-        <a-card class="box-card">
+    <el-row :gutter="20">
+      <el-col v-for="item in customComponents" :key="item.description" :span="12">
+        <el-card class="box-card">
           <h5>{{ item?.description }}</h5>
           <component :is="item?.component"></component>
-        </a-card>
-      </a-col>
-    </a-row>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script lang="ts" setup>
@@ -23,11 +23,11 @@ defineOptions({
   width: 100%;
   height: 100%;
 
-  :deep(.ant-col) {
+  :deep(.el-col) {
     padding-top: 10px;
     padding-bottom: 10px;
 
-    .ant-card {
+    .el-card {
       height: 360px;
     }
   }

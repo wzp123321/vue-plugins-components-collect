@@ -2,16 +2,16 @@
   <div class="tree-select-transfer">
     <div class="tst-box is-left">
       <div class="tst-box-header">
-        <a-checkbox>待选({{ mapDataTotal() }})</a-checkbox>
+        <el-checkbox>待选({{ mapDataTotal() }})</el-checkbox>
         <!-- 插槽 -->
         <slot name="headerRight"></slot>
       </div>
       <div class="tst-box-body">
         <!-- 搜索框 -->
         <div class="tst-box-body-filter">
-          <a-input v-model="filerTreeLabel" placeholder="请输入" />
+          <el-input v-model="filerTreeLabel" placeholder="请输入" />
         </div>
-        <a-tree
+        <el-tree
           ref="treeRef"
           :data="treeList"
           :props="props.defaultProps"
@@ -31,7 +31,7 @@
       <div class="tst-box-body">
         <!-- 搜索框 -->
         <div class="tst-box-body-filter">
-          <a-input v-model="filerListLabel" placeholder="请输入" />
+          <el-input v-model="filerListLabel" placeholder="请输入" />
         </div>
         <!-- 列表 -->
         <ul class="tst-right-list" v-if="checkedList.length > 0">
@@ -57,7 +57,7 @@ import { useTree, useCheckedList } from './hook/index';
 import { mapArrayFlat } from './utils/';
 // 常量
 import { treeList, defaultExpandedKeys } from './constant';
-import { message } from 'ant-design-vue';
+import { ElMessage } from 'element-plus';
 // props
 const props = defineProps({
   modelValue: {
@@ -101,7 +101,7 @@ const { treeRef, filerTreeLabel, treeCheckedKeys, expandedKeys, initTreeChecked,
 const handleTreeCheck = (_data: Tst_ITreeNodeData, event: Tst_ITreeCheckEvent<Tst_ITreeNodeData>) => {
   const { checkedKeys, checkedNodes } = event;
   if (props.limit && checkedKeys?.length > props.limit) {
-    message.error(`最多选择${props.limit}个`);
+    ElMessage.error(`最多选择${props.limit}个`);
     treeRef.value && treeRef.value?.setCheckedKeys(treeCheckedKeys.value);
     return;
   }

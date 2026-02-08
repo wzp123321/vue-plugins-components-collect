@@ -1,7 +1,7 @@
 import { ICommonRes } from '@/services/common.api';
 import { ref } from 'vue';
 import SparkMD5 from 'spark-md5';
-import { message } from 'ant-design-vue';
+import { ElMessage } from 'element-plus';
 import CommonFileSuffixExcel from '@/assets/images/common/common-file-suffix-excel.svg';
 import CommonFileSuffixPdf from '@/assets/images/common/common-file-suffix-pdf.svg';
 import CommonFileSuffixWord from '@/assets/images/common/common-file-suffix-word.svg';
@@ -71,17 +71,17 @@ export const useFileHandler = () => {
     total: number,
   ): boolean => {
     if (target?.size > maxSize * 1024 * 1024) {
-      message.error(`上传${target?.name ?? ''}失败，文件大小不能超过${maxSize}MB！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，文件大小不能超过${maxSize}MB！`);
       return false;
     }
 
     if (!Object.values(accept).includes(target?.type)) {
-      message.error(`上传${target?.name ?? ''}失败，当前页面只支持上传${Object.keys(accept).join('/')}格式文件！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，当前页面只支持上传${Object.keys(accept).join('/')}格式文件！`);
       return false;
     }
 
     if (list.map((file) => file.name).includes(target?.name)) {
-      message.error(`上传${target?.name ?? ''}失败，已存在同名文件，请修改文件名称重新上传！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，已存在同名文件，请修改文件名称重新上传！`);
       return false;
     }
 
@@ -93,7 +93,7 @@ export const useFileHandler = () => {
     totalSize += target.size;
     console.log(totalSize);
     if (totalSize > total * 1024 * 1024) {
-      message.error(`上传${target?.name ?? ''}失败，待上传附件总大小不能超过${total}MB！`);
+      ElMessage.error(`上传${target?.name ?? ''}失败，待上传附件总大小不能超过${total}MB！`);
       return false;
     }
 

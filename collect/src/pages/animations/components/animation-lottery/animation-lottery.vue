@@ -14,9 +14,9 @@
         </div>
       </div>
     </div>
-    <a-button class="al-btn" :disabled="isLotteryFlag" @click="startLottery">
+    <el-button class="al-btn" :disabled="isLotteryFlag" @click="startLottery">
       {{ isLotteryFlag ? '抽奖中...' : '开始抽奖' }}
-    </a-button>
+    </el-button>
     <div v-if="result" class="result-modal">
       <div class="modal-content">
         <h3>恭喜您!</h3>

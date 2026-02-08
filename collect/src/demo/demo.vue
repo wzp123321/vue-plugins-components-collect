@@ -16,7 +16,7 @@
           :drag="true"
           class="upload-dragger"
         >
-          <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">
             将文件拖到此处，或<em>点击上传</em>
           </div>
@@ -123,6 +123,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { UploadFilled } from '@element-plus/icons-vue'
 import SparkMD5 from 'spark-md5'
 
 defineOptions({
@@ -147,7 +148,6 @@ interface Log {
   type: 'info' | 'success' | 'error' | 'warning'
 }
 
-const uploadRef = ref()
 const currentFile = ref<File | null>(null)
 const fileHash = ref('')
 const chunkList = ref<Chunk[]>([])
@@ -156,7 +156,6 @@ const paused = ref(false)
 const uploadedChunks = ref(0)
 const uploadProgress = ref(0)
 const startTime = ref(0)
-const lastUploadedSize = ref(0)
 const logs = ref<Log[]>([])
 
 const uploadSpeed = computed(() => {
@@ -301,7 +300,7 @@ async function uploadChunksConcurrently() {
     return
   }
   
-  const uploadPromises: Promise[] = []
+  const uploadPromises: Promise<void>[] = []
   let currentIndex = 0
   
   const uploadNextChunk = async () => {
@@ -376,9 +375,7 @@ async function uploadChunk(chunk: Chunk) {
 
 async function mockUploadRequest(formData: FormData): Promise<void> {
   return new Promise((resolve, reject) => {
-    const index = parseInt(formData.get('index') as string)
     const randomDelay = Math.random() * 2000 + 500
-    
     setTimeout(() => {
       if (Math.random() > 0.1) {
         resolve()
@@ -617,18 +614,4 @@ function getChunkStatusText(status: string) {
     }
   }
 }
-</style> -->
-
-<template>
-  <div>
-    <input type="file" @change="selectFile" />
-    <button @click="upload">上传</button>
-    <div v-if="progress > 0">上传进度：{{ progress }}%</div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { useBigFileUpload } from './useBigFileUpload';
-
-const { file, progress, selectFile, upload } = useBigFileUpload();
-</script>
+</style>

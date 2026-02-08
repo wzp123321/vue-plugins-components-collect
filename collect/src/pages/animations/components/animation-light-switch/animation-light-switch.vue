@@ -11,21 +11,21 @@
       </header>
       <p>剩余时间：{{ remainingTime }}秒</p>
       <section class="als-footer">
-        <a-button @click="handlePauseSwitch">{{ pauseFlag ? '开始' : '暂停' }}</a-button>
+        <el-button @click="handlePauseSwitch">{{ pauseFlag ? '开始' : '暂停' }}</el-button>
       </section>
     </section>
     <section class="als-right">
       <div class="als-configure-item">
         <span>红灯时长</span>
-        <a-input :value="lightList[0].duration" @blur="handleBlur($event, 0)"></a-input>
+        <el-input :value="lightList[0].duration" @blur="handleBlur($event, 0)"></el-input>
       </div>
       <div class="als-configure-item">
         <span>绿灯时长</span>
-        <a-input :value="lightList[1].duration" @blur="handleBlur($event, 1)"></a-input>
+        <el-input :value="lightList[1].duration" @blur="handleBlur($event, 1)"></el-input>
       </div>
       <div class="als-configure-item">
         <span>黄灯时长</span>
-        <a-input :value="lightList[2].duration" @blur="handleBlur($event, 2)"></a-input>
+        <el-input :value="lightList[2].duration" @blur="handleBlur($event, 2)"></el-input>
       </div>
     </section>
   </div>

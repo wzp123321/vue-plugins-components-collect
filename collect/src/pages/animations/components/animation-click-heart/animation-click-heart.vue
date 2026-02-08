@@ -1,6 +1,6 @@
 <template>
   <div class="animation-click-heart">
-    <a-button class="like-btn" @click="handleClick">点击小红心</a-button>
+    <el-button class="like-btn" @click="handleClick">点击小红心</el-button>
   </div>
 </template>
 <script lang="ts" setup>

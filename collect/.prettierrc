@@ -5,15 +5,15 @@
   "bracketSpacing": true,
   "trailingComma": "all",
   "printWidth": 120,
-  "quoteProps": "as-needed", 
+  "quoteProps": "as-needed",
   "jsxSingleQuote": true,
   "jsxBracketSameLine": true,
   "arrowParens": "always",
-  "requirePragma": false, 
+  "requirePragma": false,
   "insertPragma": false,
   "proseWrap": "preserve",
   "htmlWhitespaceSensitivity": "ignore",
-  "vueIndentScriptAndStyle": false, 
+  "vueIndentScriptAndStyle": false,
   "endOfLine": "lf",
   "embeddedLanguageFormatting": "auto"
 }

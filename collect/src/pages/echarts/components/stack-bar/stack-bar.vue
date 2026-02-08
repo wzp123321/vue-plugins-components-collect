@@ -1,10 +1,10 @@
 <template>
   <div class="stack-bar">
     <header class="sb--header">
-      <a-button link @click="handleChartExport">
+      <el-button link @click="handleChartExport">
         导出成图片
         <icon-export />
-      </a-button>
+      </el-button>
     </header>
     <div class="sb--container">
       <div ref="chartRef"></div>

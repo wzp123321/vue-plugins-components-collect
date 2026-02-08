@@ -11,13 +11,13 @@
       <h5>文本过滤（默认）</h5>
       <div class="flex-row-start-center" style="padding: 16px 0">
         <label class="mr8">是否允许中文</label>
-        <a-switch v-model:checked="textFilterParams.allowChinese" @change="handleTextClear" />
+        <el-switch v-model="textFilterParams.allowChinese" @change="handleTextClear" />
         <label class="mr8 ml16">是否允许空格</label>
-        <a-switch v-model:checked="textFilterParams.allowSpace" @change="handleTextClear" />
+        <el-switch v-model="textFilterParams.allowSpace" @change="handleTextClear" />
         <label class="mr8 ml16">自定义正则</label>
         <span>{{ regText }}</span>
       </div>
-      <a-input
+      <el-input
         type="text"
         v-model="testText"
         v-inputFilter:text="{

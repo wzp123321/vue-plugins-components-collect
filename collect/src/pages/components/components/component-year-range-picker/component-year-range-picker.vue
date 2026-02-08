@@ -1,9 +1,8 @@
 <template>
   <div class="component-year-range-picker can-clear" id="component-year-range-picker">
-    <a-popover
+    <el-popover
       :teleported="false"
       placement="bottom"
-      :showArrow="false"
       :width="DEFAULT_WIDTH"
       trigger="click"
       @show="handleShow"
@@ -11,13 +10,12 @@
       <template #reference>
         <div class="yrp-trigger">
           <div class="yrp-input start-year">
-            <a-input type="text" size="12" :placeholder="props.placeholders[0]" autocomplete="off" :value="leftValue" />
+            <el-input type="text"  :placeholder="props.placeholders[0]" autocomplete="off" :value="leftValue" />
           </div>
           <span class="yrp-separator">~</span>
           <div class="yrp-input start-year">
-            <a-input
+            <el-input
               type="text"
-              size="12"
               :placeholder="props.placeholders[1]"
               autocomplete="off"
               :value="rightValue"
@@ -76,7 +74,7 @@
           </ul>
         </div>
       </div>
-    </a-popover>
+    </el-popover>
     <i class="ems-iconfont icon-qingkong" @click="handleClear"></i>
   </div>
 </template>
@@ -379,4 +377,3 @@ onMounted(() => {
   }
 }
 </style>
-./model

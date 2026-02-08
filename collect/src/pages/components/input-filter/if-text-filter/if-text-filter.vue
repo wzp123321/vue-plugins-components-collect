@@ -7,15 +7,15 @@
 -->
 <template>
   <div class="if-text-filter">
-    <a-divider>文本过滤</a-divider>
+    <el-divider>文本过滤</el-divider>
     <div class="mb16 flex">
-      <a-input :maxlength="1" type="text" v-model="textFilter.symbolValue" />
-      <a-button class="ml12" @click="textFilter.addSymbol()">添加特殊符号</a-button>
+      <el-input :maxlength="1" type="text" v-model="textFilter.symbolValue" />
+      <el-button class="ml12" @click="textFilter.addSymbol()">添加特殊符号</el-button>
     </div>
     <div class="if-text-filter-symbol flex mt16 mb16">
       <span v-for="(item, index) in textFilter.symbols" :key="'symbol' + index">{{ item }}</span>
     </div>
-    <a-input type="text" v-model="textFilter.value" @input="textFilter.input($event)" />
+    <el-input type="text" v-model="textFilter.value" @input="textFilter.input($event)" />
   </div>
 </template>
 <script lang="ts" setup>

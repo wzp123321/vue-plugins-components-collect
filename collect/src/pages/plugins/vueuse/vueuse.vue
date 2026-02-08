@@ -3,8 +3,8 @@
     <MousePosition></MousePosition>
     <LongPress></LongPress>
     <UseImage></UseImage>
-    <a-button @click="setPageTitle">设置网页标题</a-button>
-    <a-button @click="handleLastChange">记录上一次值修改的时间戳</a-button>
+    <el-button @click="setPageTitle">设置网页标题</el-button>
+    <el-button @click="handleLastChange">记录上一次值修改的时间戳</el-button>
 
     <div ref="elboundingRef">{{ ElementBoundingInfo }}</div>
 

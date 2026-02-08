@@ -1,11 +1,11 @@
 <template>
   <div class="cg-auto-fill">
     <div class="caf-fill">
-      <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
+      <div v-for="item in 3" :key="item" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
-    <a-divider />
+    <el-divider />
     <div class="caf-fit">
-      <div v-for="item in 3" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
+      <div v-for="item in 3" :key="item" :style="{ backgroundColor: mapColor(item) }" class="item">{{ item }}</div>
     </div>
   </div>
 </template>

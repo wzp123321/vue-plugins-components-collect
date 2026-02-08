@@ -1,4 +1,4 @@
-import { message } from 'ant-design-vue';
+import { ElMessage, ElLoading } from 'element-plus';
 import axios from 'axios';
 import { Ref } from 'vue';
 
@@ -11,8 +11,8 @@ export const useFileExport = () => {
     reader.onloadend = (e) => {
       const errRes = JSON.parse(e.target?.result as string);
       if (errRes?.errmsg && typeof errRes?.errmsg === 'string' && +errRes?.errcode !== 401) {
-        console.log(`%c✨✨${type}失败✨✨', 'font-size: 24px`, errRes?.errmsg);
-        message.error(`${type}失败，${errRes?.errmsg}`);
+        console.log(`%c✨✨${type}失败✨✨`, 'font-size: 24px', errRes?.errmsg);
+        ElMessage.error(`${type}失败，${errRes?.errmsg}`);
       }
     };
     reader.readAsText(res);
@@ -76,7 +76,11 @@ export const useFileExport = () => {
       return;
     }
     loading.value = true;
-    message.loading(`正在${type}`);
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: `正在${type}`,
+      background: 'rgba(0, 0, 0, 0.7)',
+    });
     try {
       const res: any = await axios.post(path, params, {
         responseType: 'blob',
@@ -85,17 +89,20 @@ export const useFileExport = () => {
       const name = symbol ? (res as any)[symbol] : '数据导出表.xlsx';
       // 如果是json
       if (res.data?.size && res.data?.type.includes('json')) {
+        loadingInstance.close();
         mapUploadError(type, res.data);
         return false;
       }
       await useFileBlobHandler(res.data, name);
-      message.success(`${type}成功`);
+      loadingInstance.close();
+      ElMessage.success(`${type}成功`);
       return true;
     } catch (error) {
+      loadingInstance.close();
       if (error && (error as any).data) {
         mapUploadError(type, (error as any).data);
       } else {
-        message.error(`${type}失败`);
+        ElMessage.error(`${type}失败`);
       }
     } finally {
       loading.value = false;

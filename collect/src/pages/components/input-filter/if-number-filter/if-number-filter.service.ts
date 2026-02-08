@@ -52,7 +52,7 @@ class NumberFilterService {
     this._is_negative.value = is_negative;
   }
 
-  input = (event: InputEvent) => {
+  input = (event: any) => {
     const ele = event.target as HTMLInputElement;
 
     if (!ele) {

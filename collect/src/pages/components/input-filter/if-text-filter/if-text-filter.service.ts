@@ -1,4 +1,4 @@
-import { message } from 'ant-design-vue';
+import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 /*
  * @Descrption: 文本过滤服务
@@ -42,7 +42,7 @@ class TextFilterService {
     this._regexp.value = regexp;
   }
 
-  input = (event: InputEvent) => {
+  input = (event: any) => {
     const ele = event.target as HTMLInputElement;
 
     if (!ele) {
@@ -59,24 +59,23 @@ class TextFilterService {
 
   addSymbol() {
     if (!this._symbolValue.value) {
-      message.error('请输入符号');
+      ElMessage.error('请输入符号');
       return;
     }
     const reg = RegExp(
       /[(\ )(\~)(\!)(\@)(\#)(\$)(\%)(\^)(\&)(\*)(\()(\))(\-)(\_)(\+)(\=)(\[)(\])(\{)(\})(\|)(\\)(\;)(\:)(\')(\")(\,)(\.)(\/)(\<)(\>)(\?)(\)]+/
     );
     if (!reg.test(this._symbolValue.value)) {
-      message.error('请输入正确的符号');
+      ElMessage.error('请输入正确的符号');
       return;
     }
     if (this._symbols.value.includes(this._symbolValue.value)) {
-      message.error('符号重复');
+      ElMessage.error('符号重复');
       return;
     }
 
     this._symbols.value.push(this._symbolValue.value);
     this._regexp.value = `${this._regexp.value}\\${this._symbolValue.value}`;
-
     this._symbolValue.value = '';
     this._value.value = '';
   }

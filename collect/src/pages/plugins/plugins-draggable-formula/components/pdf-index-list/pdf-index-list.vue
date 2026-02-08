@@ -2,9 +2,9 @@
   <div class="pdf-index-list">
     <h5>指标字段</h5>
 
-    <a-radio-group v-model:value="indexType">
-      <a-radio-button v-for="item in indexTypeList" :value="item.value">{{ item.label }}</a-radio-button>
-    </a-radio-group>
+    <el-radio-group v-model="indexType">
+      <el-radio-button v-for="item in indexTypeList" :key="item.value" :value="item.value">{{ item.label }}</el-radio-button>
+    </el-radio-group>
 
     <draggable
       v-model="indexList"
@@ -74,7 +74,7 @@ const handleDragEnd = () => {
   }
 
   h5,
-  .ant-radio-group {
+  .el-radio-group {
     margin-bottom: 16px;
   }
 

@@ -5,17 +5,16 @@
     </div>
 
     <div class="tool-group">
-      <a-button title="上一页" icon :disabled="!canLeft()" @click="jumpLeft(1)">
+      <el-button title="上一页" :disabled="!canLeft()" @click="jumpLeft(1)">
         <i class="ems-iconfont icon-left"></i>
-      </a-button>
+      </el-button>
 
-      <a-button radio :selected="1 === index" @click="selectPage(1)">
+      <el-button :type="1 === index ? 'primary' : 'default'" @click="selectPage(1)">
         {{ 1 }}
-      </a-button>
-      <a-button
+      </el-button>
+      <el-button
         v-if="canJumpLeft()"
         title="向前5页"
-        icon
         class="cp-no-border"
         @click="jumpLeft(5)"
         @mouseover="setJumpLeftActive(true)"
@@ -23,41 +22,41 @@
       >
         <i v-if="!isJumpLeftActive" class="ems-iconfont icon-shenglvehao"></i>
         <i v-if="isJumpLeftActive" class="ems-iconfont icon-doubleleft"></i>
-      </a-button>
+      </el-button>
 
-      <a-button v-for="page in pageList()" radio :selected="page === index" @click="selectPage(page)">
+      <el-button v-for="page in pageList()" :key="page" :type="page === index ? 'primary' : 'default'" @click="selectPage(page)">
         {{ page }}
-      </a-button>
+      </el-button>
 
-      <a-button
+      <el-button
         v-if="canJumpRight()"
         title="向后5页"
         class="cp-no-border"
-        icon
         @click="jumpRight(5)"
         @mouseover="setJumpRightActive(true)"
         @mouseout="setJumpRightActive(false)"
       >
         <i v-if="!isJumpRightActive" class="ems-iconfont icon-shenglvehao"></i>
         <i v-if="isJumpRightActive" class="ems-iconfont icon-a-doubleright"></i>
-      </a-button>
-      <a-button v-if="pageCount() > 1" radio :selected="pageCount() === index" @click="selectPage(pageCount())">
+      </el-button>
+      <el-button v-if="pageCount() > 1" :type="pageCount() === index ? 'primary' : 'default'" @click="selectPage(pageCount())">
         {{ pageCount() }}
-      </a-button>
+      </el-button>
 
-      <a-button title="下一页" icon :disabled="!canRight()" @click="jumpRight(1)">
+      <el-button title="下一页" :disabled="!canRight()" @click="jumpRight(1)">
         <i class="ems-iconfont icon-Right"></i>
-      </a-button>
-      <a-select class="tool-select-size" :popper-append-to-body="false" v-model="size" @change="selectPageSize">
-        <a-select-option
+      </el-button>
+      <el-select class="tool-select-size" v-model="size" @change="selectPageSize">
+        <el-option
           v-for="option of pageSizeOptions"
+          :key="option.value"
           :label="option.label"
           :value="option.value"
-        ></a-select-option>
-      </a-select>
+        ></el-option>
+      </el-select>
 
       <label>跳至</label>
-      <a-input
+      <el-input
         v-inputFilter:positiveNumber
         :value="index"
         class="tool-input-index"
@@ -198,7 +197,7 @@ const selectPageSize = (value: number) => {
 /**
  * 回车
  */
-const handleKeyDown = (e: KeyboardEvent) => {
+const handleKeyDown = (e: Event | KeyboardEvent) => {
   if (e.target) {
     (e.target as HTMLInputElement)?.blur();
   }
@@ -298,7 +297,7 @@ onMounted(() => {
       margin-left: 0 !important;
     }
 
-    button[icon].cp-no-border {
+    button.cp-no-border {
       i {
         color: rgba(0, 0, 0, 0.65);
       }
@@ -308,7 +307,6 @@ onMounted(() => {
           color: var(--color-primary);
         }
       }
-      // border: 1px transparent;
     }
 
     & > .tool-select-size {

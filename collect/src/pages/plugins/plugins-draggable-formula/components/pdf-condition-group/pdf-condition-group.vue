@@ -6,18 +6,18 @@
       <!-- 托管期 -->
       <div class="pcg-tool-period">
         <label>适用于</label>
-        <a-select placeholder="开始托管期">
-          <a-select-option :value="1" label="测试1"></a-select-option>
-        </a-select>
+        <el-select placeholder="开始托管期">
+          <el-option :value="1" label="测试1"></el-option>
+        </el-select>
         <em>-</em>
-        <a-select placeholder="结束托管期">
-          <a-select-option :value="1" label="测试1"></a-select-option>
-        </a-select>
+        <el-select placeholder="结束托管期">
+          <el-option :value="1" label="测试1"></el-option>
+        </el-select>
       </div>
       <!-- 按钮 -->
       <div class="pcg-tool-btn">
-        <a-button @click="handleCopy">复制</a-button>
-        <a-button @click="handleDelete">删除</a-button>
+        <el-button @click="handleCopy">复制</el-button>
+        <el-button @click="handleDelete">删除</el-button>
       </div>
     </section>
     <!-- 条件组 -->

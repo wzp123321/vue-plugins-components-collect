@@ -1,17 +1,17 @@
-<a-layout class="main flex flex-column">
+<el-container class="main flex flex-column">
   <!-- 头部 start -->
-  <a-layout-header class="main-header flex-row-justify-center">
+  <el-header class="main-header flex-row-justify-center">
     <h6>组件&插件收集</h6>
-  </a-layout-header>
+  </el-header>
   <!-- 头部 end -->
-  <a-layout-content class="main-container flex">
+  <el-container class="main-container flex">
     <!-- 侧边菜单 start -->
     <ems-aside :menuList="menuList" :selectedMenu="selectedMenu"></ems-aside>
     <!-- 侧边菜单 end -->
-    <a-layout-content class="main-container__content flex flex-column">
+    <el-main class="main-container__content flex flex-column">
       <common-page-container>
         <router-view></router-view>
       </common-page-container>
-    </a-layout-content>
-  </a-layout-content>
-</a-layout>
+    </el-main>
+  </el-container>
+</el-container>

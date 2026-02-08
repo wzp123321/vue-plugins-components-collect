@@ -1,12 +1,12 @@
 <template>
-  <a-tabs v-model="activeKey" class="css-grid">
-    <a-tab-pane label="属性" name="property">
+  <el-tabs v-model="activeKey" class="css-grid">
+    <el-tab-pane label="属性" name="property">
       <CgProperty></CgProperty>
-    </a-tab-pane>
-    <a-tab-pane label="示例" name="example">
+    </el-tab-pane>
+    <el-tab-pane label="示例" name="example">
       <CgExample></CgExample>
-    </a-tab-pane>
-  </a-tabs>
+    </el-tab-pane>
+  </el-tabs>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue';

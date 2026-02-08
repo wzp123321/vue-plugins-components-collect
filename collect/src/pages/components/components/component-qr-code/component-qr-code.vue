@@ -1,8 +1,8 @@
 <template>
   <div class="component-qr-code">
     <section class="cqc-header">
-      <a-input v-model:value="text" placeholder="输入你想生成二维码的文本" />
-      <a-button @click="generateQRCode">生成二维码</a-button>
+      <el-input v-model="text" placeholder="输入你想生成二维码的文本" />
+      <el-button @click="generateQRCode">生成二维码</el-button>
     </section>
     <section class="cqc-container">
       <canvas ref="qrcodeCanvas"></canvas>

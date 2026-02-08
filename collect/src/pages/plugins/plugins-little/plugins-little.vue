@@ -1,31 +1,31 @@
 <template>
   <div class="plugins-little">
     <h5>所有小插件</h5>
-    <a-row :gutter="20">
-      <a-col :span="12">
-        <a-card class="box-card">
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-card class="box-card">
           <h1>语音播报</h1>
           <div class="ps-container">
             <textarea rows="10" v-model="text1"></textarea>
-            <a-button @click="videoBroadCast()">播报</a-button>
-            <a-button @click="speak()">播放</a-button>
+            <el-button @click="videoBroadCast()">播报</el-button>
+            <el-button @click="speak()">播放</el-button>
           </div>
-        </a-card>
-      </a-col>
-      <a-col :span="12">
-        <a-card class="box-card">
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="box-card">
           <h1>文本框自适应高度</h1>
           <div class="ps-container">
             <textarea v-model="text" :maxlength="MAX_LENGTH" @input="handleInput"></textarea>
           </div>
-        </a-card>
-      </a-col>
-      <a-col v-for="item in componentList" :span="12">
-        <a-card class="box-card">
+        </el-card>
+      </el-col>
+      <el-col v-for="item in componentList" :key="item" :span="12">
+        <el-card class="box-card">
           <component :is="item"></component>
-        </a-card>
-      </a-col>
-    </a-row>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script lang="ts" setup>
@@ -118,11 +118,11 @@ const handleInput = (e: Event) => {
   width: 100%;
   height: 100%;
 
-  :deep(.ant-col) {
+  :deep(.el-col) {
     padding-top: 10px;
     padding-bottom: 10px;
 
-    .ant-card {
+    .el-card {
       height: 360px;
     }
   }
