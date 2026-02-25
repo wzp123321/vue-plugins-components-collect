@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 检查依赖白名单..."
+cd collect && node ./scripts/check-dependencies.js
