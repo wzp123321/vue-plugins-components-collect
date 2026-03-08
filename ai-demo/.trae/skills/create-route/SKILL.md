@@ -1,172 +1,465 @@
 ---
 name: create-route
-description: 指导在前端项目中按团队规范创建和维护路由，包括目录结构、Page 与 Loader 职责划分及懒加载用法。当前端需要新增或重构页面路由时使用本技能。
+description: 指导创建符合规范的路由配置，包括路由模块、导航守卫、权限控制。当需要创建新的路由或配置路由守卫时使用本技能。
 ---
 
-# 创建与维护路由
+# 创建路由配置
 
-## 重要提示
+## 使用场景
 
-在开始创建之前，请务必阅读以下关键规范：
+当你需要：
 
-**必读规范**：
-- `.agents/rules/03-项目结构.md` - 目录结构要求（特别是 `index.module.scss`）
-- `.agents/rules/06-路由规范.md` - 路由配置约束
+- 创建新的路由配置
+- 设置导航守卫和权限控制
+- 配置动态路由
+- 创建路由模块
 
-**常见错误警告**：
-- 样式文件必须使用 `.module.scss` 后缀，禁止使用 `.scss`
-- 路由目录名使用 `kebab-case`，例如 `login`、`ai-editor`
-- 必须在全局唯一路由入口注册，禁止多处维护同一条路由
-
----
-
-## 标准路由目录结构
-
-每个路由对应 `src/routes/<route-name>/` 目录：
-
-```text
-src/routes/login/
-  ├─ Page.tsx              # 页面主组件
-  ├─ Loader.tsx            # 懒加载包装
-  └─ index.module.scss     # 样式文件（必须是 .module.scss）
-```
-
-**关键要求**：
-- 样式文件后缀：`index.module.scss`（非 `.scss`）
-- 组件导出：默认导出 `Page` 组件
-- 目录名：`kebab-case`
+请使用本技能，并同时遵守 `.agents/rules/06-路由规范.md`。
 
 ---
 
-## 步骤 1：创建 Page 组件
+## 创建路由步骤
 
-```tsx
-// src/routes/login/Page.tsx
-import React from 'react';
-import styles from './index.module.scss';  // 必须是 .module.scss
+### 1. 创建路由模块
 
-const LoginPage: React.FC = () => {
-  return <div className={styles.loginPage}>LoginPage</div>;
-};
+在 `src/router/modules/` 目录下创建新的路由模块：
 
-export default LoginPage;
-```
+```typescript
+// src/router/modules/product.ts
+import type { AppRouteRecordRaw } from '../types'
 
-**验证点**：
-- [ ] 文件名为 `Page.tsx`
-- [ ] 样式导入为 `./index.module.scss`
-- [ ] 默认导出组件
-
----
-
-## 步骤 2：创建 Loader 组件（懒加载）
-
-```tsx
-// src/routes/login/Loader.tsx
-import React from 'react';
-import {ErrorBoundary, RouterLoading} from '@/components';
-
-const Component = React.lazy(
-  () => import(/* webpackChunkName: "login" */ './Page')
-);
-
-const Loader: React.FC = () => {
-  return (
-    <ErrorBoundary>
-      <React.Suspense fallback={<RouterLoading />}>
-        <Component />
-      </React.Suspense>
-    </ErrorBoundary>
-  );
-};
-
-export default Loader;
-```
-
-**验证点**：
-- [ ] 文件名为 `Loader.tsx`
-- [ ] 使用 `React.lazy` 懒加载 Page
-- [ ] 包含 ErrorBoundary 和 RouterLoading
-- [ ] 不在 Loader 中声明路由
-
----
-
-## 步骤 3：在全局路由中注册
-
-在 `src/routes/index.tsx` 中注册：
-
-```tsx
-import LoginLoader from './login/Loader';
-
-const routes = [
+const productRoutes: AppRouteRecordRaw[] = [
   {
-    path: '/login',
-    element: <LoginLoader />,
-    isAuthenticated: true,  // 根据实际需求设置
+    path: '/product',
+    name: 'product',
+    component: () => import('@/layouts/default.vue'),
+    redirect: '/product/list',
+    meta: {
+      title: '产品管理',
+      requiresAuth: true,
+      icon: 'product',
+      order: 3,
+      permissions: ['product:view']
+    },
+    children: [
+      {
+        path: 'list',
+        name: 'productList',
+        component: () => import('@/views/product/list.vue'),
+        meta: {
+          title: '产品列表',
+          keepAlive: true,
+          permissions: ['product:view']
+        }
+      },
+      {
+        path: 'detail/:id',
+        name: 'productDetail',
+        component: () => import('@/views/product/detail.vue'),
+        meta: {
+          title: '产品详情',
+          hideInMenu: true,
+          permissions: ['product:view']
+        }
+      },
+      {
+        path: 'create',
+        name: 'productCreate',
+        component: () => import('@/views/product/create.vue'),
+        meta: {
+          title: '创建产品',
+          permissions: ['product:create']
+        }
+      },
+      {
+        path: 'edit/:id',
+        name: 'productEdit',
+        component: () => import('@/views/product/edit.vue'),
+        meta: {
+          title: '编辑产品',
+          hideInMenu: true,
+          permissions: ['product:update']
+        }
+      }
+    ]
+  }
+]
+
+export default productRoutes
+```
+
+### 2. 在主路由配置中注册
+
+```typescript
+// src/router/routes.ts
+import type { AppRouteRecordRaw } from './types'
+import homeRoutes from './modules/home'
+import userRoutes from './modules/user'
+import productRoutes from './modules/product'
+import orderRoutes from './modules/order'
+
+export const routes: AppRouteRecordRaw[] = [
+  ...homeRoutes,
+  ...userRoutes,
+  ...productRoutes,
+  ...orderRoutes,
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'notFound',
+    component: () => import('@/views/error/404.vue'),
+    meta: {
+      title: '页面不存在',
+      hideInMenu: true
+    }
   },
-  // ...
-];
+  {
+    path: '/403',
+    name: 'forbidden',
+    component: () => import('@/views/error/403.vue'),
+    meta: {
+      title: '没有权限',
+      hideInMenu: true
+    }
+  }
+]
 ```
 
-**验证点**：
-- [ ] 只在唯一路由入口注册
-- [ ] 导入路径正确 `./login/Loader`
+### 3. 创建路由类型定义
+
+```typescript
+// src/router/types.ts
+import type { RouteRecordRaw } from 'vue-router'
+
+/**
+ * 路由元信息
+ */
+export interface RouteMeta {
+  title?: string // 页面标题
+  requiresAuth?: boolean // 是否需要登录
+  permissions?: string[] // 需要的权限列表
+  roles?: string[] // 需要的角色
+  keepAlive?: boolean // 是否缓存页面
+  hideInMenu?: boolean // 是否在菜单中隐藏
+  icon?: string // 菜单图标
+  order?: number // 菜单排序，数字越小越靠前
+  activeMenu?: string // 高亮菜单项
+  breadcrumb?: boolean // 是否显示面包屑
+  affix?: boolean // 是否固定标签页
+}
+
+/**
+ * 应用路由类型
+ */
+export type AppRouteRecordRaw = RouteRecordRaw & {
+  meta?: RouteMeta
+}
+
+/**
+ * 面包屑项
+ */
+export interface BreadcrumbItem {
+  title: string
+  path?: string
+  name?: string
+  noRedirect?: boolean
+}
+```
+
+### 4. 配置导航守卫
+
+```typescript
+// src/router/guards.ts
+import type { Router, RouteLocationNormalized } from 'vue-router'
+import { useUserStore } from '@/store/user'
+import { ElMessage } from '@tiansu/element-plus'
+import { getToken } from '@/utils/auth'
+
+/**
+ * 设置路由守卫
+ */
+export function setupGuards(router: Router) {
+  // 白名单路由
+  const whiteList = ['login', 'register', '404', '403']
+
+  /**
+   * 检查权限
+   */
+  const hasPermission = (route: RouteLocationNormalized): boolean => {
+    const { permissions, roles } = route.meta || {}
+    const userStore = useUserStore()
+
+    // 检查权限
+    if (permissions && permissions.length > 0) {
+      const hasRequiredPermission = permissions.some(permission => userStore.permissions.includes(permission))
+      if (!hasRequiredPermission) return false
+    }
+
+    // 检查角色
+    if (roles && roles.length > 0) {
+      const hasRequiredRole = roles.some(role => userStore.roles.includes(role))
+      if (!hasRequiredRole) return false
+    }
+
+    return true
+  }
+
+  /**
+   * 全局前置守卫
+   */
+  router.beforeEach(async (to, from, next) => {
+    // 设置页面标题
+    if (to.meta?.title) {
+      document.title = `${to.meta.title} - 管理系统`
+    }
+
+    const hasToken = getToken()
+    const userStore = useUserStore()
+
+    if (hasToken) {
+      // 有token
+      if (to.name === 'login') {
+        // 已登录，跳转到首页
+        next({ name: 'dashboard' })
+        return
+      }
+
+      // 检查是否需要获取用户信息
+      if (!userStore.userInfo) {
+        try {
+          await userStore.getUserInfo()
+        } catch (error) {
+          // 获取用户信息失败，清除token并跳转到登录页
+          await userStore.logout()
+          next({
+            name: 'login',
+            query: { redirect: to.fullPath }
+          })
+          return
+        }
+      }
+
+      // 检查权限
+      if (!hasPermission(to)) {
+        ElMessage.error('您没有访问权限')
+        next({ name: '403' })
+        return
+      }
+
+      next()
+    } else {
+      // 没有token
+      if (whiteList.includes(to.name as string)) {
+        // 在白名单中，直接放行
+        next()
+      } else {
+        // 不在白名单中，跳转到登录页
+        ElMessage.warning('请先登录')
+        next({
+          name: 'login',
+          query: { redirect: to.fullPath }
+        })
+      }
+    }
+  })
+
+  /**
+   * 全局后置守卫
+   */
+  router.afterEach((to, from) => {
+    // 记录访问日志
+    console.log(`路由跳转: ${from.path} -> ${to.path}`)
+
+    // 可以在这里添加页面访问统计
+    // trackPageView(to)
+  })
+
+  /**
+   * 全局错误处理
+   */
+  router.onError(error => {
+    console.error('路由错误:', error)
+    ElMessage.error('页面加载失败')
+  })
+}
+```
+
+### 5. 创建路由实例
+
+```typescript
+// src/router/index.ts
+import { createRouter, createWebHistory } from 'vue-router'
+import type { Router } from 'vue-router'
+import { routes } from './routes'
+import { setupGuards } from './guards'
+
+/**
+ * 创建路由实例
+ */
+export const router: Router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // 保存滚动位置
+    if (savedPosition) {
+      return savedPosition
+    }
+
+    // 锚点定位
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      }
+    }
+
+    // 滚动到顶部
+    return { top: 0, behavior: 'smooth' }
+  }
+})
+
+// 设置路由守卫
+setupGuards(router)
+
+export default router
+```
 
 ---
 
-## 步骤 4：验证文件结构
+## 动态路由
 
-创建完成后，检查目录结构是否符合规范：
+### 从后端获取路由配置
 
-```text
-src/routes/<route-name>/
-  ├─ Page.tsx              ✓
-  ├─ Loader.tsx            ✓
-  └─ index.module.scss     ✓（必须是 .module.scss）
+```typescript
+// src/router/dynamic.ts
+import type { AppRouteRecordRaw } from './types'
+import { useUserStore } from '@/stores/user'
+
+/**
+ * 生成动态路由
+ */
+export async function generateDynamicRoutes(): Promise<AppRouteRecordRaw[]> {
+  const userStore = useUserStore()
+
+  try {
+    // 从后端获取路由配置
+    const { getUserRoutes } = await import('@/apis/user')
+    const routeData = await getUserRoutes()
+
+    // 转换为Vue Router格式
+    return transformRoutes(routeData)
+  } catch (error) {
+    console.error('获取动态路由失败:', error)
+    return []
+  }
+}
+
+/**
+ * 转换路由数据
+ */
+function transformRoutes(data: any[]): AppRouteRecordRaw[] {
+  return data.map(item => ({
+    path: item.path,
+    name: item.name,
+    component: loadComponent(item.component),
+    meta: {
+      title: item.title,
+      icon: item.icon,
+      permissions: item.permissions,
+      order: item.order,
+      keepAlive: item.keepAlive,
+      hideInMenu: item.hideInMenu
+    },
+    children: item.children ? transformRoutes(item.children) : []
+  }))
+}
+
+/**
+ * 加载组件
+ */
+function loadComponent(component: string) {
+  // 组件路径映射
+  const componentMap: Record<string, () => Promise<any>> = {
+    dashboard: () => import('@/views/dashboard/index.vue'),
+    user: () => import('@/views/user/index.vue'),
+    product: () => import('@/views/product/index.vue'),
+    order: () => import('@/views/order/index.vue')
+  }
+
+  return componentMap[component] || (() => import('@/views/error/404.vue'))
+}
 ```
 
-**快速验证命令**：
+### 添加动态路由
 
-```bash
-ls -la src/routes/<route-name>/
+```typescript
+// 在登录后添加动态路由
+import { generateDynamicRoutes } from '@/router/dynamic'
+
+const addDynamicRoutes = async () => {
+  const dynamicRoutes = await generateDynamicRoutes()
+
+  dynamicRoutes.forEach(route => {
+    router.addRoute(route)
+  })
+}
 ```
-
-应该看到三个文件，且样式文件后缀为 `.module.scss`。
 
 ---
 
-## 页面级组件放置
+## 路由工具函数
 
-如果页面需要专用组件，创建 `components/` 目录：
+### 面包屑生成
 
-```text
-src/routes/ai-editor/
-  ├─ Page.tsx
-  ├─ Loader.tsx
-  ├─ index.module.scss
-  └─ components/           # 页面专用组件
-      └─ xxx/
-          ├─ index.tsx
-          └─ index.module.scss
+```typescript
+// src/router/utils.ts
+import type { RouteLocationMatched } from 'vue-router'
+import type { BreadcrumbItem } from './types'
+
+/**
+ * 生成面包屑
+ */
+export function generateBreadcrumbs(matched: RouteLocationMatched[]): BreadcrumbItem[] {
+  return matched
+    .filter(item => item.meta?.title)
+    .map(item => ({
+      title: item.meta!.title!,
+      path: item.path,
+      name: item.name as string,
+      noRedirect: item.redirect === undefined
+    }))
+}
 ```
 
-**组件放置规则**（详见 `.agents/rules/04-组件规范.md`）：
-- 页面级组件（仅当前页面使用）→ `src/routes/<route>/components/`
-- 通用组件（多处复用）→ `src/components/`
+### 菜单生成
+
+```typescript
+/**
+ * 根据路由生成菜单
+ */
+export function generateMenu(routes: AppRouteRecordRaw[]) {
+  return routes
+    .filter(route => !route.meta?.hideInMenu)
+    .sort((a, b) => (a.meta?.order || 0) - (b.meta?.order || 0))
+    .map(route => ({
+      title: route.meta?.title || '',
+      icon: route.meta?.icon || '',
+      path: route.path,
+      name: route.name,
+      children: route.children ? generateMenu(route.children) : []
+    }))
+}
+```
 
 ---
 
 ## 快速检查清单
 
-创建完成后，逐项核对：
-
-- [ ] 路由目录名为 `kebab-case`
-- [ ] 存在 `Page.tsx`
-- [ ] 存在 `Loader.tsx`
-- [ ] 存在 `index.module.scss`（非 `.scss`）
-- [ ] Page 中样式导入为 `./index.module.scss`
-- [ ] Loader 只负责懒加载 Page
-- [ ] 路由在唯一入口文件注册
-- [ ] 组件放置位置正确（通用 vs 页面级）
-
-**样式还原检查**：涉及 UI 还原的样式开发，请参考 `.agents/skills/create-proposal/SKILL.md` 中的「样式还原验证检查清单」及对应页面的 `docs/样式还原/<名称>-UI分析清单.md`。
+- [ ] 路由模块是否放在正确的目录？
+- [ ] 路由路径是否使用kebab-case命名？
+- [ ] 路由组件是否使用懒加载？
+- [ ] 是否配置了必要的路由元信息？
+- [ ] 导航守卫是否正确设置？
+- [ ] 权限验证逻辑是否完善？
+- [ ] 是否处理了404等错误页面？
+- [ ] 路由类型定义是否完整？
+- [ ] 动态路由是否正确处理？

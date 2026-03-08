@@ -1,111 +1,369 @@
 ---
 name: create-store
-description: 指导在前端项目中按团队规范使用 Zustand 创建和维护全局状态 store，包括目录结构、命名与持久化策略。当前端需要新增或重构状态管理时使用本技能。
+description: 指导创建符合规范的Pinia Store，包括状态定义、actions、getters和模块化组织。当需要创建新的状态管理时使用本技能。
 ---
 
-# 创建与维护 Zustand Store
+# 创建Pinia Store
 
 ## 使用场景
 
 当你需要：
 
-- 为业务模块新增全局状态（如主题、用户信息、AI 编辑器状态）
-- 重构原有的状态管理逻辑到统一的 `src/stores` 目录
+- 创建新的状态管理Store
+- 定义状态、actions和getters
+- 组织模块化的状态管理
+- 处理异步状态操作
 
-请使用本技能，并同时遵守 `.agents/rules/03-项目结构.md`（目录结构约束）与 `.agents/rules/07-状态管理.md`。
-
----
-
-## 目录与命名
-
-- 所有 store 文件必须放在：`src/stores`
-- 每个业务模块一个文件：`src/stores/<module>.ts`
-- 暴露 hook 名称：`useXxxStore`（PascalCase 中的 Xxx 与模块含义一致）
-
-示例：
-
-```ts
-// 结构示意
-// src/stores/theme.ts       -> useThemeStore
-// src/stores/user.ts        -> useUserStore
-// src/stores/ai-editor.ts   -> useAiEditorStore
-```
+请使用本技能，并同时遵守 `.agents/rules/07-状态管理.md`。
 
 ---
 
-## 步骤 1：创建基本 Store
+## 创建Store步骤
 
-```ts
-// src/stores/theme.ts
-import {create} from 'zustand';
-import {ThemeMode} from '@/constants/theme';
+### 1. 创建Store文件
 
-interface ThemeState {
-  theme: ThemeMode;
-  setTheme: (theme: ThemeMode) => void;
-  toggleTheme: () => void;
-}
+在 `src/store/` 目录下创建新的Store文件：
 
-export const useThemeStore = create<ThemeState>((set) => ({
-  theme: ThemeMode.LIGHT,
-  setTheme: (theme) => set({theme}),
-  toggleTheme: () =>
-    set((state) => ({
-      theme:
-        state.theme === ThemeMode.LIGHT ? ThemeMode.DARK : ThemeMode.LIGHT,
-    })),
-}));
-```
+```typescript
+// src/store/product.ts
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import type { Product, ProductFilter } from '@/apis/product'
 
----
+export const useProductStore = defineStore('product', () => {
+  // State
+  const products = ref<Product[]>([])
+  const currentProduct = ref<Product | null>(null)
+  const loading = ref(false)
+  const filter = ref<ProductFilter>({
+    category: '',
+    search: '',
+    sortBy: 'name'
+  })
 
-## 步骤 2：使用持久化（如需要）
+  // Getters
+  const productList = computed(() => products.value)
+  const productCount = computed(() => products.value.length)
+  const filteredProducts = computed(() => {
+    let result = products.value
 
-当状态需要跨页面或刷新保留时，使用 `zustand/middleware` 的 `persist`：
-
-```ts
-import {create} from 'zustand';
-import {persist} from 'zustand/middleware';
-import {ThemeMode} from '@/constants/theme';
-
-interface ThemeState {
-  theme: ThemeMode;
-  setTheme: (theme: ThemeMode) => void;
-}
-
-export const useThemeStore = create<ThemeState>()(
-  persist(
-    (set) => ({
-      theme: ThemeMode.LIGHT,
-      setTheme: (theme) => set({theme}),
-    }),
-    {
-      name: 'huayiyi-theme', // localStorage key，建议带项目前缀
+    if (filter.value.category) {
+      result = result.filter(p => p.category === filter.value.category)
     }
-  )
-);
+
+    if (filter.value.search) {
+      const search = filter.value.search.toLowerCase()
+      result = result.filter(p => p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search))
+    }
+
+    // 排序
+    result.sort((a, b) => {
+      switch (filter.value.sortBy) {
+        case 'price':
+          return a.price - b.price
+        case 'name':
+          return a.name.localeCompare(b.name)
+        default:
+          return 0
+      }
+    })
+
+    return result
+  })
+
+  // Actions
+  const fetchProducts = async () => {
+    loading.value = true
+    try {
+      const { getProductList } = await import('@/apis/product')
+      const data = await getProductList()
+      products.value = data
+    } catch (error) {
+      console.error('获取产品列表失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchProductDetail = async (id: number) => {
+    loading.value = true
+    try {
+      const { getProductDetail } = await import('@/apis/product')
+      const data = await getProductDetail(id)
+      currentProduct.value = data
+      return data
+    } catch (error) {
+      console.error('获取产品详情失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const createProduct = async (product: Omit<Product, 'id'>) => {
+    loading.value = true
+    try {
+      const { createProduct } = await import('@/apis/product')
+      const data = await createProduct(product)
+      products.value.push(data)
+      return data
+    } catch (error) {
+      console.error('创建产品失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateProduct = async (id: number, product: Partial<Product>) => {
+    loading.value = true
+    try {
+      const { updateProduct } = await import('@/apis/product')
+      const data = await updateProduct(id, product)
+
+      // 更新列表中的数据
+      const index = products.value.findIndex(p => p.id === id)
+      if (index !== -1) {
+        products.value[index] = data
+      }
+
+      // 更新当前产品
+      if (currentProduct.value?.id === id) {
+        currentProduct.value = data
+      }
+
+      return data
+    } catch (error) {
+      console.error('更新产品失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deleteProduct = async (id: number) => {
+    loading.value = true
+    try {
+      const { deleteProduct } = await import('@/apis/product')
+      await deleteProduct(id)
+
+      // 从列表中移除
+      products.value = products.value.filter(p => p.id !== id)
+
+      // 如果删除的是当前产品，清空当前产品
+      if (currentProduct.value?.id === id) {
+        currentProduct.value = null
+      }
+    } catch (error) {
+      console.error('删除产品失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const setFilter = (newFilter: Partial<ProductFilter>) => {
+    filter.value = { ...filter.value, ...newFilter }
+  }
+
+  const resetFilter = () => {
+    filter.value = {
+      category: '',
+      search: '',
+      sortBy: 'name'
+    }
+  }
+
+  const setCurrentProduct = (product: Product | null) => {
+    currentProduct.value = product
+  }
+
+  return {
+    // State
+    products,
+    currentProduct,
+    loading,
+    filter,
+    // Getters
+    productList,
+    productCount,
+    filteredProducts,
+    // Actions
+    fetchProducts,
+    fetchProductDetail,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    setFilter,
+    resetFilter,
+    setCurrentProduct
+  }
+})
 ```
 
----
+### 2. 在组件中使用Store
 
-## 使用约定
+```vue
+<template>
+  <div class="product-list">
+    <div class="filter-bar">
+      <te-input v-model="filter.search" placeholder="搜索产品" @input="onSearchChange" />
+      <te-select v-model="filter.category" placeholder="选择分类" @change="onCategoryChange">
+        <te-option v-for="category in categories" :key="category" :label="category" :value="category" />
+      </te-select>
+    </div>
 
-- 状态逻辑必须集中在 `src/stores`，**禁止** 在组件层直接用 `useState` 维护本应全局共享的业务状态。
-- Store 中不要直接耦合具体 UI 组件，只存纯数据与业务行为。
-- 页面/组件通过：
+    <div v-if="loading" class="loading">
+      <te-loading />
+    </div>
 
-```ts
-const {theme, toggleTheme} = useThemeStore();
+    <div v-else class="products">
+      <product-card
+        v-for="product in filteredProducts"
+        :key="product.id"
+        :product="product"
+        @edit="onEditProduct"
+        @delete="onDeleteProduct"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useProductStore } from '@/store/product'
+import ProductCard from './components/productCard.vue'
+
+const productStore = useProductStore()
+
+// 使用storeToRefs保持响应性
+const { filteredProducts, loading, filter } = storeToRefs(productStore)
+
+// 方法
+const onSearchChange = () => {
+  // 可以添加防抖
+  productStore.setFilter({ search: filter.value.search })
+}
+
+const onCategoryChange = () => {
+  productStore.setFilter({ category: filter.value.category })
+}
+
+const onEditProduct = (product: Product) => {
+  productStore.setCurrentProduct(product)
+  // 跳转到编辑页面
+}
+
+const onDeleteProduct = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个产品吗？', '提示', {
+      type: 'warning'
+    })
+    await productStore.deleteProduct(id)
+    ElMessage.success('删除成功')
+  } catch (error) {
+    // 用户取消或删除失败
+  }
+}
+
+// 初始化
+onMounted(async () => {
+  await productStore.fetchProducts()
+})
+</script>
 ```
 
-来消费状态。
+### 3. 持久化状态
+
+```typescript
+// src/store/settings.ts
+import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
+
+export const useSettingsStore = defineStore('settings', () => {
+  const sidebarCollapsed = ref<boolean>(localStorage.getItem('sidebarCollapsed') === 'true')
+  const theme = ref<'light' | 'dark'>((localStorage.getItem('theme') as 'light' | 'dark') || 'light')
+  const language = ref<string>(localStorage.getItem('language') || 'zh-CN')
+
+  // 监听状态变化并持久化
+  watch(sidebarCollapsed, value => {
+    localStorage.setItem('sidebarCollapsed', String(value))
+  })
+
+  watch(theme, value => {
+    localStorage.setItem('theme', value)
+    document.documentElement.setAttribute('data-theme', value)
+  })
+
+  watch(language, value => {
+    localStorage.setItem('language', value)
+    // 可以在这里切换i18n语言
+  })
+
+  const toggleSidebar = () => {
+    sidebarCollapsed.value = !sidebarCollapsed.value
+  }
+
+  const setTheme = (newTheme: 'light' | 'dark') => {
+    theme.value = newTheme
+  }
+
+  const setLanguage = (newLanguage: string) => {
+    language.value = newLanguage
+  }
+
+  return {
+    sidebarCollapsed,
+    theme,
+    language,
+    toggleSidebar,
+    setTheme,
+    setLanguage
+  }
+})
+```
+
+### 4. 组合Store
+
+```typescript
+// src/store/index.ts
+export { useUserStore } from './user'
+export { useProductStore } from './product'
+export { useSettingsStore } from './settings'
+
+// 创建store的组合
+export const useStore = () => {
+  const userStore = useUserStore()
+  const productStore = useProductStore()
+  const settingsStore = useSettingsStore()
+
+  // 初始化所有store
+  const initStores = () => {
+    userStore.init()
+    settingsStore.init?.()
+  }
+
+  return {
+    userStore,
+    productStore,
+    settingsStore,
+    initStores
+  }
+}
+```
 
 ---
 
 ## 快速检查清单
 
-- [ ] store 文件是否放在了 `src/stores` 根目录？
-- [ ] 是否使用 `useXxxStore` 作为导出的 hook 名称？
-- [ ] 是否根据需要选择了是否使用 `persist`？
-- [ ] 是否避免在 store 中写与 UI 绑定的逻辑？
-
+- [ ] Store文件是否放在正确的目录（`src/store/`）？
+- [ ] 是否使用了Composition API风格定义Store？
+- [ ] 状态是否都有明确的TypeScript类型？
+- [ ] 是否使用了`storeToRefs`保持响应性？
+- [ ] 异步操作是否妥善处理了错误？
+- [ ] 是否需要持久化状态？
+- [ ] 是否遵循了单一数据源原则？
+- [ ] 计算属性是否用于派生状态？
+- [ ] Store是否按业务模块合理拆分？

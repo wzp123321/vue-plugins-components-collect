@@ -1,38 +1,93 @@
 ---
 alwaysApply: false
-description: 项目的 API 规范，包括接口请求封装、函数命名约定、错误处理原则。当新增或修改接口时读取此规则。
+description: API接口规范，包括TypeScript类型定义、接口文件组织、请求响应拦截处理。当创建API接口或处理HTTP请求时读取此规则。
 ---
 
-# API 规范
+# API规范
 
-## 接口请求规范
+## TypeScript类型定义
 
-- 接口请求必须使用 `src/http` 目录下的请求函数
-- 使用 `@shentu/request` 的 `ShenTuHttpClient` 进行请求封装
-- 所有接口集中在 `src/http/<Name>.ts` 文件中
-- 使用 TS 类型定义 Params/Body/Response，放在 `src/interfaces/<Name>/api.ts` 下
-- 接口基于 Token 认证，统一使用 shentuHttpClient 的 auth 配置
+- 所有API接口必须使用TypeScript定义类型
+- 公共类型定义放在 `src/apis/types.ts`
+- 业务相关类型定义放在对应的业务文件夹内
+- 接口请求参数和响应数据必须有明确的类型定义
 
-如需查看完整示例与落地步骤，请使用技能文件：
+## 文件组织
 
-- `.agents/skills/create-api/SKILL.md`
+```
+src/apis/
+├── types.ts             # 公共类型定义
+├── index.ts             # API统一导出
+├── request.ts           # Axios封装和拦截器
+├── user/
+│   ├── index.ts         # 类型定义
+│   └── index.api.ts     # API接口函数
+└── product/
+    ├── index.ts         # 类型定义
+    └── index.api.ts     # API接口函数
+```
 
-## 接口函数命名（NON-NEGOTIABLE）
+## API文件结构
 
-| 操作 | 命名规则 | 示例 |
-|---|----|---|
-| 获取列表 | getXxxList | `getBannerList` |
-| 获取详情 | getXxxDetail | `getBannerDetail` |
-| 创建 | createXxx | `createBanner` |
-| 更新 | updateXxx | `updateBanner` |
-| 删除 | deleteXxx | `deleteBanner` |
+### 类型定义文件 (index.ts)
 
-**禁止**使用 `fetch` 前缀或匈牙利命名法。
+```typescript
+// src/apis/user/index.ts
 
-## 接口错误处理（NON-NEGOTIABLE）
+export interface UserInfo {
+  id: number
+  name: string
+  email: string
+  avatar?: string
+}
 
-`shentuHttpClient` 的请求封装已包含错误码的映射提示，业务代码中**禁止重复添加** `message.error` 等错误提示：
+export interface LoginParams {
+  username: string
+  password: string
+}
 
-- 接口错误由 HTTP 拦截器统一处理，业务代码只需处理成功逻辑
-- 前端表单验证错误和业务逻辑检查错误可以保留
-- 成功提示可以保留（业务逻辑的成功反馈）
+export interface LoginResponse {
+  token: string
+  userInfo: UserInfo
+}
+```
+
+### API接口文件 (index.api.ts)
+
+```typescript
+// src/apis/user/index.api.ts
+import request from '@/apis/request'
+import type { LoginParams, LoginResponse, UserInfo } from './index'
+
+export const login = (params: LoginParams): Promise<LoginResponse> => {
+  return request.post('/api/login', params)
+}
+
+export const getUserInfo = (): Promise<UserInfo> => {
+  return request.get('/api/user/info')
+}
+```
+
+## Axios封装规范
+
+- 统一使用封装的request实例，不直接使用axios
+- 请求拦截器处理token、loading等
+- 响应拦截器统一处理错误码
+- 支持请求取消和重试机制
+
+## 接口命名规范
+
+- 使用camelCase命名
+- 语义化命名，清晰表达功能
+- CRUD操作使用标准命名：
+  - 查询：`getXxxList`、`getXxxDetail`
+  - 创建：`createXxx`、`addXxx`
+  - 更新：`updateXxx`、`editXxx`
+  - 删除：`deleteXxx`、`removeXxx`
+
+## 错误处理
+
+- 统一的错误码处理
+- 业务错误在组件内处理
+- 网络错误统一提示
+- 支持自定义错误处理
