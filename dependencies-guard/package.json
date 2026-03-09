@@ -1,0 +1,25 @@
+{
+  "name": "demo-dependencies-guard",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "preinstall": "node ./scripts/enforce-dependency-whitelist.js",
+    "dependencies": "node ./scripts/enforce-dependency-whitelist.js",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencyWhitelist": [
+    "typescript",
+    "vite",
+    "vue"
+  ],
+  "dependencies": {
+    "vue": "^3.5.29"
+  }
+}
