@@ -9,6 +9,7 @@ import cssRoutes from './modules/css';
 import babyRoutes from './modules/babylon';
 import directiveRoutes from './modules/directive';
 import deepSeekRoutes from './modules/deep-seek';
+import aiCodingRoutes from './modules/ai-coding';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -28,6 +29,7 @@ const routes: RouteRecordRaw[] = [
   ...babyRoutes,
   ...directiveRoutes,
   ...deepSeekRoutes,
+  ...aiCodingRoutes,
   { path: '/:pathMatch(.*)*', name: 'Other', component: () => import('../demo/demo.vue') },
 ];
 

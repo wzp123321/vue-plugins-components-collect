@@ -14,6 +14,7 @@ import cssRoutes from '../../../router/modules/css';
 import babyRoutes from '../../../router/modules/babylon';
 import directiveRoutes from '../../../router/modules/directive';
 import deepSeekRoutes from '../../../router/modules/deep-seek';
+import aiCodingRoutes from '../../../router/modules/ai-coding';
 
 export const menuList = [
   // 动画管理
@@ -82,6 +83,14 @@ export const menuList = [
     hasIcon: true,
     meta: { name: 'CSS' },
     children: cssRoutes,
+  },
+  // ai-coding
+  {
+    path: '/ai-coding',
+    icons: 'icon-library',
+    hasIcon: true,
+    meta: { name: 'ai-coding' },
+    children: (aiCodingRoutes as any)?.[0]?.children ?? (aiCodingRoutes as any),
   },
   // deepSeek
   {

@@ -6,7 +6,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, shallowRef } } from 'vue';
+import { ref, onMounted, onUnmounted, shallowRef } from 'vue';
 import { EChartsType, registerMap, EChartsOption } from 'echarts';
 import { useEChartsInit } from '@/hooks';
 import { ElMessage } from 'element-plus';

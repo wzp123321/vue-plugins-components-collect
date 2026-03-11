@@ -6,7 +6,7 @@
           <span>大文件分片上传 Demo</span>
         </div>
       </template>
-      
+
       <div class="upload-content">
         <el-upload
           ref="uploadRef"
@@ -16,14 +16,12 @@
           :drag="true"
           class="upload-dragger"
         >
-          <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">
-            将文件拖到此处，或<em>点击上传</em>
+            将文件拖到此处，或
+            <em>点击上传</em>
           </div>
           <template #tip>
-            <div class="el-upload__tip">
-              支持大文件分片上传，每片 10MB，支持并发上传
-            </div>
+            <div class="el-upload__tip">支持大文件分片上传，每片 10MB，支持并发上传</div>
           </template>
         </el-upload>
 
@@ -47,26 +45,9 @@
         </div>
 
         <div v-if="currentFile" class="upload-actions">
-          <el-button 
-            type="primary" 
-            @click="startUpload"
-            :loading="uploading"
-            :disabled="!fileHash"
-          >
-            开始上传
-          </el-button>
-          <el-button 
-            @click="pauseUpload"
-            :disabled="!uploading"
-          >
-            暂停
-          </el-button>
-          <el-button 
-            @click="resetUpload"
-            :disabled="uploading"
-          >
-            重置
-          </el-button>
+          <el-button type="primary" @click="startUpload" :loading="uploading" :disabled="!fileHash">开始上传</el-button>
+          <el-button @click="pauseUpload" :disabled="!uploading">暂停</el-button>
+          <el-button @click="resetUpload" :disabled="uploading">重置</el-button>
         </div>
 
         <div v-if="uploading || uploadProgress > 0" class="progress-section">
@@ -75,17 +56,14 @@
             <span>已上传：{{ uploadedChunks }}/{{ chunkList.length }} 片</span>
             <span>上传速度：{{ uploadSpeed }}</span>
           </div>
-          <el-progress 
-            :percentage="uploadProgress" 
-            :status="uploadProgress === 100 ? 'success' : ''"
-          />
+          <el-progress :percentage="uploadProgress" :status="uploadProgress === 100 ? 'success' : ''" />
         </div>
 
         <div v-if="chunkList.length > 0" class="chunk-list">
           <div class="chunk-title">分片状态</div>
           <div class="chunk-grid">
-            <div 
-              v-for="(chunk, index) in chunkList" 
+            <div
+              v-for="(chunk, index) in chunkList"
               :key="index"
               class="chunk-item"
               :class="getChunkStatusClass(chunk.status)"
@@ -106,12 +84,7 @@
         </div>
       </template>
       <div class="log-content">
-        <div 
-          v-for="(log, index) in logs" 
-          :key="index"
-          class="log-item"
-          :class="log.type"
-        >
+        <div v-for="(log, index) in logs" :key="index" class="log-item" :class="log.type">
           <span class="log-time">{{ log.time }}</span>
           <span class="log-message">{{ log.message }}</span>
         </div>
@@ -121,130 +94,129 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import { UploadFilled } from '@element-plus/icons-vue'
-import SparkMD5 from 'spark-md5'
+import { ref, computed } from 'vue';
+import { ElMessage } from 'element-plus';
+import SparkMD5 from 'spark-md5';
 
 defineOptions({
   name: 'LargeFileUpload',
-})
+});
 
-const CHUNK_SIZE = 10 * 1024 * 1024
-const CONCURRENT_UPLOADS = 3
+const CHUNK_SIZE = 10 * 1024 * 1024;
+const CONCURRENT_UPLOADS = 3;
 
 interface Chunk {
-  index: number
-  start: number
-  end: number
-  blob: Blob
-  status: 'pending' | 'uploading' | 'success' | 'error'
-  retryCount: number
+  index: number;
+  start: number;
+  end: number;
+  blob: Blob;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  retryCount: number;
 }
 
 interface Log {
-  time: string
-  message: string
-  type: 'info' | 'success' | 'error' | 'warning'
+  time: string;
+  message: string;
+  type: 'info' | 'success' | 'error' | 'warning';
 }
 
-const currentFile = ref<File | null>(null)
-const fileHash = ref('')
-const chunkList = ref<Chunk[]>([])
-const uploading = ref(false)
-const paused = ref(false)
-const uploadedChunks = ref(0)
-const uploadProgress = ref(0)
-const startTime = ref(0)
-const logs = ref<Log[]>([])
+const currentFile = ref<File | null>(null);
+const fileHash = ref('');
+const chunkList = ref<Chunk[]>([]);
+const uploading = ref(false);
+const paused = ref(false);
+const uploadedChunks = ref(0);
+const uploadProgress = ref(0);
+const startTime = ref(0);
+const logs = ref<Log[]>([]);
 
 const uploadSpeed = computed(() => {
-  if (uploadProgress.value === 0 || uploadProgress.value === 100) return '0 KB/s'
-  const elapsed = (Date.now() - startTime.value) / 1000
-  if (elapsed === 0) return '0 KB/s'
-  const speed = (uploadedChunks.value * CHUNK_SIZE) / elapsed
-  return formatFileSize(speed) + '/s'
-})
+  if (uploadProgress.value === 0 || uploadProgress.value === 100) return '0 KB/s';
+  const elapsed = (Date.now() - startTime.value) / 1000;
+  if (elapsed === 0) return '0 KB/s';
+  const speed = (uploadedChunks.value * CHUNK_SIZE) / elapsed;
+  return formatFileSize(speed) + '/s';
+});
 
 function addLog(message: string, type: Log['type'] = 'info') {
-  const now = new Date()
-  const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-  logs.value.unshift({ time, message, type })
+  const now = new Date();
+  const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+  logs.value.unshift({ time, message, type });
   if (logs.value.length > 100) {
-    logs.value = logs.value.slice(0, 100)
+    logs.value = logs.value.slice(0, 100);
   }
 }
 
 function clearLogs() {
-  logs.value = []
+  logs.value = [];
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
 }
 
 function handleFileChange(file: any) {
-  if (!file.raw) return
-  currentFile.value = file.raw
-  fileHash.value = ''
-  chunkList.value = []
-  uploadedChunks.value = 0
-  uploadProgress.value = 0
-  addLog(`选择文件: ${file.raw.name} (${formatFileSize(file.raw.size)})`)
-  calculateFileHash(file.raw)
+  if (!file.raw) return;
+  currentFile.value = file.raw;
+  fileHash.value = '';
+  chunkList.value = [];
+  uploadedChunks.value = 0;
+  uploadProgress.value = 0;
+  addLog(`选择文件: ${file.raw.name} (${formatFileSize(file.raw.size)})`);
+  calculateFileHash(file.raw);
 }
 
 async function calculateFileHash(file: File) {
-  addLog('开始计算文件 hash...', 'info')
-  const spark = new SparkMD5.ArrayBuffer()
-  const fileReader = new FileReader()
-  const chunks = Math.ceil(file.size / CHUNK_SIZE)
-  let currentChunk = 0
+  addLog('开始计算文件 hash...', 'info');
+  const spark = new SparkMD5.ArrayBuffer();
+  const fileReader = new FileReader();
+  const chunks = Math.ceil(file.size / CHUNK_SIZE);
+  let currentChunk = 0;
 
   const loadNext = (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const start = currentChunk * CHUNK_SIZE
-      const end = Math.min(start + CHUNK_SIZE, file.size)
-      fileReader.readAsArrayBuffer(file.slice(start, end))
-      
+      const start = currentChunk * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      fileReader.readAsArrayBuffer(file.slice(start, end));
+
       fileReader.onload = (e) => {
-        spark.append(e.target?.result as ArrayBuffer)
-        currentChunk++
+        spark.append(e.target?.result as ArrayBuffer);
+        currentChunk++;
         if (currentChunk < chunks) {
-          loadNext().then(resolve).catch(reject)
+          loadNext().then(resolve).catch(reject);
         } else {
-          fileHash.value = spark.end()
-          addLog(`文件 hash 计算完成: ${fileHash.value}`, 'success')
-          createChunks(file)
-          resolve()
+          fileHash.value = spark.end();
+          addLog(`文件 hash 计算完成: ${fileHash.value}`, 'success');
+          createChunks(file);
+          resolve();
         }
-      }
-      
+      };
+
       fileReader.onerror = (error) => {
-        addLog(`计算 hash 失败: ${error}`, 'error')
-        reject(error)
-      }
-    })
-  }
+        addLog(`计算 hash 失败: ${error}`, 'error');
+        reject(error);
+      };
+    });
+  };
 
   try {
-    await loadNext()
+    await loadNext();
   } catch (error) {
-    addLog(`计算 hash 出错: ${error}`, 'error')
+    addLog(`计算 hash 出错: ${error}`, 'error');
   }
 }
 
 function createChunks(file: File) {
-  const chunks: Chunk[] = []
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-  
+  const chunks: Chunk[] = [];
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
   for (let i = 0; i < totalChunks; i++) {
-    const start = i * CHUNK_SIZE
-    const end = Math.min(start + CHUNK_SIZE, file.size)
+    const start = i * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
     chunks.push({
       index: i,
       start,
@@ -252,157 +224,157 @@ function createChunks(file: File) {
       blob: file.slice(start, end),
       status: 'pending',
       retryCount: 0,
-    })
+    });
   }
-  
-  chunkList.value = chunks
-  addLog(`文件分片完成，共 ${totalChunks} 片`, 'success')
+
+  chunkList.value = chunks;
+  addLog(`文件分片完成，共 ${totalChunks} 片`, 'success');
 }
 
 async function startUpload() {
   if (!currentFile.value || !fileHash.value) {
-    ElMessage.warning('请先选择文件')
-    return
+    ElMessage.warning('请先选择文件');
+    return;
   }
-  
-  uploading.value = true
-  paused.value = false
-  startTime.value = Date.now()
-  addLog('开始上传文件...', 'info')
-  
-  await uploadChunksConcurrently()
+
+  uploading.value = true;
+  paused.value = false;
+  startTime.value = Date.now();
+  addLog('开始上传文件...', 'info');
+
+  await uploadChunksConcurrently();
 }
 
 function pauseUpload() {
-  paused.value = true
-  addLog('上传已暂停', 'warning')
+  paused.value = true;
+  addLog('上传已暂停', 'warning');
 }
 
 function resetUpload() {
-  uploading.value = false
-  paused.value = false
-  uploadedChunks.value = 0
-  uploadProgress.value = 0
-  chunkList.value.forEach(chunk => {
-    chunk.status = 'pending'
-    chunk.retryCount = 0
-  })
-  addLog('上传已重置', 'info')
+  uploading.value = false;
+  paused.value = false;
+  uploadedChunks.value = 0;
+  uploadProgress.value = 0;
+  chunkList.value.forEach((chunk) => {
+    chunk.status = 'pending';
+    chunk.retryCount = 0;
+  });
+  addLog('上传已重置', 'info');
 }
 
 async function uploadChunksConcurrently() {
-  const pendingChunks = chunkList.value.filter(chunk => chunk.status === 'pending')
-  
+  const pendingChunks = chunkList.value.filter((chunk) => chunk.status === 'pending');
+
   if (pendingChunks.length === 0) {
-    if (chunkList.value.every(chunk => chunk.status === 'success')) {
-      await notifyMergeComplete()
+    if (chunkList.value.every((chunk) => chunk.status === 'success')) {
+      await notifyMergeComplete();
     }
-    return
+    return;
   }
-  
-  const uploadPromises: Promise<void>[] = []
-  let currentIndex = 0
-  
+
+  const uploadPromises: Promise<void>[] = [];
+  let currentIndex = 0;
+
   const uploadNextChunk = async () => {
     while (currentIndex < pendingChunks.length && paused.value) {
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    
+
     if (currentIndex >= pendingChunks.length || paused.value) {
-      return
+      return;
     }
-    
-    const chunk = pendingChunks[currentIndex]
-    currentIndex++
-    
+
+    const chunk = pendingChunks[currentIndex];
+    currentIndex++;
+
     if (chunk.status !== 'pending') {
-      return uploadNextChunk()
+      return uploadNextChunk();
     }
-    
-    await uploadChunk(chunk)
-    
+
+    await uploadChunk(chunk);
+
     if (!paused.value) {
-      return uploadNextChunk()
+      return uploadNextChunk();
     }
-  }
-  
+  };
+
   for (let i = 0; i < Math.min(CONCURRENT_UPLOADS, pendingChunks.length); i++) {
-    uploadPromises.push(uploadNextChunk())
+    uploadPromises.push(uploadNextChunk());
   }
-  
-  await Promise.all(uploadPromises)
-  
+
+  await Promise.all(uploadPromises);
+
   if (!paused.value) {
-    const allSuccess = chunkList.value.every(chunk => chunk.status === 'success')
+    const allSuccess = chunkList.value.every((chunk) => chunk.status === 'success');
     if (allSuccess) {
-      await notifyMergeComplete()
+      await notifyMergeComplete();
     }
   }
 }
 
 async function uploadChunk(chunk: Chunk) {
-  chunk.status = 'uploading'
-  
-  const formData = new FormData()
-  formData.append('file', chunk.blob)
-  formData.append('hash', fileHash.value)
-  formData.append('index', chunk.index.toString())
-  formData.append('total', chunkList.value.length.toString())
-  formData.append('filename', currentFile.value!.name)
-  
+  chunk.status = 'uploading';
+
+  const formData = new FormData();
+  formData.append('file', chunk.blob);
+  formData.append('hash', fileHash.value);
+  formData.append('index', chunk.index.toString());
+  formData.append('total', chunkList.value.length.toString());
+  formData.append('filename', currentFile.value!.name);
+
   try {
-    await mockUploadRequest(formData)
-    
-    chunk.status = 'success'
-    uploadedChunks.value++
-    uploadProgress.value = (uploadedChunks.value / chunkList.value.length) * 100
-    
-    addLog(`分片 ${chunk.index + 1} 上传成功`, 'success')
+    await mockUploadRequest(formData);
+
+    chunk.status = 'success';
+    uploadedChunks.value++;
+    uploadProgress.value = (uploadedChunks.value / chunkList.value.length) * 100;
+
+    addLog(`分片 ${chunk.index + 1} 上传成功`, 'success');
   } catch (error) {
-    chunk.status = 'error'
-    chunk.retryCount++
-    
+    chunk.status = 'error';
+    chunk.retryCount++;
+
     if (chunk.retryCount < 3) {
-      addLog(`分片 ${chunk.index + 1} 上传失败，正在重试 (${chunk.retryCount}/3)...`, 'warning')
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      chunk.status = 'pending'
-      await uploadChunk(chunk)
+      addLog(`分片 ${chunk.index + 1} 上传失败，正在重试 (${chunk.retryCount}/3)...`, 'warning');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      chunk.status = 'pending';
+      await uploadChunk(chunk);
     } else {
-      addLog(`分片 ${chunk.index + 1} 上传失败，已达最大重试次数`, 'error')
+      addLog(`分片 ${chunk.index + 1} 上传失败，已达最大重试次数`, 'error');
     }
   }
 }
 
 async function mockUploadRequest(formData: FormData): Promise<void> {
   return new Promise((resolve, reject) => {
-    const randomDelay = Math.random() * 2000 + 500
+    const randomDelay = Math.random() * 2000 + 500;
     setTimeout(() => {
       if (Math.random() > 0.1) {
-        resolve()
+        resolve();
       } else {
-        reject(new Error('模拟上传失败'))
+        reject(new Error('模拟上传失败'));
       }
-    }, randomDelay)
-  })
+    }, randomDelay);
+  });
 }
 
 async function notifyMergeComplete() {
-  uploading.value = false
-  addLog('所有分片上传完成，通知服务器合并文件...', 'info')
-  
-  await mockMergeRequest()
-  
-  addLog(`文件 ${currentFile.value?.name} 上传完成！`, 'success')
-  ElMessage.success('文件上传完成！')
+  uploading.value = false;
+  addLog('所有分片上传完成，通知服务器合并文件...', 'info');
+
+  await mockMergeRequest();
+
+  addLog(`文件 ${currentFile.value?.name} 上传完成！`, 'success');
+  ElMessage.success('文件上传完成！');
 }
 
 async function mockMergeRequest(): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(() => {
-      addLog('服务器合并文件完成', 'success')
-      resolve()
-    }, 1000)
-  })
+      addLog('服务器合并文件完成', 'success');
+      resolve();
+    }, 1000);
+  });
 }
 
 function getChunkStatusClass(status: string) {
@@ -411,7 +383,7 @@ function getChunkStatusClass(status: string) {
     'status-uploading': status === 'uploading',
     'status-success': status === 'success',
     'status-error': status === 'error',
-  }
+  };
 }
 
 function getChunkStatusText(status: string) {
@@ -420,8 +392,8 @@ function getChunkStatusText(status: string) {
     uploading: '上传中',
     success: '已完成',
     error: '失败',
-  }
-  return statusMap[status as keyof typeof statusMap] || status
+  };
+  return statusMap[status as keyof typeof statusMap] || status;
 }
 </script>
 
