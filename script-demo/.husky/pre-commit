@@ -1,0 +1,82 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# ============================================
+# Pre-commit Hook 测试脚本
+# ============================================
+
+echo ""
+echo "========================================"
+echo "🚀 Pre-commit Hook 开始执行"
+echo "========================================"
+echo ""
+
+# 阶段 1: 环境检查
+echo ">>> 执行阶段: 1. 环境检查"
+echo ""
+
+# 检查 node
+if command -v node >/dev/null 2>&1; then
+  echo "✓ node 已安装: $(node --version)"
+else
+  echo "✗ node 未安装"
+fi
+
+# 检查 npm
+if command -v npm >/dev/null 2>&1; then
+  echo "✓ npm 已安装: $(npm --version)"
+else
+  echo "✗ npm 未安装"
+fi
+
+# 检查 npx
+if command -v npx >/dev/null 2>&1; then
+  echo "✓ npx 已安装"
+else
+  echo "✗ npx 未安装"
+fi
+
+# 显示 Git 信息
+echo ""
+echo "Git 信息:"
+echo "  当前分支: $(git branch --show-current 2>/dev/null || echo 'N/A')"
+echo "  暂存文件数: $(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')"
+echo ""
+
+# 阶段 2: 显示暂存的文件
+echo ">>> 执行阶段: 2. 分析暂存的文件"
+echo ""
+
+staged_files=$(git diff --cached --name-only 2>/dev/null)
+if [ -n "$staged_files" ]; then
+  echo "暂存的文件:"
+  echo "$staged_files" | while read -r file; do
+    echo "  - $file"
+  done
+else
+  echo "没有暂存的文件"
+fi
+
+echo ""
+
+# 阶段 3: 执行 lint-staged
+echo ">>> 执行阶段: 3. 执行代码检查 (lint-staged)"
+echo ""
+
+# 执行 lint-staged
+if npx lint-staged; then
+  echo ""
+  echo "========================================"
+  echo "✅ Pre-commit Hook 执行完成 - 提交将继续"
+  echo "========================================"
+  echo ""
+  exit 0
+else
+  echo ""
+  echo "========================================"
+  echo "❌ Pre-commit Hook 执行失败 - 提交已阻止"
+  echo "========================================"
+  echo ""
+  echo "提示: 请修复上述错误后重新提交"
+  exit 1
+fi
