@@ -65,13 +65,13 @@ export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDi
   const characters: string = '';
   const defaultStr = String.raw`\`\\;\'\"<>`;
   const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
-  domValue = domValue.replace(regExp && regExp instanceof RegExp ? regExp : reg, '');
+  domValue = domValue?.replace(regExp && regExp instanceof RegExp ? regExp : reg, '');
   // 过滤空格
   if (!allowSpace) {
-    domValue = domValue.replace(/\s+/g, '');
+    domValue = domValue?.replace(/\s+/g, '');
   }
   if (!allowChinese) {
-    domValue = domValue.replace(/[^\x00-\xff]/g, '');
+    domValue = domValue?.replace(/[^\x00-\xff]/g, '');
   }
   return domValue;
 };
@@ -139,10 +139,9 @@ export const handleNumberFilter = (domValue: string, binding: DirectiveBinding<I
   if (domValue.includes('.')) {
     domValue = deduplicate(domValue, '.');
     const temp = domValue.split('.');
-    domValue = `${temp[0]}.${temp[1]?.substring(
-      0,
-      (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number,
-    ) ?? ''}`;
+    domValue = `${temp[0]}.${
+      temp[1]?.substring(0, (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number) ?? ''
+    }`;
   }
   console.log(domValue);
 
