@@ -5,6 +5,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "preinstall": "node ./scripts/dependency-guard.js",
     "gen": "node ./scripts/genCommitId.js",
     "dev": "vite",
     "generate": "ci-tools generate-module",
@@ -20,6 +21,25 @@
     "prepare": "husky install",
     "preview": "vite preview --port 8090",
     "set-registry": "npm config set @tiansu:registry=http://192.168.20.200:7049/repository/npm-public/"
+  },
+  "dependencyGuard": {
+    "whitelist": [
+      "@arco-iconbox/vue-te",
+      "@tiansu/hlms-portal-web-package",
+      "@tiansu/ts-web-package",
+      "asmcrypto.js",
+      "axios",
+      "big-integer",
+      "crypto-js",
+      "js-base64",
+      "lodash-es",
+      "nprogress",
+      "pinia",
+      "pinia-plugin-persistedstate",
+      "resize-observer-polyfill",
+      "vue",
+      "vue-router"
+    ]
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,vue}": [
