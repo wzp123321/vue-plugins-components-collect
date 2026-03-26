@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fetchWhitelist } from './fetch-whitelist.js'
 
 // 在 ESM 环境下还原 __dirname / __filename，统一用于定位项目根目录
 const __filename = fileURLToPath(import.meta.url)
@@ -24,28 +23,32 @@ function readJson(filePath) {
 }
 
 // 加载白名单配置：
-// - 从服务器获取 whitelist.json
-// - 失败时直接退出，避免 npm 继续执行安装流程
+// - 优先使用项目根目录 whitelist.json
+// - 若不存在则回退到 public/whitelist.json（兼容历史位置）
 // - 严格要求 dependencies 为非空字符串数组
-async function loadWhitelist() {
-  try {
-    const whitelist = await fetchWhitelist('http://192.168.41.212/whitelist.json')
-    // 验证 dependencies 字段格式
-    if (!Array.isArray(whitelist.list)) {
-      console.error('whitelist.json 格式错误，dependencies 必须是字符串数组')
-      process.exit(1)
-    }
-    // 仅允许字符串项，避免对象配置导致规则理解不一致
-    const invalid = Array.from(whitelist.list).filter(item => typeof item !== 'string' || item.trim() === '')
-    if (invalid.length > 0) {
-      console.error('whitelist.json 格式错误，dependencies 只能包含非空字符串')
-      process.exit(1)
-    }
-    return whitelist
-  } catch (error) {
-    console.error('加载白名单失败')
-    console.error(error.message || error)
+function loadWhitelist() {
+  const candidates = [path.resolve(projectRoot, 'whitelist.json'), path.resolve(projectRoot, 'public', 'whitelist.json')]
+  // 依次查找候选配置路径，命中第一个即使用
+  const filePath = candidates.find(item => fs.existsSync(item))
+  if (!filePath) {
+    console.error('未找到白名单文件 whitelist.json')
     process.exit(1)
+  }
+  const config = readJson(filePath)
+  if (!Array.isArray(config.dependencies)) {
+    console.error('whitelist.json 格式错误，dependencies 必须是字符串数组')
+    process.exit(1)
+  }
+  // 仅允许字符串项，避免对象配置导致规则理解不一致
+  const invalid = config.dependencies.filter(item => typeof item !== 'string' || item.trim() === '')
+  if (invalid.length > 0) {
+    console.error('whitelist.json 格式错误，dependencies 只能包含非空字符串')
+    process.exit(1)
+  }
+  return {
+    filePath,
+    // 用 Set 做 O(1) 查询，减少每次依赖匹配开销
+    set: new Set(config.dependencies.map(item => item.trim()))
   }
 }
 
@@ -154,10 +157,10 @@ function removeFromDependencies(packageJsonPath, pkgJson, packageNames) {
 // 2) 判断是否跳过（如 --save-dev）
 // 3) 校验现有 dependencies 与本次 install 目标
 // 4) 命中非法依赖则尝试清理并阻断安装
-async function main() {
+function main() {
   const packageJsonPath = path.resolve(projectRoot, 'package.json')
   const pkgJson = readJson(packageJsonPath)
-  const whitelist = await loadWhitelist()
+  const whitelist = loadWhitelist()
   // installContext 会综合 argv 与环境变量判断当前安装语义
   const installContext = parseInstallContext(parseOriginalArgs())
   if (installContext.shouldSkip) {
@@ -167,10 +170,10 @@ async function main() {
 
   // 无参数 npm install 时，直接校验 package.json 现有 dependencies
   const currentDeps = Object.keys(pkgJson.dependencies || {})
-  const illegalExisting = currentDeps.filter(name => !whitelist.list.includes(name))
+  const illegalExisting = currentDeps.filter(name => !whitelist.set.has(name))
   // 有参数 npm install <pkg> 时，同时校验本次新增目标包
   const installPackageNames = Array.from(new Set(installContext.specs.map(extractPackageName).filter(Boolean)))
-  const illegalInstall = installContext.hasTargetPackages ? installPackageNames.filter(name => !whitelist.list.includes(name)) : []
+  const illegalInstall = installContext.hasTargetPackages ? installPackageNames.filter(name => !whitelist.set.has(name)) : []
 
   if (illegalExisting.length === 0 && illegalInstall.length === 0) {
     console.log('依赖白名单校验通过')
@@ -205,7 +208,7 @@ async function main() {
     console.error('本次安装请求存在非白名单依赖:')
     illegalInstall.forEach(name => console.error(`  - ${name}`))
   }
-  console.error(`白名单文件: ${whitelist.url}`)
+  console.error(`白名单文件: ${whitelist.filePath}`)
   process.exit(1)
 }
 
