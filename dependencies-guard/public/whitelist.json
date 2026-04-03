@@ -1,15 +1,19 @@
 {
   "dependencies": [
-    "vue",
-    "@tiansu/tools",
+    "@arco-iconbox/vue-te",
+    "@tiansu/hlms-portal-web-package",
+    "@tiansu/ts-web-package",
     "asmcrypto.js",
+    "axios",
+    "big-integer",
     "crypto-js",
-    "echarts",
-    "moment",
-    "ng-zorro-antd",
-    "ngx-echarts",
-    "rxjs",
-    "tslib",
-    "zone.js"
+    "js-base64",
+    "lodash-es",
+    "nprogress",
+    "pinia",
+    "pinia-plugin-persistedstate",
+    "resize-observer-polyfill",
+    "vue",
+    "vue-router"
   ]
 }
