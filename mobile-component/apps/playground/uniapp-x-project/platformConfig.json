@@ -1,0 +1,10 @@
+
+{
+    "targets": [
+        "APP-ANDROID",
+        "APP-IOS",
+        "APP-HARMONY",
+        "WEB",
+        "MP-WEIXIN"
+    ]
+}

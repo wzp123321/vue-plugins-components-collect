@@ -1,0 +1,180 @@
+:root {
+  --vp-c-brand: #3c9cff;
+  --vp-c-brand-light: #60b0ff;
+  --vp-c-brand-lighter: #84c4ff;
+  --vp-c-brand-dark: #2979ff;
+  --vp-c-brand-darker: #1a5cff;
+  --vp-layout-max-width: 100% !important;
+}
+
+/* Left-align the sidebar and main content */
+.VPContent.has-sidebar {
+  margin: 0 !important;
+  padding-left: 0 !important;
+}
+
+@media (min-width: 960px) {
+  .VPSidebar {
+    left: 0 !important;
+    width: 260px !important;
+  }
+
+  .VPContent.has-sidebar {
+    padding-left: 260px !important;
+  }
+}
+
+.VPDoc .container {
+  max-width: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+
+.VPDoc .content {
+  max-width: 1050px !important;
+  margin: 0 400px 0 40px !important;
+  padding: 32px 0 !important;
+  flex-grow: 1 !important;
+}
+
+/* Hide the default right aside (TOC) because the phone and TOC will conflict */
+/* Or adjust aside to be even more compact. Let's make content wider if aside is empty */
+.VPDoc .aside {
+  display: none !important;
+}
+
+@media (max-width: 1550px) {
+  .VPDoc .content {
+    margin-right: 360px !important;
+    margin-left: 20px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .VPDoc .content {
+    margin: 0 auto !important;
+    max-width: 800px !important;
+    padding: 0 24px !important;
+  }
+}
+
+/* 模拟器样式 */
+.phone-simulator {
+  position: fixed;
+  right: 20px;
+  top: 80px;
+  width: 320px;
+  z-index: 10;
+}
+
+@media (max-width: 1200px) {
+  .phone-simulator {
+    position: relative;
+    right: 0;
+    top: 0;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 310px;
+  }
+}
+
+@media (max-width: 768px) {
+  .phone-simulator {
+    width: 280px;
+    transform: scale(0.9);
+  }
+}
+
+.phone-frame {
+  width: 310px;
+  height: 640px;
+  border: 12px solid #1a1a1a;
+  border-radius: 45px;
+  position: relative;
+  background: #1a1a1a;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-frame::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 28px;
+  background: #1a1a1a;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  z-index: 10;
+}
+
+.phone-status-bar {
+  height: 35px;
+  padding: 0 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-top-left-radius: 33px;
+  border-top-right-radius: 33px;
+  z-index: 5;
+  color: #000;
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.8;
+}
+
+.phone-content {
+  flex: 1;
+  background: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.phone-home-indicator {
+  height: 25px;
+  background: #fff;
+  border-bottom-left-radius: 33px;
+  border-bottom-right-radius: 33px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phone-home-indicator::after {
+  content: "";
+  width: 100px;
+  height: 4px;
+  background: #000;
+  border-radius: 2px;
+  opacity: 0.2;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.platform-switcher {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: center;
+}

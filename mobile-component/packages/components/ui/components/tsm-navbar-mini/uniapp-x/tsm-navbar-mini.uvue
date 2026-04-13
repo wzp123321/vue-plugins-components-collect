@@ -1,0 +1,78 @@
+/**
+ * NavbarMini 迷你导航栏组件
+ * @description 迷你导航栏组件，用于显示简单导航
+ */
+<template>
+  <view
+    class="tsm-navbar-mini"
+    :class="[customClass]"
+    :style="navbarMiniStyle"
+  >
+    <view class="tsm-navbar-mini__left" @tap="onBack">
+      <icon-setting />
+    </view>
+    <view class="tsm-navbar-mini__title">
+      <text>{{ title }}</text>
+    </view>
+    <view class="tsm-navbar-mini__right">
+      <slot name="right" />
+    </view>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue'
+import type { NavbarMiniProps } from './props.uts'
+import { defaultProps } from './props.uts'
+
+defineOptions({
+  name: 'tsm-navbar-mini'
+})
+
+const props = withDefaults(defineProps<NavbarMiniProps>(), defaultProps)
+
+const emit = defineEmits(['back'])
+
+const navbarMiniStyle = computed(() => {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    height: '44px',
+    padding: '0 12px',
+    backgroundColor: props.bgColor,
+    ...props.customStyle
+  }
+})
+
+const onBack = () => {
+  emit('back')
+  uni.navigateBack()
+}
+</script>
+
+<style scoped lang="scss">
+.tsm-navbar-mini {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  background-color: #ffffff;
+}
+
+.tsm-navbar-mini__left {
+  display: flex;
+  align-items: center;
+}
+
+.tsm-navbar-mini__title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  color: #303133;
+}
+
+.tsm-navbar-mini__right {
+  display: flex;
+  align-items: center;
+}
+</style>

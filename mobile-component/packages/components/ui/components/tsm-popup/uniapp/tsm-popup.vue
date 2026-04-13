@@ -1,0 +1,188 @@
+/** * Popup 弹窗组件 * @description 弹出层容器，用于展示弹窗、信息提示等内容，支持上、下、左、右和中部弹出 */
+<template>
+  <view class="tsm-popup" :class="[customClass]">
+    <tsm-overlay
+      :show="show"
+      @click="overlayClick"
+      v-if="overlay"
+      :zIndex="zIndex"
+      :duration="overlayDuration"
+      :opacity="overlayOpacity"
+    ></tsm-overlay>
+    <tsm-transition
+      :show="show"
+      :customStyle="transitionStyle"
+      :mode="position"
+      :duration="duration"
+      @afterEnter="afterEnter"
+      @click="clickHandler"
+    >
+      <view class="tsm-popup__content" :style="[contentStyle]" @tap.stop="noop">
+        <tsm-status-bar v-if="safeAreaInsetTop"></tsm-status-bar>
+        <slot></slot>
+        <view
+          v-if="closeable"
+          @tap.stop="close"
+          class="tsm-popup__close"
+          :class="['tsm-popup__close--' + closeIconPos]"
+          hover-class="tsm-popup__close--hover"
+          hover-stay-time="150"
+        >
+          <icon-setting />
+        </view>
+        <tsm-safe-bottom v-if="safeAreaInsetBottom"></tsm-safe-bottom>
+      </view>
+    </tsm-transition>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { PopupProps } from './props';
+import { defaultProps } from './props';
+import { addUnit, addStyle, deepMerge, sys } from '../../../libs/uniapp/function/index';
+
+/**
+ * Popup 组件 Props
+ * @property {boolean} show - 是否展示弹窗
+ * @property {boolean} overlay - 是否显示遮罩
+ * @property {string} mode - 弹出方向 (top | bottom | left | right | center)
+ * @property {number} duration - 动画时长，单位ms
+ * @property {boolean} closeable - 是否显示关闭图标
+ * @property {boolean} closeOnClickOverlay - 点击遮罩是否关闭弹窗
+ * @property {number} zIndex - 层级
+ * @property {boolean} safeAreaInsetBottom - 是否为iPhoneX留出底部安全距离
+ * @property {boolean} safeAreaInsetTop - 是否留出顶部安全距离
+ * @property {number} round - 圆角值
+ * @property {string} bgColor - 弹窗背景色
+ * @property {number} overlayOpacity - 遮罩透明度
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<PopupProps>(), defaultProps);
+
+const emit = defineEmits<{
+  open: [];
+  close: [];
+  click: [];
+  'update:show': [value: boolean];
+}>();
+
+const overlayDuration = computed(() => props.duration + 50);
+
+const transitionStyle = computed(() => {
+  const style: Record<string, any> = {
+    zIndex: props.zIndex,
+    position: 'fixed',
+    display: 'flex',
+  };
+  style[props.mode] = 0;
+  if (props.mode === 'left' || props.mode === 'right') {
+    return deepMerge(style, { bottom: 0, top: 0 });
+  }
+  if (props.mode === 'top' || props.mode === 'bottom') {
+    return deepMerge(style, { left: 0, right: 0 });
+  }
+  if (props.mode === 'center') {
+    return deepMerge(style, {
+      alignItems: 'center',
+      justifyContent: 'center',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    });
+  }
+  return style;
+});
+
+const contentStyle = computed(() => {
+  const style: Record<string, any> = {};
+  if (props.mode !== 'center') style.flex = 1;
+  if (props.bgColor) style.backgroundColor = props.bgColor;
+  if (props.round) {
+    const value = addUnit(props.round);
+    if (props.mode === 'top') {
+      style.borderBottomLeftRadius = value;
+      style.borderBottomRightRadius = value;
+    } else if (props.mode === 'bottom') {
+      style.borderTopLeftRadius = value;
+      style.borderTopRightRadius = value;
+    } else if (props.mode === 'center') {
+      style.borderRadius = value;
+    }
+  }
+  return deepMerge(style, addStyle(props.customStyle || {}));
+});
+
+const position = computed(() => {
+  if (props.mode === 'center') return 'fade';
+  if (props.mode === 'left') return 'slide-left';
+  if (props.mode === 'right') return 'slide-right';
+  if (props.mode === 'bottom') return 'slide-up';
+  if (props.mode === 'top') return 'slide-down';
+  return props.mode;
+});
+
+const overlayClick = () => {
+  if (props.closeOnClickOverlay) {
+    emit('update:show', false);
+    emit('close');
+  }
+};
+
+const close = () => {
+  emit('update:show', false);
+  emit('close');
+};
+
+const afterEnter = () => {
+  emit('open');
+};
+
+const clickHandler = () => {
+  if (props.mode === 'center') overlayClick();
+  emit('click');
+};
+
+const noop = () => {};
+</script>
+
+<style scoped lang="scss">
+.tsm-popup {
+  flex: 1;
+}
+
+.tsm-popup__content {
+  background-color: #fff;
+  position: relative;
+}
+
+.tsm-popup__close {
+  position: absolute;
+}
+
+.tsm-popup__close--hover {
+  opacity: 0.4;
+}
+
+.tsm-popup__close--top-left {
+  top: 15px;
+  left: 15px;
+}
+
+.tsm-popup__close--top-right {
+  top: 15px;
+  right: 15px;
+}
+
+.tsm-popup__close--bottom-left {
+  bottom: 15px;
+  left: 15px;
+}
+
+.tsm-popup__close--bottom-right {
+  right: 15px;
+  bottom: 15px;
+}
+</style>

@@ -1,0 +1,30 @@
+/**
+ * Gap 间隔槽组件
+ * @description 间隔槽组件，用于创建间距
+ */
+<template>
+  <view
+    class="tsm-gap"
+    :class="bemClass"
+    :style="customStyle"
+  ></view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue';
+import type { GapProps } from './props.uts';
+import { defaultProps } from './props.uts';
+import { bem } from '../../../libs/uniapp-x/function/index.uts';
+
+const props = withDefaults(defineProps<GapProps>(), defaultProps);
+
+const bemClass = computed(() => {
+  return bem('gap', [], [], props.customClass);
+});
+</script>
+
+<style scoped lang="scss">
+.tsm-gap {
+  width: 100%;
+}
+</style>

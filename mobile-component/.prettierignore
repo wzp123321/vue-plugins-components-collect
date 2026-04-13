@@ -1,0 +1,10 @@
+**/node_modules/**
+**/dist/**
+**/unpackage/**
+**/uni_modules/**
+**/uts-libs/**
+**/.turbo/**
+
+**/*.uts
+**/*.uvue
+

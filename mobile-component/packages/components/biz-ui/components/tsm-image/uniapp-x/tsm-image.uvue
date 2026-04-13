@@ -1,0 +1,168 @@
+/**
+ * Image 图片组件
+ * @description 此组件为uni-app的image组件的加强版，支持淡入动画、加载中、加载失败提示等功能
+ */
+<template>
+  <view class="tsm-image" :class="bemClass" :style="wrapStyle" @tap="onClick">
+    <image
+      v-if="!isError"
+      :src="src"
+      :mode="mode"
+      @error="onErrorHandler"
+      @load="onLoadHandler"
+      :show-menu-by-longpress="showMenuByLongpress"
+      :lazy-load="lazyLoad"
+      class="tsm-image__image"
+      :style="imageStyle"
+    ></image>
+    <view
+      v-if="showLoading && loading"
+      class="tsm-image__loading"
+      :style="loadingStyle"
+    >
+      <slot name="loading">
+        <icon-setting />
+      </slot>
+    </view>
+    <view
+      v-if="showError && isError && !loading"
+      class="tsm-image__error"
+      :style="errorStyle"
+    >
+      <slot name="error">
+        <icon-setting />
+      </slot>
+    </view>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { ref, watch, computed } from 'vue';
+import type { ImageProps } from './props.uts';
+import { defaultProps } from './props.uts';
+import { addUnit, bem } from '../../../libs/uniapp-x/function/index.uts';
+
+/**
+ * Image 组件 Props
+ * @property {string} src - 图片地址
+ * @property {string} mode - 裁剪模式
+ * @property {string|number} width - 宽度
+ * @property {string|number} height - 高度
+ * @property {string} shape - 图片形状 (circle | square)
+ * @property {string|number} radius - 圆角值
+ * @property {boolean} lazyLoad - 是否懒加载
+ * @property {boolean} showMenuByLongpress - 是否开启长按图片显示菜单
+ * @property {boolean} showLoading - 是否显示加载中的图标
+ * @property {boolean} showError - 是否显示加载错误的图标
+ * @property {boolean} fade - 是否需要淡入效果
+ * @property {number} duration - 过渡时间
+ * @property {string} bgColor - 背景颜色
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<ImageProps>(), defaultProps);
+
+const emit = defineEmits<{
+  click: [];
+  error: [err: any];
+  load: [event: any];
+}>();
+
+const isError = ref(false);
+const loading = ref(true);
+
+watch(
+  () => props.src,
+  (newVal) => {
+    if (!newVal) {
+      isError.value = true;
+    } else {
+      isError.value = false;
+      loading.value = true;
+    }
+  },
+  { immediate: true }
+);
+
+const bemClass = computed(() => {
+  return bem('image', [props.shape], [], props.customClass);
+});
+
+const wrapStyle = computed(() => {
+  return {
+    width: addUnit(String(props.width)),
+    height: addUnit(String(props.height)),
+    borderRadius: props.shape === 'circle' ? '10000px' : addUnit(String(props.radius)),
+    overflow: Number(props.radius) > 0 ? 'hidden' : 'visible',
+    ...props.customStyle
+  };
+});
+
+const imageStyle = computed(() => {
+  return {
+    borderRadius: props.shape === 'circle' ? '10000px' : addUnit(String(props.radius)),
+    width: addUnit(String(props.width)),
+    height: addUnit(String(props.height)),
+  };
+});
+
+const loadingStyle = computed(() => {
+  return {
+    borderRadius: props.shape === 'circle' ? '50%' : addUnit(String(props.radius)),
+    backgroundColor: props.bgColor,
+    width: addUnit(String(props.width)),
+    height: addUnit(String(props.height)),
+  };
+});
+
+const errorStyle = computed(() => {
+  return {
+    borderRadius: props.shape === 'circle' ? '50%' : addUnit(String(props.radius)),
+    width: addUnit(String(props.width)),
+    height: addUnit(String(props.height)),
+  };
+});
+
+const onClick = () => {
+  emit('click');
+};
+
+const onErrorHandler = (err: any) => {
+  loading.value = false;
+  isError.value = true;
+  emit('error', err);
+};
+
+const onLoadHandler = (event: any) => {
+  loading.value = false;
+  isError.value = false;
+  emit('load', event);
+};
+</script>
+
+<style scoped lang="scss">
+.tsm-image {
+  position: relative;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.tsm-image__image {
+  width: 100%;
+  height: 100%;
+}
+
+.tsm-image__loading,
+.tsm-image__error {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f6f7;
+  color: #909399;
+  font-size: 46rpx;
+}
+</style>

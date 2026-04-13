@@ -1,0 +1,79 @@
+/**
+ * Notify 消息提示组件
+ * @description 消息提示组件，用于显示顶部通知
+ */
+<template>
+  <view
+    v-if="show"
+    class="tsm-notify"
+    :class="[`tsm-notify--${type}`, customClass]"
+    :style="notifyStyle"
+  >
+    <text class="tsm-notify__text">{{ message }}</text>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue'
+import type { NotifyProps } from './props.uts'
+import { defaultProps } from './props.uts'
+
+defineOptions({
+  name: 'tsm-notify'
+})
+
+const props = withDefaults(defineProps<NotifyProps>(), defaultProps)
+
+const typeColors: Record<string, string> = {
+  primary: '#2979ff',
+  success: '#19be6b',
+  warning: '#ff9900',
+  error: '#fa3534'
+}
+
+const notifyStyle = computed(() => {
+  return {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding: '8px 16px',
+    backgroundColor: props.bgColor || typeColors[props.type] || '#2979ff',
+    zIndex: 1000,
+    ...props.customStyle
+  }
+})
+</script>
+
+<style scoped lang="scss">
+.tsm-notify {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 16px;
+  z-index: 1000;
+}
+
+.tsm-notify__text {
+  font-size: 14px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.tsm-notify--primary {
+  background-color: #2979ff;
+}
+
+.tsm-notify--success {
+  background-color: #19be6b;
+}
+
+.tsm-notify--warning {
+  background-color: #ff9900;
+}
+
+.tsm-notify--error {
+  background-color: #fa3534;
+}
+</style>

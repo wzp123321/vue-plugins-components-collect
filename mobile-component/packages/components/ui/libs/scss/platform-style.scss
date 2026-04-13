@@ -1,0 +1,32 @@
+@mixin tsm-display-inline-flex() {
+  /* #ifndef APP-UVUE */
+  display: inline-flex;
+  /* #endif */
+  /* #ifdef APP-UVUE */
+  display: flex;
+  /* #endif */
+}
+
+@mixin tsm-gap($x-gap, $y-gap: $x-gap) {
+  /* #ifndef APP-UVUE */
+  gap: $y-gap $x-gap;
+  /* #endif */
+  /* #ifdef APP-UVUE */
+  margin-right: -$x-gap;
+  margin-bottom: -$y-gap;
+  /* #endif */
+}
+
+@mixin tsm-flex-wrap-gap-container($x-gap, $y-gap: $x-gap) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  @include tsm-gap($x-gap, $y-gap);
+}
+
+@mixin tsm-flex-wrap-gap-item($x-gap, $y-gap: $x-gap) {
+  /* #ifdef APP-UVUE */
+  margin-right: $x-gap;
+  margin-bottom: $y-gap;
+  /* #endif */
+}

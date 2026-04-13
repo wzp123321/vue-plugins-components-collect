@@ -1,0 +1,68 @@
+/**
+ * Text 文本组件 Props 定义
+ * @description 简化版文本组件，支持主题色、格式化等功能
+ */
+
+
+export interface TextProps {
+  /** 主题颜色 */
+  type?: 'primary' | 'success' | 'warning' | 'error' | 'info';
+  /** 是否显示 */
+  show?: boolean;
+  /** 显示的值 */
+  text?: string | number;
+  /** 前置图标 */
+  prefixIcon?: string;
+  /** 后置图标 */
+  suffixIcon?: string;
+  /** 文本处理模式 */
+  mode?: 'text' | 'price' | 'phone' | 'link';
+  /** mode=link下，配置的链接 */
+  href?: string;
+  /** 是否粗体 */
+  bold?: boolean;
+  /** 是否块状 */
+  block?: boolean;
+  /** 文本显示的行数 */
+  lines?: number;
+  /** 文本颜色 */
+  color?: string;
+  /** 字体大小 */
+  size?: string | number;
+  /** 文字装饰 */
+  decoration?: 'none' | 'underline' | 'line-through';
+  /** 外边距 */
+  margin?: string | number;
+  /** 文本行高 */
+  lineHeight?: string | number;
+  /** 文本对齐方式 */
+  align?: 'left' | 'center' | 'right';
+  /** 文字换行 */
+  wordWrap?: 'break-word' | 'normal' | 'anywhere';
+  /** 自定义类名 */
+  customClass?: string;
+  /** 自定义样式 */
+  customStyle?: Record<string, string | number>;
+}
+
+export const defaultProps = {
+  type: undefined,
+  show: true,
+  text: '',
+  prefixIcon: '',
+  suffixIcon: '',
+  mode: 'text',
+  href: '',
+  bold: false,
+  block: false,
+  lines: undefined,
+  color: '',
+  size: 15,
+  decoration: 'none',
+  margin: 0,
+  lineHeight: undefined,
+  align: 'left',
+  wordWrap: 'normal',
+  customClass: '',
+  customStyle: () => ({})
+} as const;

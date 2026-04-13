@@ -1,0 +1,6 @@
+{
+  "@tiansu/ts-mobile-biz-ui": "^0.0.11",
+  "@tiansu/ts-mobile-ui": "^0.0.18",
+  "@tiansu/ts-mobile-token": "^0.0.10",
+  "@tiansu/ts-icon": "^0.0.23"
+}

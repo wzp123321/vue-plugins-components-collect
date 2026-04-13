@@ -1,0 +1,7 @@
+packages:
+  - 'packages/components/ui'
+  - 'packages/components/biz-ui'
+  - 'packages/core/token'
+  - 'apps/docs'
+  - 'apps/playground/uniapp-project'
+  - 'apps/playground/uniapp-x-project'

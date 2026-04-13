@@ -1,0 +1,51 @@
+/** * Overlay 遮罩层组件 * @description 遮罩层组件，用于覆盖在页面上 */
+<template>
+  <view v-if="show" class="tsm-overlay" :class="[customClass]" :style="overlayStyle" @tap="onClick"></view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { OverlayProps } from './props';
+import { defaultProps } from './props';
+import { addStyle } from '../../../libs/uniapp/function/index';
+
+/**
+ * Overlay 组件 Props
+ * @property {boolean} show - 是否显示
+ * @property {number} zIndex - 层级
+ * @property {number} opacity - 遮罩透明度
+ * @property {number} duration - 动画时长
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<OverlayProps>(), defaultProps);
+
+const emit = defineEmits<{
+  click: [];
+}>();
+
+const overlayStyle = computed(() => {
+  return addStyle({
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: props.zIndex,
+    backgroundColor: `rgba(0, 0, 0, ${props.opacity})`,
+    transition: `opacity ${props.duration}ms`,
+    ...props.customStyle,
+  });
+});
+
+const onClick = () => {
+  emit('click');
+};
+</script>
+
+<style scoped lang="scss">
+.tsm-overlay {
+  width: 100%;
+  height: 100%;
+}
+</style>

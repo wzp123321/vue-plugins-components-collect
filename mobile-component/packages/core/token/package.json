@@ -1,0 +1,26 @@
+{
+  "name": "@tiansu/ts-mobile-token",
+  "version": "0.0.10",
+  "description": "Design tokens for ts-mobile-ui components",
+  "main": "dist/index.ts",
+  "module": "dist/index.ts",
+  "types": "dist/@tiansu/ts-mobile-ui/comps.d.ts",
+  "files": [
+    "dist",
+    "scripts"
+  ],
+  "bin": {
+    "@tiansu/ts-mobile-token": "scripts/install.js"
+  },
+  "publishConfig": {
+    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
+  },
+  "keywords": [
+    "tokens",
+    "design-tokens",
+    "phillUI"
+  ],
+  "author": "",
+  "license": "MIT",
+  "sideEffects": false
+}

@@ -1,0 +1,22 @@
+<template>
+  <view class="tsm-theme-provider" :class="[themeClass, customClass]" :style="customStyle">
+    <slot />
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue';
+import { useThemeClass } from '@/uni_modules/@tiansu/ts-mobile-token/index.uts';
+import type { ThemeProviderProps } from './props.uts';
+import { defaultProps } from './props.uts';
+
+const props = withDefaults(defineProps<ThemeProviderProps>(), defaultProps);
+const runtimeThemeClass = useThemeClass();
+
+const themeClass = computed((): string => {
+  if (props.mode == 'light' || props.mode == 'dark') {
+    return `tsm-theme-${props.mode}`;
+  }
+  return runtimeThemeClass.value;
+});
+</script>

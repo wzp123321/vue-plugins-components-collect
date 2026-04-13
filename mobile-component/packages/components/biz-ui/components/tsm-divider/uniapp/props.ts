@@ -1,0 +1,28 @@
+/**
+ * Divider 分割线组件 Props 定义
+ */
+import type { CSSProperties } from 'vue';
+
+export interface DividerProps {
+  /** 分割线文字 */
+  text?: string;
+  /** 分割线颜色 */
+  color?: string;
+  /** 文字位置 */
+  contentPosition?: 'left' | 'center' | 'right';
+  /** 是否虚线 */
+  dashed?: boolean;
+  /** 自定义类名 */
+  customClass?: string;
+  /** 自定义样式 */
+  customStyle?: CSSProperties;
+}
+
+export const defaultProps = {
+  text: '',
+  color: '#dcdfe6',
+  contentPosition: 'center',
+  dashed: false,
+  customClass: '',
+  customStyle: () => ({}),
+} as const;

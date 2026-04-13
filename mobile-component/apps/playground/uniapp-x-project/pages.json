@@ -1,0 +1,35 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^tsm-(.*)": "@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-$1/uniapp-x/tsm-$1.uvue",
+      "^icon-(.*)$": "@/uni_modules/@tiansu/ts-icon/mobile/uvue/icon-$1/icon-$1.uvue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index",
+      "style": {
+        "navigationBarTitleText": "ts-mobile-ui demo"
+      }
+    },
+    {
+      "path": "pages/tsm-button/index",
+      "style": {
+        "navigationBarTitleText": "Button 按钮"
+      }
+    },
+    {
+      "path": "pages/tsm-theme/index",
+      "style": {
+        "navigationBarTitleText": "主题切换演示"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  }
+}

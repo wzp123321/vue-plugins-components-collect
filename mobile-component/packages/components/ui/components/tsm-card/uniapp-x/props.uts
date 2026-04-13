@@ -1,0 +1,28 @@
+/**
+ * Card 卡片组件 Props 定义
+ */
+
+
+export interface CardProps {
+  /** 卡片标题 */
+  title?: string;
+  /** 卡片副标题 */
+  subTitle?: string;
+  /** 是否显示边框 */
+  border?: boolean;
+  /** 圆角大小 */
+  radius?: number | string;
+  /** 自定义类名 */
+  customClass?: string;
+  /** 自定义样式 */
+  customStyle?: Record<string, string | number>;
+}
+
+export const defaultProps = {
+  title: '',
+  subTitle: '',
+  border: true,
+  radius: 8,
+  customClass: '',
+  customStyle: () => ({})
+} as const;

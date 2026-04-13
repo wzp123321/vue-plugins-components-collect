@@ -1,0 +1,78 @@
+{
+  "name": "ts-mobile-ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A uView-like component library for UniApp & UniApp X",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "docs:dev": "npm run playground:use-source-components && vitepress dev apps/docs",
+    "docs:build": "npm run docs:generate && vitepress build apps/docs",
+    "docs:generate": "node scripts/generate-docs.js",
+    "build:token": "node packages/core/token/scripts/build.js",
+    "build:ui": "node packages/components/ui/scripts/build.js",
+    "build:biz-ui": "node packages/components/biz-ui/scripts/build.js",
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
+    "playground:use-source-components": "node scripts/link-playground-components.cjs",
+    "playground:use-dist-components": "node scripts/link-playground-components.cjs --restore",
+    "playground:use-remote-components": "node scripts/use-playground-remote-components.cjs"
+  },
+  "keywords": [
+    "uniapp",
+    "phillui",
+    "component",
+    "vue3"
+  ],
+  "author": "lvli0401 <2283268047@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lvli0401/phillUI.git"
+  },
+  "uni_modules": {
+    "platforms": {
+      "client": {
+        "App": {
+          "android": "y",
+          "ios": "y"
+        },
+        "H5": "y",
+        "MP-WEIXIN": "y",
+        "MP-ALIPAY": "y"
+      }
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@vueuse/core": "^14.2.1",
+    "highlight.js": "^11.11.1",
+    "husky": "^9.1.7",
+    "less": "^4.6.4",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.8.1",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.29"
+  },
+  "lint-staged": {
+    "packages/components/ui/**/*.{js,ts,vue}": [
+      "pnpm --dir packages/components/ui exec eslint -c eslint.config.cjs --no-error-on-unmatched-pattern",
+      "prettier --write"
+    ],
+    "packages/components/ui/**/*.{uvue,scss}": [
+      "prettier --write"
+    ],
+    "apps/playground/uniapp-project/src/**/*.{ts,vue}": [
+      "prettier --write"
+    ],
+    "*.{md,json,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@8.6.7"
+}

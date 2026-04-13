@@ -1,0 +1,47 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^tsm-(.*)": "@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-$1/uniapp/tsm-$1.vue",
+      "^icon-(.*)$": "@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index",
+      "style": {
+        "navigationBarTitleText": "ts-mobile-ui demo"
+      }
+    },
+    {
+      "path": "pages/tsm-button/index",
+      "style": {
+        "navigationBarTitleText": "Button 按钮"
+      }
+    },
+    {
+      "path": "pages/tsm-theme/index",
+      "style": {
+        "navigationBarTitleText": "主题切换演示"
+      }
+    },
+    {
+      "path": "pages/tsm-stepper/index",
+      "style": {
+        "navigationBarTitleText": "Stepper 步进器"
+      }
+    },
+    {
+      "path": "pages/ts-switch/index",
+      "style": {
+        "navigationBarTitleText": "Switch 开关组件"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  }
+}

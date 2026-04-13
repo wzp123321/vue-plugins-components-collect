@@ -1,0 +1,151 @@
+/**
+ * Text 文本组件
+ * @description 此组件集成了文本类在项目中的常用功能，包括状态、格式化等功能
+ */
+<template>
+  <view
+    class="tsm-text"
+    :class="[customClass, type && `tsm-text--${type}`]"
+    v-if="show"
+    :style="containerStyle"
+    @tap="clickHandler"
+  >
+    <text class="tsm-text__price" v-if="mode === 'price'">￥</text>
+    <view class="tsm-text__prefix-icon" v-if="prefixIcon">
+      <icon-setting />
+    </view>
+    <text
+      class="tsm-text__value"
+      :class="[type && `tsm-text__value--${type}`, lines && `tsm-line-${lines}`]"
+      :style="valueStyle"
+      >{{ displayText }}</text
+    >
+    <view class="tsm-text__suffix-icon" v-if="suffixIcon">
+      <icon-setting />
+    </view>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue';
+import type { TextProps } from './props.uts';
+import { defaultProps } from './props.uts';
+import { addUnit, addStyle } from '../../../libs/uniapp-x/function/index.uts';
+
+/**
+ * Text 组件 Props
+ * @property {string} type - 主题颜色
+ * @property {boolean} show - 是否显示
+ * @property {string|number} text - 显示的值
+ * @property {string} prefixIcon - 前置图标
+ * @property {string} suffixIcon - 后置图标
+ * @property {string} mode - 文本处理模式 (text | price | phone | link)
+ * @property {string} href - 链接地址
+ * @property {boolean} bold - 是否粗体
+ * @property {boolean} block - 是否块状
+ * @property {number} lines - 文本显示的行数
+ * @property {string} color - 文本颜色
+ * @property {string|number} size - 字体大小
+ * @property {string} decoration - 文字装饰
+ * @property {string|number} margin - 外边距
+ * @property {string|number} lineHeight - 文本行高
+ * @property {string} align - 文本对齐方式
+ * @property {string} wordWrap - 文字换行
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<TextProps>(), defaultProps);
+
+const emit = defineEmits<{
+  click: [];
+}>();
+
+const displayText = computed(() => {
+  return String(props.text);
+});
+
+const containerStyle = computed(() => {
+  const style: Record<string, any> = {
+    margin: addUnit(String(props.margin)),
+    justifyContent: props.align === 'left' ? 'flex-start' : props.align === 'center' ? 'center' : 'flex-end',
+  };
+  return addStyle({ ...style, ...props.customStyle });
+});
+
+const valueStyle = computed(() => {
+  const style: Record<string, any> = {
+    textDecoration: props.decoration,
+    fontWeight: props.bold ? 'bold' : 'normal',
+    wordWrap: props.wordWrap,
+    fontSize: addUnit(String(props.size)),
+  };
+  if (!props.type) {
+    style.color = props.color;
+  }
+  if (props.lineHeight) {
+    style.lineHeight = addUnit(String(props.lineHeight));
+  }
+  if (props.block) {
+    style.display = 'block';
+  }
+  return style;
+});
+
+const clickHandler = () => {
+  if (props.mode === 'phone') {
+    uni.makePhoneCall({ phoneNumber: displayText.value });
+  }
+  emit('click');
+};
+</script>
+
+<style scoped lang="scss">
+.tsm-text {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: 1;
+  width: 100%;
+}
+
+.tsm-text__price {
+  font-size: var(--tsm-font-size-text-m);
+  color: var(--tsm-color-text-secondary);
+}
+
+.tsm-text__value {
+  font-size: var(--tsm-font-size-text-m);
+  display: flex;
+  color: var(--tsm-color-text-secondary);
+  flex-wrap: wrap;
+  text-overflow: ellipsis;
+  align-items: center;
+}
+
+.tsm-text__value--primary {
+  color: var(--tsm-color-primary);
+}
+
+.tsm-text__value--warning {
+  color: var(--tsm-color-warning);
+}
+
+.tsm-text__value--success {
+  color: var(--tsm-color-success);
+}
+
+.tsm-text__value--info {
+  color: var(--tsm-color-info);
+}
+
+.tsm-text__value--error {
+  color: var(--tsm-color-danger);
+}
+
+.tsm-text__prefix-icon,
+.tsm-text__suffix-icon {
+  display: flex;
+  align-items: center;
+}
+</style>

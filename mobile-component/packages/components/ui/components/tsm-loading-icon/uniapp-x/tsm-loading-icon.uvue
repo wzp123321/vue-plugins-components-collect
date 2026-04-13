@@ -1,0 +1,82 @@
+/**
+ * LoadingIcon 加载图标组件
+ * @description 加载图标组件，用于显示加载状态
+ */
+<template>
+  <view
+    class="tsm-loading-icon"
+    :class="[`tsm-loading-icon--${mode}`, customClass]"
+    :style="loadingStyle"
+  >
+    <view
+      v-for="i in 12"
+      :key="i"
+      class="tsm-loading-icon__bar"
+      :style="barStyle(i)"
+    ></view>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue';
+import type { LoadingIconProps } from './props.uts';
+import { defaultProps } from './props.uts';
+import { addUnit, addStyle } from '../../../libs/uniapp-x/function/index.uts';
+
+/**
+ * LoadingIcon 组件 Props
+ * @property {string} mode - 加载图标类型 (circle | flower)
+ * @property {number|string} size - 图标大小
+ * @property {string} color - 图标颜色
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<LoadingIconProps>(), defaultProps);
+
+const loadingStyle = computed(() => {
+  return addStyle({
+    width: addUnit(String(props.size)),
+    height: addUnit(String(props.size)),
+    ...props.customStyle,
+  });
+});
+
+const barStyle = (index: number) => {
+  const size = Number(props.size);
+  const barHeight = size * 0.2;
+  const barWidth = size * 0.08;
+  return {
+    width: addUnit(String(barWidth)),
+    height: addUnit(String(barHeight)),
+    backgroundColor: props.color,
+    transform: `rotate(${index * 30}deg) translateY(-${size * 0.35}px)`,
+    opacity: index <= 3 ? 0.3 : index <= 6 ? 0.5 : index <= 9 ? 0.7 : 1,
+  };
+};
+</script>
+
+<style scoped lang="scss">
+.tsm-loading-icon {
+  position: relative;
+  display: inline-block;
+  animation: tsm-loading-icon-rotate 1s linear infinite;
+}
+
+.tsm-loading-icon__bar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -4%;
+  margin-top: -10%;
+  border-radius: 2px;
+}
+
+@keyframes tsm-loading-icon-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

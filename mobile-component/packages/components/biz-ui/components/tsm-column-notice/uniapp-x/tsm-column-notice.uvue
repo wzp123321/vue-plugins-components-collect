@@ -1,0 +1,69 @@
+/**
+ * ColumnNotice 纵向通知栏组件
+ * @description 纵向通知栏组件，用于显示纵向滚动通知
+ */
+<template>
+  <view
+    class="tsm-column-notice"
+    :class="bemClass"
+    :style="customStyle"
+  >
+    <icon-setting />
+    <view class="tsm-column-notice__content">
+      <view
+        class="tsm-column-notice__item"
+        v-for="(item, index) in list"
+        :key="index"
+        :style="{ color: color }"
+      >{{ item }}</view>
+    </view>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue';
+import type { ColumnNoticeProps } from './props.uts';
+import { defaultProps } from './props.uts';
+import { bem } from '../../../libs/uniapp-x/function/index.uts';
+
+/**
+ * ColumnNotice 组件 Props
+ * @property {array} list - 通知文本列表
+ * @property {number} speed - 滚动速度
+ * @property {boolean} showIcon - 是否显示左侧图标
+ * @property {string} bgColor - 背景颜色
+ * @property {string} color - 文字颜色
+ * @property {string} customClass - 自定义类名
+ * @property {object} customStyle - 自定义样式
+ */
+const props = withDefaults(defineProps<ColumnNoticeProps>(), defaultProps);
+
+const bemClass = computed(() => {
+  return bem('column-notice', [], [], props.customClass);
+});
+</script>
+
+<style scoped lang="scss">
+.tsm-column-notice {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #fdf6ec;
+}
+
+.tsm-column-notice__icon {
+  margin-right: 8px;
+}
+
+.tsm-column-notice__content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tsm-column-notice__item {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

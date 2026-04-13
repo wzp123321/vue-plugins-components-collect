@@ -1,0 +1,35 @@
+/**
+ * NoticeBar 通知栏组件 Props 定义
+ * @description 简化版通知栏组件
+ */
+import type { CSSProperties } from 'vue';
+
+export interface NoticeBarProps {
+  /** 通知文本 */
+  text?: string;
+  /** 滚动速度 */
+  speed?: number;
+  /** 是否显示左侧图标 */
+  showIcon?: boolean;
+  /** 是否显示关闭按钮 */
+  showClose?: boolean;
+  /** 背景颜色 */
+  bgColor?: string;
+  /** 文字颜色 */
+  color?: string;
+  /** 自定义类名 */
+  customClass?: string;
+  /** 自定义样式 */
+  customStyle?: CSSProperties;
+}
+
+export const defaultProps = {
+  text: '',
+  speed: 50,
+  showIcon: true,
+  showClose: false,
+  bgColor: '#fdf6ec',
+  color: '#e6a23c',
+  customClass: '',
+  customStyle: () => ({}),
+} as const;

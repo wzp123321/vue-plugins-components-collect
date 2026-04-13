@@ -1,0 +1,29 @@
+/**
+ * Overlay 遮罩层组件 Props 定义
+ * @description 简化版遮罩层组件
+ */
+
+
+export interface OverlayProps {
+  /** 是否显示 */
+  show?: boolean;
+  /** 层级 */
+  zIndex?: number;
+  /** 遮罩透明度 */
+  opacity?: number;
+  /** 动画时长 */
+  duration?: number;
+  /** 自定义类名 */
+  customClass?: string;
+  /** 自定义样式 */
+  customStyle?: Record<string, string | number>;
+}
+
+export const defaultProps = {
+  show: false,
+  zIndex: 1000,
+  opacity: 0.5,
+  duration: 300,
+  customClass: '',
+  customStyle: () => ({})
+} as const;

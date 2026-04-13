@@ -1,0 +1,182 @@
+/** * Button 按钮 * @description 按钮组件，支持各种形状、大小、加载等功能。 */
+<template>
+  <button
+    :hover-class="!disabled && !loading ? 'tsm-button--active' : ''"
+    class="tsm-button"
+    :style="buttonStyle"
+    :class="bemClass"
+    @tap="handleClick"
+  >
+    <template v-if="loading">
+      <text class="tsm-button__loading-text">{{ loadingText || text }}</text>
+    </template>
+    <template v-else>
+      <slot>
+        <text class="tsm-button__text">{{ text }}</text>
+      </slot>
+    </template>
+  </button>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { ButtonProps } from './props';
+import { defaultProps } from './props';
+import { addStyle, bem } from '../../../libs/uniapp/function/index';
+
+const props = withDefaults(defineProps<ButtonProps>(), defaultProps);
+
+const emit = defineEmits<{
+  click: [e: Event];
+}>();
+
+const bemClass = computed(() => {
+  return bem(
+    'button',
+    [props.type, props.shape, props.size],
+    [['disabled', props.disabled || props.loading]],
+    props.customClass
+  );
+});
+
+const buttonStyle = computed(() => {
+  const style: Record<string, string> = {};
+  if (props.color) {
+    style.backgroundColor = props.color;
+    style.borderColor = props.color;
+    style.color = 'var(--tsm-color-static-white)';
+  }
+  return addStyle({ ...style, ...props.customStyle });
+});
+
+const handleClick = (e: Event) => {
+  if (!props.disabled && !props.loading) {
+    emit('click', e);
+  }
+};
+</script>
+
+<style scoped lang="scss">
+@import '../../../libs/scss/platform-style.scss';
+
+.tsm-button {
+  height: 40px;
+  padding: 0 12px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--tsm-color-primary-border);
+  border-radius: var(--tsm-radius-s);
+  background-color: var(--tsm-color-primary);
+  color: var(--tsm-color-static-white);
+  position: relative;
+  @include tsm-display-inline-flex();
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-direction: row;
+  line-height: 1;
+}
+
+.tsm-button__text {
+  font-size: var(--tsm-font-size-text-m);
+}
+
+.tsm-button__loading-text {
+  font-size: var(--tsm-font-size-text-m);
+  margin-left: var(--tsm-spacing-s);
+}
+
+.tsm-button--small .tsm-button__loading-text {
+  font-size: var(--tsm-font-size-text-s);
+}
+
+.tsm-button--mini .tsm-button__loading-text {
+  font-size: var(--tsm-font-size-text-xs);
+}
+
+.tsm-button--large {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+}
+
+.tsm-button--normal {
+  height: 40px;
+}
+
+.tsm-button--small {
+  height: 32px;
+  padding: 0 10px;
+}
+
+.tsm-button--small .tsm-button__text {
+  font-size: var(--tsm-font-size-text-s);
+}
+
+.tsm-button--mini {
+  height: 26px;
+  padding: 0 8px;
+}
+
+.tsm-button--mini .tsm-button__text {
+  font-size: var(--tsm-font-size-text-xs);
+}
+
+.tsm-button--disabled {
+  opacity: 0.5;
+}
+
+.tsm-button--active {
+  opacity: 0.85;
+}
+
+.tsm-button--default {
+  color: var(--tsm-color-text-primary);
+  background-color: var(--tsm-color-bg-white);
+  border-color: var(--tsm-color-border-secondary);
+}
+
+.tsm-button--info {
+  color: var(--tsm-color-static-white);
+  background-color: var(--tsm-color-info);
+  border-color: var(--tsm-color-info-border);
+}
+
+.tsm-button--success {
+  color: var(--tsm-color-static-white);
+  background-color: var(--tsm-color-success);
+  border-color: var(--tsm-color-success-border);
+}
+
+.tsm-button--primary {
+  color: var(--tsm-color-static-white);
+  background-color: var(--tsm-color-primary);
+  border-color: var(--tsm-color-primary-border);
+}
+
+.tsm-button--danger,
+.tsm-button--error {
+  color: var(--tsm-color-static-white);
+  background-color: var(--tsm-color-danger);
+  border-color: var(--tsm-color-danger-border);
+}
+
+.tsm-button--warning {
+  color: var(--tsm-color-static-white);
+  background-color: var(--tsm-color-warning);
+  border-color: var(--tsm-color-warning-border);
+}
+
+.tsm-button--block {
+  display: flex;
+  width: 100%;
+}
+
+.tsm-button--circle {
+  border-radius: var(--tsm-radius-full);
+}
+
+.tsm-button--square {
+  border-radius: var(--tsm-radius-s);
+}
+</style>
