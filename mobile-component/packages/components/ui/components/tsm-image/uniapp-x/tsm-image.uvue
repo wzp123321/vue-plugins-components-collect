@@ -60,7 +60,8 @@ import { addUnit, bem } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<ImageProps>(), defaultProps);
+const rawProps = defineProps<ImageProps>();
+const props = { ...defaultProps, ...rawProps } as ImageProps;
 
 const emit = defineEmits<{
   click: [];
@@ -85,7 +86,7 @@ watch(
 );
 
 const bemClass = computed(() => {
-  return bem('image', [props.shape], [], props.customClass);
+  return bem('image', [props.shape], {}, props.customClass);
 });
 
 const wrapStyle = computed(() => {

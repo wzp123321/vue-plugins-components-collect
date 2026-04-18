@@ -5,7 +5,7 @@ declare const uni: any;
 type StyleObject = Record<string, string | number>;
 
 function trim(str: string, pos: 'both' | 'left' | 'right' | 'all' = 'both'): string {
-  const value = String(str);
+  const value = str;
   if (pos === 'both') return value.replace(/^\s+|\s+$/g, '');
   if (pos === 'left') return value.replace(/^\s*/, '');
   if (pos === 'right') return value.replace(/(\s*$)/g, '');

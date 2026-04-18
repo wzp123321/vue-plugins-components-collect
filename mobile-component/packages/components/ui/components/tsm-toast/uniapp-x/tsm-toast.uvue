@@ -38,13 +38,14 @@ import { bem } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<ToastProps>(), defaultProps);
+const rawProps = defineProps<ToastProps>();
+const props = { ...defaultProps, ...rawProps } as ToastProps;
 
 const isShow = ref(false);
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 const bemClass = computed(() => {
-  return bem('toast', [props.type], [], props.customClass);
+  return bem('toast', [props.type], {}, props.customClass);
 });
 
 const iconName = computed(() => {

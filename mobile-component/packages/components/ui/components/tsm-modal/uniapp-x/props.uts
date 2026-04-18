@@ -17,15 +17,15 @@ export interface ModalProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, any>;
+  customStyle?: UTSJSONObject;
 }
 
-export const defaultProps: ModalProps = {
+export const defaultProps = {
   show: false,
   title: '',
   content: '',
   confirmText: '确定',
   cancelText: '取消',
   customClass: '',
-  customStyle: {},
-};
+  customStyle: () => ({})
+} as UTSJSONObject;

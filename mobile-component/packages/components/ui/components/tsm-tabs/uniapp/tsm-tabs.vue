@@ -1,23 +1,28 @@
 /** * Tabs 标签页组件 * @description 标签页组件，支持滚动和滑块动画 */
 <template>
   <view class="tsm-tabs" :class="bemClass" :style="customStyle">
-    <scroll-view :scroll-x="scrollable" :scroll-left="scrollLeft" scroll-with-animation class="tsm-tabs__scroll">
-      <view class="tsm-tabs__nav">
-        <view
-          class="tsm-tabs__nav__item"
-          :class="{
-            'tsm-tabs__nav__item--active': innerCurrent === index,
-            'tsm-tabs__nav__item--disabled': item.disabled,
-          }"
-          v-for="(item, index) in list"
-          :key="index"
-          @tap="onClick(item, index)"
-        >
-          <text class="tsm-tabs__nav__text">{{ item[keyName] }}</text>
+    <view class="tsm-tabs__header">
+      <scroll-view :scroll-x="scrollable" :scroll-left="scrollLeft" scroll-with-animation class="tsm-tabs__scroll">
+        <view class="tsm-tabs__nav">
+          <view
+            v-for="(item, index) in list"
+            :key="index"
+            class="tsm-tabs__nav__item"
+            :class="{
+              'tsm-tabs__nav__item--active': innerCurrent === index,
+              'tsm-tabs__nav__item--disabled': item.disabled,
+            }"
+            @tap="onClick(item, index)"
+          >
+            <text class="tsm-tabs__nav__text">{{ item[keyName] }}</text>
+          </view>
+          <view class="tsm-tabs__nav__line" :style="lineStyle"></view>
         </view>
-        <view class="tsm-tabs__nav__line" :style="lineStyle"></view>
+      </scroll-view>
+      <view v-if="showListIcon" class="tsm-tabs__list-icon" @tap="onListIconClick">
+        <icon-list />
       </view>
-    </scroll-view>
+    </view>
   </view>
 </template>
 
@@ -33,6 +38,7 @@ const emit = defineEmits<{
   change: [index: number];
   click: [index: number];
   'update:current': [value: number];
+  'list-click': [];
 }>();
 
 const innerCurrent = ref(props.current);
@@ -40,7 +46,15 @@ const scrollLeft = ref(0);
 const lineOffsetLeft = ref(0);
 
 const bemClass = computed(() => {
-  return bem('tabs', [props.scrollable ? 'scrollable' : ''], [], props.customClass);
+  return bem(
+    'tabs',
+    [props.size],
+    [
+      ['scrollable', props.scrollable],
+      ['has-list-icon', props.showListIcon],
+    ],
+    props.customClass
+  );
 });
 
 const lineStyle = computed(() => ({
@@ -99,6 +113,10 @@ const onClick = (item: any, index: number) => {
   emit('change', index);
   nextTick(() => updateLinePosition());
 };
+
+const onListIconClick = () => {
+  emit('list-click');
+};
 </script>
 
 <style scoped lang="scss">
@@ -108,8 +126,13 @@ const onClick = (item: any, index: number) => {
   width: 100%;
 }
 
+.tsm-tabs__header {
+  display: flex;
+  align-items: center;
+}
+
 .tsm-tabs__scroll {
-  width: 100%;
+  flex: 1;
   overflow-x: auto;
   white-space: nowrap;
 }
@@ -121,11 +144,25 @@ const onClick = (item: any, index: number) => {
 }
 
 .tsm-tabs__nav__item {
-  padding: 0 11px;
   @include tsm-display-inline-flex();
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.tsm-tabs--large .tsm-tabs__nav__item {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 0 16px;
+}
+
+.tsm-tabs--small .tsm-tabs__nav__item {
+  padding: 16px 24px;
+}
+
+.tsm-tabs--scrollable .tsm-tabs__nav__item {
+  flex: none;
+  padding: 16px 24px;
 }
 
 .tsm-tabs__nav__item--active {
@@ -138,15 +175,53 @@ const onClick = (item: any, index: number) => {
 }
 
 .tsm-tabs__nav__text {
-  font-size: 15px;
-  color: #606266;
   white-space: nowrap;
+}
+
+.tsm-tabs--large .tsm-tabs__nav__text {
+  font-size: 28px;
+  color: #969799;
+}
+
+.tsm-tabs--large .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
+  color: #323233;
+}
+
+.tsm-tabs--small .tsm-tabs__nav__text {
+  font-size: 24px;
+  color: #969799;
+}
+
+.tsm-tabs--small .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
+  color: #323233;
+}
+
+.tsm-tabs--scrollable .tsm-tabs__nav__text {
+  font-size: 28px;
+  color: #969799;
+}
+
+.tsm-tabs--scrollable .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
+  color: #323233;
 }
 
 .tsm-tabs__nav__line {
   position: absolute;
-  bottom: 2px;
+  bottom: 0;
   border-radius: 100px;
   transition-property: transform;
+}
+
+.tsm-tabs__list-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.tsm-tabs__list-icon :deep(*) {
+  font-size: 40px;
+  color: #969799;
 }
 </style>

@@ -3,14 +3,11 @@
  * @description 简化版输入框组件
  */
 import type { CSSProperties } from 'vue';
-
 export interface InputProps {
   /** 输入框的值 */
+  modelValue: string;
+  /**消费value，使uni内置的input组件的value属性失效 */
   value?: string;
-  /** 输入框类型 */
-  type?: 'text' | 'number' | 'idcard' | 'digit' | 'password' | 'tel';
-  /** 占位符 */
-  placeholder?: string;
   /** 是否禁用 */
   disabled?: boolean;
   /** 是否只读 */
@@ -19,8 +16,10 @@ export interface InputProps {
   maxlength?: number;
   /** 是否显示清除按钮 */
   clearable?: boolean;
-  /** 是否自动聚焦 */
-  autofocus?: boolean;
+  /** 是否显示最大长度提示 */
+  showWordimit?: boolean;
+  /** 提示信息 */
+  tips?: string;
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -28,14 +27,14 @@ export interface InputProps {
 }
 
 export const defaultProps = {
+  modelValue: '',
   value: '',
-  type: 'text',
-  placeholder: '',
   disabled: false,
   readonly: false,
   maxlength: -1,
   clearable: false,
-  autofocus: false,
+  showWordimit: false,
+  tips: '',
   customClass: '',
   customStyle: () => ({}),
 } as const;

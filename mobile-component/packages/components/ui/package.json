@@ -3,7 +3,7 @@
   "displayName": "ts-mobile-ui全面兼容uniapp-x、uniapp、鸿蒙组件库。",
   "version": "0.0.19",
   "description": "ts-mobile-ui全面兼容uni-app/uni-app-x/鸿蒙，全面的组件和便捷的工具会让您信手拈来，如鱼得水",
-  "types": "types/index.d.ts",
+  "types": "types/comps.d.ts",
   "keywords": [
     "ts-mobile-ui",
     "uniapp-x",
@@ -108,7 +108,8 @@
     "@tiansu/ts-icon": "^0.0.23"
   },
   "dependencies": {
-    "dayjs": "^1.11.3"
+    "dayjs": "^1.11.3",
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.29",

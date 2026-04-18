@@ -1,15 +1,16 @@
 /** * Transition 动画组件 * @description 动画组件，用于显示/隐藏动画 */
 <template>
-  <view v-if="show" class="tsm-transition" :class="bemClass" :style="customStyle">
-    <slot />
-  </view>
+  <transition :name="transitionName" :duration="duration">
+    <view v-if="show" class="tsm-transition" :class="customClass" :style="customStyle">
+      <slot />
+    </view>
+  </transition>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { TransitionProps } from './props';
 import { defaultProps } from './props';
-import { bem } from '../../../libs/uniapp/function/index';
 
 /**
  * Transition 组件 Props
@@ -21,102 +22,111 @@ import { bem } from '../../../libs/uniapp/function/index';
  */
 const props = withDefaults(defineProps<TransitionProps>(), defaultProps);
 
-const bemClass = computed(() => {
-  return bem('transition', [props.mode], [], props.customClass);
+const transitionName = computed(() => {
+  return `tsm-${props.mode}`;
+});
+
+const duration = computed(() => {
+  return props.duration || 300;
 });
 </script>
 
 <style scoped lang="scss">
 .tsm-transition {
   transition-property: all;
-  transition-duration: 300ms;
 }
 
-.tsm-transition--fade {
-  animation: tsm-fade-in 0.3s ease-in-out;
+/* Fade 动画 */
+.tsm-fade-enter-active,
+.tsm-fade-leave-active {
+  transition: opacity 0.3s ease-in-out;
 }
 
-.tsm-transition--slide-up {
-  animation: tsm-slide-up-in 0.3s ease-in-out;
+.tsm-fade-enter-from {
+  opacity: 0;
 }
 
-.tsm-transition--slide-down {
-  animation: tsm-slide-down-in 0.3s ease-in-out;
+.tsm-fade-leave-to {
+  opacity: 0;
 }
 
-.tsm-transition--slide-left {
-  animation: tsm-slide-left-in 0.3s ease-in-out;
+/* Slide Up 动画 */
+.tsm-slide-up-enter-active,
+.tsm-slide-up-leave-active {
+  transition: all 0.3s ease-in-out;
 }
 
-.tsm-transition--slide-right {
-  animation: tsm-slide-right-in 0.3s ease-in-out;
+.tsm-slide-up-enter-from {
+  transform: translateY(100%);
+  opacity: 0;
 }
 
-.tsm-transition--zoom {
-  animation: tsm-zoom-in 0.3s ease-in-out;
+.tsm-slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
 }
 
-@keyframes tsm-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Slide Down 动画 */
+.tsm-slide-down-enter-active,
+.tsm-slide-down-leave-active {
+  transition: all 0.3s ease-in-out;
 }
 
-@keyframes tsm-slide-up-in {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.tsm-slide-down-enter-from {
+  transform: translateY(-100%);
+  opacity: 0;
 }
 
-@keyframes tsm-slide-down-in {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.tsm-slide-down-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
 }
 
-@keyframes tsm-slide-left-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+/* Slide Left 动画 */
+.tsm-slide-left-enter-active,
+.tsm-slide-left-leave-active {
+  transition: all 0.3s ease-in-out;
 }
 
-@keyframes tsm-slide-right-in {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.tsm-slide-left-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
 }
 
-@keyframes tsm-zoom-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.tsm-slide-left-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* Slide Right 动画 */
+.tsm-slide-right-enter-active,
+.tsm-slide-right-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.tsm-slide-right-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.tsm-slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+/* Zoom 动画 */
+.tsm-zoom-enter-active,
+.tsm-zoom-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.tsm-zoom-enter-from {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+.tsm-zoom-leave-to {
+  transform: scale(0.8);
+  opacity: 0;
 }
 </style>

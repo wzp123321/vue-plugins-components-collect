@@ -27,7 +27,8 @@ import type { CardProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { addUnit, bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<CardProps>(), defaultProps);
+const rawProps = defineProps<CardProps>();
+const props = { ...defaultProps, ...rawProps } as CardProps;
 
 const bemClass = computed(() => {
   return bem('card', [props.border ? 'border' : ''], [], props.customClass);

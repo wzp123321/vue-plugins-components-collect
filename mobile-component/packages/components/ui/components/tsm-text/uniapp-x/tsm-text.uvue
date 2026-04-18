@@ -54,7 +54,7 @@ import { addUnit, addStyle } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<TextProps>(), defaultProps);
+const props = withDefaults(defineProps<TextProps>(),{ customClass: ' ' });
 
 const emit = defineEmits<{
   click: [];
@@ -69,7 +69,7 @@ const containerStyle = computed(() => {
     margin: addUnit(String(props.margin)),
     justifyContent: props.align === 'left' ? 'flex-start' : props.align === 'center' ? 'center' : 'flex-end',
   };
-  return addStyle({ ...style, ...props.customStyle });
+  return addStyle(UTSJSONObject.assign(style, props.customStyle));
 });
 
 const valueStyle = computed(() => {

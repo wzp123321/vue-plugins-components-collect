@@ -36,10 +36,11 @@ import { bem } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<ColumnNoticeProps>(), defaultProps);
+const rawProps = defineProps<ColumnNoticeProps>();
+const props = { ...defaultProps, ...rawProps } as ColumnNoticeProps;
 
 const bemClass = computed(() => {
-  return bem('column-notice', [], [], props.customClass);
+  return bem('column-notice', [], {}, props.customClass);
 });
 </script>
 

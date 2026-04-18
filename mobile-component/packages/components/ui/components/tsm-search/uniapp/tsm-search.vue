@@ -1,22 +1,24 @@
 /** * Search 搜索组件 * @description 搜索组件，用于搜索功能 */
 <template>
   <view class="tsm-search" :class="bemClass" :style="customStyle">
-    <view class="tsm-search__content">
-      <icon-setting />
-      <input
-        class="tsm-search__input"
-        :value="value"
-        :placeholder="placeholder"
-        confirm-type="search"
-        @input="onInput"
-        @confirm="onSearch"
-      />
-      <view v-if="clearable && value" class="tsm-search__clear" @tap="onClear">
-        <icon-setting />
-      </view>
-    </view>
-    <view v-if="showAction" class="tsm-search__action" @tap="onSearch">
-      <text class="tsm-search__action__text">{{ actionText }}</text>
+    <tsm-input
+      v-model.trim="inputValue"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :clearable="clearable"
+      @input="handleInput"
+      @confirm="handleConfirm"
+      @blur="handleBlur"
+      @clear="handleClear"
+      @focus="handleFocus"
+    >
+      <template #prefix>
+        <icon-search color="var(--tsm-color-text-placeholder" />
+      </template>
+    </tsm-input>
+    <view class="tsm-search-btn" @click="handleFilterBtnClick" v-if="showFilterBtn">
+      <icon-filter color="var(--tsm-color-text-placeholder)" v-if="!filterBtnHasCondition" />
+      <icon-filter-fill color="var(--tsm-color-primary)" v-else />
     </view>
   </view>
 </template>
@@ -26,33 +28,59 @@ import { computed } from 'vue';
 import type { SearchProps } from './props';
 import { defaultProps } from './props';
 import { bem } from '../../../libs/uniapp/function/index';
+import debounce from 'lodash/debounce';
 
 const props = withDefaults(defineProps<SearchProps>(), defaultProps);
 
 const emit = defineEmits<{
   search: [value: string];
-  input: [value: string];
+  input: [event: any];
   clear: [];
-  'update:value': [value: string];
+  confirm: [event: any];
+  focus: [event: any];
+  blur: [event: any];
+  filterBtnClick: [];
+  'update:modelValue': [value: string];
 }>();
 
 const bemClass = computed(() => {
-  return bem('search', [], [], props.customClass);
+  return bem('search', [props.shape, props.bgColor], [], props.customClass);
 });
-
-const onInput = (e: any) => {
-  const value = e.detail.value;
-  emit('update:value', value);
-  emit('input', value);
+// 双向绑定的值
+const inputValue = computed({
+  get: () => {
+    return props.modelValue;
+  },
+  set: newValue => {
+    emit('update:modelValue', newValue);
+  },
+});
+//搜索输入框值变化
+const handleInput = (event: any) => {
+  if (inputValue.value !== event.detail.value) {
+    handleSearch();
+  }
+  inputValue.value = event.detail.value;
+  emit('input', event);
 };
-
-const onSearch = () => {
-  emit('search', props.value);
+//延迟触发search事件
+const handleSearch = debounce(() => {
+  emit('search', inputValue.value);
+}, props.delay);
+const handleConfirm = (event: any) => {
+  emit('confirm', event);
 };
-
-const onClear = () => {
-  emit('update:value', '');
-  emit('input', '');
+const handleFocus = (event: any) => {
+  emit('focus', event);
+};
+const handleBlur = (event: any) => {
+  emit('blur', event);
+};
+const handleFilterBtnClick = () => {
+  emit('filterBtnClick');
+};
+const handleClear = () => {
+  inputValue.value = '';
   emit('clear');
 };
 </script>
@@ -61,40 +89,21 @@ const onClear = () => {
 .tsm-search {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  background-color: #f7f8fa;
+  justify-content: center;
+  gap: var(--tsm-spacing-xl);
+  :deep(.tsm-input-group) {
+    border: none;
+    background-color: var(--tsm-color-bg-tertiary);
+  }
 }
-
-.tsm-search__content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 0 12px;
-  height: 32px;
+.tsm-search--white {
+  :deep(.tsm-input-group) {
+    background-color: var(--tsm-color-bg-white);
+  }
 }
-
-.tsm-search__icon {
-  margin-right: 8px;
-}
-
-.tsm-search__input {
-  flex: 1;
-  font-size: 14px;
-  color: #303133;
-}
-
-.tsm-search__clear {
-  margin-left: 8px;
-}
-
-.tsm-search__action {
-  margin-left: 8px;
-}
-
-.tsm-search__action__text {
-  font-size: 14px;
-  color: #2979ff;
+.tsm-search--round {
+  :deep(.tsm-input-group) {
+    border-radius: var(--tsm-radius-full);
+  }
 }
 </style>

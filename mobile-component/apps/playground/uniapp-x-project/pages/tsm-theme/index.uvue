@@ -10,13 +10,6 @@
     </view>
 
     <view class="preview">
-      <view class="preview__item"><tsm-text type="primary" text="Primary 文本" /></view>
-      <view class="preview__item"><tsm-text type="success" text="Success 文本" /></view>
-      <view class="preview__item"><tsm-text type="warning" text="Warning 文本" /></view>
-      <view class="preview__item"><tsm-text type="error" text="Danger 文本" /></view>
-    </view>
-
-    <view class="preview">
       <view class="preview__item"><tsm-tag type="primary" text="Primary" /></view>
       <view class="preview__item"><tsm-tag type="success" text="Success" /></view>
       <view class="preview__item"><tsm-tag type="warning" text="Warning" /></view>
@@ -49,12 +42,7 @@ function setTheme(mode: ThemeMode) {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
- /* #ifdef APP-PLUS */
-  flex: 1;
-  /* #endif */
-  /* #ifdef H5 */
-  min-height: 100vh;
-  /* #endif */  
+  height: 100%;
   padding: 20px;
   background-color: var(--tsm-color-bg-tertiary);
 }

@@ -10,11 +10,11 @@ export interface SafeBottomProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, string | number>;
+  customStyle?: UTSJSONObject;
 }
 
 export const defaultProps = {
   bgColor: '#ffffff',
   customClass: '',
   customStyle: () => ({})
-} as const;
+} as UTSJSONObject;

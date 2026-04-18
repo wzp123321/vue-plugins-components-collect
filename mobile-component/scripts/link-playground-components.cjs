@@ -1,6 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const { execFileSync } = require('child_process')
+const { platform } = require('os')
+
+const isWindows = platform() === 'win32'
 
 const repoRoot = path.resolve(__dirname, '..')
 const packages = [
@@ -63,14 +66,26 @@ function createSymlink(sourcePath, targetPath) {
 
 function restoreFromDist(projectRoot, targetPath, installScript) {
   removeTarget(targetPath)
-  execFileSync(process.execPath, [installScript], {
-    cwd: projectRoot,
-    env: {
-      ...process.env,
-      INIT_CWD: projectRoot
-    },
-    stdio: 'inherit'
-  })
+  if (isWindows) {
+    execFileSync(process.execPath, [installScript], {
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        INIT_CWD: projectRoot
+      },
+      stdio: 'inherit',
+      shell: true
+    })
+  } else {
+    execFileSync(process.execPath, [installScript], {
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        INIT_CWD: projectRoot
+      },
+      stdio: 'inherit'
+    })
+  }
 }
 
 for (const project of projects) {
@@ -104,7 +119,15 @@ for (const project of projects) {
 projects.forEach(project => {
   console.log(`[ts-icon] Installing to ${project.name}...`);
   try {
-    execFileSync('sh', ['-c', `cd "${project.projectRoot}" && npx -y @tiansu/ts-icon@0.0.23`], { stdio: 'inherit' });
+    if (isWindows) {
+      execFileSync('npx', ['-y', '@tiansu/ts-icon@0.0.23'], {
+        cwd: project.projectRoot,
+        stdio: 'inherit',
+        shell: true
+      });
+    } else {
+      execFileSync('sh', ['-c', `cd "${project.projectRoot}" && npx -y @tiansu/ts-icon@0.0.23`], { stdio: 'inherit' });
+    }
   } catch (error) {
     console.error(`[ts-icon] Failed to install in ${project.name}: ${error.message}`);
   }

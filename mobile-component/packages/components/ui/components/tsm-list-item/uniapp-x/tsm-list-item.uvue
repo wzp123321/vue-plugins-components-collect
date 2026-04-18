@@ -5,8 +5,8 @@
 <template>
   <view
     class="tsm-list-item"
-    :class="[customClass]"
-    :style="listItemStyle"
+    :class="customClass"
+    :style="customStyle"
     @tap="onClick"
   >
     <view class="tsm-list-item__content">
@@ -34,23 +34,11 @@ import { addStyle } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<ListItemProps>(), defaultProps);
+const props = withDefaults(defineProps<ListItemProps>(),{ customClass: ' ' });
 
 const emit = defineEmits<{
   click: [];
 }>();
-
-const listItemStyle = computed(() => {
-  return addStyle({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '12px 16px',
-    backgroundColor: '#ffffff',
-    borderBottom: '1px solid #ebedf0',
-    ...props.customStyle,
-  });
-});
 
 const onClick = () => {
   emit('click');

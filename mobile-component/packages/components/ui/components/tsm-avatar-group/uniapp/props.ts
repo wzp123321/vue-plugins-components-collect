@@ -7,9 +7,7 @@ export interface AvatarGroupProps {
   /** 头像列表 */
   urls?: string[];
   /** 头像大小 */
-  size?: number | string;
-  /** 头像形状 */
-  shape?: 'circle' | 'square';
+  size?: 'xs' | 's' | 'm' | 'l' | 'xl';
   /** 最大显示数量 */
   maxCount?: number;
   /** 头像间距 */
@@ -22,10 +20,8 @@ export interface AvatarGroupProps {
 
 export const defaultProps = {
   urls: () => [],
-  size: 40,
-  shape: 'circle',
+  size: 'm',
   maxCount: 5,
-  gap: -10,
   customClass: '',
   customStyle: () => ({}),
 } as const;

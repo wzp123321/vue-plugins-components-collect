@@ -180,6 +180,9 @@ importers:
       dayjs:
         specifier: ^1.11.3
         version: 1.11.3
+      lodash:
+        specifier: ^4.18.1
+        version: 4.18.1
     devDependencies:
       '@dcloudio/types':
         specifier: ^3.4.29
@@ -7726,7 +7729,7 @@ packages:
   /glob@7.2.3:
     resolution:
       { integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q== }
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     dependencies:
       fs.realpath: 1.0.0
       inflight: 1.0.6
@@ -9301,7 +9304,6 @@ packages:
   /lodash@4.18.1:
     resolution:
       { integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q== }
-    dev: true
 
   /log-update@6.1.0:
     resolution:
@@ -11947,6 +11949,7 @@ packages:
   /whatwg-encoding@1.0.5:
     resolution:
       { integrity: sha512-b5lim54JOPN9HtzvK9HFXvBma/rnfFeqsic0hSpjtDbVxR3dJKLc+KB4V6GgiGOvl7CY/KNh8rxSo9DKQrnUEw== }
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
     dependencies:
       iconv-lite: 0.4.24
     dev: true

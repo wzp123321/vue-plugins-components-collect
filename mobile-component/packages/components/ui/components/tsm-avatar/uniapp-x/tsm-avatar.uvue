@@ -33,10 +33,11 @@ import type { AvatarProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<AvatarProps>(), defaultProps);
+const rawProps = defineProps<AvatarProps>();
+const props = { ...defaultProps, ...rawProps } as AvatarProps;
 
 const bemClass = computed(() => {
-  return bem('avatar', [props.shape], [], props.customClass);
+  return bem('avatar', [props.shape], {}, props.customClass);
 });
 </script>
 

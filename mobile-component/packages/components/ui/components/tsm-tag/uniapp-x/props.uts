@@ -7,7 +7,7 @@ export interface TagProps {
   color?: string;
   closable?: boolean;
   customClass?: string;
-  customStyle?: Record<string, string | number>;
+  customStyle?: UTSJSONObject;
 }
 
 export const defaultProps = {
@@ -19,5 +19,5 @@ export const defaultProps = {
   color: '',
   closable: false,
   customClass: '',
-  customStyle: () => ({}),
-} as const;
+  customStyle: () => ({})
+} as UTSJSONObject;

@@ -11,12 +11,12 @@ export interface NavbarMiniProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, any>;
+  customStyle?: UTSJSONObject;
 }
 
 export const defaultProps: NavbarMiniProps = {
   title: '',
   bgColor: '#ffffff',
   customClass: '',
-  customStyle: {},
-};
+  customStyle: () => ({})
+} as UTSJSONObject;

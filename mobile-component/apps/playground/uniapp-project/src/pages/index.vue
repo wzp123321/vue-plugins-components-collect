@@ -5,6 +5,9 @@
         <view v-for="item in pageJson.pages" :key="item.path" class="demo-entry__item">
           <view @click="navToDemo(item.path)" class="demo-button"> {{ item.style.navigationBarTitleText }} </view>
         </view>
+        <view class="demo-entry__item">
+          <view @click="navToSelectDepartmentEmployeeDemo" class="demo-button"> 选择部门人员演示 </view>
+        </view>
       </view>
     </view>
   </tsm-theme-provider>
@@ -16,6 +19,12 @@ import pageJson from '../pages.json';
 function navToDemo(path: string) {
   uni.navigateTo({
     url: `/${path}`,
+  });
+}
+
+function navToSelectDepartmentEmployeeDemo() {
+  uni.navigateTo({
+    url: '/pages/tsmbiz-select-department-employee/index',
   });
 }
 </script>

@@ -31,7 +31,6 @@ declare module 'vue' {
     'tsm-list-item': (typeof import('../components/tsm-list-item/uniapp/tsm-list-item.vue'))['default'];
     'tsm-list': (typeof import('../components/tsm-list/uniapp/tsm-list.vue'))['default'];
     'tsm-loading-icon': (typeof import('../components/tsm-loading-icon/uniapp/tsm-loading-icon.vue'))['default'];
-    'tsm-loading-page': (typeof import('../components/tsm-loading-page/uniapp/tsm-loading-page.vue'))['default'];
     'tsm-loadmore': (typeof import('../components/tsm-loadmore/uniapp/tsm-loadmore.vue'))['default'];
     'tsm-message': (typeof import('../components/tsm-message/uniapp/tsm-message.vue'))['default'];
     'tsm-modal': (typeof import('../components/tsm-modal/uniapp-x/tsm-modal.uvue'))['default'];
@@ -53,7 +52,6 @@ declare module 'vue' {
     'tsm-search': (typeof import('../components/tsm-search/uniapp/tsm-search.vue'))['default'];
     'tsm-segmented': (typeof import('../components/tsm-segmented/uniapp/tsm-segmented.vue'))['default'];
     'tsm-slider': (typeof import('../components/tsm-slider/uniapp/tsm-slider.vue'))['default'];
-    'tsm-status-bar': (typeof import('../components/tsm-status-bar/uniapp/tsm-status-bar.vue'))['default'];
     'tsm-steps-item': (typeof import('../components/tsm-steps-item/uniapp/tsm-steps-item.vue'))['default'];
     'tsm-steps': (typeof import('../components/tsm-steps/uniapp/tsm-steps.vue'))['default'];
     'tsm-sticky': (typeof import('../components/tsm-sticky/uniapp/tsm-sticky.vue'))['default'];

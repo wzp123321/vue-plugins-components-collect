@@ -18,7 +18,8 @@ import type { BadgeProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<BadgeProps>(), defaultProps);
+const rawProps = defineProps<BadgeProps>();
+const props = { ...defaultProps, ...rawProps } as BadgeProps;
 
 const bemClass = computed(() => {
   return bem('badge', [
@@ -26,7 +27,7 @@ const bemClass = computed(() => {
     props.isDot ? 'dot' : 'not-dot',
     props.inverted ? 'inverted' : '',
     props.shape === 'horn' ? 'horn' : ''
-  ], [], props.customClass);
+  ], {}, props.customClass);
 });
 
 const badgeStyle = computed(() => {

@@ -42,11 +42,11 @@ export interface TextProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, string | number>;
+  customStyle?: UTSJSONObject;
 }
 
 export const defaultProps = {
-  type: undefined,
+  type: null,
   show: true,
   text: '',
   prefixIcon: '',
@@ -55,14 +55,14 @@ export const defaultProps = {
   href: '',
   bold: false,
   block: false,
-  lines: undefined,
+  lines: null,
   color: '',
   size: 15,
   decoration: 'none',
   margin: 0,
-  lineHeight: undefined,
+  lineHeight: null,
   align: 'left',
   wordWrap: 'normal',
   customClass: '',
   customStyle: () => ({})
-} as const;
+} as UTSJSONObject;

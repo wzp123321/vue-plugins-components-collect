@@ -4,6 +4,8 @@
  */
 import type { CSSProperties } from 'vue';
 
+export type SwitchValue = boolean | string | number;
+
 export enum SwitchSize {
   LARGE = 'large',
   MEDIUM = 'medium',
@@ -87,21 +89,23 @@ export const getNodeWidthBySize = (size: SwitchSize) => {
 
 export interface SwitchProps {
   /** 是否选中 */
-  checked?: boolean;
+  checked?: SwitchValue;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 是否只读（只展示状态，不可切换） */
+  readonly?: boolean;
   /** 选中时的值 */
-  activeValue?: boolean | string | number;
+  activeValue?: SwitchValue;
   /** 未选中时的值 */
-  inactiveValue?: boolean | string | number;
+  inactiveValue?: SwitchValue;
   /** 选中时的颜色 */
   activeColor?: string;
   /** 未选中时的颜色 */
   inactiveColor?: string;
   /** 是否显示文字 */
   inactiveText?: boolean;
-  /** 开关尺寸: large | medium | small */
-  size?: SwitchSize;
+  /** 开关尺寸: large || medium || small */
+  size?: SwitchSize.LARGE | SwitchSize.MEDIUM | SwitchSize.SMALL;
   /** 选中时的文字 */
   checkedText?: string;
   /** 未选中时的文字 */
@@ -115,6 +119,7 @@ export interface SwitchProps {
 export const defaultProps = {
   checked: false,
   disabled: false,
+  readonly: false,
   activeValue: true,
   inactiveValue: false,
   activeColor: 'var(--tsm-color-primary)',

@@ -38,6 +38,10 @@ export interface TabsProps {
   scrollable?: boolean;
   /** 从list元素对象中读取的键名 */
   keyName?: string;
+  /** 尺寸 small | large */
+  size?: 'small' | 'large';
+  /** 是否显示列表图标 */
+  showListIcon?: boolean;
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -54,8 +58,10 @@ export const defaultProps = {
   activeStyle: { color: '#2979ff', fontWeight: 'bold' },
   inactiveStyle: { color: '#606266' },
   itemStyle: () => ({}),
-  scrollable: true,
+  scrollable: false,
   keyName: 'name',
+  size: 'large',
+  showListIcon: false,
   customClass: '',
   customStyle: () => ({}),
 } as const;

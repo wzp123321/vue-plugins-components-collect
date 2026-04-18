@@ -6,16 +6,16 @@ export interface TabsItemProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, any>;
+  customStyle?: UTSJSONObject;
   /** 是否禁用 */
   disabled?: boolean;
   /** 是否显示加载状态 */
   loading?: boolean;
 }
 
-export const defaultProps: TabsItemProps = {
+export const defaultProps = {
   customClass: '',
-  customStyle: {},
+  customStyle: () => ({}),
   disabled: false,
   loading: false,
-};
+} as UTSJSONObject;

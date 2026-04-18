@@ -23,10 +23,10 @@ import type { EmptyProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<EmptyProps>(), defaultProps);
+const props = withDefaults(defineProps<EmptyProps>(),{ customClass: ' ' });
 
 const bemClass = computed(() => {
-  return bem('empty', [], [], props.customClass);
+  return bem('empty', [], {}, props.customClass);
 });
 </script>
 

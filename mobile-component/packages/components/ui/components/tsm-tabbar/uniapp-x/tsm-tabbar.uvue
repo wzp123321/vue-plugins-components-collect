@@ -19,7 +19,7 @@ import type { TabbarProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<TabbarProps>(), defaultProps);
+const props = withDefaults(defineProps<TabbarProps>(),{ customClass: ' ' });
 
 const emit = defineEmits<{
   change: [index: number];
@@ -40,7 +40,7 @@ const bemClass = computed(() => {
   return bem('tabbar', [
     props.fixed ? 'fixed' : '',
     props.borderTop ? 'border' : ''
-  ], [], props.customClass);
+  ], {}, props.customClass);
 });
 
 const tabbarData = computed(() => ({

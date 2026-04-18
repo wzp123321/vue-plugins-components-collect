@@ -40,6 +40,16 @@
       </view>
 
       <view class="section">
+        <text class="section-title">只读模式</text>
+        <view class="button-group">
+          <view class="button-group__item">
+            <view>readonly（value：{{ value7 }}）</view>
+            <tsm-stepper v-model="value7" :readonly="true"></tsm-stepper>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
         <text class="section-title">大小限制</text>
         <view class="button-group">
           <view class="button-group__item">
@@ -65,6 +75,8 @@ const value3 = ref(3);
 const value4 = ref(3);
 const value5 = ref(10);
 const value6 = ref(10);
+const value7 = ref(12);
+const value8 = ref(6);
 
 const handleInput = (e: any) => {
   console.log('input', e);

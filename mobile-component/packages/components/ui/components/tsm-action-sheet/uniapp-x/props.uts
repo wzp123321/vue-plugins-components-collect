@@ -15,7 +15,7 @@ export interface ActionSheetProps {
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
-  customStyle?: Record<string, string | number>;
+  customStyle?: UTSJSONObject;
 }
 
 export const defaultProps = {
@@ -25,4 +25,4 @@ export const defaultProps = {
   title: '',
   customClass: '',
   customStyle: () => ({})
-} as const;
+} as UTSJSONObject;

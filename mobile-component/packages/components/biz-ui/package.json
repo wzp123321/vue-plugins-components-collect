@@ -3,7 +3,7 @@
   "displayName": "ts-mobile-biz-ui全面兼容uniapp-x、uniapp、鸿蒙业务组件库。",
   "version": "0.0.12",
   "description": "ts-mobile-biz-ui全面兼容uni-app/uni-app-x/鸿蒙，全面的组件和便捷的工具会让您信手拈来，如鱼得水",
-  "types": "types/index.d.ts",
+  "types": "types/comps.d.ts",
   "keywords": [
     "ts-mobile-biz-ui",
     "uniapp-x",

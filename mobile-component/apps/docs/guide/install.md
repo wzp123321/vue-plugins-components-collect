@@ -43,7 +43,7 @@ npm install phillui-ui
   <tsm-theme-provider>
     <view class="page">
       <tsm-button type="primary">主要按钮</tsm-button>
-      <tsm-text type="info" text="主题文本" />
+      <text text="主题文本" />
       <tsm-tag type="success" text="成功标签" />
     </view>
   </tsm-theme-provider>

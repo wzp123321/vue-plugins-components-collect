@@ -116,12 +116,25 @@ const componentName = process.argv[2];
 // 读取组件目录
 let components = fs.readdirSync(componentsDir);
 
+// 过滤出在 componentConfigMap 中定义且实际存在的组件
+const validComponents = [];
+for (const category in componentConfigMap) {
+  for (const compName in componentConfigMap[category]) {
+    const fullComponentName = `tsm-${compName}`;
+    const componentPath = path.join(componentsDir, fullComponentName);
+    if (fs.existsSync(componentPath) && fs.statSync(componentPath).isDirectory()) {
+      validComponents.push(fullComponentName);
+    }
+  }
+}
+components = validComponents;
+
 // 如果指定了组件名，只处理该组件
 if (componentName) {
   if (components.includes(componentName)) {
     components = [componentName];
   } else {
-    console.error(`错误：组件 ${componentName} 不存在`);
+    console.error(`错误：组件 ${componentName} 不存在或未在配置中定义`);
     process.exit(1);
   }
 }
@@ -129,10 +142,7 @@ if (componentName) {
 // 遍历组件
 components.forEach(component => {
   const componentPath = path.join(componentsDir, component);
-
-  // 跳过非目录
-  if (!fs.statSync(componentPath).isDirectory()) return;
-
+  
   const uniappPath = path.join(componentPath, 'uniapp');
   const uniappXPath = path.join(componentPath, 'uniapp-x');
 
@@ -150,11 +160,17 @@ components.forEach(component => {
   }
 });
 
-// 更新 VitePress 配置文件中的 sidebar
-updateVitepressConfig();
-
-// 生成 components.config.ts 文件
-updateComponentsConfig();
+// 更新配置文件
+if (componentName) {
+  // 只更新与指定组件相关的配置
+  console.log(`\n更新与 ${componentName} 相关的配置...`);
+  updateVitepressConfigForComponent(componentName);
+  updateComponentsConfigForComponent(componentName);
+} else {
+  // 更新所有配置
+  updateVitepressConfig();
+  updateComponentsConfig();
+}
 
 function processComponent(component, componentPath, platform) {
   const propsPath = path.join(componentPath, platform === 'uniapp' ? 'props.ts' : 'props.uts');
@@ -376,6 +392,13 @@ table td {
   } else if (platform === 'uniapp-x') {
     docPath = path.join(docsDir, 'uniapp-x', `${component}.md`);
   }
+  
+  // 检查文档是否已存在
+  if (fs.existsSync(docPath)) {
+    console.log(`  ⏭️  跳过生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，文件已存在`);
+    return;
+  }
+  
   fs.writeFileSync(docPath, content);
 
   console.log(
@@ -474,16 +497,118 @@ function updateVitepressConfig() {
   console.log('✅ VitePress 配置文件更新完成！');
 }
 
+// 只更新指定组件的 VitePress 配置
+function updateVitepressConfigForComponent(targetComponent) {
+  console.log(`\n更新 VitePress 配置文件中 ${targetComponent} 的配置...`);
+  
+  // 读取现有配置
+  const configContent = fs.readFileSync(vitepressConfigPath, 'utf8');
+  
+  // 获取组件信息
+  const componentName = targetComponent.replace('tsm-', '');
+  const displayName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+  
+  // 查找组件所属的分类
+  let targetCategory = '';
+  let chineseName = '';
+  for (const [category, componentsInCategory] of Object.entries(componentConfigMap)) {
+    if (componentsInCategory[componentName]) {
+      targetCategory = category;
+      chineseName = componentsInCategory[componentName];
+      break;
+    }
+  }
+  
+  if (!targetCategory) {
+    console.log(`  ⚠️  组件 ${targetComponent} 未在配置中找到，跳过更新`);
+    return;
+  }
+  
+  // 生成组件配置项
+  const uniappItem = `            { text: '${displayName} ${chineseName}', link: '/components/uniapp/${targetComponent}' },`;
+  const uniappXItem = `            { text: '${displayName} ${chineseName}', link: '/components/uniapp-x/${targetComponent}' },`;
+  
+  let newConfigContent = configContent;
+  
+  // 更新 uniapp 配置
+  // 查找分类的正则表达式
+  const uniappCategoryRegex = new RegExp(`(text: '${targetCategory}',[\\s\\S]*?items: \\[)([\\s\\S]*?)(\\])`);
+  const uniappMatch = newConfigContent.match(uniappCategoryRegex);
+  
+  if (uniappMatch) {
+    const categoryContent = uniappMatch[2];
+    // 检查组件是否已存在
+    const componentRegex = new RegExp(`\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp/${targetComponent}' \\},?`);
+    
+    if (componentRegex.test(categoryContent)) {
+      // 组件已存在，不需要更新
+      console.log(`  ⏭️  uniapp/${targetComponent} 已存在，跳过`);
+    } else {
+      // 组件不存在，添加它
+      // 找到合适的位置插入（按字母顺序）
+      const newCategoryContent = categoryContent + uniappItem + '\n';
+      newConfigContent = newConfigContent.replace(uniappMatch[0], uniappMatch[1] + newCategoryContent + uniappMatch[3]);
+      console.log(`  ✅ 添加 uniapp/${targetComponent} 到配置`);
+    }
+  }
+  
+  // 更新 uniapp-x 配置
+  const uniappXCategoryRegex = new RegExp(`(text: '${targetCategory}',[\\s\\S]*?items: \\[)([\\s\\S]*?)(\\])`);
+  // 在 uniapp-x 部分查找
+  const uniappXSectionRegex = /\/components\/uniapp-x\/': \[([\s\S]*?)\],/;
+  const uniappXSectionMatch = newConfigContent.match(uniappXSectionRegex);
+  
+  if (uniappXSectionMatch) {
+    const uniappXSection = uniappXSectionMatch[1];
+    // 在 uniapp-x 部分查找目标分类
+    const categoryInUniappXRegex = new RegExp(`(text: '${targetCategory}',[\\s\\S]*?items: \\[)([\\s\\S]*?)(\\])`);
+    const categoryMatch = uniappXSection.match(categoryInUniappXRegex);
+    
+    if (categoryMatch) {
+      const categoryContent = categoryMatch[2];
+      const componentRegex = new RegExp(`\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp-x/${targetComponent}' \\},?`);
+      
+      if (componentRegex.test(categoryContent)) {
+        console.log(`  ⏭️  uniapp-x/${targetComponent} 已存在，跳过`);
+      } else {
+        const newCategoryContent = categoryContent + uniappXItem + '\n';
+        const newUniappXSection = uniappXSection.replace(categoryMatch[0], categoryMatch[1] + newCategoryContent + categoryMatch[3]);
+        newConfigContent = newConfigContent.replace(uniappXSectionMatch[0], uniappXSectionMatch[0].replace(uniappXSection, newUniappXSection));
+        console.log(`  ✅ 添加 uniapp-x/${targetComponent} 到配置`);
+      }
+    }
+  }
+  
+  // 写入更新后的配置
+  fs.writeFileSync(vitepressConfigPath, newConfigContent);
+  
+  console.log(`✅ VitePress 配置文件更新完成！`);
+}
+
 // 获取目录下的组件列表
 function getComponentsInDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     return [];
   }
-
-  return fs
-    .readdirSync(dirPath)
+  
+  // 获取所有在 componentConfigMap 中定义且实际存在的组件
+  const definedComponents = [];
+  for (const category in componentConfigMap) {
+    for (const compName in componentConfigMap[category]) {
+      const fullComponentName = `tsm-${compName}`;
+      const componentPath = path.join(componentsDir, fullComponentName);
+      // 只添加实际存在的组件
+      if (fs.existsSync(componentPath) && fs.statSync(componentPath).isDirectory()) {
+        definedComponents.push(fullComponentName);
+      }
+    }
+  }
+  
+  // 只返回在 componentConfigMap 中定义、实际存在且文档文件存在的组件
+  return fs.readdirSync(dirPath)
     .filter(file => file.endsWith('.md'))
-    .map(file => file.replace('.md', ''));
+    .map(file => file.replace('.md', ''))
+    .filter(component => definedComponents.includes(component));
 }
 
 // 生成 sidebar 配置
@@ -615,6 +740,91 @@ export function getComponentByName(name: string): ComponentConfig | undefined {
   fs.writeFileSync(componentsConfigPath, configContent);
 
   console.log('✅ components.config.ts 文件生成完成！');
+}
+
+// 只更新指定组件的 components.config.ts 配置
+function updateComponentsConfigForComponent(targetComponent) {
+  console.log(`\n更新 components.config.ts 中 ${targetComponent} 的配置...`);
+  
+  // 读取现有配置
+  if (!fs.existsSync(componentsConfigPath)) {
+    console.log('  ⚠️  components.config.ts 不存在，跳过更新');
+    return;
+  }
+  
+  const configContent = fs.readFileSync(componentsConfigPath, 'utf8');
+  
+  // 获取组件信息
+  const componentName = targetComponent.replace('tsm-', '');
+  
+  // 查找组件所属的分类
+  let targetCategory = '';
+  let chineseName = '';
+  for (const [category, componentsInCategory] of Object.entries(componentConfigMap)) {
+    if (componentsInCategory[componentName]) {
+      targetCategory = category;
+      chineseName = componentsInCategory[componentName];
+      break;
+    }
+  }
+  
+  if (!targetCategory) {
+    console.log(`  ⚠️  组件 ${targetComponent} 未在配置中找到，跳过更新`);
+    return;
+  }
+  
+  // 检查组件是否实际存在
+  const componentPath = path.join(componentsDir, targetComponent);
+  if (!fs.existsSync(componentPath) || !fs.statSync(componentPath).isDirectory()) {
+    console.log(`  ⚠️  组件 ${targetComponent} 不存在于组件目录中，跳过更新`);
+    return;
+  }
+  
+  // 检查是否有 uniapp 版本
+  const hasUniapp = fs.existsSync(path.join(componentsDir, targetComponent, 'uniapp'));
+  // 检查是否有 uniapp-x 版本
+  const hasUniappX = fs.existsSync(path.join(componentsDir, targetComponent, 'uniapp-x'));
+  
+  // 首字母大写
+  const displayName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+  
+  // 生成新的组件配置项
+  const newComponentConfig = `  { name: '${componentName}', title: '${displayName} ${chineseName}', category: '${targetCategory}', hasUniapp: ${hasUniapp}, hasUniappX: ${hasUniappX} },`;
+  
+  // 检查组件是否已存在
+  const componentRegex = new RegExp(`\\{ name: '${componentName}', title: '[^']+', category: '[^']+', hasUniapp: [^,]+, hasUniappX: [^}]+ \\},?`);
+  
+  let newConfigContent = configContent;
+  
+  if (componentRegex.test(configContent)) {
+    // 组件已存在，更新它（保持原有缩进）
+    const existingMatch = configContent.match(componentRegex);
+    if (existingMatch) {
+      // 获取原有的缩进
+      const existingLine = existingMatch[0];
+      const indentMatch = existingLine.match(/^(\s*)/);
+      const indent = indentMatch ? indentMatch[1] : '  ';
+      const formattedConfig = indent + newComponentConfig.trim();
+      newConfigContent = configContent.replace(componentRegex, formattedConfig);
+      console.log(`  ✅ 更新 ${targetComponent} 的配置`);
+    }
+  } else {
+    // 组件不存在，添加它
+    // 在 components 数组中找到合适的位置插入
+    const arrayEndRegex = /(export const components: ComponentConfig\[\] = \[[\s\S]*?)(\];)/;
+    const match = configContent.match(arrayEndRegex);
+    
+    if (match) {
+      // 在数组末尾添加，保持2空格缩进
+      newConfigContent = configContent.replace(arrayEndRegex, `$1  ${newComponentConfig}\n$2`);
+      console.log(`  ✅ 添加 ${targetComponent} 到配置`);
+    }
+  }
+  
+  // 写入更新后的配置
+  fs.writeFileSync(componentsConfigPath, newConfigContent);
+  
+  console.log(`✅ components.config.ts 更新完成！`);
 }
 
 console.log('\n处理完成！');

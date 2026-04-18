@@ -22,3 +22,4 @@ declare type UniPickerRef = (typeof import('./tsm-picker'))['PickerRef'];
 declare type UniCalendarRef = (typeof import('./tsm-calendar'))['CalendarRef'];
 declare type UniTextareaRef = (typeof import('./tsm-textarea'))['TextareaRef'];
 declare type UniFormRef = (typeof import('./tsm-form'))['FormRef'];
+declare type image = (typeof import('../assets/**/*'))[];

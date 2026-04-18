@@ -1,4 +1,5 @@
 import { computed, reactive } from 'vue'
+import type { ComputedRef } from 'vue'
 
 export type ThemeMode = 'light' | 'dark'
 
@@ -18,7 +19,7 @@ function ensureThemeMode(): void {
 
 export function getThemeMode(): string {
   ensureThemeMode()
-  return state.mode
+  return state.mode as string
 }
 
 export function getThemeClass(): string {
@@ -26,12 +27,12 @@ export function getThemeClass(): string {
   return state.mode == 'dark' ? 'tsm-theme-dark' : 'tsm-theme-light'
 }
 
-export function useThemeMode(): any {
+export function useThemeMode(): ComputedRef<string> {
   ensureThemeMode()
   return computed((): string => state.mode)
 }
 
-export function useThemeClass(): any {
+export function useThemeClass(): ComputedRef<string> {
   ensureThemeMode()
   return computed((): string => getThemeClass())
 }

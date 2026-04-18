@@ -78,14 +78,10 @@ export default defineConfig({
           text: '数据展示',
           items: [
             { text: 'Avatar 头像', link: '/components/uniapp/tsm-avatar' },
-            { text: 'Avatar-group 头像组', link: '/components/uniapp/tsm-avatar-group' },
             { text: 'Badge 徽标', link: '/components/uniapp/tsm-badge' },
             { text: 'Card 卡片', link: '/components/uniapp/tsm-card' },
-            { text: 'Cell 单元格', link: '/components/uniapp/tsm-cell' },
-            { text: 'Cell-group 单元格组', link: '/components/uniapp/tsm-cell-group' },
             { text: 'Collapse 折叠面板', link: '/components/uniapp/tsm-collapse' },
             { text: 'Collapse-item 折叠面板项', link: '/components/uniapp/tsm-collapse-item' },
-            { text: 'Divider 分割线', link: '/components/uniapp/tsm-divider' },
             { text: 'Empty 空状态', link: '/components/uniapp/tsm-empty' },
             { text: 'Index-anchor 索引锚点', link: '/components/uniapp/tsm-index-anchor' },
             { text: 'Index-item 索引项', link: '/components/uniapp/tsm-index-item' },
@@ -103,7 +99,6 @@ export default defineConfig({
             { text: 'Action-sheet 动作面板', link: '/components/uniapp/tsm-action-sheet' },
             { text: 'Dialog 弹窗', link: '/components/uniapp/tsm-dialog' },
             { text: 'Loading-icon 加载图标', link: '/components/uniapp/tsm-loading-icon' },
-            { text: 'Loading-page 加载页', link: '/components/uniapp/tsm-loading-page' },
             { text: 'Message 消息提示', link: '/components/uniapp/tsm-message' },
             { text: 'Overlay 遮罩层', link: '/components/uniapp/tsm-overlay' },
             { text: 'Popover 气泡弹出框', link: '/components/uniapp/tsm-popover' },
@@ -114,7 +109,6 @@ export default defineConfig({
         {
           text: '导航组件',
           items: [
-            { text: 'Navbar 导航栏', link: '/components/uniapp/tsm-navbar' },
             { text: 'Tabbar 底部导航栏', link: '/components/uniapp/tsm-tabbar' },
             { text: 'Tabbar-item 底部导航栏项', link: '/components/uniapp/tsm-tabbar-item' },
             { text: 'Tabs 标签页', link: '/components/uniapp/tsm-tabs' },
@@ -124,9 +118,7 @@ export default defineConfig({
         {
           text: '布局组件',
           items: [
-            { text: 'Gap 间隔槽', link: '/components/uniapp/tsm-gap' },
             { text: 'Safe-bottom 底部安全区', link: '/components/uniapp/tsm-safe-bottom' },
-            { text: 'Status-bar 状态栏', link: '/components/uniapp/tsm-status-bar' },
             { text: 'Sticky 吸顶容器', link: '/components/uniapp/tsm-sticky' },
           ]
         },
@@ -138,8 +130,6 @@ export default defineConfig({
             { text: 'Column-notice 垂直通知', link: '/components/uniapp/tsm-column-notice' },
             { text: 'Line-progress 线形进度条', link: '/components/uniapp/tsm-line-progress' },
             { text: 'Loadmore 加载更多', link: '/components/uniapp/tsm-loadmore' },
-            { text: 'Notice-bar 通知栏', link: '/components/uniapp/tsm-notice-bar' },
-            { text: 'Row-notice 水平通知', link: '/components/uniapp/tsm-row-notice' },
             { text: 'Segmented 分段器', link: '/components/uniapp/tsm-segmented' },
             { text: 'Imageviewer 图片预览', link: '/components/uniapp/tsm-imageviewer' },
             { text: 'Stepper 步进器', link: '/components/uniapp/tsm-stepper' },
@@ -161,10 +151,8 @@ export default defineConfig({
           text: '数据展示',
           items: [
             { text: 'Avatar 头像', link: '/components/uniapp-x/tsm-avatar' },
-            { text: 'Avatar-group 头像组', link: '/components/uniapp-x/tsm-avatar-group' },
             { text: 'Badge 徽标', link: '/components/uniapp-x/tsm-badge' },
             { text: 'Card 卡片', link: '/components/uniapp-x/tsm-card' },
-            { text: 'Divider 分割线', link: '/components/uniapp-x/tsm-divider' },
             { text: 'Empty 空状态', link: '/components/uniapp-x/tsm-empty' },
             { text: 'List 列表', link: '/components/uniapp-x/tsm-list' },
             { text: 'List-item 列表项', link: '/components/uniapp-x/tsm-list-item' },
@@ -176,7 +164,6 @@ export default defineConfig({
           items: [
             { text: 'Action-sheet 动作面板', link: '/components/uniapp-x/tsm-action-sheet' },
             { text: 'Loading-icon 加载图标', link: '/components/uniapp-x/tsm-loading-icon' },
-            { text: 'Loading-page 加载页', link: '/components/uniapp-x/tsm-loading-page' },
             { text: 'Overlay 遮罩层', link: '/components/uniapp-x/tsm-overlay' },
             { text: 'Popup 弹出层', link: '/components/uniapp-x/tsm-popup' },
             { text: 'Toast 轻提示', link: '/components/uniapp-x/tsm-toast' },
@@ -185,7 +172,6 @@ export default defineConfig({
         {
           text: '导航组件',
           items: [
-            { text: 'Navbar 导航栏', link: '/components/uniapp-x/tsm-navbar' },
             { text: 'Tabbar 底部导航栏', link: '/components/uniapp-x/tsm-tabbar' },
             { text: 'Tabbar-item 底部导航栏项', link: '/components/uniapp-x/tsm-tabbar-item' },
             { text: 'Tabs 标签页', link: '/components/uniapp-x/tsm-tabs' },
@@ -195,17 +181,13 @@ export default defineConfig({
         {
           text: '布局组件',
           items: [
-            { text: 'Gap 间隔槽', link: '/components/uniapp-x/tsm-gap' },
             { text: 'Safe-bottom 底部安全区', link: '/components/uniapp-x/tsm-safe-bottom' },
-            { text: 'Status-bar 状态栏', link: '/components/uniapp-x/tsm-status-bar' },
           ]
         },
         {
           text: '其他组件',
           items: [
             { text: 'Column-notice 垂直通知', link: '/components/uniapp-x/tsm-column-notice' },
-            { text: 'Notice-bar 通知栏', link: '/components/uniapp-x/tsm-notice-bar' },
-            { text: 'Row-notice 水平通知', link: '/components/uniapp-x/tsm-row-notice' },
           ]
         },
 

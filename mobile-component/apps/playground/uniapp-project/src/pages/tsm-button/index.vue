@@ -4,7 +4,6 @@
       <text class="title">Button 按钮</text>
 
       <view class="section">
-        <tsm-test />
         <text class="section-title">基础用法</text>
         <view class="button-group">
           <view class="button-group__item"><tsm-button type="primary">主要按钮</tsm-button></view>

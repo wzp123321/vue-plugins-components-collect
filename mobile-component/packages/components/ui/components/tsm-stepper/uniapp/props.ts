@@ -16,6 +16,8 @@ export interface StepperProps {
   modelValue?: string | number;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 是否只读（仅展示当前值，不可操作） */
+  readonly?: boolean;
   /** 是否为小尺寸组件 */
   small?: boolean;
   /** 步长，每次加或减的值， 支持小数值，如需小数 */
@@ -33,6 +35,7 @@ export interface StepperProps {
 export const defaultProps = {
   modelValue: 0,
   disabled: false,
+  readonly: false,
   small: false,
   step: 1,
   min: 0,

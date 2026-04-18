@@ -3,6 +3,7 @@
     "autoscan": true,
     "custom": {
       "^tsm-(.*)": "@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-$1/uniapp/tsm-$1.vue",
+      "^tsmbiz-(.*)": "@/uni_modules/@tiansu/ts-mobile-biz-ui/components/tsmbiz-$1/uniapp/tsmbiz-$1.vue",
       "^icon-(.*)$": "@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-$1.vue"
     }
   },
@@ -20,6 +21,42 @@
       }
     },
     {
+      "path": "pages/tsm-popup/index",
+      "style": {
+        "navigationBarTitleText": "popup 弹窗"
+      }
+    },
+    {
+      "path": "pages/tsm-dialog/index",
+      "style": {
+        "navigationBarTitleText": "Dialog 对话框"
+      }
+    },
+    {
+      "path": "pages/tsm-input/index",
+      "style": {
+        "navigationBarTitleText": "输入框"
+      }
+    },
+    {
+      "path": "pages/tsm-search/index",
+      "style": {
+        "navigationBarTitleText": "搜索组件"
+      }
+    },
+    {
+      "path": "pages/tsm-tabbar/index",
+      "style": {
+        "navigationBarTitleText": "tabbar组件"
+      }
+    },
+    {
+      "path": "pages/tsm-empty/index",
+      "style": {
+        "navigationBarTitleText": "空状态组件"
+      }
+    },
+    {
       "path": "pages/tsm-theme/index",
       "style": {
         "navigationBarTitleText": "主题切换演示"
@@ -32,9 +69,51 @@
       }
     },
     {
-      "path": "pages/ts-switch/index",
+      "path": "pages/tsm-switch/index",
       "style": {
         "navigationBarTitleText": "Switch 开关组件"
+      }
+    },
+    {
+      "path": "pages/tsm-tabs/index",
+      "style": {
+        "navigationBarTitleText": "Tabs 标签页"
+      }
+    },
+    {
+      "path": "pages/tsm-avatar/index",
+      "style": {
+        "navigationBarTitleText": "Avatar 头像"
+      }
+    },
+    {
+      "path": "pages/tsm-badge/index",
+      "style": {
+        "navigationBarTitleText": "Badge 徽章组件"
+      }
+    },
+    {
+      "path": "pages/tsm-bread-crumb/index",
+      "style": {
+        "navigationBarTitleText": "Breadcrumb 面包屑导航"
+      }
+    },
+    {
+      "path": "pages/tsm-datetime-picker/index",
+      "style": {
+        "navigationBarTitleText": "DateTimePicker 时间选择器"
+      }
+    },
+    {
+      "path": "pages/tsm-message/index",
+      "style": {
+        "navigationBarTitleText": "Message 消息提示"
+      }
+    },
+    {
+      "path": "pages/tsmbiz-select-department-employee/index",
+      "style": {
+        "navigationBarTitleText": "选择部门/员工"
       }
     }
   ],

@@ -6,7 +6,7 @@
   <view
     class="tsm-loading-icon"
     :class="[`tsm-loading-icon--${mode}`, customClass]"
-    :style="loadingStyle"
+    :style="customStyle"
   >
     <view
       v-for="i in 12"
@@ -31,15 +31,8 @@ import { addUnit, addStyle } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<LoadingIconProps>(), defaultProps);
-
-const loadingStyle = computed(() => {
-  return addStyle({
-    width: addUnit(String(props.size)),
-    height: addUnit(String(props.size)),
-    ...props.customStyle,
-  });
-});
+const rawProps = defineProps<LoadingIconProps>();
+const props = { ...defaultProps, ...rawProps } as LoadingIconProps;
 
 const barStyle = (index: number) => {
   const size = Number(props.size);

@@ -15,7 +15,7 @@
     "build:biz-ui": "node packages/components/biz-ui/scripts/build.js",
     "prepare": "husky",
     "lint-staged": "lint-staged",
-    "playground:use-source-components": "node scripts/link-playground-components.cjs",
+    "playground:use-source-components": "npm run build:token && node scripts/link-playground-components.cjs",
     "playground:use-dist-components": "node scripts/link-playground-components.cjs --restore",
     "playground:use-remote-components": "node scripts/use-playground-remote-components.cjs"
   },

@@ -27,10 +27,11 @@ import { bem } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<TransitionProps>(), defaultProps);
+const rawProps = defineProps<TransitionProps>();
+const props = { ...defaultProps, ...rawProps } as TransitionProps;
 
 const bemClass = computed(() => {
-  return bem('transition', [props.mode], [], props.customClass);
+  return bem('transition', [props.mode], {}, props.customClass);
 });
 </script>
 

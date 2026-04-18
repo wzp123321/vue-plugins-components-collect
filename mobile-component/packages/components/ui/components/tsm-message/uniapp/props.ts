@@ -8,7 +8,7 @@ export interface MessageProps {
   /** 到顶部的距离 */
   top?: number | string;
   /** 主题类型 */
-  type?: 'primary' | 'success' | 'warning' | 'error';
+  type?: 'info' | 'success' | 'warning' | 'error';
   /** 字体颜色 */
   color?: string;
   /** 背景颜色 */
@@ -17,25 +17,18 @@ export interface MessageProps {
   message?: string;
   /** 展示时长，为0时不消失，单位ms */
   duration?: number;
-  /** 字体大小 */
-  fontSize?: number | string;
-  /** 是否留出顶部安全距离 */
-  safeAreaInsetTop?: boolean;
   /** 自定义类名 */
   customClass?: string;
-  /** 自定义样式 */
   customStyle?: CSSProperties;
 }
 
 export const defaultProps = {
   top: 0,
-  type: 'primary',
-  color: '#ffffff',
-  bgColor: '',
+  type: 'info',
+  color: 'var(--tsm-color-text-primary)',
+  bgColor: 'var(--tsm-color-bg-white)',
   message: '',
   duration: 3000,
-  fontSize: 15,
-  safeAreaInsetTop: false,
   customClass: '',
   customStyle: () => ({}),
 } as const;

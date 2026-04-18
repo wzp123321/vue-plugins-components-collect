@@ -1,124 +1,133 @@
-import {
-	number as testNumber,
-	array as testArray,
-	empty as testEmpty
-} from './test.uts'
-import config from '../config/config.uts'
+import { number as testNumber, array as testArray, empty as testEmpty } from './test.uts';
+declare const uni: any;
 
-function trim(str: string, pos: string = 'both'): string {
-	const value = str.toString()
-	if (pos == 'both') return value.replace(/^\s+|\s+$/g, '')
-	if (pos == 'left') return value.replace(/^\s*/, '')
-	if (pos == 'right') return value.replace(/(\s*$)/g, '')
-	return value.replace(/\s+/g, '')
+function trim(str: string, pos: 'both' | 'left' | 'right' | 'all' = 'both'): string {
+  const value = str;
+  if (pos === 'both') return value.replace(/^\s+|\s+$/g, '');
+  if (pos === 'left') return value.replace(/^\s*/, '');
+  if (pos === 'right') return value.replace(/(\s*$)/g, '');
+  return value.replace(/\s+/g, '');
 }
 
-function deepClone(obj: any): any {
-	if (obj == null || typeof obj != 'object') return obj
-	const result = testArray(obj) ? [] : {}
-	for (const key in obj) {
-		if (Object.prototype.hasOwnProperty.call(obj, key)) {
-			const val = obj[key]
-			result[key] = typeof val == 'object' ? deepClone(val) : val
-		}
-	}
-	return result
+function deepClone<T>(obj: T): T {
+  if ([null, undefined, NaN, false].includes(obj as any)) return obj;
+  if (typeof obj !== 'object' && typeof obj !== 'function') return obj;
+  const result: any = testArray(obj) ? [] : {};
+  for (const key in obj as any) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const val = (obj as any)[key];
+      result[key] = typeof val === 'object' ? deepClone(val) : val;
+    }
+  }
+  return result;
 }
+
+// 定义一个名为 StringBooleanTuple 的类，继承 Array，包含 string 和 boolean
 
 export function bem(
-	name: string,
-	fixed: (string | null)[] = [],
-	change: [string, boolean][] = [],
-	customClass: string | UTSJSONObject | null = null
+  name: string,
+  fixed: (any | null)[] = [],
+  change: UTSJSONObject = {},
+  customClass?: string | UTSJSONObject
 ): string {
-	const prefix = `tsm-${name}--`
-	const classes: UTSJSONObject = {}
-	fixed.forEach(item => {
-		if (item) classes[prefix + item] = true
-	})
-	change.forEach(([className, condition]) => {
-		if (condition) classes[prefix + className] = true
-	})
-	if (customClass != null) {
-		if (typeof customClass == 'string') {
-			classes[customClass] = true
-		} else {
-			Object.assign(classes, customClass)
-		}
-	}
-	return Object.keys(classes).join(' ')
+  const prefix = `tsm-${name}--`;
+  const classes: UTSJSONObject = {};
+  fixed.forEach((item: any | null) => {
+    if (item != null) {
+      const key: string = prefix + item;
+      classes[key] = true;
+    }
+  });
+  UTSJSONObject.keys(change).forEach((key: string) => {
+    if (change[key] == true) {
+      const changeKey: string = prefix + key;
+      classes[changeKey] = true;
+    }
+  });
+  if (customClass != null) {
+    if (typeof customClass === 'string') {
+      classes[customClass] = true;
+    } else {
+      UTSJSONObject.assign(classes, customClass);
+    }
+  }
+  return UTSJSONObject.keys(classes).join(' ');
 }
 
-export function getPx(valueOri: any, unit: boolean = false): string {
-	if (testNumber(valueOri)) {
-		return unit ? `${valueOri}px` : valueOri.toString()
-	}
-	const value = valueOri.toString()
-	return unit ? `${parseInt(value).toString()}px` : parseInt(value).toString()
+export function getPx(value: string | number, unit = false): number | string {
+  if (testNumber(value)) return unit ? `${value}px` : Number(value);
+  const stringValue = String(value);
+  if (/(rpx|upx)$/.test(stringValue)) {
+    const px = uni.upx2px(parseInt(stringValue));
+    return unit ? `${px}px` : Number(px);
+  }
+  const px = parseInt(stringValue);
+  return unit ? `${px}px` : px;
 }
 
-export function sys(): GetSystemInfoResult {
-	return uni.getSystemInfoSync()
+export function sys(): any {
+  return uni.getSystemInfoSync();
 }
 
-export function addStyle(customStyle: any, target: string = 'object'): any {
-	if (
-		testEmpty(customStyle) ||
-		(typeof customStyle == 'object' && target == 'object') ||
-		(typeof customStyle == 'string' && target == 'string')
-	) {
-		return customStyle
-	}
-	if (target == 'object') {
-		const styleArray = trim(customStyle.toString()).split(';')
-		const style = {}
-		for (let i = 0; i < styleArray.length; i++) {
-			if (!styleArray[i]) continue
-			const item = styleArray[i].split(':')
-			style[trim(item[0])] = trim(item[1])
-		}
-		return style
-	}
-	let output = ''
-	const entries = Object.entries(customStyle)
-	entries.forEach(([key, val]) => {
-		output += `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${val};`
-	})
-	return trim(output)
+export function addStyle(
+  customStyle: string | UTSJSONObject | null,
+): string | UTSJSONObject {
+  if (customStyle == null) {
+    return {} as UTSJSONObject;
+  }
+  if (typeof customStyle === 'string') {
+    let styleArray = trim(customStyle).split(';');
+    let style: UTSJSONObject = {};
+    for (let i = 0; i < styleArray.length; i++) {
+      if (styleArray[i] == null) continue;
+      let item = styleArray[i].split(':');
+      style[trim(item[0])] = trim(item[1]);
+    }
+    return style;
+  } else {
+    let output = '';
+    UTSJSONObject.keys(customStyle as UTSJSONObject).forEach((key) => {
+      let val = customStyle[key];
+      output += `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${val};`;
+    });
+    return trim(output);
+  }
 }
 
-export function addUnit(value: any = 'auto', unit: string = ''): string {
-	let currentUnit = unit
-	if (!currentUnit) currentUnit = config.unit || 'px'
-	let currentValue = value
-	if (currentUnit == 'rpx' && testNumber(currentValue.toString())) currentValue = Number.parseInt(currentValue.toString()) * 2
-	const normalized = currentValue.toString()
-	return testNumber(normalized) ? `${normalized}${currentUnit}` : normalized
+export function addUnit(value: string | number = 'auto', unit = ''): string {
+  let currentUnit = unit;
+  if (currentUnit == null) currentUnit = 'px';
+  let currentValue: string | number = value;
+  const normalized = currentValue.toString();
+  return testNumber(normalized) ? `${normalized}${currentUnit}` : normalized;
 }
 
-export function deepMerge(targetOrigin: UTSJSONObject, source: UTSJSONObject = {}): UTSJSONObject | null {
-	const target = deepClone(targetOrigin) as UTSJSONObject
-	for (const prop in source) {
-		if (!Object.prototype.hasOwnProperty.call(source, prop)) continue
-		if (Object.prototype.hasOwnProperty.call(target, prop)) {
-			const sourceValue = source[prop]
-			const targetValue = target[prop]
-			if (sourceValue == null) target[prop] = sourceValue
-			else if (typeof targetValue != 'object') target[prop] = sourceValue
-			else if (typeof sourceValue != 'object') target[prop] = sourceValue
-			else target[prop] = deepMerge(targetValue as UTSJSONObject, sourceValue as UTSJSONObject)
-		} else {
-			target[prop] = source[prop]
-		}
-	}
-	return target
+export function deepMerge(
+  targetOrigin: Record<string, any>,
+  source: Record<string, any> = {}
+): Record<string, any> | false {
+  const target = deepClone(targetOrigin);
+  if (typeof target !== 'object' || typeof source !== 'object') return false;
+  for (const prop in source) {
+    if (!Object.prototype.hasOwnProperty.call(source, prop)) continue;
+    if (prop in target) {
+      if (source[prop] == null) target[prop] = source[prop];
+      else if (typeof target[prop] !== 'object') target[prop] = source[prop];
+      else if (typeof source[prop] !== 'object') target[prop] = source[prop];
+      else if (target[prop].concat && source[prop].concat) target[prop] = target[prop].concat(source[prop]);
+      else target[prop] = deepMerge(target[prop], source[prop]) as any;
+    } else {
+      target[prop] = source[prop];
+    }
+  }
+  return target;
 }
 
 export default {
-	bem,
-	getPx,
-	sys,
-	addStyle,
-	addUnit,
-	deepMerge
-}
+  bem,
+  getPx,
+  sys,
+  addStyle,
+  addUnit,
+  deepMerge,
+};

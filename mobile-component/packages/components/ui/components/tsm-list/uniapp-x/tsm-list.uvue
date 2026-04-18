@@ -6,7 +6,7 @@
   <view
     class="tsm-list"
     :class="[customClass]"
-    :style="listStyle"
+    :style="customStyle"
   >
     <slot />
     <view v-if="loading" class="tsm-list__loading">
@@ -34,7 +34,6 @@
 import { computed, ref } from 'vue';
 import type { ListProps } from './props.uts';
 import { defaultProps } from './props.uts';
-import { addStyle } from '../../../libs/uniapp-x/function/index.uts';
 
 /**
  * List 组件 Props
@@ -45,7 +44,8 @@ import { addStyle } from '../../../libs/uniapp-x/function/index.uts';
  * @property {string} customClass - 自定义类名
  * @property {object} customStyle - 自定义样式
  */
-const props = withDefaults(defineProps<ListProps>(), defaultProps);
+const rawProps = defineProps<ListProps>();
+const props = { ...defaultProps, ...rawProps } as ListProps;
 
 const emit = defineEmits<{
   load: [];
@@ -53,12 +53,6 @@ const emit = defineEmits<{
 }>();
 
 const error = ref(false);
-
-const listStyle = computed(() => {
-  return addStyle({
-    ...props.customStyle,
-  });
-});
 
 const onRetry = () => {
   error.value = false;

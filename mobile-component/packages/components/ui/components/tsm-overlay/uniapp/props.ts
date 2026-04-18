@@ -9,8 +9,6 @@ export interface OverlayProps {
   show?: boolean;
   /** 层级 */
   zIndex?: number;
-  /** 遮罩透明度 */
-  opacity?: number;
   /** 动画时长 */
   duration?: number;
   /** 自定义类名 */
@@ -22,7 +20,6 @@ export interface OverlayProps {
 export const defaultProps = {
   show: false,
   zIndex: 1000,
-  opacity: 0.5,
   duration: 300,
   customClass: '',
   customStyle: () => ({}),

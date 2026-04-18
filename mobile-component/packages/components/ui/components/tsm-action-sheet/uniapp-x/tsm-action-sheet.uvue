@@ -38,7 +38,7 @@ import type { ActionSheetProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<ActionSheetProps>(), defaultProps);
+const props = withDefaults(defineProps<ActionSheetProps>(),{ customClass: ' ' });
 
 const emit = defineEmits<{
   select: [item: any, index: number];
@@ -47,7 +47,7 @@ const emit = defineEmits<{
 }>();
 
 const bemClass = computed(() => {
-  return bem('action-sheet', [], [], props.customClass);
+  return bem('action-sheet', [], {}, props.customClass);
 });
 
 const onSelect = (item: any, index: number) => {

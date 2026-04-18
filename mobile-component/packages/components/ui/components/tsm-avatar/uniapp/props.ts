@@ -4,18 +4,20 @@
 import type { CSSProperties } from 'vue';
 
 export interface AvatarProps {
+  /** 头像类型 */
+  type?: 'picture' | 'icon' | 'text';
+  /** 头像文本内容 */
+  text?: string;
   /** 头像图片地址 */
   src?: string;
-  /** 头像形状 */
-  shape?: 'circle' | 'square';
   /** 头像大小 */
-  size?: number | string;
-  /** 头像文字 */
-  text?: string;
+  size?: 'xs' | 's' | 'm' | 'l' | 'xl';
   /** 背景颜色 */
   bgColor?: string;
   /** 文字颜色 */
   color?: string;
+  /** 边框颜色 */
+  borderColor?: string;
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -23,12 +25,12 @@ export interface AvatarProps {
 }
 
 export const defaultProps = {
+  type: 'picture',
   src: '',
-  shape: 'circle',
-  size: 40,
-  text: '',
-  bgColor: '#c0c4cc',
-  color: '#ffffff',
+  size: 'm',
+  bgColor: 'var(--tsm-color-primary-border)',
+  color: 'var(--tsm-color-primary)',
+  borderColor: 'var(--palette-indigo-400)',
   customClass: '',
   customStyle: () => ({}),
 } as const;

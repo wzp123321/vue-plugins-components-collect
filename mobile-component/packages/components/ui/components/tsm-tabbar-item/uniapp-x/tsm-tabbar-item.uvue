@@ -27,7 +27,8 @@ import type { TabbarItemProps } from './props.uts';
 import { defaultProps } from './props.uts';
 import { bem } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<TabbarItemProps>(), defaultProps);
+const rawProps = defineProps<TabbarItemProps>();
+const props = { ...defaultProps, ...rawProps } as TabbarItemProps;
 
 const emit = defineEmits<{
   click: [];
@@ -50,7 +51,7 @@ const isActive = computed(() => {
 const bemClass = computed(() => {
   return bem('tabbar-item', [
     isActive.value ? 'active' : ''
-  ], [], props.customClass);
+  ], {}, props.customClass);
 });
 
 const onClick = () => {
