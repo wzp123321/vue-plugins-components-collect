@@ -2,6 +2,7 @@ import { ICommonRes } from '@/services/common.api';
 import { ref } from 'vue';
 import SparkMD5 from 'spark-md5';
 import { ElMessage } from 'element-plus';
+import { formatFileSize } from '@/utils/file';
 import CommonFileSuffixExcel from '@/assets/images/common/common-file-suffix-excel.svg';
 import CommonFileSuffixPdf from '@/assets/images/common/common-file-suffix-pdf.svg';
 import CommonFileSuffixWord from '@/assets/images/common/common-file-suffix-word.svg';
@@ -226,21 +227,7 @@ export const useFileHandler = () => {
         return CommonFileSuffixUnknown;
     }
   };
-  /**
-   * 文件大小格式化工具
-   * 将字节数转换为可读的格式 (B, KB, MB, GB, TB)
-   */
-  const formatFileSize = (bytes: number, decimals: number = 2): string => {
-    if (bytes === 0) return '0 B';
 
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  };
   return {
     fileList,
     handleFileChoose,

@@ -29,7 +29,6 @@
     "@vue-office/excel": "^1.7.14",
     "@vue-office/pdf": "^2.0.10",
     "@vueuse/core": "^9.13.0",
-    "ant-design-vue": "^4.2.6",
     "asmcrypto.js": "^2.3.2",
     "axios": "^1.8.3",
     "babylonjs": "^5.57.1",

@@ -23,6 +23,13 @@ const components: RouteRecordRaw[] = [
     component: () => import('../../pages/components/vue3-virtual-list-container/vue3-virtual-list-container.vue'),
   },
   {
+    path: '/spark-upload',
+    meta: {
+      name: '大文件上传',
+    },
+    component: () => import('../../pages/components/spark-upload/index.vue'),
+  },
+  {
     path: '/virtual-card-load',
     meta: {
       name: '虚拟卡片加载',

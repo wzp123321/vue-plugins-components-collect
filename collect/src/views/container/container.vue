@@ -1,97 +1,132 @@
-<template src="./container.html"></template>
-<script lang="ts" src="./container"></script>
-<style lang="less" src="./container.less"></style>
-<style lang="less">
-.el-popper.header-popper {
-  z-index: 2050 !important;
-  background-color: var(--color-menu-bg);
-  border-radius: 4px;
-  padding: 4px 0;
-  border-color: var(--color-menu-bg);
+<template>
+  <el-container class="main flex flex-column">
+    <el-header class="main-header">
+      <div class="header-left">
+        <span class="header-collapse-btn" @click="toggleCollapse">
+          <span class="collapse-icon" :class="{ 'is-collapsed': isCollapsed }">☰</span>
+        </span>
+        <div class="header-brand">
+          <span class="brand-icon">📦</span>
+          <h6 class="brand-title">组件&插件收集</h6>
+        </div>
+      </div>
+    </el-header>
+    <el-container class="main-container flex">
+      <ems-aside :menuList="menuList" :selectedMenu="selectedMenu" :collapsed="isCollapsed"></ems-aside>
+      <el-main class="main-container__content flex flex-column">
+        <common-page-container>
+          <router-view></router-view>
+        </common-page-container>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
 
-  .area-popper {
-    max-height: 500px;
-    overflow-y: auto;
+<script lang="ts">
+import { defineComponent, ref } from 'vue';
+import Aside from '../layout/aside-box/aside-box.vue';
+import { ElHeader, ElContainer, ElMain } from 'element-plus';
+import { menuList } from '../layout/aside-box/constant';
 
-    &--header {
+export default defineComponent({
+  components: {
+    'ems-aside': Aside,
+    'el-header': ElHeader,
+    'el-container': ElContainer,
+    'el-main': ElMain,
+  },
+  setup() {
+    const selectedMenu = ref<string[]>([]);
+    const isCollapsed = ref(false);
+
+    const toggleCollapse = () => {
+      isCollapsed.value = !isCollapsed.value;
+    };
+
+    return {
+      selectedMenu,
+      menuList,
+      isCollapsed,
+      toggleCollapse,
+    };
+  },
+});
+</script>
+
+<style lang="less" scoped>
+.main {
+  height: 100%;
+  overflow: hidden;
+
+  &-header {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    z-index: 2033;
+    padding: 0 16px;
+    border-bottom: 1px solid #e4e7ed;
+
+    .header-left {
       display: flex;
-      height: 40px;
       align-items: center;
+      gap: 12px;
+    }
 
-      h6 {
-        color: #fff;
-        font-size: 14px;
-        margin-left: 15px;
+    .header-collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.06);
       }
 
-      span {
-        font-size: 12px;
-        color: #fb8113;
-        margin-left: 15px;
-        text-align: end;
+      .collapse-icon {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+
+        &.is-collapsed {
+          transform: rotate(90deg);
+        }
       }
     }
 
-    &--list {
-      .el-checkbox {
-        width: 100%;
-        overflow: hidden;
-        display: block;
-        height: 40px;
-        color: #fff;
-        padding-left: 14px;
-        display: flex;
-        align-items: center;
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
-        &:hover {
-          background-color: #0e1011;
-        }
-
-        .el-checkbox__input {
-          position: relative;
-          top: 2px;
-        }
-
-        .el-checkbox__label {
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+      .brand-icon {
+        font-size: 22px;
+        line-height: 1;
       }
 
-      .el-checkbox.is-checked {
-        .el-checkbox__label span {
-          color: #fff;
-        }
+      .brand-title {
+        height: 56px;
+        line-height: 56px;
+        font-weight: 500;
+        font-size: 18px;
       }
     }
   }
-}
 
-.el-popper.user-popper {
-  z-index: 2050 !important;
-  background-color: var(--color-menu-bg);
-  border-radius: 4px;
-  border-color: var(--color-menu-bg);
-  padding: 4px 0;
+  &-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    padding: 0;
 
-  .logout {
-    height: 40px;
-    line-height: 40px;
-    color: #fff;
-    padding-left: 14px;
-    cursor: pointer;
-
-    .ems-iconfont {
-      font-size: 14px;
-    }
-
-    &:hover {
-      background-color: #0e1011;
+    &__content {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      background-color: #f0f2f5;
     }
   }
-}
-
-.el-overlay.is-message-box {
-  z-index: 999999999 !important;
 }
 </style>

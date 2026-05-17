@@ -1,4 +1,5 @@
 import html2canvas from 'html2canvas';
+import SparkMD5 from 'spark-md5';
 
 /**
  * 响应结果
@@ -152,3 +153,45 @@ export const handleElementToImage = async (element: HTMLElement, name: string, w
     document.body.removeChild(element);
   }
 };
+
+export function formatFileSize(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+}
+
+export async function calculateFileHash(
+  file: File,
+  chunkSize: number = 10 * 1024 * 1024,
+  onProgress?: (percentage: number) => void,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const spark = new SparkMD5.ArrayBuffer();
+    const fileReader = new FileReader();
+    const chunks = Math.ceil(file.size / chunkSize);
+    let currentChunk = 0;
+
+    const loadNext = () => {
+      const start = currentChunk * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      fileReader.readAsArrayBuffer(file.slice(start, end));
+    };
+
+    fileReader.onload = (e) => {
+      spark.append(e.target?.result as ArrayBuffer);
+      currentChunk++;
+      onProgress?.(Math.floor((currentChunk / chunks) * 100));
+      if (currentChunk < chunks) {
+        loadNext();
+      } else {
+        resolve(spark.end());
+      }
+    };
+
+    fileReader.onerror = () => reject(new Error('文件读取失败'));
+
+    loadNext();
+  });
+}

@@ -4,6 +4,8 @@ export * from './date';
 export * from './number';
 export * from './storage';
 export * from './gcm';
+export * from './uuid';
+export * from './excel';
 
 // 全屏
 export const requestFullScreen = (element: any) => {

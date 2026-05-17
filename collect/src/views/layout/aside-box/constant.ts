@@ -13,97 +13,70 @@ import threejsRoutes from '../../../router/modules/threejs';
 import cssRoutes from '../../../router/modules/css';
 import babyRoutes from '../../../router/modules/babylon';
 import directiveRoutes from '../../../router/modules/directive';
-import deepSeekRoutes from '../../../router/modules/deep-seek';
-import aiCodingRoutes from '../../../router/modules/ai-coding';
 
 export const menuList = [
-  // 动画管理
   {
     path: 'animation',
     meta: { name: '动画管理' },
-    icons: 'icon-library',
+    icons: 'icon-web',
     hasIcon: true,
     children: animationRoutes,
   },
-  // 组件管理
   {
     path: 'component',
     meta: { name: '组件管理' },
-    icons: 'icon-library',
+    icons: 'icon-moxingshu',
     hasIcon: true,
     children: componentRoutes,
   },
-  // 指令
   {
     path: 'directive',
     meta: { name: '指令管理' },
-    icons: 'icon-library',
+    icons: 'icon-guanlianguize',
     hasIcon: true,
     children: directiveRoutes,
   },
-  // Echart管理
   {
     path: 'echart',
     meta: { name: 'Echarts管理' },
-    icons: 'icon-library',
+    icons: 'icon-huanjingjiance',
     hasIcon: true,
     children: echartRoutes,
   },
 
-  // 插件管理
   {
     path: 'plugins',
     meta: { name: '插件管理' },
-    icons: 'icon-library',
+    icons: 'icon-shezhi',
     hasIcon: true,
     children: pluginRoutes,
   },
 
-  // threejs
   {
     path: '/threejs',
-    icons: 'icon-library',
+    icons: 'icon-web',
     hasIcon: true,
     meta: { name: 'threejs' },
     children: threejsRoutes,
   },
 
-  // babylon
   {
     path: '/babylon',
-    icons: 'icon-library',
+    icons: 'icon-web',
     hasIcon: true,
     meta: { name: 'babylon' },
     children: babyRoutes,
   },
-  // css
   {
     path: '/css',
-    icons: 'icon-library',
+    icons: 'icon-xitongguanlihoutai',
     hasIcon: true,
     meta: { name: 'CSS' },
     children: cssRoutes,
   },
-  // ai-coding
-  {
-    path: '/ai-coding',
-    icons: 'icon-library',
-    hasIcon: true,
-    meta: { name: 'ai-coding' },
-    children: (aiCodingRoutes as any)?.[0]?.children ?? (aiCodingRoutes as any),
-  },
-  // deepSeek
-  {
-    path: '/deepSeek',
-    icons: 'icon-library',
-    hasIcon: true,
-    meta: { name: 'DeepSeek实践' },
-    children: deepSeekRoutes,
-  },
-  // demo
   {
     path: '/demo',
-    icons: 'icon-library',
+    icons: 'icon-caidan',
     hasIcon: true,
     meta: { name: 'Demo' },
     children: [],

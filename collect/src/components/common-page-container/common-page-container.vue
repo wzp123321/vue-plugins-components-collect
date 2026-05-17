@@ -25,9 +25,9 @@ const mapComponentClass = () => {
 .common-page-container {
   width: 100%;
   height: 100%;
-  background: #f5f6f8;
+  background: #f0f2f5;
   overflow: hidden;
-  padding: 20px;
+  padding: 16px;
 
   .pcv-wrap {
     background: #fff;
@@ -38,6 +38,13 @@ const mapComponentClass = () => {
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
   }
 }
 </style>
