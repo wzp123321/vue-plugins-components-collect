@@ -2,12 +2,17 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 import pluginRoutes from './modules/plugins';
 import componentRoutes from './modules/components';
-import echartRoutes from './modules/echarts';
+import dataVisRoutes from './modules/data-visualization';
 import animationRoutes from './modules/animation';
-import threejsRoutes from './modules/threejs';
 import cssRoutes from './modules/css';
-import babyRoutes from './modules/babylon';
+import d3EngineRoutes from './modules/3d-engine';
 import directiveRoutes from './modules/directive';
+import networkRoutes from './modules/network';
+import formEnhanceRoutes from './modules/form-enhance';
+import storeAdvanceRoutes from './modules/store-advance';
+import performanceRoutes from './modules/performance';
+import vue3AdvancedRoutes from './modules/vue3-advanced';
+import utilsAdvanceRoutes from './modules/utils-advance';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -21,11 +26,16 @@ const routes: RouteRecordRaw[] = [
   ...componentRoutes,
   ...pluginRoutes,
   ...animationRoutes,
-  ...echartRoutes,
-  ...threejsRoutes,
+  ...dataVisRoutes,
   ...cssRoutes,
-  ...babyRoutes,
+  ...d3EngineRoutes,
   ...directiveRoutes,
+  ...networkRoutes,
+  ...formEnhanceRoutes,
+  ...storeAdvanceRoutes,
+  ...performanceRoutes,
+  ...vue3AdvancedRoutes,
+  ...utilsAdvanceRoutes,
   { path: '/:pathMatch(.*)*', name: 'Other', component: () => import('../demo/demo.vue') },
 ];
 

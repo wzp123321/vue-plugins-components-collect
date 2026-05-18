@@ -1,7 +1,8 @@
 import { App, DirectiveBinding } from 'vue';
 import { EDirectiveType } from './directive-filter.api';
 import { addEventListener, handleTextFilter, handleNumberFilter } from './directive-filter.utils';
-let time: number;
+
+const timeMap = new WeakMap<HTMLElement, number>();
 
 const addEventByType = (el: HTMLInputElement, binding: DirectiveBinding<any>) => {
   const target: HTMLInputElement =
@@ -10,12 +11,13 @@ const addEventByType = (el: HTMLInputElement, binding: DirectiveBinding<any>) =>
       : (el.querySelector('input') as HTMLInputElement) || (el.querySelector('textarea') as HTMLTextAreaElement);
 
   addEventListener(target, 'input', (e) => {
-    if (new Date().getTime() - time < 1) {
+    const lastTime = timeMap.get(el) ?? 0;
+    const now = new Date().getTime();
+    if (now - lastTime < 1) {
       return;
     }
-    time = new Date().getTime();
+    timeMap.set(el, now);
     if ((e.target as any).composing) return;
-    // 调用 el._assign 方法更新数据
     target.value = filter(el, binding);
     target.dispatchEvent(new Event('input'));
   });

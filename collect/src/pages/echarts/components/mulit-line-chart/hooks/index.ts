@@ -1,0 +1,1 @@
+export { useChartPaginateLegends } from './useChartPaginateLegends';

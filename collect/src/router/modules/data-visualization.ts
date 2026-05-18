@@ -1,6 +1,6 @@
 import { RouteRecordRaw } from 'vue-router';
 
-const components: RouteRecordRaw[] = [
+const dataVisRoutes: RouteRecordRaw[] = [
   {
     path: '/echarts',
     meta: {
@@ -29,6 +29,13 @@ const components: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/echarts/chart-province/chart-province.vue'),
   },
+  {
+    path: '/data-vis-g6',
+    meta: {
+      name: 'G6 拓扑图',
+    },
+    component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
+  },
 ];
 
-export default components;
+export default dataVisRoutes;

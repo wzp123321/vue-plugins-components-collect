@@ -7,12 +7,17 @@
  */
 import pluginRoutes from '../../../router/modules/plugins';
 import componentRoutes from '../../../router/modules/components';
-import echartRoutes from '../../../router/modules/echarts';
+import dataVisRoutes from '../../../router/modules/data-visualization';
 import animationRoutes from '../../../router/modules/animation';
-import threejsRoutes from '../../../router/modules/threejs';
 import cssRoutes from '../../../router/modules/css';
-import babyRoutes from '../../../router/modules/babylon';
+import d3EngineRoutes from '../../../router/modules/3d-engine';
 import directiveRoutes from '../../../router/modules/directive';
+import networkRoutes from '../../../router/modules/network';
+import formEnhanceRoutes from '../../../router/modules/form-enhance';
+import storeAdvanceRoutes from '../../../router/modules/store-advance';
+import performanceRoutes from '../../../router/modules/performance';
+import vue3AdvancedRoutes from '../../../router/modules/vue3-advanced';
+import utilsAdvanceRoutes from '../../../router/modules/utils-advance';
 
 export const menuList = [
   {
@@ -37,11 +42,53 @@ export const menuList = [
     children: directiveRoutes,
   },
   {
-    path: 'echart',
-    meta: { name: 'Echarts管理' },
+    path: 'network',
+    meta: { name: '网络通信' },
+    icons: 'icon-web',
+    hasIcon: true,
+    children: networkRoutes,
+  },
+  {
+    path: 'form-enhance',
+    meta: { name: '表单增强' },
+    icons: 'icon-shezhi',
+    hasIcon: true,
+    children: formEnhanceRoutes,
+  },
+  {
+    path: 'store-advance',
+    meta: { name: '状态管理进阶' },
+    icons: 'icon-moxingshu',
+    hasIcon: true,
+    children: storeAdvanceRoutes,
+  },
+  {
+    path: 'performance',
+    meta: { name: '性能优化' },
     icons: 'icon-huanjingjiance',
     hasIcon: true,
-    children: echartRoutes,
+    children: performanceRoutes,
+  },
+  {
+    path: 'vue3-advanced',
+    meta: { name: 'Vue3进阶' },
+    icons: 'icon-guanlianguize',
+    hasIcon: true,
+    children: vue3AdvancedRoutes,
+  },
+  {
+    path: 'utils-advance',
+    meta: { name: '工具函数进阶' },
+    icons: 'icon-caidan',
+    hasIcon: true,
+    children: utilsAdvanceRoutes,
+  },
+  {
+    path: 'data-visualization',
+    meta: { name: '数据可视化' },
+    icons: 'icon-huanjingjiance',
+    hasIcon: true,
+    children: dataVisRoutes,
   },
 
   {
@@ -51,31 +98,22 @@ export const menuList = [
     hasIcon: true,
     children: pluginRoutes,
   },
-
   {
-    path: '/threejs',
+    path: '3d-engine',
     icons: 'icon-web',
     hasIcon: true,
-    meta: { name: 'threejs' },
-    children: threejsRoutes,
-  },
-
-  {
-    path: '/babylon',
-    icons: 'icon-web',
-    hasIcon: true,
-    meta: { name: 'babylon' },
-    children: babyRoutes,
+    meta: { name: '3D 引擎' },
+    children: d3EngineRoutes,
   },
   {
-    path: '/css',
+    path: 'css',
     icons: 'icon-xitongguanlihoutai',
     hasIcon: true,
     meta: { name: 'CSS' },
     children: cssRoutes,
   },
   {
-    path: '/demo',
+    path: 'demo',
     icons: 'icon-caidan',
     hasIcon: true,
     meta: { name: 'Demo' },

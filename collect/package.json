@@ -24,6 +24,7 @@
     "@codemirror/lang-javascript": "^6.2.3",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.4",
+    "@element-plus/icons-vue": "^2.3.2",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@vue-office/docx": "^1.6.3",
     "@vue-office/excel": "^1.7.14",

@@ -1,0 +1,201 @@
+/* 暗色主题 - 使用最高优先级覆盖 */
+
+/* ===================== 基础变量覆盖 ===================== */
+html.dark {
+  /* 基础色 */
+  --color-default: #1a1a2e !important;
+  --color-hover: rgba(99, 102, 241, 0.15) !important;
+  --color-active: rgba(99, 102, 241, 0.25) !important;
+  --color-primary: #818cf8 !important;
+  --color-primary-hover: #a5b4fc !important;
+  --color-primary-active: #6366f1 !important;
+  --color-danger: #f87171 !important;
+  --color-danger-hover: rgba(248, 113, 113, 0.15) !important;
+  --color-danger-active: #ef4444 !important;
+
+  /* 功能色 */
+  --color-error: #f87171 !important;
+  --color-success: #34d399 !important;
+  --color-warning: #fbbf24 !important;
+  --color-link: #818cf8 !important;
+
+  /* 文本色 */
+  --color-text: #e2e8f0 !important;
+  --color-text-title: #f1f5f9 !important;
+  --color-text-primary: #cbd5e1 !important;
+  --color-text-secondary: #94a3b8 !important;
+  --color-text-disable: #64748b !important;
+  --color-text-border: #475569 !important;
+  --color-text-divider: #334155 !important;
+  --color-text-background: rgba(255, 255, 255, 0.05) !important;
+
+  /* 边框 */
+  --color-box-focus: rgba(129, 140, 248, 0.3) !important;
+
+  /* 表格 */
+  --color-table-header: rgba(99, 102, 241, 0.1) !important;
+  --color-table-body: #1e293b !important;
+
+  /* 菜单 */
+  --color-menu-bg: #0f172a !important;
+  --color-aside-bg: #0f172a !important;
+  --color-aside-text: #cbd5e1 !important;
+  --color-aside-text-active: #818cf8 !important;
+  --color-aside-hover: rgba(99, 102, 241, 0.1) !important;
+
+  /* 背景色 */
+  --color-bg-base: #0f172a !important;
+  --color-bg-container: #1e293b !important;
+  --color-bg-elevated: #334155 !important;
+
+  /* 头部 */
+  --color-header-bg: #1e293b !important;
+  --color-header-border: #334155 !important;
+
+  /* 滚动条 */
+  --color-scrollbar: rgba(255, 255, 255, 0.2) !important;
+  --color-scrollbar-hover: rgba(255, 255, 255, 0.35) !important;
+  --color-scrollbar-active: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ===================== 强制覆盖 Element Plus ===================== */
+
+/* 侧边栏背景 */
+html.dark .aside-box,
+html.dark aside.aside-box {
+  background-color: #0f172a !important;
+}
+
+/* 菜单整体背景 */
+html.dark .el-menu,
+html.dark .el-menu--vertical,
+html.dark .el-menu--horizontal {
+  background-color: #0f172a !important;
+  border-color: transparent !important;
+}
+
+/* 一级菜单项 */
+html.dark .el-menu-item,
+html.dark .el-sub-menu__title {
+  color: #cbd5e1 !important;
+  background-color: transparent !important;
+}
+
+/* 悬停状态 */
+html.dark .el-menu-item:hover,
+html.dark .el-sub-menu__title:hover {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  color: #818cf8 !important;
+}
+
+/* 激活状态 */
+html.dark .el-menu-item.is-active,
+html.dark .el-menu-item.is-active:hover {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  color: #818cf8 !important;
+}
+
+/* 子菜单背景 */
+html.dark .el-menu--inline {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 菜单图标 */
+html.dark .el-menu-item .el-icon,
+html.dark .el-sub-menu__title .el-icon {
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-menu-item.is-active .el-icon,
+html.dark .el-sub-menu__title.is-active .el-icon {
+  color: #818cf8 !important;
+}
+
+/* 子菜单箭头 */
+html.dark .el-sub-menu__icon-arrow {
+  color: #94a3b8 !important;
+}
+
+/* 菜单分组标题 */
+html.dark .el-menu-item-group__title {
+  color: #64748b !important;
+}
+
+/* 头部背景 */
+html.dark .main-header,
+html.dark header.el-header {
+  background-color: #1e293b !important;
+  border-bottom-color: #334155 !important;
+}
+
+/* 头部文字 */
+html.dark .header-collapse-btn {
+  color: #94a3b8 !important;
+}
+
+html.dark .header-collapse-btn:hover {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .brand-title {
+  color: #f1f5f9 !important;
+}
+
+/* 内容区背景 */
+html.dark .main-container__content,
+html.dark main.el-main {
+  background-color: #0f172a !important;
+}
+
+/* Element Plus 组件覆盖 */
+html.dark .el-card {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-table {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-table__header {
+  color: #94a3b8 !important;
+}
+
+html.dark .el-input__wrapper {
+  background-color: #334155 !important;
+}
+
+html.dark .el-input__inner {
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-button {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-dialog {
+  background-color: #1e293b !important;
+}
+
+html.dark .el-message-box {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.dark .el-tabs__item {
+  color: #94a3b8 !important;
+}
+
+html.dark .el-tabs__item.is-active {
+  color: #818cf8 !important;
+}
+
+html.dark .el-pagination {
+  color: #94a3b8 !important;
+}

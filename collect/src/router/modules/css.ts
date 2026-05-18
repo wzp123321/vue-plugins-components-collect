@@ -64,6 +64,27 @@ const cssComponents: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/css/semantization/semantization.vue'),
   },
+  {
+    path: '/css-keyframe-animation',
+    meta: {
+      name: 'CSS-关键帧动画',
+    },
+    component: () => import('../../pages/css/css-keyframe-animation/css-keyframe-animation.vue'),
+  },
+  {
+    path: '/css-responsive',
+    meta: {
+      name: 'CSS-响应式布局',
+    },
+    component: () => import('../../pages/css/css-responsive/css-responsive.vue'),
+  },
+  {
+    path: '/css-var-theme',
+    meta: {
+      name: 'CSS-变量主题',
+    },
+    component: () => import('../../pages/css/css-var-theme/css-var-theme.vue'),
+  },
 ];
 
 export default cssComponents;

@@ -26,6 +26,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.36.4
         version: 6.36.4
+      '@element-plus/icons-vue':
+        specifier: ^2.3.2
+        version: 2.3.2(vue@3.5.13(typescript@5.3.3))
       '@fortawesome/fontawesome-free':
         specifier: ^5.15.4
         version: 5.15.4

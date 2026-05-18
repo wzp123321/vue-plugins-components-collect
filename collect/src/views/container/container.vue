@@ -23,7 +23,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import Aside from '../layout/aside-box/aside-box.vue';
 import { ElHeader, ElContainer, ElMain } from 'element-plus';
 import { menuList } from '../layout/aside-box/constant';
@@ -36,7 +37,16 @@ export default defineComponent({
     'el-main': ElMain,
   },
   setup() {
-    const selectedMenu = ref<string[]>([]);
+    const route = useRoute();
+    const selectedMenu = ref<string[]>([route.path]);
+
+    watch(
+      () => route.path,
+      (path) => {
+        selectedMenu.value = [path];
+      }
+    );
+
     const isCollapsed = ref(false);
 
     const toggleCollapse = () => {

@@ -23,13 +23,6 @@ const pluginRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/plugins/vueuse/vueuse.vue'),
   },
   {
-    path: '/plugins-g6',
-    meta: {
-      name: 'G6',
-    },
-    component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
-  },
-  {
     path: '/plugins-draggable-formula',
     meta: {
       name: '拖拽公式',
@@ -44,33 +37,11 @@ const pluginRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/plugins/plugin-word-pdf-preview/plugin-word-pdf-preview.vue'),
   },
   {
-    path: '/plugin-table-export-excel',
-    meta: {
-      name: '表格导出excel',
-    },
-    component: () => import('../../pages/plugins/plugin-table-export-excel/plugin-table-export-excel.vue'),
-  },
-  {
     path: '/pluginsLittle',
     meta: {
       name: '小插件',
     },
     component: () => import('../../pages/plugins/plugins-little/plugins-little.vue'),
-  },
-
-  {
-    path: '/plugins-webrtc',
-    meta: {
-      name: 'webRTC',
-    },
-    component: () => import('../../pages/plugins/plugins-webrtc/plugins-webrtc.vue'),
-  },
-  {
-    path: '/plugins-export-to-excel',
-    meta: {
-      name: 'pluginsExportToExcel',
-    },
-    component: () => import('../../pages/plugins/plugins-export-to-excel/plugins-export-to-excel.vue'),
   },
 ];
 
