@@ -3,65 +3,32 @@
  * @description 简化版标签页组件，支持滚动和滑块动画
  */
 
-
-export interface TabItem {
-  /** 标签名称 */
-  name?: string;
-  /** 是否禁用 */
-  disabled?: boolean;
-  /** 图标名称 */
-  icon?: string;
-  /** 徽标配置 */
-  badge?: Record<string, any>;
-}
-
 export interface TabsProps {
   /** 标签列表 */
-  list?: TabItem[];
+  list?: UTSJSONObject[];
   /** 当前激活的标签索引 */
   current?: number;
-  /** 滑块颜色 */
-  lineColor?: string;
-  /** 滑块宽度 */
-  lineWidth?: number | string;
-  /** 滑块高度 */
-  lineHeight?: number | string;
   /** 滑块移动动画时长 */
   duration?: number;
-  /** 激活状态样式 */
-  activeStyle?: Record<string, string | number>;
-  /** 未激活状态样式 */
-  inactiveStyle?: Record<string, string | number>;
-  /** 标签项样式 */
-  itemStyle?: Record<string, string | number>;
   /** 是否可滚动 */
   scrollable?: boolean;
+  /** 是否等距布局, 默认false */
+  isometric?: boolean;
   /** 从list元素对象中读取的键名 */
   keyName?: string;
   /** 尺寸 small | large */
-  size?: string;
-  /** 是否显示列表图标 */
-  showListIcon?: boolean;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: UTSJSONObject;
+  size?: 'small' | 'large';
+  /** item样式类型：default 默认 | tag 标签样式 */
+  itemType?: 'default' | 'tag';
 }
 
 export const defaultProps = {
   list: () => [],
   current: 0,
-  lineColor: '#2979ff',
-  lineWidth: '40rpx',
-  lineHeight: '3px',
   duration: 300,
-  activeStyle: { color: '#2979ff', fontWeight: 'bold' },
-  inactiveStyle: { color: '#606266' },
-  itemStyle: () => ({}),
-  scrollable: false,
+  scrollable: true,
+  isometric: false,
   keyName: 'name',
   size: 'large',
-  showListIcon: false,
-  customClass: '',
-  customStyle: () => ({})
+  itemType: 'default',
 } as UTSJSONObject;

@@ -76,14 +76,7 @@
       <view class="demo-card">
         <text class="section-title">只读模式</text>
         <view class="demo-grid">
-          <view class="demo-item">
-            <tsm-switch v-model:checked="value8" :readonly="true"></tsm-switch>
-            <text class="demo-item__label">readonly</text>
-          </view>
-          <view class="demo-item">
-            <tsm-switch v-model:checked="value9" :readonly="true"></tsm-switch>
-            <text class="demo-item__label">readonly</text>
-          </view>
+          <tsm-switch v-model:checked="value8" :readonly="true"></tsm-switch>
         </view>
       </view>
     </view>
@@ -112,19 +105,19 @@ const handleChange = (val: boolean) => {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
-  padding: 16px;
+  padding: 12px;
   background: #f7f8fa;
-  min-height: 100vh;
+  height: 100%;
   box-sizing: border-box;
 }
 
 .header {
-  padding: 12px 12px 6px;
-  margin-bottom: 12px;
+  padding: 10px 10px 4px;
+  margin-bottom: 10px;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 700;
   text-align: center;
   color: #111827;
@@ -134,30 +127,30 @@ const handleChange = (val: boolean) => {
 .demo-card {
   background: #ffffff;
   border: 1px solid #eef2f7;
-  border-radius: 16px;
-  padding: 18px 16px 14px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  margin-bottom: 10px;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
   color: #111827;
 }
 
 .demo-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 18px;
+  gap: 10px 12px;
 }
 
 .demo-grid--wide {
-  gap: 12px 14px;
+  gap: 8px 10px;
 }
 
 .demo-item {
-  width: 120px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -169,15 +162,15 @@ const handleChange = (val: boolean) => {
 }
 
 .demo-item__label {
-  margin-top: 10px;
-  font-size: 20px;
+  margin-top: 6px;
+  font-size: 14px;
   color: #6b7280;
   line-height: 1.2;
 }
 
 .demo-item__hint {
-  margin-bottom: 10px;
-  font-size: 20px;
+  margin-bottom: 8px;
+  font-size: 14px;
   color: #6b7280;
   line-height: 1.2;
 }

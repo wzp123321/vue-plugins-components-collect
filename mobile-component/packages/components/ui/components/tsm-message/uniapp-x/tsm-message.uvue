@@ -1,0 +1,325 @@
+<template>
+  <tsm-transition mode="slide-down" :customStyle="containerStyle" :show="innerVisible">
+    <view class="tsm-message" :class="[bemClass, messageAlignClass]">
+      <view class="tsm-message-left">
+        <image class="tsm-message-left-image" :src="leftIcon" alt="icon" />
+      </view>
+      <view class="tsm-message-center" :style="messageCenterStyle">
+        <text ref="tsm-message-text" class="tsm-message-text">{{ messageValue }}</text>
+        <text ref="tsm-message-text-measure" class="tsm-message-text-measure">{{ messageValue }}</text>
+      </view>
+      <tsm-button v-if="rightActionValue === 'link'" size="s" type="link" theme="primary" @tap="handleTap">
+        <text class="tsm-message-link-text"> Link </text>
+      </tsm-button>
+      <view v-if="rightActionValue === 'close'" class="tsm-message-right">
+        <icon-close :size="16" class="tsm-message-right-close" @tap="handleClose" />
+      </view>
+    </view>
+  </tsm-transition>
+</template>
+
+<script setup lang="uts">
+import { computed, getCurrentInstance, nextTick, ref, watch, PropType } from 'vue';
+import { type MessageProps, defaultProps } from './props.uts';
+import { addUnit, bem, tsmGetRect } from '../../../libs/uniapp-x/function/index.uts';
+import picMessageSuccess from '../../../assets/image/message/pic-message-success.svg';
+import picMessageWarning from '../../../assets/image/message/pic-message-warning.svg';
+import picMessageDanger from '../../../assets/image/message/pic-message-danger.svg';
+import picMessageInfo from '../../../assets/image/message/pic-message-info.svg';
+
+// #ifdef APP-NVUE
+const dom = uni.requireNativePlugin('dom');
+// #endif
+
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    default: defaultProps.getBoolean('visible')
+  },
+  top: {
+    type: [Number, String] as PropType<number | string>,
+    default: defaultProps.getNumber('top')
+  },
+  type: {
+    type: String,
+    default: defaultProps.getString('type')
+  },
+  message: {
+    type: String,
+    default: defaultProps.getString('message')
+  },
+  duration: {
+    type: Number,
+    default: defaultProps.getNumber('duration')
+  },
+  rightAction: {
+    type: String,
+    default: defaultProps.getString('rightAction')
+  },
+});
+
+const emit = defineEmits<{
+  'update:visible': [value: boolean];
+  open: [];
+  close: [];
+  tap: [];
+}>();
+
+const instance = getCurrentInstance();
+
+const innerVisible = ref(false);
+const timer = ref<number>(0);
+const isMultiLine = ref(false);
+const messageCenterWidth = ref<string>('');
+
+const topValue = computed(() => props.top as number);
+const rightActionValue = computed(() => props.rightAction as string);
+const typeValue = computed(() => props.type as string);
+const messageValue = computed(() => props.message as string);
+const durationValue = computed(() => props.duration as number);
+const messageAlignClass = computed(() => (isMultiLine.value ? 'tsm-message--multi' : 'tsm-message--single'));
+
+const leftIcon = computed(() => {
+  switch (typeValue.value) {
+    case 'error':
+      return picMessageDanger;
+    case 'success':
+      return picMessageSuccess;
+    case 'warning':
+      return picMessageWarning;
+    case 'info':
+      return picMessageInfo;
+    default:
+      return picMessageInfo;
+  }
+});
+
+const bemClass = computed(() => {
+	let className = 'tsm-message';
+  if(typeValue.value != '' && typeValue.value != null) {
+    className += ` tsm-message--${typeValue.value}`;
+  }
+  return className;
+});
+
+const containerStyle = computed(() => {
+  let top = 0;
+  if (topValue.value === 0) {
+    top = 44;
+  }
+  const style: UTSJSONObject = {
+    top: addUnit(topValue.value === 0 ? top : topValue.value),
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    zIndex: 10076,
+  };
+  return style;
+});
+
+const messageCenterStyle = computed(() => {
+  const style = {};
+  if(messageCenterWidth.value != '' && messageCenterWidth.value != null) {
+    style['width'] = messageCenterWidth.value;
+  }
+  return style as any;
+});
+
+const measureMessageLine = () => {
+  if (!innerVisible.value || instance ==null || instance?.proxy == null) {
+    return;
+  }
+  nextTick(() => {
+    // #ifdef APP-NVUE
+    const textRef = instance?.ctx?.$refs?.['tsm-message-text'];
+    const measureRef = instance?.ctx?.$refs?.['tsm-message-text-measure'];
+    if (!textRef || !measureRef) {
+      return;
+    }
+    dom.getComponentRect(textRef, (textRes: any) => {
+      const textRect = textRes?.size;
+      dom.getComponentRect(measureRef, (measureRes: any) => {
+        const singleLineRect = measureRes?.size;
+        if (textRect == null || singleLineRect == null) {
+          return;
+        }
+        const targetWidth = Math.min(220, Math.max(0, Math.ceil(singleLineRect.width ?? 0)));
+        messageCenterWidth.value = targetWidth > 0 ? `${targetWidth}px` : '';
+        isMultiLine.value = (textRect.height ?? 0) > ((singleLineRect.height ?? 0) + 1);
+      });
+    });
+    // #endif
+
+    // #ifndef APP-NVUE
+    tsmGetRect('.tsm-message-text', false, instance?.proxy ?? null).then((textRect: NodeInfo) => {
+      tsmGetRect('.tsm-message-text-measure', false, instance?.proxy ?? null).then((singleLineRect: NodeInfo) => {
+        if (textRect == null || singleLineRect == null) {
+          return;
+        }
+        const targetWidth = Math.min(220, Math.max(0, Math.ceil(singleLineRect.width ?? 0)));
+        messageCenterWidth.value = targetWidth > 0 ? `${targetWidth}px` : '';
+        isMultiLine.value = (textRect.height ?? 0) > ((singleLineRect.height ?? 0) + 1);
+      });
+    });
+    // #endif
+  });
+};
+
+const clearTimer = () => {
+  if (timer.value != null) {
+    clearTimeout(timer.value);
+    timer.value = 0;
+  }
+};
+
+const resetState = () => {
+  innerVisible.value = false;
+  isMultiLine.value = false;
+  messageCenterWidth.value = '';
+  clearTimer();
+};
+
+const handleTap = () => {
+  emit('tap');
+};
+
+const handleClose = () => {
+  emit('update:visible', false);
+};
+
+watch(():boolean=>props.visible, (newVal: boolean) => {
+  if (newVal) {
+    clearTimer();
+    isMultiLine.value = false;
+    messageCenterWidth.value = '';
+    innerVisible.value = true;
+    emit('open');
+    nextTick(() => {
+      measureMessageLine();
+    });
+    if (durationValue.value > 0) {
+      timer.value = setTimeout(() => {
+        emit('update:visible', false);
+      }, durationValue.value);
+    }
+  } else {
+    resetState();
+    emit('close');
+  }
+});
+
+watch([messageValue, innerVisible, messageCenterWidth], () => {
+  measureMessageLine();
+});
+</script>
+
+<style scoped lang="scss">
+.tsm-message {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: var(--tsm-spacing-m) var(--tsm-spacing-xl);
+  border-radius: var(--tsm-radius-l);
+  background: var(--tsm-color-bg-white);
+  box-shadow:
+    0 -1px 8px 0 var(--tsm-shadow-l-04),
+    0 12px 16px -4px var(--tsm-shadow-l-01),
+    0 4px 6px -2px var(--tsm-shadow-l-02),
+    0 2px 2px -1px var(--tsm-shadow-l-03);
+}
+
+.tsm-message.tsm-message--single {
+  align-items: center;
+}
+
+.tsm-message.tsm-message--multi {
+  align-items: flex-start;
+}
+
+.tsm-message-left {
+  display: flex;
+  flex-direction: row;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+  align-items: center;
+}
+
+.tsm-message-left .tsm-message-left-image {
+  width: 32px;
+  height: 32px;
+}
+
+.tsm-message-text,
+.tsm-message-text-measure {
+  width: auto;
+  color: var(--tsm-color-text-primary);
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m);
+}
+
+.tsm-message-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  lines: 3;
+}
+
+.tsm-message-center {
+  position: relative;
+  margin-left: var(--tsm-spacing-m);
+  margin-right: var(--tsm-spacing-2xs);
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.tsm-message-text-measure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.tsm-message-right {
+  height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tsm-spacing-m) var(--tsm-spacing-xs) var(--tsm-spacing-m) var(--tsm-spacing-m);
+  box-sizing: border-box;
+}
+
+.tsm-message-link {
+  height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.tsm-message-link-text {
+  color: var(--tsm-color-primary);
+  text-align: center;
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+
+.tsm-message-right-close {
+  width: 16px;
+  height: 16px;
+  color: var(--tsm-color-text-secondary);
+}
+</style>

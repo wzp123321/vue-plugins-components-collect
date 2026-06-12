@@ -5,3 +5,4 @@ packages:
   - 'apps/docs'
   - 'apps/playground/uniapp-project'
   - 'apps/playground/uniapp-x-project'
+  - 'packages/installer'

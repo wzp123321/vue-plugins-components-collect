@@ -61,6 +61,17 @@ export function sys(): any {
   return uni.getSystemInfoSync();
 }
 
+export function getWindowInfo() {
+  let ret = {};
+  // #ifdef APP || H5 || MP-WEIXIN
+  ret = uni.getWindowInfo();
+  // #endif
+  // #ifndef APP || H5 || MP-WEIXIN
+  ret = sys();
+  // #endif
+  return ret;
+}
+
 export function addStyle(
   customStyle: string | StyleObject,
   target: 'object' | 'string' = 'object'
@@ -125,6 +136,7 @@ export default {
   bem,
   getPx,
   sys,
+  getWindowInfo,
   addStyle,
   addUnit,
   deepMerge,

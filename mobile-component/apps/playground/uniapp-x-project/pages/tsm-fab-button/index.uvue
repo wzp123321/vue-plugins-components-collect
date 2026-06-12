@@ -1,0 +1,112 @@
+<template>
+  <tsm-theme-provider>
+    <view class="container">
+      <tsm-fab-button
+        :title="title"
+        :shape="shape"
+        :state="state"
+        :type="type"
+      >
+      <template #icon v-if='showIcon'>
+         +
+      </template>
+      </tsm-fab-button>
+      <text>Title</text>
+      <view class="general">
+        <button @click="onSetTitle">set title</button>
+        <button @click="onResetTitle">reset title</button>
+      </view>
+      <text>Type</text>
+      <view class="general">
+        <button @click="onTypeToPrimary">primary</button>
+        <button @click="onTypeTosecondary">secondary</button>
+      </view>
+      <text>State</text>
+      <view class="general">
+        <button @click="onStateToDefault">default</button>
+        <button @click="onStateToDisabled">disabled</button>
+      </view>
+      <text>Shape</text>
+      <view class="general">
+        <button @click="onShapeToRectangle">rectangle</button>
+        <button @click="onShapeToCircle">circle</button>
+      </view>
+      <text>slot icon</text>
+      <view class="general">
+        <button @click="onIconSlotAdd">add</button>
+        <button @click="onIconSlotReset">reset</button>
+      </view>
+    </view>
+  </tsm-theme-provider>
+</template>
+
+<script setup lang="uts">
+import { computed, ref } from 'vue';
+
+const shape = ref('rectangle');
+const state = ref('default');
+const type = ref('primary');
+const title = ref('添加');
+  
+const onSetTitle = () => {
+  title.value = '添加';
+};
+
+const onResetTitle = () => {
+  title.value = '';
+};
+
+const onTypeToPrimary = () => {
+  type.value = 'primary';
+};
+
+const onTypeTosecondary = () => {
+  type.value = 'secondary';
+};
+
+const onStateToDefault = () => {
+  state.value = 'default';
+};
+
+const onStateToDisabled = () => {
+  state.value = 'disabled';
+};
+
+const onShapeToRectangle = () => {
+  shape.value = 'rectangle';
+};
+
+const onShapeToCircle = () => {
+  shape.value = 'circle';
+};
+
+const showIcon = ref(false);
+const onIconSlotAdd = () => {
+  showIcon.value = true;
+};
+
+const onIconSlotReset = () => {
+  showIcon.value = false;
+};
+</script>
+
+<style scoped lang="scss">
+@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.general {
+  display: flex;
+  flex-direction: row;
+}
+button {
+  display: flex;
+  flex-direction: row;
+}
+</style>

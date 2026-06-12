@@ -1,7 +1,7 @@
 /** * Switch 开关组件 * @description 开关组件，用于切换状态 */
 <template>
-  <tsm-tag v-if="props.readonly" :type="readonlyTagType" :text="readonlyText" />
-  <view v-else class="tsm-switch" :class="bemClass" :style="switchStyle" @tap="clickHandler">
+  <tsm-tag v-if="isReadonly" type="info" :text="readonlyText" />
+  <view v-else class="tsm-switch" :class="bemClass" :style="switchStyle" @tap="handleSwitchChange">
     <view class="tsm-switch-node" :style="nodeStyle"></view>
     <view class="tsm-switch-text" :class="{ 'is-checked': isChecked }" v-if="props.inactiveText">
       {{ isChecked ? props.checkedText : props.unCheckedText }}
@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
-import type { SwitchProps, SwitchValue } from './props';
+import { computed, inject, watch } from 'vue';
+import type { SwitchProps } from './props';
 import { defaultProps, SWITCH_PADDING as innerPadding, getSwitchSize, getNodeWidthBySize } from './props';
 import { addStyle, addUnit, bem } from '../../../libs/uniapp/function/index';
 
@@ -34,9 +34,14 @@ const props = withDefaults(defineProps<SwitchProps>(), defaultProps);
  * 两者都输出 SwitchValue（boolean|string|number），与 active/inactiveValue 语义一致。
  */
 const emit = defineEmits<{
-  change: [checked: SwitchValue];
-  'update:checked': [value: SwitchValue];
+  /** 开关状态变化时触发 */
+  change: [checked: boolean | string | number];
+  /** 更新开关状态 */
+  'update:checked': [value: boolean | string | number];
 }>();
+
+// Inject FormItem 上下文（默认 null，独立使用时正常） 等formitem代码提交再改成FormItemContext
+const formItemContext = inject<any | null>('formItemContext', null);
 
 /**
  * 当前是否处于“选中态”：
@@ -45,12 +50,10 @@ const emit = defineEmits<{
  */
 const isChecked = computed(() => props.checked === props.activeValue);
 
+const isReadonly = computed(() => props.readonly || formItemContext?.readonly);
+
 const readonlyText = computed(() => {
   return isChecked.value ? props.checkedText : props.unCheckedText;
-});
-
-const readonlyTagType = computed(() => {
-  return isChecked.value ? 'primary' : 'info';
 });
 
 /**
@@ -65,9 +68,8 @@ const bemClass = computed(() => {
     [
       ['disabled', props.disabled],
       ['checked', isChecked.value],
-      ['readonly', props.readonly],
-    ],
-    props.customClass
+      ['readonly', isReadonly.value],
+    ]
   );
 });
 
@@ -111,7 +113,6 @@ const switchStyle = computed(() => {
       : isChecked.value
         ? props.activeColor
         : props.inactiveColor,
-    ...props.customStyle,
   });
 });
 
@@ -156,87 +157,74 @@ watch(() => [props.checked, props.activeValue, props.inactiveValue], validateChe
  * - 当前为未选中态 -> 切到 activeValue
  * 然后同步触发 v-model 更新与 change 事件。
  */
-const clickHandler = () => {
-  if (!props.disabled && !props.readonly) {
+const handleSwitchChange = () => {
+  if (!props.disabled && !isReadonly.value) {
     const newValue = isChecked.value ? props.inactiveValue : props.activeValue;
     emit('update:checked', newValue);
     emit('change', newValue);
+    formItemContext?.onValueChange(newValue);
   }
 };
 </script>
 
 <style scoped lang="scss">
 .tsm-switch {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   border-radius: 100px;
   transition: background-color 0.3s;
   position: relative;
   padding: var(--tsm-spacing-none) var(--tsm-spacing-xs);
   box-sizing: border-box;
+}
 
-  &-node {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: var(--tsm-color-bg-white);
-    border-radius: 100%;
-    transition: left 0.3s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
+.tsm-switch-node {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--tsm-color-bg-white);
+  border-radius: 100%;
+  transition: left 0.3s;
+}
 
-  &-text {
-    padding-left: calc(var(--tsm-switch-node-size) + var(--tsm-spacing-xs));
-    padding-right: var(--tsm-spacing-xs);
-    color: var(--tsm-color-text-placeholder);
-    white-space: nowrap;
+.tsm-switch-text {
+  padding-left: calc(var(--tsm-switch-node-size) + var(--tsm-spacing-xs));
+  padding-right: var(--tsm-spacing-xs);
+  color: var(--tsm-color-text-placeholder);
+  white-space: nowrap;
+}
 
-    &.is-checked {
-      padding-left: var(--tsm-spacing-xs);
-      padding-right: calc(var(--tsm-switch-node-size) + var(--tsm-spacing-xs));
-      color: var(--tsm-color-bg-white);
-    }
-  }
+.tsm-switch-text.is-checked {
+  padding-left: var(--tsm-spacing-xs);
+  padding-right: calc(var(--tsm-switch-node-size) + var(--tsm-spacing-xs));
+  color: var(--tsm-color-bg-white);
+}
 
-  &.tsm-switch--disabled {
-    cursor: not-allowed;
+.tsm-switch--disabled {
+  cursor: not-allowed;
+}
 
-    .tsm-switch-text {
-      color: var(--tsm-color-text-placeholder);
-    }
-  }
+.tsm-switch--disabled .tsm-switch-text {
+  color: var(--tsm-color-text-placeholder);
+}
 
-  &.tsm-switch--large {
-    .tsm-switch-text {
-      text-align: center;
-      font-family: 'PingFang SC';
-      font-size: 16px;
-      font-style: normal;
-      font-weight: 400;
-      line-height: 24px;
-    }
-  }
+.tsm-switch--large .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-l);
+}
 
-  &.tsm-switch--medium {
-    .tsm-switch-text {
-      text-align: center;
-      font-family: 'PingFang SC';
-      font-size: 14px;
-      font-style: normal;
-      font-weight: 400;
-      line-height: 22px;
-    }
-  }
+.tsm-switch--medium .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-m);
+  line-height: var(--tsm-line-height-text-m);
+}
 
-  &.tsm-switch--small {
-    .tsm-switch-text {
-      text-align: center;
-      font-family: 'PingFang SC';
-      font-size: 12px;
-      font-style: normal;
-      font-weight: 400;
-      line-height: 20px;
-    }
-  }
+.tsm-switch--small .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-s);
+  line-height: var(--tsm-line-height-text-s);
 }
 </style>

@@ -17,3 +17,7 @@
 {{#each props}}
 | {{ name }} | {{ type }} | {{ default }} | {{ description }} |
 {{/each}}
+
+{{events}}
+
+{{slots}}

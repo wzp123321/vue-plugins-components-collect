@@ -1,0 +1,89 @@
+/**
+ * LoadingIcon 加载图标组件
+ * @description 加载图标组件，用于显示加载状态
+ */
+<template>
+  <view class="tsm-loading">
+    <icon-loading class="tsm-loading-icon" :style="iconStyle" />
+    <text class="tsm-loading-text">加载中...</text>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { ref, onMounted, computed } from 'vue'
+const props = defineProps({
+  mode: {
+    type: String,
+    default: 'circle'
+  },
+  size: {
+    type: [String, Number],
+    default: 24
+  },
+  color: {
+    type: String,
+    default: '#2979ff'
+  },
+  customClass: {
+    type: String,
+    default: ''
+  },
+  customStyle: {
+    type: Object,
+    default: () => ({})
+  }
+})
+
+const angle = ref(0)
+
+const iconStyle = computed(() => {
+  const style: UTSJSONObject = {}
+  style['transform'] = `rotate(${angle.value}deg)`
+  style['width'] = typeof props.size === 'number' ? `${props.size}px` : props.size
+  style['height'] = typeof props.size === 'number' ? `${props.size}px` : props.size
+  return style
+})
+
+function runRotate(): void {
+  function animateStep(): void {
+    angle.value += 3
+    if (angle.value >= 360) {
+      angle.value = 0
+    }
+    requestAnimationFrame(() => {
+      animateStep()
+    })
+  }
+  animateStep()
+}
+
+onMounted(() => {
+  runRotate()
+})
+</script>
+
+<style scoped lang="scss">
+.tsm-loading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.tsm-loading-icon {
+  margin-right: 4px;
+}
+
+.tsm-loading-text {
+  font-family: var(--var-tsm-font-family-regular, "PingFang SC");
+  font-weight: 400;
+  font-size: var(--var-tsm-font-size-text-m, 14px);
+  line-height: var(--var-tsm-line-height-text-m, 22px);
+}
+
+.icon-image {
+  margin-right: 4px;
+  width: 24px;
+  height: 24px;
+}
+</style>

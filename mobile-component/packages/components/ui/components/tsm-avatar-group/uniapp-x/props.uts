@@ -1,0 +1,19 @@
+/**
+ * AvatarGroup 头像组组件 Props 定义
+ */
+export interface AvatarGroupProps {
+  /** 头像列表 */
+  urls?: string[];
+  /** 头像大小 */
+  size?: 'xs' | 's' | 'm' | 'l' | 'xl';
+  /** 最大显示数量 */
+  maxCount?: number;
+  /** 头像间距 */
+  gap?: number;
+}
+
+export const defaultProps = {
+  urls: () => [],
+  size: 'm',
+  maxCount: 3,
+} as UTSJSONObject;

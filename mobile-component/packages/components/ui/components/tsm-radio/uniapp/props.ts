@@ -1,36 +1,19 @@
 /**
  * Radio 单选框组件 Props 定义
- * @description 简化版单选框组件，用于单选场景
  */
 import type { CSSProperties } from 'vue';
 
 export interface RadioProps {
-  /** 单选框的名称/标识 */
-  name?: string | number;
-  /** 是否选中 */
+  /** <radio> 标识。当该 <radio> 选中时，<radio-group> 的 change 事件会携带 <radio> 的 value */
+  value?: string;
+  /** 当前是否选中 */
   checked?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
-  /** 单选框形状 */
-  shape?: 'circle' | 'square';
-  /** 选中时的颜色 */
-  activeColor?: string;
-  /** 未选中时的颜色 */
-  inactiveColor?: string;
-  /** 单选框大小 */
-  size?: number | string;
-  /** 图标大小 */
-  iconSize?: number | string;
-  /** 图标颜色 */
-  iconColor?: string;
-  /** 标签文字 */
-  label?: string;
-  /** 标签文字颜色 */
-  labelColor?: string;
-  /** 标签文字大小 */
-  labelSize?: number | string;
-  /** 是否禁用标签点击 */
-  labelDisabled?: boolean;
+  /** 是否只读 */
+  readonly?: boolean;
+  /** 填充样式：fillCircle 填充圆形（默认），line 线条对号 */
+  fillStyle?: 'fillCircle' | 'line';
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -38,19 +21,11 @@ export interface RadioProps {
 }
 
 export const defaultProps = {
-  name: '',
+  value: '',
   checked: false,
   disabled: false,
-  shape: 'circle',
-  activeColor: '#2979ff',
-  inactiveColor: '#c8c9cc',
-  size: 21,
-  iconSize: 12,
-  iconColor: '#ffffff',
-  label: '',
-  labelColor: '#606266',
-  labelSize: 15,
-  labelDisabled: false,
+  readonly: false,
+  fillStyle: 'fillCircle',
   customClass: '',
   customStyle: () => ({}),
 } as const;

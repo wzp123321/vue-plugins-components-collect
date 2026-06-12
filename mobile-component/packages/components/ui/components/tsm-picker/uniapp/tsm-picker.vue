@@ -1,150 +1,198 @@
-/** * Picker 选择器组件 * @description 选择器组件，用于从列表中选择一项 */
 <template>
-  <tsm-popup mode="bottom" :show="show" :closeOnClickOverlay="false" :safeAreaInsetBottom="true" @close="onClose">
-    <view class="tsm-picker" :class="[customClass]" :style="pickerStyleObj">
-      <view class="tsm-picker__header">
-        <text class="tsm-picker__cancel" @tap="onCancel">{{ cancelText }}</text>
-        <text class="tsm-picker__title">{{ title }}</text>
-        <text class="tsm-picker__confirm" @tap="onConfirm">{{ confirmText }}</text>
+  <view class="tsm-picker" :class="[customClass]" :style="customStyle">
+    <tsm-popup mode="bottom" :show="show" :title="title" :closeable="true" @update:show="onUpdateShow" @close="onClose">
+      <!-- picker-view 选择器 -->
+      <view class="tsm-picker__content">
+        <picker-view
+          class="tsm-picker__view"
+          :value="[currentIndex]"
+          indicator-class="tsm-picker__indicator"
+          mask-class="tsm-picker__mask"
+          @change="onChange"
+        >
+          <picker-view-column>
+            <view
+              v-for="(option, index) in options"
+              :key="index"
+              class="tsm-picker__item"
+              :class="{ 'tsm-picker__item--active': index === currentIndex }"
+            >
+              {{ option.label }}
+            </view>
+          </picker-view-column>
+        </picker-view>
       </view>
-      <picker-view class="tsm-picker__view" :value="[currentIndex]" @change="onChange">
-        <picker-view-column>
-          <view class="tsm-picker__item" v-for="(item, index) in displayColumns" :key="index">
-            {{ getItemText(item) }}
-          </view>
-        </picker-view-column>
-      </picker-view>
-    </view>
-  </tsm-popup>
+
+      <!-- Footer 插槽：确定按钮 -->
+      <template #footer>
+        <view class="tsm-picker__footer">
+          <tsm-button :style="{ width: '100%' }" theme="primary" block :label="confirmText" @click="onConfirm" />
+        </view>
+      </template>
+    </tsm-popup>
+  </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch, computed, inject } from 'vue';
 import type { PickerProps } from './props';
 import { defaultProps } from './props';
-import { addStyle } from '../../../libs/uniapp/function/index';
+import type { FormItemContext } from '../../tsm-form-item/uniapp/type';
 
-/**
- * Picker 组件 Props
- * @property {boolean} show - 是否显示
- * @property {string} title - 选择器标题
- * @property {array} columns - 选项列表
- * @property {number} defaultIndex - 当前选中项的索引
- * @property {boolean} showCancelButton - 是否显示取消按钮
- * @property {boolean} showConfirmButton - 是否显示确认按钮
- * @property {string} cancelText - 取消按钮文字
- * @property {string} confirmText - 确认按钮文字
- * @property {string} customClass - 自定义类名
- * @property {object} customStyle - 自定义样式
- */
 const props = withDefaults(defineProps<PickerProps>(), defaultProps);
 
 const emit = defineEmits<{
-  confirm: [value: any];
-  cancel: [];
-  close: [];
-  change: [value: any];
+  /** 确认事件 */
+  (e: 'confirm', value: string | number): void;
+  /** 取消事件 */
+  (e: 'cancel'): void;
+  /** 选项变更事件 */
+  (e: 'change', value: string | number): void;
+  /** 同步显示/隐藏状态 */
+  (e: 'update:show', value: boolean): void;
+  /** 同步选中值 */
+  (e: 'update:value', value: string | number): void;
 }>();
 
-const currentIndex = ref(props.defaultIndex);
+// 注入 FormItemContext（在 FormItem 内使用时触发验证）
+const formItemContext = inject<FormItemContext | null>('formItemContext', null);
 
-const pickerStyleObj = computed(() => {
-  return addStyle(props.customStyle || {});
+// 内部维护的选中值（非受控模式）
+const internalValue = ref<string | number | undefined>(props.defaultValue);
+
+// 当前选中值（受控模式优先，否则使用内部值）
+const currentValue = computed(() => {
+  if (props.value !== undefined) {
+    return props.value; // 受控模式
+  }
+  return internalValue.value ?? props.options[0]?.value; // 非受控模式
 });
 
-const displayColumns = computed(() => {
-  if (props.columns.length === 0) return [];
-  if (Array.isArray(props.columns[0]) || (props.columns[0] && props.columns[0].values)) {
-    return props.columns[0].values || props.columns[0];
-  }
-  return props.columns;
+// 根据值计算索引
+const currentIndex = computed(() => {
+  const idx = props.options.findIndex(opt => opt.value === currentValue.value);
+  return idx >= 0 ? idx : 0;
 });
 
-const getItemText = (item: any) => {
-  if (typeof item === 'object' && item !== null) {
-    return item.text || item.label || item.name || '';
-  }
-  return String(item);
-};
-
-const getItemValue = (item: any) => {
-  if (typeof item === 'object' && item !== null) {
-    return item.value !== undefined ? item.value : item;
-  }
-  return item;
-};
-
+// picker-view change 事件
 const onChange = (e: any) => {
   const index = e.detail.value[0];
-  currentIndex.value = index;
-  const value = getItemValue(displayColumns.value[index]);
-  emit('change', value);
-};
-
-const onConfirm = () => {
-  const value = getItemValue(displayColumns.value[currentIndex.value]);
-  emit('confirm', value);
-  emit('close');
-};
-
-const onCancel = () => {
-  emit('cancel');
-  emit('close');
-};
-
-const onClose = () => {
-  emit('close');
-};
-
-watch(
-  () => props.defaultIndex,
-  newVal => {
-    currentIndex.value = newVal;
+  const option = props.options[index];
+  if (option) {
+    // 非受控模式：更新内部值
+    internalValue.value = option.value;
+    // 通知外部
+    emit('update:value', option.value);
+    emit('change', option.value);
+    // 触发 FormItem 验证（change 触发）
+    formItemContext?.onValueChange(option.value);
   }
+};
+
+// 确认选择
+const onConfirm = () => {
+  const option = props.options[currentIndex.value];
+  if (option) {
+    emit('confirm', option.value);
+    // 触发 FormItem 验证（change 触发）
+    formItemContext?.onValueChange(option.value);
+  }
+  emit('update:show', false);
+};
+
+// 取消/关闭
+const onClose = () => {
+  emit('cancel');
+  emit('update:show', false);
+};
+
+// 弹层状态同步
+const onUpdateShow = (val: boolean) => {
+  emit('update:show', val);
+};
+
+// 监听 defaultValue 变化，更新内部值（非受控模式初始化）
+watch(
+  () => props.defaultValue,
+  newVal => {
+    if (props.value === undefined && newVal !== undefined) {
+      internalValue.value = newVal;
+    }
+  }
+);
+
+// 监听 options 变化，确保当前值仍然有效
+watch(
+  () => props.options,
+  () => {
+    // 如果当前值不在 options 中，重置为第一个选项
+    const exists = props.options.some(opt => opt.value === currentValue.value);
+    if (!exists && props.options.length > 0) {
+      const firstValue = props.options[0].value;
+      internalValue.value = firstValue;
+      emit('update:value', firstValue);
+    }
+  },
+  { deep: true }
 );
 </script>
 
 <style scoped lang="scss">
 .tsm-picker {
-  background-color: #ffffff;
-  border-radius: 12px 12px 0 0;
+  :deep(.tsm-popup-content-body) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+.tsm-picker__content {
+  height: 220px;
   overflow: hidden;
 }
 
-.tsm-picker__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebedf0;
-}
-
-.tsm-picker__cancel {
-  color: #909399;
-  font-size: 14px;
-}
-
-.tsm-picker__title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
-}
-
-.tsm-picker__confirm {
-  color: #2979ff;
-  font-size: 14px;
-}
-
 .tsm-picker__view {
-  height: 200px;
+  height: 100%;
 }
 
 .tsm-picker__item {
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  font-size: 14px;
-  color: #303133;
+  color: var(--tsm-color-text-primary);
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-l);
+}
+
+.tsm-picker__item--active {
+  font-size: var(--tsm-font-size-text-2xl);
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xl);
+}
+
+:deep(.tsm-picker__indicator) {
+  height: 48px;
+  background-color: var(--tsm-color-bg-tertiary);
+  border-radius: var(--tsm-radius-m);
+  z-index: 0 !important;
+}
+// 隐藏 picker-view 默认的上下细线边框（通过伪元素实现）
+:deep(.tsm-picker__indicator)::before,
+:deep(.tsm-picker__indicator)::after {
+  display: none;
+}
+
+:deep(.tsm-picker__mask) {
+  background-image:
+    /* 上半部分渐变：从顶部浓 → 50%位置透明 */
+    linear-gradient(180deg, hsla(0, 0%, 100%, 0.95) 0%, hsla(0, 0%, 100%, 0) 50%),
+    /* 下半部分渐变：从底部浓 → 50%位置透明 */
+    linear-gradient(0deg, hsla(0, 0%, 100%, 0.95) 0%, hsla(0, 0%, 100%, 0) 50%);
+}
+
+.tsm-picker__footer {
+  width: 100%;
 }
 </style>

@@ -1,0 +1,11 @@
+export interface ThemeProviderProps {
+  mode?: 'light' | 'dark';
+  customClass?: string;
+  customStyle?: UTSJSONObject;
+}
+
+export const defaultProps = {
+  mode: null,
+  customClass: '',
+  customStyle: () => ({})
+} as UTSJSONObject;

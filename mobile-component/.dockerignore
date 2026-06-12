@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+pnpm-lock.yaml
+.npm
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Build outputs (will be rebuilt inside Docker)
+apps/playground/uniapp-project/unpackage
+apps/docs/.vitepress/cache
+apps/docs/.vitepress/dist
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage
+
+# Temp
+.turbo
+.cache
+temp
+tmp
+
+# Documentation generated files (regenerate in Docker)
+apps/docs/components/uniapp/
+apps/docs/components/uniapp-x/

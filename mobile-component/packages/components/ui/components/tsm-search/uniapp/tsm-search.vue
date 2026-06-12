@@ -6,6 +6,7 @@
       :placeholder="placeholder"
       :disabled="disabled"
       :clearable="clearable"
+      :size="size"
       @input="handleInput"
       @confirm="handleConfirm"
       @blur="handleBlur"
@@ -13,7 +14,7 @@
       @focus="handleFocus"
     >
       <template #prefix>
-        <icon-search color="var(--tsm-color-text-placeholder" />
+        <icon-search class="tsm-search-icon" :class="{ 'tsm-search-icon-text': inputValue }" />
       </template>
     </tsm-input>
     <view class="tsm-search-btn" @click="handleFilterBtnClick" v-if="showFilterBtn">
@@ -91,14 +92,28 @@ const handleClear = () => {
   align-items: center;
   justify-content: center;
   gap: var(--tsm-spacing-xl);
+  :deep(.tsm-input-bg) {
+    display: none;
+  }
   :deep(.tsm-input-group) {
-    border: none;
+    box-shadow: none;
+    padding: var(--tsm-spacing-m);
     background-color: var(--tsm-color-bg-tertiary);
+  }
+  :deep(.tsm-input--focused .tsm-input-prefix) {
+    color: var(--tsm-color-primary);
+  }
+  .tsm-search-icon {
+    color: var(--tsm-color-text-placeholder);
+  }
+  .tsm-search-icon-text {
+    color: var(--tsm-color-text-secondary) !important;
   }
 }
 .tsm-search--white {
   :deep(.tsm-input-group) {
     background-color: var(--tsm-color-bg-white);
+    box-shadow: none;
   }
 }
 .tsm-search--round {

@@ -4,9 +4,9 @@ avatar 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,16 +14,23 @@ avatar 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| src | 头像图片地址 | string | 否 | - |
-| shape | 头像形状 | 'circle' \| 'square' | 否 | 'circle' |
-| size | 头像大小 | number \| string | 否 | 40 |
-| text | 头像文字 | string | 否 | - |
-| bgColor | 背景颜色 | string | 否 | '#c0c4cc' |
-| color | 文字颜色 | string | 否 | '#ffffff' |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名      | 说明                                  | 类型                                                | 是否必填 | 默认值    |
+| ----------- | ------------------------------------- | --------------------------------------------------- | -------- | --------- |
+| type        | 头像类型                              | `'picture' \| 'icon' \| 'text'`                     | 否       | 'picture' |
+| property    | icon 类型头像属性，当type为icon时生效 | `'user' \| 'organization' \| 'group' \| 'material'` | 否       | 'user'    |
+| text        | 头像文本内容                          | `string`                                            | 否       | -         |
+| src         | 头像图片地址，当type为picture时生效   | `string`                                            | 否       | -         |
+| size        | 头像大小                              | `'xs' \| 's' \| 'm' \| 'l' \| 'xl'`                 | 否       | 'm'       |
+| bgColor     | 背景颜色                              | `string`                                            | 否       | -         |
+| color       | 文字颜色                              | `string`                                            | 否       | -         |
+| borderColor | 边框颜色                              | `string`                                            | 否       | -         |
+
+## Slots
+
+| 插槽名 | 说明                                              |
+| ------ | ------------------------------------------------- |
+| icon   | 插槽：icon - 自定义图标内容（type="icon" 时显示） |
+| text   | 插槽：text - 自定义文本内容（type="text" 时显示） |
 
 <style>
 table {

@@ -83,15 +83,13 @@ const bemClass = computed(() => {
 
 .tsm-tabbar--capsule {
   border-radius: 296px;
-  background:
-    linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), linear-gradient(0deg, #ddd 0%, #ddd 100%),
-    rgba(255, 255, 255, 0.65);
-  background-blend-mode: darken, color-burn, normal;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.12);
   :deep(.tsm-tabbar-item--active) {
     border-radius: var(--tsm-radius-full);
-    background: var(--tsm-color-bg-secondary);
-    mix-blend-mode: plus-darker;
+    background: var(--tsm-color-overlay-scrim);
   }
 }
 </style>

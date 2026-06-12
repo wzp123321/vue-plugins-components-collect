@@ -1,0 +1,113 @@
+// 开关节点内边距
+export const SWITCH_PADDING = 4;
+// 大尺寸宽度
+export const SWITCH_LARGE_WIDTH = 56;
+// 默认尺寸宽度
+export const SWITCH_MEDIUM_WIDTH = 48;
+// 小尺寸宽度
+export const SWITCH_SMALL_WIDTH = 40;
+// 大尺寸高度
+export const SWITCH_LARGE_HEIGHT = 32;
+// 默认尺寸高度
+export const SWITCH_MEDIUM_HEIGHT = 28;
+// 小尺寸高度
+export const SWITCH_SMALL_HEIGHT = 24;
+// 大尺寸开关节点宽度
+export const SWITCH_LARGE_NODE_WIDTH = 24;
+// 默认尺寸开关节点宽度
+export const SWITCH_MEDIUM_NODE_WIDTH = 20;
+// 小尺寸开关节点宽度
+export const SWITCH_SMALL_NODE_WIDTH = 16;
+// 大尺寸文字大小
+export const SWITCH_LARGE_TEXT_SIZE = 16;
+// 默认尺寸文字大小
+export const SWITCH_MEDIUM_TEXT_SIZE = 14;
+// 小尺寸文字大小
+export const SWITCH_SMALL_TEXT_SIZE = 12;
+
+/**
+ * 根据开关尺寸获取开关宽度和高度
+ * @param size 开关尺寸
+ * @returns 开关宽度和高度
+ */
+export const getSwitchSize = (size: string): UTSJSONObject => {
+  switch (size) {
+    case 'large':
+      return {
+        width: SWITCH_LARGE_WIDTH,
+        height: SWITCH_LARGE_HEIGHT,
+      };
+    case 'medium':
+      return {
+        width: SWITCH_MEDIUM_WIDTH,
+        height: SWITCH_MEDIUM_HEIGHT,
+      };
+    case 'small':
+      return {
+        width: SWITCH_SMALL_WIDTH,
+        height: SWITCH_SMALL_HEIGHT,
+      };
+    default:
+      return {
+        width: SWITCH_MEDIUM_WIDTH,
+        height: SWITCH_MEDIUM_HEIGHT,
+      };
+  }
+};
+
+/**
+ * 根据开关尺寸获取开关节点宽度
+ * @param size 开关尺寸
+ * @returns 开关节点宽度
+ */
+export const getNodeWidthBySize = (size: string): number => {
+  switch (size) {
+    case 'large':
+      return SWITCH_LARGE_NODE_WIDTH;
+    case 'medium':
+      return SWITCH_MEDIUM_NODE_WIDTH;
+    case 'small':
+      return SWITCH_SMALL_NODE_WIDTH;
+    default:
+      return SWITCH_MEDIUM_NODE_WIDTH;
+  }
+};
+
+export interface SwitchProps {
+  /** 是否选中 */
+  checked?: any;
+  /** 是否禁用 */
+  disabled?: boolean;
+  /** 是否只读（只展示状态，不可切换） */
+  readonly?: boolean;
+  /** 选中时的值 */
+  activeValue?: any;
+  /** 未选中时的值 */
+  inactiveValue?: any;
+  /** 选中时的颜色 */
+  activeColor?: string;
+  /** 未选中时的颜色 */
+  inactiveColor?: string;
+  /** 是否显示文字 */
+  inactiveText?: boolean;
+  /** 开关尺寸: large || medium || small */
+  size?: 'large' | 'medium' | 'small';
+  /** 选中时的文字 */
+  checkedText?: string;
+  /** 未选中时的文字 */
+  unCheckedText?: string;
+}
+
+export const defaultProps = {
+  checked: false,
+  disabled: false,
+  readonly: false,
+  activeValue: true,
+  inactiveValue: false,
+  activeColor: 'var(--tsm-color-primary)',
+  inactiveColor: 'var(--tsm-color-bg-secondary)',
+  inactiveText: false,
+  checkedText: '开',
+  unCheckedText: '关',
+  size: 'medium',
+} as UTSJSONObject;

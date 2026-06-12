@@ -4,9 +4,9 @@ tag 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,17 +14,48 @@ tag 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| type | 标签类型 | 'primary' \| 'success' \| 'warning' \| 'error' \| 'info' | 否 | 'info' |
-| size | 标签大小 | 'small' \| 'medium' \| 'large' | 否 | 'medium' |
-| shape | 标签形状 | 'square' \| 'circle' \| 'mark' | 否 | 'square' |
-| text | 标签文字 | string | 否 | - |
-| bgColor | 背景颜色 | string | 否 | - |
-| color | 文字颜色 | string | 否 | - |
-| closable | 是否可关闭 | boolean | 否 | false |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名     | 说明                                        | 类型                                                          | 是否必填 | 默认值    |
+| ---------- | ------------------------------------------- | ------------------------------------------------------------- | -------- | --------- |
+| selectable | 是否为可选中标签                            | `boolean`                                                     | 否       | false     |
+| selectType | 可选中标签类型                              | `'input' \| 'select'`                                         | 否       | 'select'  |
+| type       | 标签类型                                    | `'default' \| 'primary' \| 'success' \| 'warning' \| 'error'` | 否       | 'default' |
+| size       | 标签大小                                    | `'small' \| 'medium' \| 'large'`                              | 否       | 'medium'  |
+| shape      | 标签形状 默认 square，可选 bubble，对应气泡 | `'square' \| 'bubble'`                                        | 否       | 'square'  |
+| text       | 标签文字                                    | `string`                                                      | 否       | -         |
+| value      | 可操作标签唯一标识                          | `string \| number \| null`                                    | 否       | -         |
+| label      | select 类型中间展示文本                     | `string`                                                      | 否       | -         |
+| selected   | select 类型选中状态                         | `boolean`                                                     | 否       | false     |
+| disabled   | 是否禁用                                    | `boolean`                                                     | 否       | false     |
+| closable   | 是否可关闭                                  | `boolean`                                                     | 否       | false     |
+| borderless | 是否显示边框                                | `boolean`                                                     | 否       | false     |
+
+## Events
+
+| 事件名 | 说明               | 参数 |
+| ------ | ------------------ | ---- |
+| click  | 点击标签时触发     | `-`  |
+| close  | 点击关闭按钮时触发 | `-`  |
+| change | 标签状态变化时触发 | `[   |
+
+    {
+      selected: boolean;
+      value: string \| number \| null \| undefined;
+      label: string \| undefined;
+      selectType: 'input' \| 'select';
+    },
+
+]`|
+| update | 更新选中状态 |`selected': [value: boolean]`|
+| update | 更新绑定值 |`value': [value: string \| number \| null]` |
+
+## Slots
+
+| 插槽名  | 说明 |
+| ------- | ---- |
+| icon    | -    |
+| default | -    |
+| default | -    |
+| default | -    |
 
 <style>
 table {

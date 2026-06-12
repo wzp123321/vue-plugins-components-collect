@@ -1,0 +1,344 @@
+<template>
+  <tsm-theme-provider>
+    <view class="container">
+      <text class="title">Badge 徽章组件</text>
+
+      <view class="section">
+        <text class="section-title">基础用法</text>
+        <view class="badge-group">
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">红点徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge value="99" :is-dot="true"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">数字徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge value="99" :is-dot="false" shape="circle"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">三角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge value="label" :is-dot="false" shape="ribbon-right"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">圆角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge value="label" :is-dot="false" shape="ribbon-round"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">气泡徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge value="label" :is-dot="false" shape="bubble"></tsm-badge>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">large尺寸</text>
+        <view class="badge-group">
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">红点徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="99" :is-dot="true"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">数字徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="99" :is-dot="false" shape="circle"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">三角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="label" :is-dot="false" shape="ribbon-right"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">圆角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="label" :is-dot="false" shape="ribbon-round"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">气泡徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="label" :is-dot="false" shape="bubble"></tsm-badge>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">不同主题</text>
+        <view class="badge-group">
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">红点徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="99" :is-dot="true"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">数字徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" value="9" :is-dot="false" shape="circle"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">三角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" mode="warning" value="label" :is-dot="false" shape="ribbon-right"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">圆角徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" mode="primary" value="label" :is-dot="false" shape="ribbon-round"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">气泡徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" mode="success" value="label" :is-dot="false" shape="bubble"></tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">气泡徽标</view>
+            <view class="badge-wrapper">
+              <tsm-badge size="large" mode="info" value="label" :is-dot="false" shape="bubble"></tsm-badge>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">数值的格式化处理</text>
+        <view class="badge-group">
+          <view class="badge-group__item">
+            <view class="badge-wrapper">
+              <tsm-badge shape="circle" number-type="overflow" :max="99" value="999"></tsm-badge>
+            </view>
+            <view class="badge-wrapper">
+              <tsm-badge shape="circle" number-type="ellipsis" value="99999"></tsm-badge>
+            </view>
+            <view class="badge-wrapper">
+              <tsm-badge shape="circle" number-type="limit" value="990009"></tsm-badge>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">不同形状+主题+mode</text>
+        <view v-for="s in shape" :key="s">
+          <view class="shape-title">{{ s }}</view>
+          <view class="badge-group">
+            <view v-for="m in mode" :key="m" class="badge-group__item">
+              <view class="badge-group__item-title">{{ m }}</view>
+              <view class="badge-size-group">
+                <view class="badge-wrapper">
+                  <tsm-badge
+                    size="medium"
+                    :mode="m"
+                    theme="default"
+                    :value="s === 'circle' ? 99 : 'label'"
+                    :is-dot="false"
+                    :shape="s"
+                  ></tsm-badge>
+                </view>
+                <view class="badge-wrapper">
+                  <tsm-badge
+                    size="medium"
+                    :mode="m"
+                    theme="light"
+                    :value="s === 'circle' ? 99 : 'label'"
+                    :is-dot="false"
+                    :shape="s"
+                  ></tsm-badge>
+                </view>
+                <view class="badge-wrapper">
+                  <tsm-badge
+                    size="large"
+                    :mode="m"
+                    theme="default"
+                    :value="s === 'circle' ? 99 : 'label'"
+                    :is-dot="false"
+                    :shape="s"
+                  ></tsm-badge>
+                </view>
+                <view class="badge-wrapper">
+                  <tsm-badge
+                    size="large"
+                    :mode="m"
+                    theme="light"
+                    :value="s === 'circle' ? 99 : 'label'"
+                    :is-dot="false"
+                    :shape="s"
+                  ></tsm-badge>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">绝对定位（absolute）</text>
+        <view class="badge-group">
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">红点徽标</view>
+            <view class="badge-with-content">
+              <tsm-badge :absolute="true" value="99" :is-dot="true">
+              <view class="badge-with-content__block"></view>
+
+              </tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">数字徽标</view>
+            <view class="badge-with-content">
+              <tsm-badge :absolute="true" value="9" :is-dot="false" shape="circle">
+              <view class="badge-with-content__block"></view>
+
+              </tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">三角徽标</view>
+            <view class="badge-with-content">
+              <tsm-badge :absolute="true" mode="warning" value="label"  :is-dot="false" shape="ribbon-right">
+              <view class="badge-with-content__block"></view>
+
+              </tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">圆角徽标</view>
+            <view class="badge-with-content">
+              <tsm-badge :absolute="true" mode="primary" value="label" :is-dot="false" shape="ribbon-round">
+              <view class="badge-with-content__block"></view>
+
+              </tsm-badge>
+            </view>
+          </view>
+          <view class="badge-group__item">
+            <view class="badge-group__item-title">气泡徽标</view>
+            <view class="badge-with-content">
+              <tsm-badge :absolute="true" mode="success" value="label" :is-dot="false" shape="bubble">
+              <view class="badge-with-content__block"></view>
+
+              </tsm-badge>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </tsm-theme-provider>
+</template>
+
+<script lang="ts" setup>
+const mode = ['error', 'primary', 'success', 'warning', 'info'];
+const shape = ['circle', 'ribbon-right', 'ribbon-round', 'bubble'];
+</script>
+
+<style scoped lang="scss">
+@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+
+.container {
+  padding: 12px;
+  background: #f7f8fa;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #111827;
+}
+
+.section {
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-bottom: -15px;
+}
+
+.badge-group__item {
+  margin-right: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.badge-group__item-block {
+  width: 40px;
+  height: 40px;
+  background-color: #999;
+  margin-bottom: 16px;
+}
+
+.badge-group__item-title {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.shape-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 10px 0 8px;
+  color: #111827;
+}
+
+.badge-size-group {
+  display: flex;
+}
+
+.badge-size-group .badge-wrapper {
+  margin-right: 8px;
+}
+
+.badge-wrapper {
+  display: flex;
+  position: relative;
+}
+
+.badge-with-content {
+  position: relative;
+  display: flex;
+}
+
+.badge-with-content__block {
+  width: 40px;
+  height: 40px;
+  background-color: #999;
+}
+
+.event-log {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6b7280;
+}
+</style>

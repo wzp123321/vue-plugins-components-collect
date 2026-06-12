@@ -1,119 +1,159 @@
-/**
- * TabbarItem 底部导航项组件
- * @description 底部导航项组件，需要配合tsm-tabbar使用
- */
+/** * TabbarItem 底部导航项组件 * @description 底部导航项组件，需要配合tsm-tabbar使用 */
 <template>
-  <view
-    class="tsm-tabbar-item"
-    :class="bemClass"
-    :style="customStyle"
-    @tap="onClick"
-  >
-    <view class="tsm-tabbar-item__icon">
-      <icon-setting />
-      <view v-if="dot" class="tsm-tabbar-item__dot"></view>
-      <view v-else-if="badge" class="tsm-tabbar-item__badge">{{ badge }}</view>
-    </view>
-    <text
-      class="tsm-tabbar-item__text"
-      :style="{ color: isActive ? parentData.activeColor : parentData.inactiveColor }"
-    >{{ text }}</text>
-  </view>
+	<view class="tsm-tabbar-item"  :class="{'tsm-tabbar-item--active':isActive}" :style="customStyle" @tap="onClick">
+		<view class="tsm-tabbar-item-icon">
+			<img class="tsm-tabbar-item-icon-img" :src="icon" v-if="typeof icon === 'string'" />
+			<component class="tsm-tabbar-item-icon-img" :is="icon" v-else-if="icon !== null"></component>
+			<!-- 角标 -->
+			<view v-if="badge > 1" class="tsm-tabbar-item-badge" :class="`tsm-tabbar-item-badge--${badgeType}`">
+				<text v-if="badgeType === 'circle' && badge <= 99" class="tsm-tabbar-item-badge-text">{{ badge }}</text>
+				<text v-else-if="badgeType === 'circle'" class="tsm-tabbar-item-badge-text">99+</text>
+			</view>
+		</view>
+		<text class="tsm-tabbar-item-text" :class="{'tsm-tabbar-item-text-active':isActive}">{{ text }}</text>
+	</view>
 </template>
 
-<script setup lang="uts">
-import { ref, computed, inject, onMounted } from 'vue';
-import type { TabbarItemProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+<script setup lang="ts">
+	import { type Ref, ref, computed, inject, onMounted, type Component } from 'vue';
+	import { bem } from '../../../libs/uniapp-x/function/index';
+	import {ff} from '../../tsm-tabbar/uniapp-x/props.uts'
+	const props = withDefaults(defineProps<{
+		text ?: string;
+		icon ?: string | Component;
+		badge : number;
+		badgeType ?: 'dot' | 'circle';
+		customClass ?: string;
+		customStyle ?: any;
+	}>(), {
+		text: '',
+		icon: null,
+		badge: 0,
+		badgeType: 'dot',
+		customClass: '',
+		customStyle: () => ({}),
+	});
+	const emit = defineEmits<{
+		click : [];
+	}>();
 
-const rawProps = defineProps<TabbarItemProps>();
-const props = { ...defaultProps, ...rawProps } as TabbarItemProps;
+	const tabbarContext = inject<UTSJSONObject>('tabbarContext');
+	const itemIndex = ref(0);
 
-const emit = defineEmits<{
-  click: [];
-}>();
+	const callSetItemIndex = (index: Ref<number>) => {
+		if (tabbarContext !==null && typeof (tabbarContext as UTSJSONObject)['setItemIndex'] === 'function') {
+			((tabbarContext as UTSJSONObject)['setItemIndex'] as (index: Ref<number>) => void)(index);
+		}
+	};
 
-const parentData = inject<any>('tabbarData', {
-  value: 0,
-  activeColor: '#2979ff',
-  inactiveColor: '#909399'
-});
+	const callRegisterItem = (textStr: string , iconStr: any) => {
+		if (tabbarContext !==null && typeof (tabbarContext as UTSJSONObject)['registerItem'] === 'function') {
+			((tabbarContext as UTSJSONObject)['registerItem'] as (item: ff) => void)( {
+				text: textStr,
+				icon: iconStr
+			});
+		}
+	};
 
-const parentUpdateValue = inject<(value: number) => void>('tabbarUpdateValue', () => {});
+	const getCurrentIndex = (): number => {
+		if (tabbarContext !==null && (tabbarContext as UTSJSONObject)['currentIndex'] != null) {
+			return ((tabbarContext as UTSJSONObject)['currentIndex'] as Ref<number>).value;
+		}
+		return -1;
+	};
 
-const itemIndex = ref(0);
+	onMounted(() => {
+		if(tabbarContext !== null){
+			callSetItemIndex(itemIndex);
+			callRegisterItem(props.text, props.icon as any);
+		}
+	});
 
-const isActive = computed(() => {
-  return parentData.value === itemIndex.value;
-});
+	const isActive = computed(() => {
+		if(tabbarContext !== null){
+			return  getCurrentIndex() === itemIndex.value;
+		}
+		return false;
+	});
 
-const bemClass = computed(() => {
-  return bem('tabbar-item', [
-    isActive.value ? 'active' : ''
-  ], {}, props.customClass);
-});
+	const onClick = () => {
+		if(tabbarContext !== null){
+			if (typeof (tabbarContext as UTSJSONObject)['onItemClick'] === 'function') {
+				((tabbarContext as UTSJSONObject)['onItemClick'] as (index: number) => void)(itemIndex.value);
+			}
+		}
+		emit('click');
+	};
 
-const onClick = () => {
-  parentUpdateValue(itemIndex.value);
-  emit('click');
-};
-
-onMounted(() => {
-  const parent = inject<any>('tabbarChildren', null);
-  if (parent && parent.addChild) {
-    parent.addChild(itemIndex);
-  }
-});
 </script>
 
 <style scoped lang="scss">
-.tsm-tabbar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0;
-  cursor: pointer;
-}
+	.tsm-tabbar-item {
+		flex: 1;
+		height: 48px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		padding: 0 var(--tsm-spacing-2xl);
 
-.tsm-tabbar-item__icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
+		.tsm-tabbar-item-icon {
+			position: relative;
+			margin-bottom: 3px;
+			overflow: visible;
 
-.tsm-tabbar-item__dot {
-  position: absolute;
-  top: -2px;
-  right: -6px;
-  width: 8px;
-  height: 8px;
-  background-color: #fa3534;
-  border-radius: 100%;
-}
+			.tsm-tabbar-item-icon-img {
+				width: 24px;
+				height: 24px;
+				color: var(--tsm-color-text-secondary);
+			}
+		}
 
-.tsm-tabbar-item__badge {
-  position: absolute;
-  top: -6px;
-  right: -10px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  background-color: #fa3534;
-  border-radius: 100px;
-  color: #ffffff;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+		.tsm-tabbar-item-text {
+			color: var(--tsm-color-text-secondary);
+			text-align: center;
+			font-family: var(--tsm-font-family-regular);
+			font-size: var(--tsm-font-size-text-2xs);
+			font-style: normal;
+			font-weight: var(-tsm-font-weight-regular);
+			line-height: var(--tsm-line-height-text-2xs);
+		}
+		.tsm-tabbar-item-text-active{
+			color: var(--tsm-color-primary);
+		}
+		.tsm-tabbar-item-badge {
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			border-radius: var(--tsm-radius-full);
+			border: 1px solid var(--tsm-color-text-white);
+			background: var(--tsm-color-danger);
+		}
 
-.tsm-tabbar-item__text {
-  font-size: 10px;
-  line-height: 14px;
-}
+		.tsm-tabbar-item-badge--dot {
+			top: -2px;
+			right: -8px;
+			min-width: 8px;
+			height: 8px;
+			padding: 0;
+		}
+
+		.tsm-tabbar-item-badge--circle {
+			top: -4px;
+			right: -12px;
+			height: 14px;
+			min-width: 14px;
+			padding: 0 var(--tsm-spacing-2xs);
+		}
+
+		.tsm-tabbar-item-badge-text {
+			font-size: 10px;
+			color: white;
+			font-weight: 400;
+		}
+	}
+
 </style>

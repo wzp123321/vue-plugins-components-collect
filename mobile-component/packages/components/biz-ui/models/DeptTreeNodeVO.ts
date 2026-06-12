@@ -1,0 +1,32 @@
+export default class DeptTreeNodeVO {
+	// 部门ID
+	id: Nullable<string>;
+	// 部门名称
+	name: Nullable<string>;
+	// 部门编码
+	code: Nullable<string>;
+	// 上级部门ID
+	parentId: Nullable<string>;
+	// 上级部门名称
+	parentName: Nullable<string>;
+	// 部门简称
+	shortName: Nullable<string>;
+	// 部门属性：9-部门、8-班组
+	typeNo: Nullable<number>;
+	// 部门属性名称
+	typeName: Nullable<string>;
+	// 部门负责人员工id
+	managerId: Nullable<string>;
+	// 部门负责人
+	managerName: Nullable<string>;
+	// 关联院区编码，多个之间以英文逗号隔开
+	campus: Nullable<string>;
+	// 部门电话
+	phone: Nullable<string>;
+	// 部门描述
+	description: Nullable<string>;
+	// 是否有下属部门
+	hasChildren: Nullable<boolean>;
+	// 直属下级部门
+	children: Nullable<DeptTreeNodeVO[]>;
+}

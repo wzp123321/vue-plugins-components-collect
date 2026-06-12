@@ -1,7 +1,14 @@
 /** * Overlay 遮罩层组件 * @description 遮罩层组件，用于覆盖在页面上 */
 <template>
-  <tsm-transition :show="show" mode="fade" :duration="duration">
-    <view class="tsm-overlay" :class="[customClass]" :style="overlayStyle" @tap="onClick"></view>
+  <tsm-transition
+    class="tsm-overlay"
+    :class="[customClass]"
+    :show="show"
+    mode="fade"
+    :duration="duration"
+    :customStyle="overlayStyle"
+    @tap="onClick"
+  >
   </tsm-transition>
 </template>
 

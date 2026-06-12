@@ -1,69 +1,137 @@
 <template>
   <tsm-theme-provider>
     <view class="container">
-      <text class="title">Button 按钮</text>
-    
-    <view class="section">
-      <text class="section-title">基础用法</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary">主要按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="default">默认按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="info">信息按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="success">成功按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="warning">警告按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="danger">危险按钮</tsm-button></view>
+      <view class="header">
+        <text class="title">Button 按钮</text>
+        <text class="subtitle">按钮用于触发操作，支持多种类型和状态</text>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">不同尺寸</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" size="large">大号按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="primary">默认按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="primary" size="small">小号按钮</tsm-button></view>
+
+      <!-- solid -->
+      <view class="demo-card">
+        <text class="section-title">Solid</text>
+        <view class="button-row">
+          <tsm-button type="solid" theme="primary" label="primary" />
+          <tsm-button type="solid" theme="danger" label="danger" />
+          <tsm-button type="solid" theme="primary" disabled label="disabled" />
+          <tsm-button type="solid" theme="primary" loading label="loading" />
+        </view>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">禁用状态</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" disabled>禁用的主要按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="default" disabled>禁用的默认按钮</tsm-button></view>
+
+      <!-- outline -->
+      <view class="demo-card">
+        <text class="section-title">Outline</text>
+        <view class="button-row">
+          <tsm-button type="outline" theme="primary" label="primary" />
+          <tsm-button type="outline" theme="danger" label="danger" />
+          <tsm-button type="outline" theme="default" label="default" />
+          <tsm-button type="outline" theme="primary" disabled label="disabled" />
+          <tsm-button type="outline" theme="primary" loading label="loading" />
+        </view>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">加载状态</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" loading>加载中的按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="default" loading>加载中的按钮</tsm-button></view>
+
+      <!-- text / link / dash -->
+      <view class="demo-card">
+        <text class="section-title">Text / Link / Dash</text>
+        <view class="button-row">
+          <tsm-button type="text" theme="primary" label="text" />
+          <tsm-button type="text" theme="primary" disabled label="disabled" />
+          <tsm-button type="link" theme="primary" size="s" label="link" />
+          <tsm-button type="dash" theme="default" label="dash" />
+        </view>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">图标按钮</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" icon="search">搜索</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="default" icon="close">关闭</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="primary" icon="search"></tsm-button></view>
+
+      <!-- ghost -->
+      <view class="demo-card dark-section">
+        <text class="section-title" style="color: #fff">Ghost</text>
+        <view class="button-row">
+          <tsm-button type="ghost" theme="primary" label="primary" />
+          <tsm-button type="ghost" theme="danger" label="danger" />
+          <tsm-button type="ghost" theme="primary" disabled label="disabled" />
+          <tsm-button type="ghost" theme="primary" loading label="loading" />
+        </view>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">按钮形状</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" shape="square">方形按钮</tsm-button></view>
-        <view class="button-group__item"><tsm-button type="primary" shape="round">圆形按钮</tsm-button></view>
+
+      <!-- size + shape -->
+      <view class="demo-card">
+        <text class="section-title">Size & Shape</text>
+        <view class="button-row">
+          <tsm-button type="solid" theme="primary" size="xs" label="xs" />
+          <tsm-button type="solid" theme="primary" size="s" label="s" />
+          <tsm-button type="solid" theme="primary" size="m" label="m" />
+          <tsm-button type="solid" theme="primary" size="l" label="l" />
+        </view>
+        <view class="button-row button-row-mt">
+          <tsm-button type="solid" theme="primary" shape="round" label="round" />
+          <tsm-button type="solid" theme="primary" shape="circle" :prefixIcon="true">
+            <template #prefix-icon>+</template>
+          </tsm-button>
+        </view>
       </view>
-    </view>
-    
-    <view class="section">
-      <text class="section-title">事件处理</text>
-      <view class="button-group">
-        <view class="button-group__item"><tsm-button type="primary" @click="handleClick">点击我</tsm-button></view>
+
+      <!-- long -->
+      <view class="demo-card">
+        <text class="section-title">Long</text>
+        <tsm-button type="solid" theme="primary" long label="long button" />
       </view>
-      <text class="event-log" v-if="clickCount > 0">点击次数：{{ clickCount }}</text>
-    </view>
+
+      <!-- 动态状态切换 -->
+      <view class="demo-card">
+        <text class="section-title">动态状态</text>
+        <view class="button-row">
+          <tsm-button
+            type="solid"
+            theme="primary"
+            :loading="isLoading"
+            :label="isLoading ? '提交中...' : '提交表单'"
+            @tap="simulateSubmit"
+          />
+          <tsm-button
+            type="outline"
+            theme="primary"
+            :loading="isLoading2"
+            :label="isLoading2 ? '加载中...' : '加载数据'"
+            @tap="simulateLoad"
+          />
+        </view>
+        <view class="button-row button-row-mt">
+          <tsm-button type="solid" theme="danger" :disabled="!canDelete" label="删除" @tap="handleDelete" />
+          <tsm-button
+            type="outline"
+            theme="default"
+            size="s"
+            :label="canDelete ? '锁定' : '解锁'"
+            @tap="toggleDelete"
+          />
+        </view>
+        <text class="status-text">删除按钮状态：{{ canDelete ? '可用' : '禁用' }}</text>
+      </view>
+
+      <!-- 事件测试 -->
+      <view class="demo-card">
+        <text class="section-title">事件测试</text>
+        <view class="button-row">
+          <tsm-button type="solid" theme="primary" @tap="handleClick" label="点击我" />
+          <text v-if="clickCount > 0" class="click-count">点击次数：{{ clickCount }}</text>
+        </view>
+      </view>
+
+      <!-- button group -->
+      <view class="demo-card">
+        <text class="section-title">Button Group</text>
+        <view class="button-row">
+          <tsm-button-group>
+            <tsm-button type="solid" theme="primary" label="Button" />
+            <tsm-button type="solid" theme="primary" label="Button" />
+            <tsm-button type="solid" theme="primary" label="Button" />
+          </tsm-button-group>
+        </view>
+        <view class="button-row button-row-mt">
+          <tsm-button-group>
+            <tsm-button type="outline" theme="default" label="取消" />
+            <tsm-button type="solid" theme="primary" label="确认" />
+          </tsm-button-group>
+        </view>
+      </view>
     </view>
   </tsm-theme-provider>
 </template>
@@ -72,13 +140,50 @@
 import { ref } from 'vue'
 
 const clickCount = ref(0)
+const isLoading = ref(false)
+const isLoading2 = ref(false)
+const canDelete = ref(false)
 
 function handleClick() {
   clickCount.value++
   uni.showToast({
     title: '按钮被点击了！',
-    duration: 1500
+    duration: 1500,
   })
+}
+
+function simulateSubmit() {
+  if (isLoading.value) return
+  isLoading.value = true
+  setTimeout(() => {
+    isLoading.value = false
+    uni.showToast({ title: '提交成功！', icon: 'success' })
+  }, 2000)
+}
+
+function simulateLoad() {
+  if (isLoading2.value) return
+  isLoading2.value = true
+  setTimeout(() => {
+    isLoading2.value = false
+    uni.showToast({ title: '加载完成' })
+  }, 1500)
+}
+
+function handleDelete() {
+  uni.showModal({
+    title: '确认删除',
+    content: '确定要删除吗？',
+    success: function (res) {
+      if (res.confirm) {
+        uni.showToast({ title: '已删除', icon: 'success' })
+      }
+    },
+  })
+}
+
+function toggleDelete() {
+  canDelete.value = !canDelete.value
 }
 </script>
 
@@ -86,38 +191,82 @@ function handleClick() {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
-  padding: 20px;
+  padding: 12px;
+  background: #f7f8fa;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 10px 10px 4px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: 700;
   text-align: center;
+  color: #111827;
+  line-height: 1.2;
 }
 
-.section {
-  margin-bottom: 40px;
+.subtitle {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.demo-card {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.dark-section {
+  background-color: #1a1a2e;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: var(--tsm-color-info);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111827;
 }
 
-.button-group {
-  @include tsm-flex-wrap-gap-container(15px, 15px);
+.button-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.button-group__item {
-  @include tsm-flex-wrap-gap-item(15px, 15px);
+.button-row .tsm-button,
+.button-row .tsm-button-group {
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 
-.event-log {
-  margin-top: 20px;
-  font-size: 20px;
-  color: #999;
+.button-row-mt {
+  margin-top: 8px;
+}
+
+.status-text {
+  font-size: 14px;
+  color: #666;
+  margin-top: 8px;
+}
+
+.click-count {
+  font-size: 16px;
+  color: #6172f3;
+  font-weight: 700;
+  margin-left: 8px;
 }
 </style>

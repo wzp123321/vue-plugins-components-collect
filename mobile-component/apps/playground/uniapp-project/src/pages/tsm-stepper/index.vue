@@ -1,9 +1,11 @@
 <template>
   <tsm-theme-provider>
     <view class="container">
-      <text class="title">Stepper 步进器</text>
+      <view class="header">
+        <text class="title">Stepper 步进器</text>
+      </view>
 
-      <view class="section">
+      <view class="demo-card">
         <text class="section-title">基础用法</text>
         <view class="button-group">
           <view class="button-group__item">
@@ -12,8 +14,8 @@
         </view>
       </view>
 
-      <view class="section">
-        <text class="section-title">自定义step：2</text>
+      <view class="demo-card">
+        <text class="section-title">自定义 step：2</text>
         <view class="button-group">
           <view class="button-group__item is-flex">
             <tsm-stepper v-model="value2" :step="2"></tsm-stepper>
@@ -21,8 +23,8 @@
         </view>
       </view>
 
-      <view class="section">
-        <text class="section-title">small尺寸</text>
+      <view class="demo-card">
+        <text class="section-title">small 尺寸</text>
         <view class="button-group">
           <view class="button-group__item">
             <tsm-stepper v-model="value3" :small="true"></tsm-stepper>
@@ -30,7 +32,7 @@
         </view>
       </view>
 
-      <view class="section">
+      <view class="demo-card">
         <text class="section-title">禁用状态</text>
         <view class="button-group">
           <view class="button-group__item">
@@ -39,7 +41,7 @@
         </view>
       </view>
 
-      <view class="section">
+      <view class="demo-card">
         <text class="section-title">只读模式</text>
         <view class="button-group">
           <view class="button-group__item">
@@ -49,7 +51,7 @@
         </view>
       </view>
 
-      <view class="section">
+      <view class="demo-card">
         <text class="section-title">大小限制</text>
         <view class="button-group">
           <view class="button-group__item">
@@ -91,25 +93,38 @@ const handleChange = (e: any) => {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
-  padding: 20px;
+  padding: 12px;
+  background: #f7f8fa;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 10px 10px 4px;
+  margin-bottom: 10px;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: 700;
   text-align: center;
+  color: #111827;
+  line-height: 1.2;
 }
 
-.section {
-  margin-bottom: 40px;
+.demo-card {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  margin-bottom: 10px;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #666;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #111827;
 }
 
 .button-group {
@@ -133,8 +148,8 @@ const handleChange = (e: any) => {
 }
 
 .event-log {
-  margin-top: 20px;
-  font-size: 20px;
-  color: #999;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6b7280;
 }
 </style>

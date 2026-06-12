@@ -1,34 +1,45 @@
 /** * Input 输入框组件 * @description 输入框组件，用于文本输入 */
 <template>
   <view class="tsm-input" :class="bemClass" :style="customStyle">
-    <view class="tsm-input-group" ref="inputGroupRef">
-      <!-- 前缀图标 -->
-      <view class="tsm-input-prefix" v-if="$slots.prefix">
-        <slot name="prefix"></slot>
+    <view class="tsm-input-container">
+      <view class="tsm-input-group" :class="{ 'tsm-input-group-suffix': $slots.suffix }" ref="inputGroupRef">
+        <!-- 前缀图标 -->
+        <view class="tsm-input-prefix" v-if="$slots.prefix">
+          <slot name="prefix"></slot>
+        </view>
+        <!-- 输入框 -->
+        <input
+          class="tsm-input-field"
+          :value="inputValue"
+          :disabled="disabled"
+          cursor-color="#444CE7"
+          @input="handleInput"
+          @blur="handleBlur"
+          @focus="handleFocus"
+          :="$attrs"
+        />
+        <!-- 字数统计 -->
+        <view
+          v-if="showWordimit && maxlength > 0"
+          class="tsm-input-wordlimit"
+          :class="{ 'tsm-input-wordlimit-err': inputValue.length > maxlength }"
+        >
+          {{ inputValue.length }}/{{ maxlength }}
+        </view>
+        <!-- 清除按钮 -->
+        <icon-circle-close-fill
+          v-if="clearable && inputValue && !disabled"
+          class="tsm-input-clear"
+          @tap="handleClear"
+        />
       </view>
-      <!-- 输入框 -->
-      <input
-        class="tsm-input-field"
-        :value="inputValue"
-        :disabled="disabled"
-        :maxlength="maxlength"
-        @input="handleInput"
-        @blur="handleBlur"
-        @focus="handleFocus"
-        :="$attrs"
-      />
-      <!-- 字数统计 -->
-      <view v-if="showWordimit && maxlength > 0" class="tsm-input-wordlimit">
-        {{ inputValue.length }}/{{ maxlength }}
-      </view>
-      <!-- 清除按钮 -->
-      <icon-circle-close-fill v-if="clearable && inputValue && !disabled" class="tsm-input-clear" @tap="handleClear" />
       <!-- 后缀插槽 -->
       <view class="tsm-input-suffix" v-if="$slots.suffix">
         <slot name="suffix"></slot>
-        <view v-if="disabled" class="tsm-input-suffix-overlay"></view>
       </view>
+      <view class="tsm-input-bg"></view>
     </view>
+
     <view class="tsm-input-readonly" :class="readonlyExpanded">
       <view class="tsm-input-readonly-content" ref="readonlyContentRef">{{ inputValue }}</view>
       <span class="tsm-input-readonly-btn" v-if="valueIsOverflowed" @tap="isReadonlyExpanded = !isReadonlyExpanded">
@@ -36,14 +47,14 @@
       </span>
     </view>
     <!-- 提示信息 -->
-    <view v-if="tips" class="tsm-input-tips">
+    <view v-if="tips && !readonly" class="tsm-input-tips">
       {{ tips }}
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, inject } from 'vue';
 import type { InputProps } from './props';
 import { defaultProps } from './props';
 import { bem } from '../../../libs/uniapp/function/index';
@@ -58,6 +69,8 @@ const emit = defineEmits<{
   clear: [];
   'update:modelValue': [value: string];
 }>();
+// Inject FormItem 上下文（默认 null，独立使用时正常）
+const formItemContext = inject<any>('formItemContext', null);
 const inputGroupRef = ref<any>(null);
 
 const focused = ref(false);
@@ -68,13 +81,19 @@ const inputValue = computed({
   },
   set: newValue => {
     emit('update:modelValue', newValue);
+    formItemContext?.onValueChange(newValue);
   },
 });
 
 const bemClass = computed(() => {
   return bem(
     'input',
-    [props.disabled ? 'disabled' : '', focused.value ? 'focused' : '', props.readonly ? 'readonly' : ''],
+    [
+      props.disabled ? 'disabled' : '',
+      focused.value ? 'focused' : '',
+      props.readonly || formItemContext?.readonly ? 'readonly' : '',
+      props.size === 'small' ? 'small' : '',
+    ],
     [],
     props.customClass
   );
@@ -98,6 +117,7 @@ const handleFocus = (event: any) => {
 const handleBlur = (event: any) => {
   focused.value = false;
   emit('blur', event);
+  formItemContext?.onBlur(props.modelValue);
 };
 
 const handleClear = () => {
@@ -116,7 +136,7 @@ watch(
   () => inputValue,
   () => {
     nextTick(() => {
-      if (props.readonly) {
+      if (props.readonly || formItemContext?.readonly) {
         let el = readonlyContentRef.value?.$el as HTMLElement;
         if (el.scrollWidth > el.clientWidth) {
           valueIsOverflowed.value = true;
@@ -136,25 +156,45 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--tsm-spacing-xs);
-  .tsm-input-group {
+  .tsm-input-container {
     height: 40px;
+    min-height: 40px;
+    display: flex;
+    position: relative;
+  }
+  .tsm-input-bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: var(--tsm-radius-m);
+    box-shadow: 0 1px 2px 0 var(--tsm-shadow-xs);
+  }
+  .tsm-input-group {
+    z-index: 2;
+    flex: 1 1 0;
+    height: 100%;
     display: flex;
     align-items: center;
     gap: var(--tsm-spacing-m);
-    min-height: 40px;
     box-sizing: border-box;
-    padding: var(--tsm-spacing-m) var(--tsm-spacing-xl);
+    padding: var(--tsm-spacing-m) var(--tsm-spacing-m) var(--tsm-spacing-m) var(--tsm-spacing-xl);
     border-radius: var(--tsm-radius-m);
-    border: 1px solid var(--tsm-color-border-primary);
     background-color: var(--tsm-color-bg-white);
-    box-shadow: 0 1px 2px 0 var(--tsm-shadow-xs);
+    box-shadow: inset 0 0 0 1px var(--tsm-color-border-primary);
+  }
+  .tsm-input-group-suffix {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
   .tsm-input-prefix {
     display: flex;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     justify-content: center;
     align-items: center;
+    color: var(--tsm-color-text-secondary);
   }
   .tsm-input-field {
     flex: 1;
@@ -178,20 +218,30 @@ watch(
     font-weight: var(-tsm-font-weight-regular);
     line-height: var(--tsm-line-height-text-s); /* 166.667% */
   }
+  .tsm-input-wordlimit-err {
+    color: var(--tsm-color-danger);
+  }
   .tsm-input-clear {
     display: flex;
     width: 20px;
     height: 20px;
     justify-content: center;
     align-items: center;
-    :deep(> svg) {
-      color: var(--tsm-color-text-placeholder) !important;
-    }
+    color: var(--tsm-color-text-placeholder);
   }
   .tsm-input-suffix {
-    border-left: 1px solid var(--tsm-color-border-primary);
-    padding-left: var(--tsm-spacing-xl);
-    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    color: var(--tsm-color-primary);
+    border: 1px solid var(--tsm-color-border-primary);
+    border-left: none;
+    border-top-right-radius: var(--tsm-radius-m);
+    border-bottom-right-radius: var(--tsm-radius-m);
+    padding: 0 var(--tsm-spacing-xl);
+    box-sizing: border-box;
+    background-color: var(--tsm-color-bg-white);
   }
   .tsm-input-tips {
     overflow: hidden;
@@ -206,7 +256,10 @@ watch(
 }
 .tsm-input--focused {
   .tsm-input-group {
-    border: 2px solid var(--tsm-color-focus-ring, #6172f3);
+    box-shadow: inset 0 0 0 2px var(--tsm-color-focus-ring, #6172f3);
+  }
+  .tsm-input-prefix {
+    color: var(--tsm-color-primary);
   }
 }
 .tsm-input--disabled {
@@ -217,28 +270,25 @@ watch(
   .tsm-input-field {
     color: var(--tsm-color-text-disabled);
   }
-  .tsm-input-suffix-overlay {
-    pointer-events: none;
-    opacity: 0.6;
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 100%;
+  .tsm-input-prefix {
+    color: var(--tsm-color-text-disabled);
+  }
+  .tsm-input-suffix {
     background: var(--tsm-color-bg-disabled);
+    color: var(--tsm-color-primary-border);
   }
 }
 .tsm-input-readonly {
   display: none;
 }
 .tsm-input--readonly {
-  .tsm-input-group {
+  .tsm-input-container {
     display: none;
   }
   .tsm-input-readonly {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--tsm-spacing-m);
     .tsm-input-readonly-content {
       flex: 1 1 0;
       overflow: hidden;
@@ -263,6 +313,12 @@ watch(
     .tsm-input-readonly-btn {
       margin-left: var(--tsm-spacing-m);
     }
+  }
+}
+.tsm-input--small {
+  .tsm-input-container {
+    height: 32px;
+    min-height: 32px;
   }
 }
 </style>

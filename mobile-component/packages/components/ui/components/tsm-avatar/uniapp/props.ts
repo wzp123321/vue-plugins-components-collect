@@ -1,14 +1,14 @@
 /**
  * Avatar 头像组件 Props 定义
  */
-import type { CSSProperties } from 'vue';
-
 export interface AvatarProps {
   /** 头像类型 */
   type?: 'picture' | 'icon' | 'text';
+  /** icon 类型头像属性，当type为icon时生效 */
+  property?: 'user' | 'organization' | 'group' | 'material';
   /** 头像文本内容 */
   text?: string;
-  /** 头像图片地址 */
+  /** 头像图片地址，当type为picture时生效 */
   src?: string;
   /** 头像大小 */
   size?: 'xs' | 's' | 'm' | 'l' | 'xl';
@@ -18,19 +18,14 @@ export interface AvatarProps {
   color?: string;
   /** 边框颜色 */
   borderColor?: string;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
 }
 
 export const defaultProps = {
   type: 'picture',
+  property: 'user',
   src: '',
   size: 'm',
-  bgColor: 'var(--tsm-color-primary-border)',
-  color: 'var(--tsm-color-primary)',
-  borderColor: 'var(--palette-indigo-400)',
-  customClass: '',
-  customStyle: () => ({}),
+  bgColor: '',
+  color: '',
+  borderColor: '',
 } as const;

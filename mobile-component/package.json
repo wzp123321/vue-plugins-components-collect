@@ -8,15 +8,16 @@
   "types": "index.d.ts",
   "scripts": {
     "docs:dev": "npm run playground:use-source-components && vitepress dev apps/docs",
-    "docs:build": "npm run docs:generate && vitepress build apps/docs",
+    "docs:build": "vitepress build apps/docs",
     "docs:generate": "node scripts/generate-docs.js",
     "build:token": "node packages/core/token/scripts/build.js",
     "build:ui": "node packages/components/ui/scripts/build.js",
     "build:biz-ui": "node packages/components/biz-ui/scripts/build.js",
+    "build:installer": "node packages/installer/scripts/build.js",
     "prepare": "husky",
     "lint-staged": "lint-staged",
     "playground:use-source-components": "npm run build:token && node scripts/link-playground-components.cjs",
-    "playground:use-dist-components": "node scripts/link-playground-components.cjs --restore",
+    "playground:use-dist-components": "npm run build:token && npm run build:ui && npm run build:biz-ui && node scripts/link-playground-components.cjs --restore",
     "playground:use-remote-components": "node scripts/use-playground-remote-components.cjs"
   },
   "keywords": [

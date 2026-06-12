@@ -1,0 +1,10 @@
+export enum ApplicationInstanceTypeEnum {
+	// 基础平台
+	PLATFORM_OPERATION = 'PLATFORM_OPERATION',
+	// 智慧管理
+	INTELLIGENT_MANAGEMENT = 'INTELLIGENT_MANAGEMENT',
+	// 智慧服务
+	INTELLIGENT_SERVICE = 'INTELLIGENT_SERVICE',
+	// 其他
+	OTHER = 'OTHER'
+}

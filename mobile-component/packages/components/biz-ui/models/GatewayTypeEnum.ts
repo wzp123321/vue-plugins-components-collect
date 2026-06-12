@@ -1,0 +1,8 @@
+export enum GatewayTypeEnum {
+	// 并行分支
+	PARALLEL_GATEWAY = 'PARALLEL_GATEWAY',
+	// 条件分支
+	EXCLUSIVE_GATEWAY = 'EXCLUSIVE_GATEWAY',
+	// 指定分支
+	APPOINT_GATEWAY = 'APPOINT_GATEWAY'
+}

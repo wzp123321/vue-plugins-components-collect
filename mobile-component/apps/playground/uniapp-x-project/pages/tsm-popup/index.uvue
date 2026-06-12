@@ -1,0 +1,81 @@
+<template>
+	<tsm-theme-provider>
+		<view class="container">
+			<view class="title" @click="show = true">底部弹窗</view>
+			<view class="title" @click="showleft = true">左侧弹窗</view>
+			<tsm-popup v-model:show="show" mode="bottom" closeable @open="open" @close="close" popper-class="ppclass"
+				title="标题" title-position="center">
+				<view style="height: 200px">弹窗内容</view>
+				<template #header-left>
+					<text style="line-height: 56px;">左插槽</text>
+				</template>
+				<template #header-right>
+					<text style="color: red;line-height: 56px;">右插槽</text>
+				</template>
+				<template #footer>
+					<tsm-button type="primary" @click="show = false">确认</tsm-button>
+				</template>
+			</tsm-popup>
+			<tsm-popup v-model:show="showleft" mode="right" closeable>
+				<view style="width: 2000px">弹窗内容</view>
+			</tsm-popup>
+		</view>
+	</tsm-theme-provider>
+</template>
+
+<script setup lang="ts">
+	import { ref } from 'vue';
+	const show = ref(false);
+	const showleft = ref(false);
+	const open = () => {
+		console.log('Popup opened');
+	};
+
+	const close = () => {
+		console.log('Popup closed');
+	};
+</script>
+
+<style scoped lang="scss">
+	@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+
+	.container {
+		padding: 20px;
+	}
+
+	.title {
+		font-size: 32px;
+		font-weight: bold;
+		margin-bottom: 30px;
+		text-align: center;
+	}
+
+	.section {
+		margin-bottom: 40px;
+	}
+
+	.section-title {
+		font-size: 24px;
+		font-weight: bold;
+		margin-bottom: 20px;
+		color: #666;
+	}
+
+	.button-group {
+		@include tsm-flex-wrap-gap-container(15px);
+	}
+
+	.button-group__item {
+		@include tsm-flex-wrap-gap-item(15px);
+	}
+
+	.event-log {
+		margin-top: 20px;
+		font-size: 20px;
+		color: #999;
+	}
+
+	.ppclass {
+		// height: 500px;
+	}
+</style>

@@ -2,10 +2,6 @@
  * Switch 开关组件 Props 定义
  * @description 简化版开关组件
  */
-import type { CSSProperties } from 'vue';
-
-export type SwitchValue = boolean | string | number;
-
 export enum SwitchSize {
   LARGE = 'large',
   MEDIUM = 'medium',
@@ -44,7 +40,7 @@ export const SWITCH_SMALL_TEXT_SIZE = 12;
  * @param size 开关尺寸
  * @returns 开关宽度和高度
  */
-export const getSwitchSize = (size: SwitchSize) => {
+export const getSwitchSize = (size: 'large' | 'medium' | 'small') => {
   switch (size) {
     case SwitchSize.LARGE:
       return {
@@ -74,7 +70,7 @@ export const getSwitchSize = (size: SwitchSize) => {
  * @param size 开关尺寸
  * @returns 开关节点宽度
  */
-export const getNodeWidthBySize = (size: SwitchSize) => {
+export const getNodeWidthBySize = (size: 'large' | 'medium' | 'small') => {
   switch (size) {
     case SwitchSize.LARGE:
       return SWITCH_LARGE_NODE_WIDTH;
@@ -89,15 +85,15 @@ export const getNodeWidthBySize = (size: SwitchSize) => {
 
 export interface SwitchProps {
   /** 是否选中 */
-  checked?: SwitchValue;
+  checked?: boolean | string | number;
   /** 是否禁用 */
   disabled?: boolean;
   /** 是否只读（只展示状态，不可切换） */
   readonly?: boolean;
   /** 选中时的值 */
-  activeValue?: SwitchValue;
+  activeValue?: boolean | string | number;
   /** 未选中时的值 */
-  inactiveValue?: SwitchValue;
+  inactiveValue?: boolean | string | number;
   /** 选中时的颜色 */
   activeColor?: string;
   /** 未选中时的颜色 */
@@ -105,15 +101,11 @@ export interface SwitchProps {
   /** 是否显示文字 */
   inactiveText?: boolean;
   /** 开关尺寸: large || medium || small */
-  size?: SwitchSize.LARGE | SwitchSize.MEDIUM | SwitchSize.SMALL;
+  size?: 'large' | 'medium' | 'small';
   /** 选中时的文字 */
   checkedText?: string;
   /** 未选中时的文字 */
   unCheckedText?: string;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
 }
 
 export const defaultProps = {
@@ -127,7 +119,5 @@ export const defaultProps = {
   inactiveText: false,
   checkedText: '开',
   unCheckedText: '关',
-  size: SwitchSize.MEDIUM,
-  customClass: '',
-  customStyle: () => ({}),
+  size: 'medium',
 } as const;

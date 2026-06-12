@@ -5,7 +5,18 @@ unpackage
 .idea
 .hbuilderx
 apps/docs/.vitepress/cache
-.turbo
-.npmrc
+# .turbo
+# .npmrc
 apps/icon-portal/.env
 apps/icon-portal/icons.db
+
+.trae
+debug.log
+
+.claude
+ClAUDE.md
+AGENTS.md
+specs
+.mcp.json
+.playwright-cli
+.gitnexus

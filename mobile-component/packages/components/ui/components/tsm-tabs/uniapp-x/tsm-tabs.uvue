@@ -1,223 +1,544 @@
-/**
- * Tabs 标签页组件
- * @description 标签页组件，支持滚动和滑块动画
- */
 <template>
-  <view class="tsm-tabs" :class="bemClass" :style="customStyle">
-    <view class="tsm-tabs__header">
-      <scroll-view
-        :scroll-x="scrollable"
-        :scroll-left="scrollLeft"
-        scroll-with-animation
-        class="tsm-tabs__scroll"
-      >
-        <view class="tsm-tabs__nav">
-          <view
-            class="tsm-tabs__nav__item"
-            :class="{ 'tsm-tabs__nav__item--active': innerCurrent === index, 'tsm-tabs__nav__item--disabled': item.disabled }"
-            v-for="(item, index) in list"
-            :key="index"
-            @tap="onClick(item, index)"
-          >
-            <text class="tsm-tabs__nav__text">{{ item[keyName] }}</text>
-          </view>
-          <view class="tsm-tabs__nav__line" :style="lineStyle"></view>
+  <view class="tsm-tabs" :class="bemClass">
+    <scroll-view
+      ref="scrollRef"
+      direction="horizontal"
+      :show-scrollbar="false"
+      :scroll-left="scrollLeft"
+      scroll-with-animation
+      class="tsm-tabs-scroll"
+    >
+      <view class="tsm-tabs-nav" ref="navRef">
+        <view
+          v-for="(item, index) in props.list"
+          :key="index"
+          class="tsm-tabs-nav-item"
+          :ref="`itemRef_${index}`"
+          :class="{
+            'tsm-tabs-nav-item--active': innerCurrent === index,
+            'tsm-tabs-nav-item--disabled': item.disabled,
+          }"
+          @tap="handleTabClick(item, index)"
+        >
+          <slot name="item" :item="item" :index="index">
+            <text class="tsm-tabs-nav-text">{{ getItemText(item) }}</text>
+          </slot>
         </view>
-      </scroll-view>
-      <view v-if="showListIcon" class="tsm-tabs__list-icon" @tap="onListIconClick">
-        <icon-list />
+        <!-- #ifdef APP-NVUE -->
+        <view class="tsm-tabs-nav-line" ref="tsm-tabs-nav-line"></view>
+        <!-- #endif -->
+        <!-- #ifndef APP-NVUE -->
+        <view class="tsm-tabs-nav-line" ref="tsm-tabs-nav-line" :style="lineStyle"></view>
+        <!-- #endif -->
       </view>
+    </scroll-view>
+    <view v-if="showListIcon" class="tsm-tabs-list-icon" @tap="handleListIconClick">
+      <icon-list color="var(--tsm-color-text-primary)" :size="20" />
     </view>
   </view>
 </template>
 
 <script setup lang="uts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, nextTick, getCurrentInstance, PropType } from 'vue';
 import type { TabsProps } from './props.uts';
 import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+import { bem, tsmGetRect } from '../../../libs/uniapp-x/function/index.uts';
 
-const rawProps = defineProps<TabsProps>();
-const props = { ...defaultProps, ...rawProps } as TabsProps;
+// #ifdef APP-NVUE
+const nvueAnimation = uni.requireNativePlugin('animation');
+// #endif
+
+const props = defineProps({
+  list: {
+    type: Array as PropType<UTSJSONObject[]>,
+    default: defaultProps.getArray('list')
+  },
+  current: {
+    type: Number,
+    default: defaultProps.getNumber('current')
+  },
+  duration: {
+    type: Number,
+    default: defaultProps.getNumber('duration')
+  },
+  scrollable: {
+    type: Boolean,
+    default: defaultProps.getBoolean('scrollable')
+  },
+  isometric: {
+    type: Boolean,
+    default: defaultProps.getBoolean('isometric')
+  },
+  keyName: {
+    type: String,
+    default: defaultProps.getString('keyName')
+  },
+  size: {
+    type: String,
+    default: defaultProps.getString('size')
+  },
+  itemType: {
+    type: String,
+    default: defaultProps.getString('itemType')
+  },
+});
 
 const emit = defineEmits<{
+  /** 切换标签页 */
   change: [index: number];
+  /** 点击标签页 */
   click: [index: number];
+  /** 更新当前激活的标签页 */
   'update:current': [value: number];
+  /** 点击列表图标 */
   'list-click': [];
 }>();
 
 const innerCurrent = ref(props.current);
 const scrollLeft = ref(0);
 const lineOffsetLeft = ref(0);
+const isOverflow = ref(false);
+const isFirstRender = ref(true);
+const indicatorWidth = 16;
+const internalInstance = getCurrentInstance();
+const instanceProxy = internalInstance != null && internalInstance.proxy != null ? internalInstance.proxy : null;
+let tabsRect: NodeInfo = {} as NodeInfo;
+let scrollViewWidth = 0;
 
-const bemClass = computed(() => {
-  return bem('tabs', [props.size], {
-    scrollable: props.scrollable,
-    'has-list-icon': props.showListIcon,
-  }, props.customClass);
+const actualScrollable = computed(() => props.isometric || isOverflow.value);
+
+const showListIcon = computed(() => isOverflow.value && props.isometric);
+
+const layoutClass = computed(() => (props.isometric ? 'equidistant' : 'equal'));
+
+const bemClass = computed(() =>{
+  let className = 'tsm-tabs';
+  if(props.size != '' && props.size != null){
+    className += ` tsm-tabs--${props.size}`;
+  }
+  if(layoutClass.value != null){
+    className += ` tsm-tabs--${layoutClass.value}`;
+  }
+  if(props.itemType != null && props.itemType != ''){
+    className += ` tsm-tabs--${props.itemType}`;
+  }
+  if(actualScrollable.value){
+    className += ` tsm-tabs--scrollable`;
+  }
+  if(showListIcon.value){
+    className += ` tsm-tabs--has-list-icon`;
+  }
+  return className;
 });
 
 const lineStyle = computed(() => ({
-  width: props.lineWidth,
-  height: props.lineHeight,
-  backgroundColor: props.lineColor,
   transform: `translateX(${lineOffsetLeft.value}px)`,
-  transitionDuration: `${props.duration}ms`
+  transitionDuration: `${isFirstRender.value ? 0 : props.duration}ms`,
 }));
 
-watch(
-  () => props.current,
-  (newVal) => {
-    if (newVal !== innerCurrent.value) {
-      innerCurrent.value = newVal;
-      nextTick(() => updateLinePosition());
+const getItemText = (item: UTSJSONObject): string => {
+  const text = (item as UTSJSONObject)[props.keyName as string] ?? '';
+  if (props.isometric === true && (text as string).length > 8) {
+    return (text as string).substring(0, 8) + '...';
+  }
+  return text as string;
+};
+
+const queryRect = (refName: string): Promise<NodeInfo> => {
+  return new Promise((resolve) => {
+    // #ifdef APP-NVUE
+    const internalCtx = internalInstance?.ctx as any;
+    if (!internalCtx) {
+      resolve({} as NodeInfo);
+      return;
+    }
+    const ref = internalCtx.$refs[refName];
+    if (!ref) {
+      resolve({} as NodeInfo);
+      return;
+    }
+    const nvueDom = uni.requireNativePlugin('dom');
+    nvueDom.getComponentRect(ref, (res: any) => {
+      resolve(res.size || {});
+    });
+    // #endif
+
+    // #ifndef APP-NVUE
+    const query = uni.createSelectorQuery();
+    const scopedQuery = instanceProxy != null ? query.in(instanceProxy as any) : query;
+    scopedQuery.select(`.${refName}`).boundingClientRect((res) => {
+      resolve(res as NodeInfo);
+    }).exec();
+    // #endif
+  });
+};
+
+const getTabsRect = (): Promise<NodeInfo[]> => {
+  return new Promise((resolve) => {
+    queryRect('tsm-tabs-scroll').then((size: NodeInfo) => {
+      resolve([size]);
+    });
+  });
+};
+
+const getAllItemRect = (): Promise<NodeInfo[]> => {
+  return new Promise((resolve) => {
+    // #ifdef APP-NVUE
+    const promiseAllArr: Promise<NodeInfo>[] = [];
+    for (let i = 0; i < props.list.length; i++) {
+      promiseAllArr.push(queryRect(`itemRef_${i}`));
+    }
+    Promise.all(promiseAllArr).then((sizes: NodeInfo[]) => {
+      resolve(sizes);
+    });
+    // #endif
+
+    // #ifndef APP-NVUE
+    const query = uni.createSelectorQuery();
+    const scopedQuery = instanceProxy != null ? query.in(instanceProxy as any) : query;
+    scopedQuery.selectAll('.tsm-tabs-nav-item').boundingClientRect((res) => {
+      const rects = res as NodeInfo[];
+      resolve(rects != null ? rects : []);
+    }).exec();
+    // #endif
+  });
+};
+
+const checkOverflow = () => {
+  const viewportWidth = tabsRect?.width ?? 0;
+  if (viewportWidth <= 0) {
+    isOverflow.value = false;
+    return;
+  }
+  isOverflow.value = scrollViewWidth > viewportWidth;
+};
+
+const animation = (x: number, duration: number) => {
+  // #ifdef APP-NVUE
+  const ref = internalInstance?.ctx?.$refs['tsm-tabs-nav-line'];
+  if (ref) {
+    nvueAnimation.transition(ref, {
+      styles: {
+        transform: `translateX(${x}px)`,
+      },
+      duration,
+    });
+  }
+  // #endif
+};
+
+const setLineLeft = () => {
+  const tabItem = (props.list as UTSJSONObject[])[innerCurrent.value];
+  if (tabItem == null) {
+    return;
+  }
+  const tabItemRect = tabItem['rect'] as NodeInfo;
+  if (tabItemRect == null) {
+    return;
+  }
+  let offsetLeft = 0;
+  for (let i = 0; i < innerCurrent.value; i++) {
+    const item = props.list[i];
+    const itemRect = item['rect'] as NodeInfo;
+    if (itemRect != null) {
+      offsetLeft += (itemRect.width ?? 0);
     }
   }
+  const lineWidth = indicatorWidth;
+  lineOffsetLeft.value = offsetLeft + (((tabItemRect.width ?? 0) - lineWidth) / 2);
+
+  // #ifdef APP-NVUE
+  animation(lineOffsetLeft.value, isFirstRender.value ? 0 : props.duration);
+  // #endif
+
+  if (isFirstRender.value) {
+    setTimeout(() => {
+      isFirstRender.value = false;
+    }, 30);
+  }
+};
+
+const setScrollLeft = () => {
+  if (!actualScrollable.value) {
+    return;
+  }
+  if (innerCurrent.value < 0) {
+    innerCurrent.value = 0;
+  }
+  const tabItem = props.list[innerCurrent.value];
+  const tabRect = tabItem['rect'] as NodeInfo;
+  if (tabRect == null) {
+    return;
+  }
+  let offsetLeft = 0;
+  for (let i = 0; i < innerCurrent.value; i++) {
+    const item = props.list[i];
+    const itemRect = item['rect'] as NodeInfo;
+    if (itemRect != null) {
+      offsetLeft += (itemRect.width ?? 0);
+    }
+  }
+  const windowWidth = uni.getWindowInfo().windowWidth;
+  let scrollLeftValue = offsetLeft - ((tabsRect?.width ?? 0) - (tabRect?.width ?? 0)) / 2 - (windowWidth - (tabsRect?.right ?? 0)) / 2 + (tabsRect?.left ?? 0) / 2;
+  scrollLeftValue = Math.min(scrollLeftValue, scrollViewWidth - (tabsRect?.width ?? 0));
+  scrollLeft.value = Math.max(0, scrollLeftValue);
+};
+
+const resize = () => {
+  if (props.list.length === 0) {
+    return;
+  }
+  Promise.all([getTabsRect(), getAllItemRect()]).then((res: Array<Array<NodeInfo>>) => {
+    tabsRect = (res[0] as NodeInfo[])[0];
+    const itemRect = res[1] as NodeInfo[];
+    if ((tabsRect.left ?? 0) > (tabsRect.width ?? 0)) {
+      tabsRect.right = (tabsRect?.right ?? 0) - Math.floor((tabsRect?.left ?? 0) / (tabsRect?.width ?? 0)) * (tabsRect?.width ?? 0);
+      tabsRect.left = (tabsRect.left ?? 0) % (tabsRect.width ?? 1);
+    }
+    scrollViewWidth = 0;
+    for (let i = 0; i < itemRect.length; i++) {
+      const item = itemRect[i];
+      if (item != null) {
+        scrollViewWidth = scrollViewWidth + (item.width ?? 0);
+        const listItem = props.list[i];
+        if (listItem != null) {
+          listItem['rect'] = item;
+        }
+      }
+    }
+    setLineLeft();
+    checkOverflow();
+    setScrollLeft();
+  });
+};
+
+const handleTabClick = (item: UTSJSONObject, index: number) => {
+  if (item.disabled == true) {
+    return;
+  }
+  if (innerCurrent.value === index) {
+    return;
+  }
+  innerCurrent.value = index;
+  emit('update:current', index);
+  emit('click', index);
+  nextTick(() => {
+    resize();
+  });
+  emit('change', index);
+};
+
+const handleListIconClick = () => {
+  emit('list-click');
+};
+
+watch(
+  props.current,
+  (newVal: number) => {
+    if (newVal !== innerCurrent.value) {
+      innerCurrent.value = newVal;
+      nextTick(() => {
+        resize();
+      });
+    }
+  },
+  { immediate: true }
 );
 
 watch(
-  () => props.list,
+  props.list,
   () => {
-    nextTick(() => updateLinePosition());
+    nextTick(() => {
+      resize();
+    });
   },
   { deep: true }
 );
 
+watch(
+  props.isometric,
+  () => {
+    nextTick(() => {
+      resize();
+    });
+  }
+);
+
 onMounted(() => {
-  nextTick(() => updateLinePosition());
+  nextTick(() => {
+    resize();
+  });
 });
-
-const updateLinePosition = () => {
-  const query = uni.createSelectorQuery();
-  query.selectAll('.tsm-tabs__nav__item').boundingClientRect((rects: any) => {
-    if (rects && rects.length > 0 && innerCurrent.value < rects.length) {
-      let offsetLeft = 0;
-      for (let i = 0; i < innerCurrent.value; i++) {
-        offsetLeft += rects[i].width;
-      }
-      const currentItem = rects[innerCurrent.value];
-      const lw = parseInt(String(props.lineWidth)) || 40;
-      lineOffsetLeft.value = offsetLeft + (currentItem.width - lw) / 2;
-    }
-  }).exec();
-};
-
-const onClick = (item: any, index: number) => {
-  if (item.disabled) return;
-  innerCurrent.value = index;
-  emit('update:current', index);
-  emit('click', index);
-  emit('change', index);
-  nextTick(() => updateLinePosition());
-};
-
-const onListIconClick = () => {
-  emit('list-click');
-};
 </script>
 
 <style scoped lang="scss">
+@import '../../../libs/scss/platform-style.scss';
+
 .tsm-tabs {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
+  border-bottom: 0.5px solid var(--tsm-color-border-secondary);
+}
+
+.tsm-tabs-scroll {
+  flex: 1;
+  flex-direction: row;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.tsm-tabs-nav {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: center;
+  flex-shrink: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.tsm-tabs-nav-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-shrink: 0;
+  padding: var(--tsm-spacing-xl);
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+}
+
+.tsm-tabs-nav-item--active {
+  font-weight: var(--tsm-font-weight-bold);
+}
+
+.tsm-tabs-nav-item--active .tsm-tabs-nav-text {
+  color: var(--tsm-color-text-primary);
+  font-weight: var(--tsm-font-weight-bold);
+  white-space: nowrap;
+}
+
+.tsm-tabs-nav-item--disabled {
+  color: var(--tsm-color-text-quaternary);
+}
+
+.tsm-tabs-nav-text {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tsm-tabs--equal .tsm-tabs-nav-text {
+  text-overflow: ellipsis;
+}
+
+.tsm-tabs-nav-line {
+  position: absolute;
+  bottom: 0;
+  width: 16px;
+  height: 3px;
+  border-radius: var(--tsm-radius-full);
+  background: var(--tsm-color-primary);
+}
+
+.tsm-tabs-list-icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 100%;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.tsm-tabs--equal .tsm-tabs-nav {
   width: 100%;
 }
 
-.tsm-tabs__header {
-  display: flex;
-  align-items: center;
-}
-
-.tsm-tabs__scroll {
-  flex: 1;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-.tsm-tabs__nav {
-  display: flex;
-  position: relative;
-  align-items: center;
-}
-
-.tsm-tabs__nav__item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.tsm-tabs--large .tsm-tabs__nav__item {
+.tsm-tabs--equal .tsm-tabs-nav-item {
   flex: 1;
   min-width: 0;
-  padding: 24px 0 16px;
 }
 
-.tsm-tabs--small .tsm-tabs__nav__item {
-  padding: 16px 24px;
+.tsm-tabs--large {
+  height: 48px;
 }
 
-.tsm-tabs--scrollable .tsm-tabs__nav__item {
+.tsm-tabs--large .tsm-tabs-nav-text {
+  font-size: var(--tsm-font-size-text-l);
+}
+
+.tsm-tabs--small {
+  height: 40px;
+}
+
+.tsm-tabs--small .tsm-tabs-nav-text {
+  font-size: var(--tsm-font-size-text-m);
+}
+
+.tsm-tabs--scrollable .tsm-tabs-nav-item {
   flex: none;
-  padding: 16px 24px;
 }
 
-.tsm-tabs__nav__item--active {
-  font-weight: bold;
+.tsm-tabs--scrollable .tsm-tabs-nav-text {
+  font-size: var(--tsm-font-size-text-l);
 }
 
-.tsm-tabs__nav__item--disabled {
-  color: #c8c9cc;
-  cursor: not-allowed;
+.tsm-tabs--scrollable .tsm-tabs-nav-item--active .tsm-tabs-nav-text {
+  color: var(--tsm-color-text-primary);
+  font-weight: var(--tsm-font-weight-bold);
 }
 
-.tsm-tabs__nav__text {
-  white-space: nowrap;
+.tsm-tabs--equidistant .tsm-tabs-nav-item {
+  flex: none;
 }
 
-.tsm-tabs--large .tsm-tabs__nav__text {
-  font-size: 28px;
-  color: #969799;
+.tsm-tabs--tag .tsm-tabs-nav .tsm-tabs-nav-item + .tsm-tabs-nav-item {
+  margin-left: var(--tsm-spacing-s);
 }
 
-.tsm-tabs--large .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
-  color: #323233;
-}
-
-.tsm-tabs--small .tsm-tabs__nav__text {
-  font-size: 24px;
-  color: #969799;
-}
-
-.tsm-tabs--small .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
-  color: #323233;
-}
-
-.tsm-tabs--scrollable .tsm-tabs__nav__text {
-  font-size: 28px;
-  color: #969799;
-}
-
-.tsm-tabs--scrollable .tsm-tabs__nav__item--active .tsm-tabs__nav__text {
-  color: #323233;
-}
-
-.tsm-tabs__nav__line {
-  position: absolute;
-  bottom: 0;
+.tsm-tabs--tag .tsm-tabs-nav-item {
+  padding: 0 var(--tsm-spacing-m);
+  height: auto;
   border-radius: 100px;
-  transition-property: transform;
+  background: var(--tsm-color-bg-tertiary);
 }
 
-.tsm-tabs__list-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 24px;
-  flex-shrink: 0;
+.tsm-tabs--tag .tsm-tabs-nav-text {
+  color: var(--tsm-color-text-primary);
 }
 
-.tsm-tabs__list-icon :deep(*) {
-  font-size: 40px;
-  color: #969799;
+.tsm-tabs--tag .tsm-tabs-nav-item--active {
+  background: var(--tsm-color-primary-bg);
+}
+
+.tsm-tabs--tag .tsm-tabs-nav-item--active .tsm-tabs-nav-text {
+  color: var(--tsm-color-text-primary);
+  font-weight: var(--tsm-font-weight-bold);
+}
+
+.tsm-tabs--tag .tsm-tabs-nav-line {
+  display: none;
+}
+
+.tsm-tabs--tag.tsm-tabs--large .tsm-tabs-nav-item {
+  height: 32px;
+}
+
+.tsm-tabs--tag.tsm-tabs--large .tsm-tabs-nav-text {
+  font-size: var(--tsm-font-size-text-m);
+}
+
+.tsm-tabs--tag.tsm-tabs--small .tsm-tabs-nav-item {
+  height: 26px;
+}
+
+.tsm-tabs--tag.tsm-tabs--small .tsm-tabs-nav-text {
+  font-size: var(--tsm-font-size-text-s);
 }
 </style>

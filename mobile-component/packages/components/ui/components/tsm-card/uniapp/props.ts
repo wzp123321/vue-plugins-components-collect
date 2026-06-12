@@ -8,21 +8,19 @@ export interface CardProps {
   title?: string;
   /** 卡片副标题 */
   subTitle?: string;
-  /** 是否显示边框 */
-  border?: boolean;
-  /** 圆角大小 */
-  radius?: number | string;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
+  /** 是否显示标题 */
+  showTitle?: boolean;
+  /** 是否显示信息图标 */
+  showInfoIcon?: boolean;
+  /** 是否显示更多操作面板 */
+  showMorePanel?: boolean;
+  /** 是否显示选项面板 */
+  showOptionPanel?: boolean;
 }
 
 export const defaultProps = {
-  title: '',
-  subTitle: '',
-  border: true,
-  radius: 8,
-  customClass: '',
-  customStyle: () => ({}),
-} as const;
+  showTitle: true,
+  showInfoIcon: true,
+  showMorePanel: true,
+  showOptionPanel: true,
+};

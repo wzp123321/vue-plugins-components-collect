@@ -1,27 +1,11 @@
-/**
- * TSM UI Components - 统一组件库入口
- * @description 支持 uni-app 和 uni-app x 双端
- */
+const components: any[] = [];
 
-import type { App, Plugin } from 'vue';
-
-// 导入主题相关
-import {
-  getThemeClass,
-  getThemeMode,
-  initThemeMode,
-  setThemeMode,
-  toggleThemeMode,
-  useThemeMode,
-  useThemeClass,
-} from '@/uni_modules/@tiansu/ts-mobile-token/index.uts';
-
-const install = (app: App): void => {
-  initThemeMode();
+const install = (app: any): void => {
+  components.forEach((comp: any) => {
+    app.component(comp.name || comp.__name, comp);
+  });
 };
 
-const plugin: Plugin = { install };
-
-export { getThemeClass, getThemeMode, initThemeMode, setThemeMode, toggleThemeMode, useThemeClass, useThemeMode };
+const plugin: any = { install };
 
 export default plugin;

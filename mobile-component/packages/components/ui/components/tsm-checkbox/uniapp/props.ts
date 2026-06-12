@@ -4,12 +4,18 @@
 import type { CSSProperties } from 'vue';
 
 export interface CheckboxProps {
-  /** 复选框的名称/标识 */
+  /** 复选框的名称/标识（与 value 二选一） */
   name?: string | number;
+  /** 复选框的值（与 name 二选一，优先级低于 name） */
+  value?: string | number;
   /** 是否选中 */
   checked?: boolean;
+  /** 是否半选（indeterminate 状态） */
+  indeterminate?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 是否只读 */
+  readonly?: boolean;
   /** 复选框形状 */
   shape?: 'circle' | 'square';
   /** 选中时的颜色 */
@@ -26,8 +32,6 @@ export interface CheckboxProps {
   label?: string;
   /** 标签文字颜色 */
   labelColor?: string;
-  /** 标签文字大小 */
-  labelSize?: number | string;
   /** 是否禁用标签点击 */
   labelDisabled?: boolean;
   /** 自定义类名 */
@@ -38,17 +42,20 @@ export interface CheckboxProps {
 
 export const defaultProps = {
   name: '',
+  value: '',
   checked: false,
+  indeterminate: false,
   disabled: false,
-  shape: 'circle',
-  activeColor: '#2979ff',
-  inactiveColor: '#c8c9cc',
-  size: 21,
+  readonly: false,
+  shape: 'square',
+  activeColor: '',
+  inactiveColor: '#d9d9d9',
+  size: 16,
   iconSize: 12,
   iconColor: '#ffffff',
   label: '',
-  labelColor: '#606266',
-  labelSize: 15,
+  labelColor: '',
+  labelSize: 16,
   labelDisabled: false,
   customClass: '',
   customStyle: () => ({}),

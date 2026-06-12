@@ -120,7 +120,18 @@
         </view>
       </view>
 
-      <tsm-dialog v-model:visible="dialogVisible" ref="dialogRef" @confirm="onConfirm" @cancel="onCancel">
+      <tsm-dialog
+        v-model:visible="dialogVisible"
+        :type="dialogState.type"
+        :title="dialogState.title"
+        :content="dialogState.content"
+        :confirmText="dialogState.confirmText"
+        :cancelText="dialogState.cancelText"
+        :showConfirmButton="dialogState.showConfirmButton"
+        :showCancelButton="dialogState.showCancelButton"
+        @confirm="onConfirm"
+        @cancel="onCancel"
+      >
         <template v-if="dialogState.type === 'customize'" #header-content>
           <view class="customize-content">
             <icon-box class="customize-icon" />
@@ -169,7 +180,6 @@ interface DialogState {
   useSlot?: boolean;
 }
 
-const dialogRef = ref<any>(null);
 const dialogVisible = ref(false);
 
 const dialogState = reactive<DialogState>({
@@ -191,51 +201,48 @@ const dialogConfig = {
 
 const openDialog = (type: 'default' | 'success' | 'danger' | 'warning') => {
   dialogState.type = type;
-  dialogRef.value.show({
-    type,
-    ...dialogConfig[type],
-    confirmText: '确认',
-    cancelText: '取消',
-  });
+  dialogState.title = dialogConfig[type].title;
+  dialogState.content = dialogConfig[type].content;
+  dialogState.confirmText = '确认';
+  dialogState.cancelText = '取消';
+  dialogState.showConfirmButton = true;
+  dialogState.showCancelButton = true;
+  dialogVisible.value = true;
 };
 
 const showSingleBtn = () => {
   dialogState.type = 'default';
-  dialogRef.value.show({
-    type: 'default',
-    title: '温馨提示',
-    content: '您的会员已于今日到期，续费可继续享受专属权益。',
-    confirmText: '立即续费',
-    showCancelButton: false,
-  });
+  dialogState.title = '温馨提示';
+  dialogState.content = '您的会员已于今日到期，续费可继续享受专属权益。';
+  dialogState.confirmText = '立即续费';
+  dialogState.cancelText = '取消';
+  dialogState.showConfirmButton = true;
+  dialogState.showCancelButton = false;
+  dialogVisible.value = true;
 };
 
 const showCustomize = () => {
   dialogState.type = 'customize';
   dialogState.useSlot = false;
-  dialogRef.value.show({
-    type: 'customize',
-  });
+  dialogVisible.value = true;
 };
 
 const showSlotContent = () => {
   dialogState.type = 'default';
   dialogState.useSlot = true;
-  dialogRef.value.show({
-    type: 'default',
-    title: '积分兑换',
-    confirmText: '确定',
-  });
+  dialogState.title = '积分兑换';
+  dialogState.confirmText = '确定';
+  dialogVisible.value = true;
 };
 
 const showViaRef = () => {
-  dialogRef.value.show({
-    type: 'success',
-    title: '方法调用成功',
-    content: '通过 ref.show() 方法直接传入配置打开对话框',
-    confirmText: '知道了',
-    showCancelButton: false,
-  });
+  dialogState.type = 'success';
+  dialogState.title = '方法调用成功';
+  dialogState.content = '通过 v-model:visible 直接传入配置打开对话框';
+  dialogState.confirmText = '知道了';
+  dialogState.showConfirmButton = true;
+  dialogState.showCancelButton = false;
+  dialogVisible.value = true;
 };
 
 const onConfirm = () => {
@@ -251,21 +258,21 @@ const onCancel = () => {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
-  padding: 16px;
+  padding: 12px;
   background: #f7f8fa;
-  min-height: 100vh;
+  height: 100%;
   box-sizing: border-box;
 }
 
 .header {
-  padding: 12px 12px 6px;
-  margin-bottom: 12px;
+  padding: 10px 10px 4px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 700;
   text-align: center;
   color: #111827;
@@ -274,7 +281,7 @@ const onCancel = () => {
 
 .subtitle {
   margin-top: 10px;
-  font-size: 22px;
+  font-size: 18px;
   color: #6b7280;
   text-align: center;
   line-height: 1.2;
@@ -283,16 +290,16 @@ const onCancel = () => {
 .demo-card {
   background: #ffffff;
   border: 1px solid #eef2f7;
-  border-radius: 16px;
-  padding: 18px 16px 14px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  margin-bottom: 10px;
   overflow: hidden;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
   color: #111827;
 }
 
@@ -305,103 +312,109 @@ const onCancel = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 12px;
+  padding: 12px;
   border-bottom: 1px solid #eef2f7;
+}
 
-  &:last-child {
-    border-bottom: none;
-  }
+.demo-row:last-child {
+  border-bottom: none;
+}
 
-  &:active {
-    background: #f7f8fa;
-  }
+.demo-row:active {
+  background: #f7f8fa;
+}
 
-  .demo-row-content {
-    display: flex;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-  }
+.demo-row-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
 
-  .demo-row-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    border-radius: var(--tsm-radius-l);
-    margin-right: var(--tsm-spacing-m);
+.demo-row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--tsm-radius-l);
+  margin-right: var(--tsm-spacing-m);
+}
 
-    :deep(.icon) {
-      font-size: 28px;
-    }
+.demo-row-icon :deep(.icon) {
+  font-size: 24px;
+}
 
-    &.default {
-      background: var(--tsm-color-primary-light);
-      :deep(.icon) {
-        color: var(--tsm-color-primary);
-      }
-    }
+.demo-row-icon.default {
+  background: var(--tsm-color-primary-light);
+}
 
-    &.success {
-      background: var(--tsm-color-success-light);
-      :deep(.icon) {
-        color: var(--tsm-color-success);
-      }
-    }
+.demo-row-icon.default :deep(.icon) {
+  color: var(--tsm-color-primary);
+}
 
-    &.warning {
-      background: var(--tsm-color-warning-light);
-      :deep(.icon) {
-        color: var(--tsm-color-warning);
-      }
-    }
+.demo-row-icon.success {
+  background: var(--tsm-color-success-light);
+}
 
-    &.danger {
-      background: var(--tsm-color-danger-light);
-      :deep(.icon) {
-        color: var(--tsm-color-danger);
-      }
-    }
+.demo-row-icon.success :deep(.icon) {
+  color: var(--tsm-color-success);
+}
 
-    &.info {
-      background: var(--tsm-color-primary-light);
-      :deep(.icon) {
-        color: var(--tsm-color-primary);
-      }
-    }
+.demo-row-icon.warning {
+  background: var(--tsm-color-warning-light);
+}
 
-    &.primary {
-      background: var(--tsm-color-primary-light);
-      :deep(.icon) {
-        color: var(--tsm-color-primary);
-      }
-    }
-  }
+.demo-row-icon.warning :deep(.icon) {
+  color: var(--tsm-color-warning);
+}
 
-  .demo-row-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
+.demo-row-icon.danger {
+  background: var(--tsm-color-danger-light);
+}
 
-  .demo-row-title {
-    font-size: var(--tsm-font-size-text-l);
-    font-weight: var(--tsm-font-weight-medium);
-    color: var(--tsm-color-text-primary);
-    margin-bottom: 4px;
-  }
+.demo-row-icon.danger :deep(.icon) {
+  color: var(--tsm-color-danger);
+}
 
-  .demo-row-subtitle {
-    font-size: var(--tsm-font-size-text-s);
-    color: var(--tsm-color-text-secondary);
-  }
+.demo-row-icon.info {
+  background: var(--tsm-color-primary-light);
+}
 
-  .demo-row-arrow {
-    font-size: 28px;
-    color: var(--tsm-color-text-placeholder);
-    margin-left: var(--tsm-spacing-m);
-  }
+.demo-row-icon.info :deep(.icon) {
+  color: var(--tsm-color-primary);
+}
+
+.demo-row-icon.primary {
+  background: var(--tsm-color-primary-light);
+}
+
+.demo-row-icon.primary :deep(.icon) {
+  color: var(--tsm-color-primary);
+}
+
+.demo-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.demo-row-title {
+  font-size: 16px;
+  font-weight: var(--tsm-font-weight-medium);
+  color: var(--tsm-color-text-primary);
+  margin-bottom: 4px;
+}
+
+.demo-row-subtitle {
+  font-size: 14px;
+  color: var(--tsm-color-text-secondary);
+}
+
+.demo-row-arrow {
+  font-size: 24px;
+  color: var(--tsm-color-text-placeholder);
+  margin-left: var(--tsm-spacing-m);
 }
 
 .customize-content {
@@ -409,49 +422,49 @@ const onCancel = () => {
   flex-direction: column;
   align-items: center;
   padding: var(--tsm-spacing-2xl) var(--tsm-spacing-xl) var(--tsm-spacing-xl);
+}
 
-  .customize-icon {
-    font-size: 80px;
-    color: var(--tsm-color-success);
-    margin-bottom: var(--tsm-spacing-m);
-  }
+.customize-icon {
+  font-size: 80px;
+  color: var(--tsm-color-success);
+  margin-bottom: var(--tsm-spacing-m);
+}
 
-  .customize-title {
-    font-size: var(--tsm-font-size-text-xl);
-    font-weight: var(--tsm-font-weight-bold);
-    color: var(--tsm-color-text-primary);
-    margin-bottom: var(--tsm-spacing-xs);
-  }
+.customize-title {
+  font-size: var(--tsm-font-size-text-xl);
+  font-weight: var(--tsm-font-weight-bold);
+  color: var(--tsm-color-text-primary);
+  margin-bottom: var(--tsm-spacing-xs);
+}
 
-  .customize-desc {
-    font-size: var(--tsm-font-size-text-m);
-    color: var(--tsm-color-text-secondary);
-    text-align: center;
-    margin-bottom: var(--tsm-spacing-xl);
-  }
+.customize-desc {
+  font-size: var(--tsm-font-size-text-m);
+  color: var(--tsm-color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--tsm-spacing-xl);
+}
 
-  .customize-form {
-    width: 100%;
+.customize-form {
+  width: 100%;
+}
 
-    .customize-form-item {
-      display: flex;
-      align-items: center;
-      padding: var(--tsm-spacing-m) 0;
-      border-bottom: 1px solid var(--tsm-color-border-light);
+.customize-form-item {
+  display: flex;
+  align-items: center;
+  padding: var(--tsm-spacing-m) 0;
+  border-bottom: 1px solid var(--tsm-color-border-light);
+}
 
-      .customize-form-label {
-        width: 80px;
-        font-size: var(--tsm-font-size-text-m);
-        color: var(--tsm-color-text-secondary);
-      }
+.customize-form-label {
+  width: 80px;
+  font-size: var(--tsm-font-size-text-m);
+  color: var(--tsm-color-text-secondary);
+}
 
-      .customize-form-input {
-        flex: 1;
-        font-size: var(--tsm-font-size-text-m);
-        color: var(--tsm-color-text-placeholder);
-      }
-    }
-  }
+.customize-form-input {
+  flex: 1;
+  font-size: var(--tsm-font-size-text-m);
+  color: var(--tsm-color-text-placeholder);
 }
 
 .slot-content {
@@ -459,45 +472,45 @@ const onCancel = () => {
   flex-direction: column;
   align-items: center;
   padding: var(--tsm-spacing-xl) var(--tsm-spacing-xl) var(--tsm-spacing-l);
+}
 
-  .slot-icon {
-    font-size: 64px;
-    color: var(--tsm-color-success);
-    margin-bottom: var(--tsm-spacing-m);
-  }
+.slot-icon {
+  font-size: 64px;
+  color: var(--tsm-color-success);
+  margin-bottom: var(--tsm-spacing-m);
+}
 
-  .slot-title {
-    font-size: var(--tsm-font-size-text-xl);
-    font-weight: var(--tsm-font-weight-bold);
-    color: var(--tsm-color-text-primary);
-    margin-bottom: var(--tsm-spacing-l);
-  }
+.slot-title {
+  font-size: var(--tsm-font-size-text-xl);
+  font-weight: var(--tsm-font-weight-bold);
+  color: var(--tsm-color-text-primary);
+  margin-bottom: var(--tsm-spacing-l);
+}
 
-  .slot-cards {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--tsm-spacing-m);
-  }
+.slot-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-  .slot-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--tsm-spacing-m);
-    background: var(--tsm-color-bg-page);
-    border-radius: var(--tsm-radius-m);
+.slot-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--tsm-spacing-m);
+  background: var(--tsm-color-bg-page);
+  border-radius: var(--tsm-radius-m);
+  margin-bottom: var(--tsm-spacing-m);
+}
 
-    .slot-card-label {
-      font-size: var(--tsm-font-size-text-m);
-      color: var(--tsm-color-text-secondary);
-    }
+.slot-card-label {
+  font-size: var(--tsm-font-size-text-m);
+  color: var(--tsm-color-text-secondary);
+}
 
-    .slot-card-value {
-      font-size: var(--tsm-font-size-text-m);
-      font-weight: var(--tsm-font-weight-medium);
-      color: var(--tsm-color-text-primary);
-    }
-  }
+.slot-card-value {
+  font-size: var(--tsm-font-size-text-m);
+  font-weight: var(--tsm-font-weight-medium);
+  color: var(--tsm-color-text-primary);
 }
 </style>

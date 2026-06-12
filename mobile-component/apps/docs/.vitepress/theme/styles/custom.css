@@ -178,3 +178,27 @@ iframe {
   margin-top: 16px;
   justify-content: center;
 }
+
+/* 组件文档表格样式 */
+.vp-doc table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.vp-doc th,
+.vp-doc td {
+  border: 1px solid var(--vp-c-divider);
+  padding: 8px 16px;
+  word-break: break-all;
+  vertical-align: middle;
+}
+
+/* 覆盖 VitePress 默认 h2 上方的分割线 */
+.vp-doc h2 {
+  margin: 48px 0 16px;
+  padding-top: 24px;
+  border-top: none;
+  letter-spacing: -.02em;
+  line-height: 32px;
+  font-size: 24px;
+}

@@ -2,27 +2,49 @@
  * ActionSheet 操作菜单组件 Props 定义
  */
 
+export interface ActionItem {
+  text?: string;
+  icon?: string;
+  description?: string;
+  type?: string;
+}
 
 export interface ActionSheetProps {
-  /** 是否显示 */
-  show?: boolean;
-  /** 菜单项列表 */
-  actions?: any[];
-  /** 取消按钮文字 */
-  cancelText?: string;
-  /** 标题 */
-  title?: string;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: UTSJSONObject;
+  show: boolean;
+  actions: UTSJSONObject[];
+  cancelText: string;
+  showCancel: boolean;
+  title: string;
+  description: string;
+  descriptionAlign: string;
+  showDescriptionDivider: boolean | null;
+  itemAlign: string;
+  maxHeight: string;
+  mode: string;
+  gridMode: string;
+  beforeClose: ((action: string) => boolean) | null;
+  textKey: string;
+  valueKey: string;
+  customClass: string;
+  customStyle: UTSJSONObject;
 }
 
 export const defaultProps = {
   show: false,
   actions: () => [],
   cancelText: '取消',
+  showCancel: true,
   title: '',
+  description: '',
+  descriptionAlign: '',
+  showDescriptionDivider: null,
+  itemAlign: 'center',
+  maxHeight: '70vh',
+  mode: 'list',
+  gridMode: 'stack',
+  beforeClose: null,
+  textKey: 'label',
+  valueKey: '',
   customClass: '',
   customStyle: () => ({})
 } as UTSJSONObject;

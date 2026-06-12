@@ -20,6 +20,8 @@ export interface InputProps {
   showWordimit?: boolean;
   /** 提示信息 */
   tips?: string;
+  /** 输入框大小 */
+  size?: 'default' | 'small';
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -29,6 +31,7 @@ export interface InputProps {
 export const defaultProps = {
   modelValue: '',
   value: '',
+  size: 'default',
   disabled: false,
   readonly: false,
   maxlength: -1,

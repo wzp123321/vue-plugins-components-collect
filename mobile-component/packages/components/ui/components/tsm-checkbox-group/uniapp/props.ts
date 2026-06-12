@@ -8,6 +8,8 @@ export interface CheckboxGroupProps {
   modelValue?: (string | number)[];
   /** 是否禁用所有复选框 */
   disabled?: boolean;
+  /** 是否只读 */
+  readonly?: boolean;
   /** 复选框形状 */
   shape?: 'circle' | 'square';
   /** 选中时的颜色 */
@@ -37,6 +39,7 @@ export interface CheckboxGroupProps {
 export const defaultProps = {
   modelValue: () => [],
   disabled: false,
+  readonly: false,
   shape: 'circle',
   activeColor: '#2979ff',
   inactiveColor: '#c8c9cc',

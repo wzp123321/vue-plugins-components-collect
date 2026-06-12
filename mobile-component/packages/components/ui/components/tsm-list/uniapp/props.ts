@@ -1,29 +1,35 @@
+import type { Component } from 'vue';
+
+export type ListItem = {
+  title?: string;
+  main: string;
+  description?: string;
+  prefixicon?: string | Component;
+  avatar?: string;
+  tag?: string;
+  extra?: string;
+  checked?: boolean;
+  key?: string | number;
+  status?: 'default' | 'pressed' | 'disabled';
+  disabled?: boolean;
+};
+
 /**
  * List 列表组件 Props 定义
  * @description 简化版列表组件
  */
-import type { CSSProperties } from 'vue';
 
 export interface ListProps {
-  /** 是否加载中 */
-  loading?: boolean;
-  /** 是否加载完成 */
-  finished?: boolean;
-  /** 加载完成文字 */
-  finishedText?: string;
-  /** 加载失败文字 */
-  errorText?: string;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
+  /** 列表类型 */
+  type?: 'default' | 'switch' | 'person';
+  /** 列表数据 */
+  list: ListItem[];
+  /** 列表标题 */
+  groupTitle?: string;
 }
 
 export const defaultProps = {
-  loading: false,
-  finished: false,
-  finishedText: '没有更多了',
-  errorText: '加载失败，点击重试',
-  customClass: '',
-  customStyle: () => ({}),
+  groupTitle: '',
+  type: 'default',
+  list: () => [],
 } as const;

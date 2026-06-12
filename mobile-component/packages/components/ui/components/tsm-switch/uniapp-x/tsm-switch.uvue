@@ -1,0 +1,358 @@
+/** * Switch 开关组件 * @description 开关组件，用于切换状态 */
+<template>
+  <view v-if="isReadonly" class="tsm-switch-readonly" :class="[`tsm-switch-readonly--${props.size}`]" :style="readonlyStyle">
+    <text class="tsm-switch-readonly-text">{{ readonlyText }}</text>
+  </view>
+  <view v-else :key="`${isChecked}`" class="tsm-switch" :class="bemClass" :style="switchStyle" @tap="handleSwitchChange">
+    <view class="tsm-switch-node" :style="nodeStyle"></view>
+    <text class="tsm-switch-text" :style="textStyle" v-if="props.inactiveText">
+      {{ isChecked ? props.checkedText : props.unCheckedText }}
+    </text>
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed, inject, watch, PropType, ref, onMounted, nextTick, getCurrentInstance } from 'vue';
+import { defaultProps, SWITCH_PADDING as innerPadding, getSwitchSize, getNodeWidthBySize } from './props.uts';
+import { addUnit, tsmGetRect } from '../../../libs/uniapp-x/function/index.uts';
+
+const props = defineProps({
+  checked: {
+    type: [Boolean, String, Number] as PropType<any>,
+    default: defaultProps.get('checked')
+  },
+  disabled: {
+    type: Boolean,
+    default: defaultProps.getBoolean('disabled')
+  },
+  readonly: {
+    type: Boolean,
+    default: defaultProps.getBoolean('readonly')
+  },
+  activeValue: {
+    type: [Boolean, String, Number] as PropType<any>,
+    default: defaultProps.get('activeValue')
+  },
+  inactiveValue: {
+    type: [Boolean, String, Number] as PropType<any>,
+    default: defaultProps.get('inactiveValue')
+  },
+  activeColor: {
+    type: String,
+    default: defaultProps.getString('activeColor')
+  },
+  inactiveColor: {
+    type: String,
+    default: defaultProps.getString('inactiveColor')
+  },
+  inactiveText: {
+    type: Boolean,
+    default: defaultProps.getBoolean('inactiveText')
+  },
+  size: {
+    type: String,
+    default: defaultProps.getString('size')
+  },
+  checkedText: {
+    type: String,
+    default: defaultProps.getString('checkedText')
+  },
+  unCheckedText: {
+    type: String,
+    default: defaultProps.getString('unCheckedText')
+  }
+});
+
+const emit = defineEmits<{
+  /** 开关状态变化时触发 */
+  change: [checked: any];
+  /** 更新开关状态 */
+  'update:checked': [value: any];
+}>();
+
+// 定义 formItem 的上下文类型
+type FormItemContext = {
+  onValueChange: (value: any) => void;
+  readonly: boolean
+  // ... 其他需要的方法或属性
+}
+
+// Inject FormItem 上下文（默认 null，独立使用时正常） 等formitem代码提交再改成FormItemContext
+const formItemContext = inject<FormItemContext | null>('formItemContext', null);
+
+const isChecked = computed((): boolean => props.checked === props.activeValue);
+
+const isReadonly = computed((): boolean => {
+  if (props.readonly === true) return true;
+  if (formItemContext != null && (formItemContext as FormItemContext)['readonly'] === true) return true;
+  return false;
+});
+
+const readonlyText = computed((): string => {
+  return isChecked.value ? props.checkedText != null ? props.checkedText : '' : props.unCheckedText != null ? props.unCheckedText : '';
+});
+
+const readonlyStyle = computed((): UTSJSONObject => {
+  return { alignSelf: 'flex-start' };
+});
+
+const bemClass = computed((): string => {
+  let className = 'tsm-switch';
+  if(props.size != '' && props.size != null) {
+    className += ` tsm-switch--${props.size}`;
+  }
+  if(props.disabled) {
+    className += ' tsm-switch--disabled';
+  }
+  if(isChecked.value) {
+    className += ' tsm-switch--checked';
+  }
+  if(props.readonly) {
+    className += ' tsm-switch--readonly';
+  }
+  return className;
+});
+
+const sizeMetrics = computed((): UTSJSONObject => {
+  const sizeObj = getSwitchSize(props.size);
+  const width = sizeObj.getNumber('width');
+  const height = sizeObj.getNumber('height');
+  const nodeSize = getNodeWidthBySize(props.size);
+  return {
+    width,
+    height,
+    nodeSize,
+    widthUnit: addUnit(`${width}`),
+    heightUnit: addUnit(`${height}`),
+    nodeSizeUnit: addUnit(`${nodeSize}`),
+    paddingUnit: addUnit(`${innerPadding}`),
+  };
+});
+
+const switchStyle = computed((): UTSJSONObject => {
+  const metrics = sizeMetrics.value;
+  const widthUnit = metrics.getString('widthUnit');
+  const heightUnit = metrics.getString('heightUnit');
+  const nodeSizeUnit = metrics.getString('nodeSizeUnit');
+
+  let backgroundColor = '';
+  if (props.disabled) {
+    backgroundColor = 'var(--tsm-color-primary-border)';
+  } else if (isChecked.value) {
+    backgroundColor = props.activeColor as string;
+  } else {
+    backgroundColor = props.inactiveColor as string;
+  }
+
+  const w = props.inactiveText ? 'max-content' : widthUnit;
+  const style: UTSJSONObject = {
+    '--tsm-switch-node-size': nodeSizeUnit,
+    width: w,
+    minWidth: widthUnit,
+    height: heightUnit,
+    backgroundColor,
+  }
+  return style;
+});
+
+const nodeLeft = ref<string>('');
+
+const internalInstance = getCurrentInstance();
+const instanceProxy = internalInstance != null && internalInstance.proxy != null ? internalInstance.proxy : null;
+
+const updateNodePosition = () => {
+  const metrics = sizeMetrics.value;
+  const padding = innerPadding;
+  const nodeSize = metrics.getNumber('nodeSize') as number;
+
+  if (!isChecked.value) {
+    nodeLeft.value = addUnit(`${padding}`);
+  } else {
+    nextTick(() => {
+      tsmGetRect('.tsm-switch', false, instanceProxy).then((rect: NodeInfo) => {
+        if (rect != null && rect.width != null && (rect.width as number) > 0) {
+          const width = rect.width as number;
+          nodeLeft.value = addUnit(`${width - nodeSize - padding}`);
+        } else {
+          const staticWidth = metrics.getNumber('width') as number;
+          nodeLeft.value = addUnit(`${staticWidth - nodeSize - padding}`);
+        }
+      });
+    });
+  }
+};
+
+watch(
+  (): boolean => isChecked.value,
+  () => {
+    updateNodePosition();
+  }
+);
+
+watch(
+  (): boolean => props.inactiveText,
+  () => {
+    updateNodePosition();
+  }
+);
+
+watch(
+  (): string => props.size,
+  () => {
+    updateNodePosition();
+  }
+);
+
+onMounted(() => {
+  nextTick(() => {
+    updateNodePosition();
+  });
+});
+
+const nodeStyle = computed((): UTSJSONObject => {
+  const metrics = sizeMetrics.value;
+  const nodeSizeUnit = metrics.getString('nodeSizeUnit');
+  const paddingUnit = metrics.getString('paddingUnit');
+
+  const style: UTSJSONObject = {
+    left: nodeLeft.value.length > 0 ? nodeLeft.value : paddingUnit,
+    width: nodeSizeUnit,
+    height: nodeSizeUnit,
+  }
+  return style;
+});
+
+const SPACING_XS = 4;
+
+const textStyle = computed((): UTSJSONObject => {
+  const metrics = sizeMetrics.value;
+  const nodeSize = metrics.getNumber('nodeSize') as number;
+  const textPadding = addUnit(`${nodeSize + SPACING_XS}`);
+  const spacingUnit = addUnit(`${SPACING_XS}`);
+
+  const color = props.disabled
+    ? 'var(--tsm-color-text-placeholder)'
+    : isChecked.value
+      ? 'var(--tsm-color-bg-white)'
+      : 'var(--tsm-color-text-placeholder)';
+
+  const style: UTSJSONObject = { color };
+
+  if (isChecked.value) {
+    style['paddingLeft'] = spacingUnit;
+    style['paddingRight'] = textPadding;
+  } else {
+    style['paddingLeft'] = textPadding;
+    style['paddingRight'] = spacingUnit;
+  }
+
+  return style;
+});
+
+const validateCheckedValue = () => {
+  const isValid = props.checked === props.activeValue || props.checked === props.inactiveValue;
+  if (!isValid) {
+    console.error(
+      `[tsm-switch] Invalid "checked" value: ${props.checked}. ` +
+        `It must be equal to either activeValue (${props.activeValue}). ` +
+        `or inactiveValue (${props.inactiveValue}).`
+    );
+  }
+};
+
+watch((): any | null => props.checked, validateCheckedValue, { immediate: true });
+watch((): any | null => props.activeValue, validateCheckedValue, { immediate: true });
+watch((): any | null => props.inactiveValue, validateCheckedValue, { immediate: true });
+
+const handleSwitchChange = () => {
+  if (props.disabled !== true && isReadonly.value !== true) {
+    const newValue = isChecked.value ? props.inactiveValue : props.activeValue;
+    emit('update:checked', newValue);
+    emit('change', newValue);
+    if(formItemContext != null && typeof (formItemContext as FormItemContext)['onValueChange'] === 'function') {
+      (formItemContext as FormItemContext).onValueChange(newValue as any);
+    }
+  }
+};
+</script>
+
+<style scoped lang="scss">
+@import '../../../libs/scss/platform-style.scss';
+
+.tsm-switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 100px;
+  transition-property: background-color;
+  transition-duration: 0.3s;
+  position: relative;
+  padding: var(--tsm-spacing-none) var(--tsm-spacing-xs);
+  box-sizing: border-box;
+}
+
+.tsm-switch-node {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--tsm-color-bg-white);
+  border-radius: 9999px;
+  transition-property: left;
+  transition-duration: 0.3s;
+}
+
+.tsm-switch-text {
+  white-space: nowrap;
+}
+
+.tsm-switch--large .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-l);
+}
+
+.tsm-switch--medium .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-m);
+  line-height: var(--tsm-line-height-text-m);
+}
+
+.tsm-switch--small .tsm-switch-text {
+  text-align: center;
+  font-size: var(--tsm-font-size-text-s);
+  line-height: var(--tsm-line-height-text-s);
+}
+
+.tsm-switch-readonly {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 var(--tsm-spacing-s);
+  border-radius: var(--tsm-radius-xs);
+  border: 1px solid var(--tsm-color-border-primary);
+  background: var(--tsm-color-bg-tertiary);
+  box-sizing: border-box;
+}
+
+.tsm-switch-readonly--small {
+  height: 18px;
+}
+
+.tsm-switch-readonly--medium {
+  height: 22px;
+}
+
+.tsm-switch-readonly--large {
+  height: 26px;
+}
+
+.tsm-switch-readonly-text {
+  color: var(--tsm-color-text-quaternary);
+  font-size: var(--tsm-font-size-text-s);
+  font-weight: var(--tsm-font-weight-bold);
+  font-family: var(--tsm-font-family-regular);
+  line-height: 1;
+}
+</style>

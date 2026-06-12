@@ -10,11 +10,11 @@
     </view>
 
     <view class="preview">
-      <view class="preview__item"><tsm-tag type="primary" text="Primary" /></view>
+      <!-- <view class="preview__item"><tsm-tag type="primary" text="Primary" /></view>
       <view class="preview__item"><tsm-tag type="success" text="Success" /></view>
       <view class="preview__item"><tsm-tag type="warning" text="Warning" /></view>
       <view class="preview__item"><tsm-tag type="error" text="Danger" /></view>
-      <view class="preview__item"><tsm-tag type="info" text="Info" /></view>
+      <view class="preview__item"><tsm-tag type="info" text="Info" /></view> -->
     </view>
     </view>
   </tsm-theme-provider>
@@ -50,7 +50,7 @@ function setTheme(mode: ThemeMode) {
 .title {
   font-size: var(--tsm-font-size-display-xs);
   color: var(--tsm-color-text-primary);
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .desc {

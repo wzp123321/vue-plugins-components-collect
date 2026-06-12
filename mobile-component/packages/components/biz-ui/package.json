@@ -1,9 +1,9 @@
 {
   "name": "@tiansu/ts-mobile-biz-ui",
   "displayName": "ts-mobile-biz-ui全面兼容uniapp-x、uniapp、鸿蒙业务组件库。",
-  "version": "0.0.12",
+  "version": "0.0.20",
   "description": "ts-mobile-biz-ui全面兼容uni-app/uni-app-x/鸿蒙，全面的组件和便捷的工具会让您信手拈来，如鱼得水",
-  "types": "types/comps.d.ts",
+  "types": "types/index.d.ts",
   "keywords": [
     "ts-mobile-biz-ui",
     "uniapp-x",
@@ -106,10 +106,12 @@
     }
   },
   "dependencies": {
-    "dayjs": "^1.11.3"
+    "dayjs": "^1.11.3",
+    "luch-request": "^3.1.1",
+    "asmcrypto.js": "^2.3.2"
   },
   "uniPeerDependencies": {
-    "@tiansu/ts-mobile-ui": "^0.0.8"
+    "@tiansu/ts-mobile-ui": "^0.0.26"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.29",

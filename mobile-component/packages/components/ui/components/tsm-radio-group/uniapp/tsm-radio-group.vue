@@ -1,52 +1,47 @@
+<!--
+ * @Author: liuguanqi liugq@tiansu-china.com
+ * @Date: 2026-04-28 17:31:07
+ * @LastEditors: liuguanqi liugq@tiansu-china.com
+ * @LastEditTime: 2026-05-11 21:05:44
+ * @FilePath: \ts-mobile-ui\packages\components\ui\components\tsm-radio-group\uniapp\tsm-radio-group.vue
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
 /** * RadioGroup 单选框组组件 * @description 单选框组组件，用于单选场景 */
 <template>
-  <view class="tsm-radio-group" :class="[customClass, `tsm-radio-group--${placement}`]" :style="groupStyleObj">
+  <view class="tsm-radio-group" :class="bemClass" :style="customStyle">
     <slot />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, provide } from 'vue';
+import { computed, provide, toRefs } from 'vue';
 import type { RadioGroupProps } from './props';
 import { defaultProps } from './props';
-import { addStyle } from '../../../libs/uniapp/function/index';
+import { bem } from '../../../libs/uniapp/function/index';
 
-/**
- * RadioGroup 组件 Props
- * @property {string|number} modelValue - 选中项的名称
- * @property {boolean} disabled - 是否禁用所有单选框
- * @property {string} shape - 单选框形状 (circle | square)
- * @property {string} activeColor - 选中时的颜色
- * @property {string} inactiveColor - 未选中时的颜色
- * @property {number|string} size - 单选框大小
- * @property {number|string} iconSize - 图标大小
- * @property {string} iconColor - 图标颜色
- * @property {string} labelColor - 标签文字颜色
- * @property {number|string} labelSize - 标签文字大小
- * @property {boolean} labelDisabled - 是否禁用标签点击
- * @property {string} placement - 排列方向 (row | column)
- * @property {string} customClass - 自定义类名
- * @property {object} customStyle - 自定义样式
- */
 const props = withDefaults(defineProps<RadioGroupProps>(), defaultProps);
 
 const emit = defineEmits<{
-  change: [value: string | number];
-  'update:modelValue': [value: string | number];
+  'update:value': [value: string];
+  change: [detail: { value: string }];
 }>();
 
-const groupStyleObj = computed(() => {
-  return addStyle(props.customStyle || {});
+const bemClass = computed(() => {
+  return bem('radio-group', [props.vertical ? 'vertical' : ''], [], props.customClass);
 });
 
-// 向子组件提供组配置
+// 向子组件提供组配置（使用 toRefs 保持响应式）
+const { value, disabled, readonly, vertical } = toRefs(props);
+
 provide('radioGroup', {
-  props,
-  updateValue: (name: string | number) => {
-    if (props.modelValue !== name) {
-      emit('update:modelValue', name);
-      emit('change', name);
-    }
+  value,
+  disabled,
+  readonly,
+  vertical,
+  updateValue: (selectedValue: string) => {
+    if (readonly.value) return;
+    emit('update:value', selectedValue);
+    emit('change', { value: selectedValue });
   },
 });
 </script>
@@ -57,11 +52,15 @@ provide('radioGroup', {
   flex-wrap: wrap;
 }
 
-.tsm-radio-group--row {
-  flex-direction: row;
-}
-
-.tsm-radio-group--column {
+.tsm-radio-group--vertical {
   flex-direction: column;
+
+  :deep(.tsm-radio) {
+    margin-right: 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 </style>

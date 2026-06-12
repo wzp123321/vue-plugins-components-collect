@@ -9,10 +9,8 @@ export interface StepsProps {
   current?: number;
   /** 步骤条方向 */
   direction?: 'horizontal' | 'vertical';
-  /** 步骤条颜色 */
-  activeColor?: string;
-  /** 未完成颜色 */
-  inactiveColor?: string;
+  /** 是否显示简洁风格 */
+  simple?: boolean;
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -22,8 +20,7 @@ export interface StepsProps {
 export const defaultProps = {
   current: 0,
   direction: 'horizontal',
-  activeColor: '#2979ff',
-  inactiveColor: '#909399',
+  simple: false,
   customClass: '',
   customStyle: () => ({}),
 } as const;

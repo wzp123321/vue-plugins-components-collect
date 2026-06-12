@@ -2,22 +2,44 @@
 <template>
   <view class="tsm-popup" :class="[customClass]">
     <tsm-overlay :show="show" @click="overlayClick" v-if="overlay" :zIndex="zIndex" :opacity="0.5"></tsm-overlay>
-    <tsm-transition :show="show" :customStyle="transitionStyle" :mode="position">
+    <tsm-transition :show="show" :customStyle="transitionStyle" :mode="position" :class="[popperClass]">
       <view class="tsm-popup-content" :style="[contentStyle]">
         <!-- 弹窗内容头, 仅在从底部弹出时生效 -->
-        <view class="tsm-popup-content-header" v-if="mode === 'bottom' && (title || $slots['header'])">
-          <view class="tsm-pch-indicator">
-            <view class="tsm-pch-indicator-rect"></view>
-          </view>
-          <view class="tsm-pch-tc">
+        <view
+          class="tsm-popup-content-header"
+          :class="[titlePosition === 'left' ? 'tsm-pch-left' : 'tsm-pch-center']"
+          v-if="mode === 'bottom' && (title || $slots['header'])"
+        >
+          <template v-if="titlePosition === 'left'">
             <view class="tsm-pch-title">
               <!-- 弹窗标题槽位 -->
               <slot name="header">
-                <view>{{ title }}</view>
+                <view class="tsm-pch-title-text">{{ title }}</view>
               </slot>
             </view>
+            <view class="tsm-pch-left">
+              <slot name="header-left"></slot>
+            </view>
+            <view class="tsm-pch-right">
+              <slot name="header-right"></slot>
+            </view>
             <icon-close class="tsm-pch-close" v-if="closeable" @click="close" />
-          </view>
+          </template>
+          <template v-else>
+            <view class="tsm-pch-left">
+              <slot name="header-left"></slot>
+            </view>
+            <view class="tsm-pch-title">
+              <!-- 弹窗标题槽位 -->
+              <slot name="header">
+                <view class="tsm-pch-title-text">{{ title }}</view>
+              </slot>
+            </view>
+            <view class="tsm-pch-right">
+              <slot name="header-right"></slot>
+            </view>
+            <icon-close class="tsm-pch-close" v-if="closeable" @click="close" />
+          </template>
         </view>
         <!-- 弹窗内容体 -->
         <scroll-view class="tsm-popup-content-body" :scroll-y="true" :scroll-x="true">
@@ -59,7 +81,7 @@ const transitionStyle = computed(() => {
     return deepMerge(style, { bottom: 0, top: 0, 'max-width': 'calc(100% - 44px)' });
   }
   if (props.mode === 'top' || props.mode === 'bottom') {
-    return deepMerge(style, { left: 0, right: 0, 'max-height': 'calc(100% - 44px)' });
+    return deepMerge(style, { left: 0, right: 0, 'max-height': '100%' });
   }
   return style;
 });
@@ -113,11 +135,11 @@ watch(
 .tsm-popup {
   overflow: hidden;
   .tsm-transition--slide-up {
-    max-height: calc(100% - 44px);
+    max-height: 100%;
   }
 
   .tsm-transition--slide-down {
-    max-height: calc(100% - 44px);
+    max-height: 100%;
   }
 
   .tsm-transition--slide-left {
@@ -136,38 +158,43 @@ watch(
     background-color: var(--tsm-color-bg-white);
     position: relative;
     .tsm-popup-content-header {
-      .tsm-pch-indicator {
-        display: flex;
-        padding: 8px 10px 0 10px;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        align-self: stretch;
-        .tsm-pch-indicator-rect {
-          width: 40px;
-          height: 4px;
-          border-radius: 4px;
-          background: #d9d9d9;
+      padding: 0 var(--tsm-spacing-xl);
+      display: flex;
+      gap: var(--tsm-spacing-m);
+      height: 56px;
+      justify-content: flex-end;
+      align-items: center;
+      .tsm-pch-left {
+        flex: 1 0 80px;
+        height: 100%;
+        line-height: 56px;
+      }
+      .tsm-pch-title {
+        flex: 0 1 auto;
+        overflow: hidden;
+        height: 100%;
+        line-height: 56px;
+        text-align: center;
+        .tsm-pch-title-text {
+          color: var(--tsm-color-text-primary);
+          font-family: var(--tsm-font-family-regular);
+          font-size: var(--tsm-font-size-text-xl);
+          font-style: normal;
+          font-weight: var(--tsm-font-weight-bold);
+          line-height: 56px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
-      .tsm-pch-tc {
-        display: flex;
-        height: 56px;
-        justify-content: flex-end;
-        align-items: center;
-        .tsm-pch-title {
-          flex: 1 1 0;
-          color: var(--tsm-color-text-primary);
-          text-align: center;
-          font-style: normal;
-          font-weight: 600;
-          line-height: var(--tsm-line-height-text-xl);
-        }
-        .tsm-pch-close {
-          width: 24px;
-          height: 24px;
-          flex-shrink: 0;
-        }
+      .tsm-pch-right {
+        flex: 1 0 50px;
+        text-align: right;
+        height: 100%;
+        line-height: 56px;
+      }
+      .tsm-pch-close {
+        flex: 0 0 22px;
       }
     }
     .tsm-popup-content-body {
@@ -177,10 +204,7 @@ watch(
       box-sizing: border-box;
     }
     .tsm-popup-content-footer {
-      display: flex;
       padding: var(--tsm-spacing-2xl) var(--tsm-spacing-xl) var(--tsm-spacing-4xl) var(--tsm-spacing-xl);
-      align-items: center;
-      gap: var(--tsm-spacing-xl);
     }
   }
 }

@@ -4,9 +4,9 @@ message 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,18 +14,23 @@ message 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| top | 到顶部的距离 | number \| string | 否 | 0 |
-| type | 主题类型 | 'primary' \| 'success' \| 'warning' \| 'error' | 否 | 'primary' |
-| color | 字体颜色 | string | 否 | '#ffffff' |
-| bgColor | 背景颜色 | string | 否 | - |
-| message | 展示的文字内容 | string | 否 | - |
-| duration | 展示时长，为0时不消失，单位ms | number | 否 | 3000 |
-| fontSize | 字体大小 | number \| string | 否 | 15 |
-| safeAreaInsetTop | 是否留出顶部安全距离 | boolean | 否 | false |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名      | 说明                                               | 类型                                          | 是否必填 | 默认值  |
+| ----------- | -------------------------------------------------- | --------------------------------------------- | -------- | ------- |
+| visible     | 是否显示                                           | `boolean`                                     | 否       | false   |
+| top         | 到顶部的距离                                       | `number \| string`                            | 否       | 0       |
+| type        | 主题类型                                           | `'info' \| 'success' \| 'warning' \| 'error'` | 否       | 'info'  |
+| message     | 展示的文字内容                                     | `string`                                      | 否       | -       |
+| duration    | 展示时长，为0时不消失，单位ms                      | `number`                                      | 否       | 3000    |
+| rightAction | 右侧操作区域：link 按钮 / close 按钮 / none 不展示 | `'link' \| 'close' \| 'none'`                 | 否       | 'close' |
+
+## Events
+
+| 事件名 | 说明           | 参数                         |
+| ------ | -------------- | ---------------------------- |
+| update | 更新显示状态   | `visible': [value: boolean]` |
+| open   | 消息打开时触发 | `-`                          |
+| close  | 消息关闭时触发 | `-`                          |
+| tap    | 点击消息时触发 | `-`                          |
 
 <style>
 table {

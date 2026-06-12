@@ -1,0 +1,16 @@
+/**
+ * fab-button 卡片组件 Props 定义
+ */
+import type { CSSProperties } from 'vue';
+
+export interface FabButtonProps {
+  /** 标题 */
+  title?: string;
+  /** type */
+  type?: string;
+  /** 状态 */
+  state?: string;
+  /** shape */
+  shape?: string;
+  customStyle?: UTSJSONObject;
+}

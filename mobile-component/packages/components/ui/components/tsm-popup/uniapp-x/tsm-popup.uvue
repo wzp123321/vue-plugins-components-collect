@@ -1,93 +1,142 @@
-/**
-* Popup 弹窗组件
-* @description 弹出层容器，用于展示弹窗、信息提示等内容，支持上、下、左、右和中部弹出
-*/
+/** * Popup 弹窗组件 * @description 弹出层容器，用于展示弹窗、信息提示等内容，支持上、下、左、右和中部弹出 */
 <template>
-	<view class="tsm-popup" :class="[customClass]">
-		<tsm-overlay :show="show" @click="overlayClick" v-if="overlay" :zIndex="zIndex" :duration="overlayDuration"
-			:opacity="overlayOpacity"></tsm-overlay>
-		<tsm-transition :show="show" :customStyle="transitionStyle" :mode="position" :duration="duration"
-			@afterEnter="afterEnter" @click="clickHandler">
-			<view class="tsm-popup__content" :style="[contentStyle]" @tap.stop="noop">
-				<slot></slot>
-				<view v-if="closeable" @tap.stop="close" class="tsm-popup__close"
-					:class="['tsm-popup__close--' + closeIconPos]" hover-class="tsm-popup__close--hover"
-					hover-stay-time="150">
-					<icon-setting />
+	<view class="tsm-popup" :class="bemClass" :id="vid">
+		<tsm-overlay :show="show" @click="overlayClick" v-if="overlay" :zIndex="zIndex" :opacity="0.5"></tsm-overlay>
+		<tsm-transition :show="show" :customStyle="transitionStyle" :mode="position" :class="[popperClass]">
+			<view class="tsm-popup-content" :style="[contentStyle]">
+				<!-- 弹窗内容头, 仅在从底部弹出时生效 -->
+				<view class="tsm-popup-content-header"
+					v-if="mode === 'bottom' && ((title !== null && title !=='') || $slots['header']!==null)">
+					<view class="tsm-pch-tc" v-if="titlePosition==='left'">
+						<view class="tsm-pch-title">
+							<!-- 弹窗标题槽位 -->
+							<slot name="header">
+								<text class="tsm-pch-text">{{ title }}</text>
+							</slot>
+						</view>
+						<view class="tsm-pch-left">
+							<slot name="header-left"></slot>
+						</view>
+						<view class="tsm-pch-right">
+							<slot name="header-right"></slot>
+						</view>
+						<view class="tsm-pch-close"><icon-close v-if="closeable" @click="close" /></view>
+
+					</view>
+					<view class="tsm-pch-tc" v-else>
+						<view class="tsm-pch-left">
+							<slot name="header-left"></slot>
+						</view>
+						<view class="tsm-pch-title">
+							<!-- 弹窗标题槽位 -->
+							<slot name="header">
+								<text class="tsm-pch-text">{{ title }}</text>
+							</slot>
+						</view>
+						<view class="tsm-pch-right">
+							<slot name="header-right"></slot>
+						</view>
+						<view class="tsm-pch-close"><icon-close v-if="closeable" @click="close" /></view>
+
+					</view>
 				</view>
-				<tsm-safe-bottom v-if="safeAreaInsetBottom"></tsm-safe-bottom>
+				<!-- 弹窗内容体 -->
+				<scroll-view class="tsm-popup-content-body" :scroll-y="mode==='bottom'||mode==='top'"
+					:scroll-x="mode==='left'||mode==='right'">
+					<!-- 弹窗内容槽位 -->
+					<slot></slot>
+				</scroll-view>
+				<!-- 弹窗内容脚 -->
+				<view class="tsm-popup-content-footer"
+					v-if="(mode === 'bottom' || mode === 'top') && $slots['footer']!==null">
+					<!-- 弹窗操作槽位 -->
+					<slot name="footer"></slot>
+				</view>
 			</view>
 		</tsm-transition>
 	</view>
 </template>
 
-<script setup lang="uts">
-	import { computed } from 'vue';
-	import type { PopupProps } from './props.uts';
-	import { defaultProps } from './props.uts';
-	import { addUnit, addStyle, deepMerge, sys } from '../../../libs/uniapp-x/function/index.uts';
-    import { empty } from '../../../libs/uniapp-x/function/test.uts';
-
-	/**
-	 * Popup 组件 Props
-	 * @property {boolean} show - 是否展示弹窗
-	 * @property {boolean} overlay - 是否显示遮罩
-	 * @property {string} mode - 弹出方向 (top | bottom | left | right | center)
-	 * @property {number} duration - 动画时长，单位ms
-	 * @property {boolean} closeable - 是否显示关闭图标
-	 * @property {boolean} closeOnClickOverlay - 点击遮罩是否关闭弹窗
-	 * @property {number} zIndex - 层级
-	 * @property {boolean} safeAreaInsetBottom - 是否为iPhoneX留出底部安全距离
-	 * @property {boolean} safeAreaInsetTop - 是否留出顶部安全距离
-	 * @property {number} round - 圆角值
-	 * @property {string} bgColor - 弹窗背景色
-	 * @property {number} overlayOpacity - 遮罩透明度
-	 * @property {string} customClass - 自定义类名
-	 * @property {object} customStyle - 自定义样式
-	 */
-	const rawProps = defineProps<PopupProps>();
-	const props = { ...defaultProps, ...rawProps } as PopupProps;
+<script setup lang="ts">
+	import { computed, watch,type Ref } from 'vue';
+	import { addUnit, addStyle } from '../../../libs/uniapp-x/function/index';
+	import { bem } from '../../../libs/uniapp-x/function/index';
+	const props = withDefaults(defineProps<{
+		/** 是否显示弹窗 */
+		show : boolean;
+		/** 弹窗标题 */
+		title ?: string;
+		/** 标题位置 */
+		titlePosition ?: 'left' | 'center';
+		/** 是否显示遮罩 */
+		overlay ?: boolean;
+		/** 弹出方向: top | bottom | left | right | center */
+		mode ?: 'top' | 'bottom' | 'left' | 'right';
+		/** 是否显示关闭图标 */
+		closeable ?: boolean;
+		/** 点击遮罩是否关闭弹窗 */
+		closeOnClickOverlay ?: boolean;
+		/** 层级 */
+		zIndex ?: number;
+		/** 圆角值 */
+		round ?: number;
+		/** 自定义类名 */
+		customClass ?: string;
+		/** 自定义样式 */
+		customStyle ?: UTSJSONObject;
+		popperClass ?: string
+	}>(), {
+		show: false,
+		overlay: true,
+		mode: 'bottom',
+		closeable: false,
+		closeOnClickOverlay: true,
+		zIndex: 10075,
+		round: 10,
+		titlePosition: 'center',
+		customClass: '',
+		customStyle: () => ({}),
+		popperClass: ''
+	});
 
 	const emit = defineEmits<{
 		open : [];
 		close : [];
-		click : [];
 		'update:show' : [value: boolean];
 	}>();
-
-	const overlayDuration = computed(() => props.duration + 50);
-
+	const bemClass = computed(() => {
+		return bem('popup', [props.mode], [] as string[], props.customClass);
+	});
+	// 生成12位唯一key
+	const generateUniqueKey = () => {
+		const timestamp = Date.now().toString().slice(-8);
+		const random = Math.floor(Math.random() * 10000)
+			.toString()
+			.padStart(4, '0');
+		return timestamp + random;
+	};
+	type pvl ={h:number,w:number}
+	/**动态计算弹窗宽高*/
+	const pv = ref<pvl>({ h: 0, w: 0 })
 	const transitionStyle = computed(() => {
 		const style : UTSJSONObject = {
 			zIndex: props.zIndex,
-			position: 'fixed',
 			display: 'flex',
+			position: 'fixed',
 		};
 		style[props.mode] = 0;
 		if (props.mode === 'left' || props.mode === 'right') {
-			return deepMerge(style, { bottom: 0, top: 0 });
+			return { ...style, ...{ bottom: 0, top: 0, 'flex-direction': 'row', 'max-width': (pv.value.w as number) - 44 } };
 		}
 		if (props.mode === 'top' || props.mode === 'bottom') {
-			return deepMerge(style, { left: 0, right: 0 });
-		}
-		if (props.mode === 'center') {
-			return deepMerge(style, {
-				alignItems: 'center',
-				justifyContent: 'center',
-				top: 0,
-				left: 0,
-				right: 0,
-				bottom: 0,
-			});
+			return { ...style, ...{ left: 0, right: 0, 'max-height': pv.value.h } };
 		}
 		return style;
 	});
 
 	const contentStyle = computed(() => {
 		const style : UTSJSONObject = {};
-		if (props.mode !== 'center') style.flex = 1;
-		if (props.bgColor) style.backgroundColor = props.bgColor;
-		if (props.round) {
+		if (props.round !== null) {
 			const value = addUnit(props.round);
 			if (props.mode === 'top') {
 				style.borderBottomLeftRadius = value;
@@ -95,15 +144,12 @@
 			} else if (props.mode === 'bottom') {
 				style.borderTopLeftRadius = value;
 				style.borderTopRightRadius = value;
-			} else if (props.mode === 'center') {
-				style.borderRadius = value;
 			}
 		}
-		return addStyle(UTSJSONObject.assign(style, props.customStyle));
+		return addStyle({ ...style, ...props.customStyle });
 	});
 
 	const position = computed(() => {
-		if (props.mode === 'center') return 'fade';
 		if (props.mode === 'left') return 'slide-left';
 		if (props.mode === 'right') return 'slide-right';
 		if (props.mode === 'bottom') return 'slide-up';
@@ -114,62 +160,121 @@
 	const overlayClick = () => {
 		if (props.closeOnClickOverlay) {
 			emit('update:show', false);
-			emit('close');
 		}
 	};
 
 	const close = () => {
 		emit('update:show', false);
-		emit('close');
 	};
+	const vid = ref('id' + generateUniqueKey())
+	watch(
+		() : boolean => props.show,
+		(newVal : boolean) => {
+			if (newVal) {
+				emit('open');
+				let pui = uni.getElementById(vid.value)
+				if (props.mode === 'bottom' || props.mode === 'top') {
+					pv.value.h = pui?.offsetHeight as number;
+				} else {
+					pv.value.w = pui?.offsetWidth as number;
+				}
 
-	const afterEnter = () => {
-		emit('open');
-	};
-
-	const clickHandler = () => {
-		if (props.mode === 'center') overlayClick();
-		emit('click');
-	};
-
-	const noop = () => { };
+			} else {
+				emit('close');
+			}
+		}
+	);
 </script>
 
 <style scoped lang="scss">
 	.tsm-popup {
-		flex: 1;
+		position: fixed;
+		z-index: 10097;
+
+		.tsm-popup-content {
+			flex: 1;
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			background-color: var(--tsm-color-bg-white);
+			position: relative;
+
+			.tsm-popup-content-header {
+				.tsm-pch-tc {
+					padding: 0 var(--tsm-spacing-xl);
+					display: flex;
+					flex-direction: row;
+					height: 56px;
+					justify-content: flex-end;
+					align-items: center;
+
+					.tsm-pch-left {
+						flex: 1 0 80px;
+						height: 100%;
+						line-height: 56px;
+					}
+
+					.tsm-pch-title {
+						flex: 0 1 auto;
+						overflow: hidden;
+						height: 100%;
+						line-height: 56px;
+						text-align: center;
+						margin-right: 8px;
+
+						.tsm-pch-text {
+							line-height: 56px;
+							color: var(--tsm-color-text-primary);
+							text-align: center;
+							font-family: var(--tsm-font-family-regular);
+							font-size: var(--tsm-font-size-text-xl);
+							font-style: normal;
+							font-weight: var(--tsm-font-weight-bold);
+						}
+					}
+
+					.tsm-pch-right {
+						flex: 1 0 50px;
+						display: flex;
+						flex-direction: row-reverse;
+						height: 100%;
+						line-height: 56px;
+					}
+
+					.tsm-pch-close {
+						flex: 0 0 22px;
+						margin-left: 8px;
+					}
+
+					// .tsm-pch-close {
+					// 	position: absolute;
+					// 	right: var(--tsm-spacing-xl);
+					// }
+				}
+			}
+
+			.tsm-popup-content-body {
+				flex-direction: row;
+				padding: var(--tsm-spacing-xl);
+				flex: 1 1 auto;
+				box-sizing: border-box;
+			}
+
+			.tsm-popup-content-footer {
+				padding: var(--tsm-spacing-2xl) var(--tsm-spacing-xl) var(--tsm-spacing-4xl) var(--tsm-spacing-xl);
+			}
+		}
 	}
 
-	.tsm-popup__content {
-		background-color: #fff;
-		position: relative;
+	.tsm-popup--bottom,
+	.tsm-popup--top {
+		height: 100%;
+		width: 0;
 	}
 
-	.tsm-popup__close {
-		position: absolute;
-	}
-
-	.tsm-popup__close--hover {
-		opacity: 0.4;
-	}
-
-	.tsm-popup__close--top-left {
-		top: 15px;
-		left: 15px;
-	}
-
-	.tsm-popup__close--top-right {
-		top: 15px;
-		right: 15px;
-	}
-
-	.tsm-popup__close--bottom-left {
-		bottom: 15px;
-		left: 15px;
-	}
-
-	.tsm-popup__close--bottom-right {
-		right: 15px;
-		bottom: 15px;
+	.tsm-popup--left,
+	.tsm-popup--right {
+		height: 0;
+		width: 100%;
 	}
 </style>

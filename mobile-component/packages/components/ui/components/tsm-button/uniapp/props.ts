@@ -3,13 +3,59 @@
  */
 import type { CSSProperties } from 'vue';
 
+/** 按钮样式类型 */
+export type ButtonType = 'solid' | 'outline' | 'text' | 'link' | 'dash' | 'ghost' | 'iconText';
+
+/** 按钮语义主题 */
+export type ButtonTheme = 'primary' | 'default' | 'danger';
+
+/** 按钮尺寸 */
+export type ButtonSize = 'xs' | 's' | 'm' | 'l';
+
+/** 按钮形状 */
+export type ButtonShape = 'rectangle' | 'round' | 'circle';
+
+/** 按钮状态 */
+export type ButtonStatus = 'normal' | 'hover' | 'active' | 'focus' | 'loading';
+
 export interface ButtonProps {
-  /** 按钮类型 */
-  type?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
-  /** 按钮大小 */
-  size?: 'large' | 'normal' | 'small' | 'mini';
-  /** 按钮形状 */
-  shape?: 'square' | 'circle';
+  /**
+   * 按钮样式类型
+   * - solid: 实心按钮
+   * - outline: 描边按钮
+   * - text: 文字按钮
+   * - link: 链接按钮
+   * - dash: 虚线按钮
+   * - ghost: 幽灵按钮
+   * - iconText: 图标文字按钮
+   */
+  type?: ButtonType;
+  /**
+   * 按钮语义主题
+   * - primary: 主色
+   * - default: 默认
+   * - danger: 危险
+   */
+  theme?: ButtonTheme;
+  /**
+   * 按钮尺寸
+   * - solid/outline/text/dash/ghost: xs(24px) | s(32px) | m(40px) | l(48px)
+   * - link: s | m
+   */
+  size?: ButtonSize;
+  /**
+   * 按钮形状
+   * - rectangle: 矩形（根据尺寸不同圆角不同）
+   * - round: 圆角（999px）
+   * - circle: 圆形
+   */
+  shape?: ButtonShape;
+  /** 是否长按钮（宽度随容器适配） */
+  long?: boolean;
+  /** 是否显示前缀图标 */
+  prefixIcon?: boolean;
+  /** 是否显示后缀图标 */
+  suffixIcon?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
   /** 是否显示加载状态 */
@@ -17,8 +63,8 @@ export interface ButtonProps {
   /** 加载状态文字 */
   loadingText?: string;
   /** 按钮文字 */
-  text?: string;
-  /** 自定义颜色 */
+  label?: string;
+  /** 自定义颜色（优先级高于 theme） */
   color?: string;
   /** 自定义类名 */
   customClass?: string;
@@ -27,13 +73,17 @@ export interface ButtonProps {
 }
 
 export const defaultProps = {
-  type: 'info',
-  size: 'normal',
-  shape: 'square',
+  type: 'solid' as ButtonType,
+  theme: 'default' as ButtonTheme,
+  size: 'm' as ButtonSize,
+  shape: 'rectangle' as ButtonShape,
+  long: false,
+  prefixIcon: false,
+  suffixIcon: false,
   disabled: false,
   loading: false,
   loadingText: '',
-  text: '',
+  label: '',
   color: '',
   customClass: '',
   customStyle: () => ({}),

@@ -31,7 +31,7 @@ export function bem(
   change: [string, boolean][] = [],
   customClass?: string | Record<string, boolean>
 ): string {
-  const prefix = `tsm-${name}--`;
+  const prefix = `tsmbiz-${name}--`;
   const classes: Record<string, boolean> = {};
   fixed.forEach(item => {
     if (item) classes[prefix + item] = true;

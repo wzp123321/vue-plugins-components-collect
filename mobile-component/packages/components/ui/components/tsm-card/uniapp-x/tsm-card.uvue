@@ -1,82 +1,179 @@
-/**
- * Card 卡片组件
- * @description 卡片组件，用于展示内容
- */
+/** * Card 卡片组件 * @description 卡片组件，用于展示内容 */
 <template>
-  <view
-    class="tsm-card"
-    :class="bemClass"
-    :style="cardStyle"
-  >
-    <view v-if="title || subTitle" class="tsm-card__header">
-      <text v-if="title" class="tsm-card__title">{{ title }}</text>
-      <text v-if="subTitle" class="tsm-card__sub-title">{{ subTitle }}</text>
+  <view class="tsm-card">
+    <view class="tsm-card__header">
+      <view class="tsm-card__info-panel">
+        <view class="tsm-card__title-panel" v-if="getIsShowTitle && title !== ''">
+          <text class="tsm-card__title" >{{ title }}</text>
+          <image :src="PicPageInfo" class='picPageInfo' alt="icon" v-if="showInfoIcon"  @tap="emit('info', $event)" />
+        </view>
+        <text v-if="subTitle" class="tsm-card__sub-title">{{ subTitle }}</text>
+      </view>
+      <view class="tsm-card__option-panel">
+        <view class="tsm-card__option-item" @tap="emit('more', $event)" v-if="showMorePanel">
+          <text class="tsm-card__option-text">查看更多</text>
+          <image :src="PicPageRight" class='picPageInfo' alt="icon" />
+        </view>
+        <view
+          v-if="showOptionPanel"
+          @tap="emit('option', $event)"
+        >
+           <image :src="PicPageMore" class='picPageRight' alt="icon" />
+        </view>
+      </view>
     </view>
-    <view class="tsm-card__body">
+    <view  class="tsm-card__body">
       <slot />
-    </view>
-    <view v-if="$slots.footer" class="tsm-card__footer">
-      <slot name="footer" />
     </view>
   </view>
 </template>
 
 <script setup lang="uts">
 import { computed } from 'vue';
-import type { CardProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { addUnit, bem } from '../../../libs/uniapp-x/function/index.uts';
+import { defaultProps,CardProps } from './props.uts';
+import PicPageInfo  from '../../../assets/image/card/pic-page-info.png';
+import PicPageMore from '../../../assets/image/card/pic-page-more.png';
+import PicPageRight from '../../../assets/image/card/pic-page-right.png';
 
-const rawProps = defineProps<CardProps>();
-const props = { ...defaultProps, ...rawProps } as CardProps;
-
-const bemClass = computed(() => {
-  return bem('card', [props.border ? 'border' : ''], [], props.customClass);
+const props = withDefaults(defineProps<CardProps>(), {
+  title: () => '',
+  subTitle: () => '',
+  border: () => true,
+  showOptionPanel: () => true,
+  showMorePanel: () => true,
+  showTitle: () => true,
+  showInfoIcon: () => true,
+  radius: () => 8,
+  customClass: () => '',
+  customStyle: () => ({})
 });
+const emit = defineEmits<{
+  info: [e: Event];
+  more: [e: Event];
+  option: [e: Event];
+}>();
 
-const cardStyle = computed(() => {
-  return {
-    borderRadius: addUnit(String(props.radius)),
-    ...props.customStyle,
-  };
-});
+const getIsShowTitle = computed(() => (props.showMorePanel || props.showTitle));
 </script>
 
 <style scoped lang="scss">
 .tsm-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  overflow: hidden;
-
-  &--border {
-    border: 1px solid #ebedf0;
-  }
+  border-radius: var(--tsm-radius-l);
+  border: 1px solid var(--tsm-color-border-tertiary);
+  background: var(--tsm-color-text-white);
+  box-shadow:
+    0 0 3px 0 var(--tsm-shadow-s-01),
+    0 1px 2px -1px var(--tsm-shadow-s-02);
+  display: flex;
+  padding: 0 0 0 0;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .tsm-card__header {
-  padding: 16px;
-  border-bottom: 1px solid #ebedf0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
+.tsm-card__info-panel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tsm-card__title-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+.picPageInfo {
+  width: 16px;
+  height:16px;
+}
+.picPageRight {
+  width: 24px;
+  height:24px;
+}
 .tsm-card__title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
+  overflow: hidden;
+  color: var(--tsm-color-text-primary);
+  text-overflow: ellipsis;
+
+  /* Body-Semibold/l */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(-tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-l);
+  /* 150% */
+}
+
+.tsm-card__icon-info {
+  margin-left: 4px;
 }
 
 .tsm-card__sub-title {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #909399;
+  overflow: hidden;
+  color: var(--tsm-color-text-secondary);
+  text-overflow: ellipsis;
+
+  /* Body/s */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(-tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-s);
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  /* 166.667% */
+}
+
+.tsm-card__option-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.tsm-card__option-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+}
+
+.tsm-card__option-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--tsm-color-text-quaternary);
+  text-align: center;
+  text-overflow: ellipsis;
+
+  /* Body/m */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(-tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m);
+  /* 157.143% */
 }
 
 .tsm-card__body {
-  padding: 16px;
-}
-
-.tsm-card__footer {
-  padding: 12px 16px;
-  border-top: 1px solid #ebedf0;
-  background-color: #f7f8fa;
+  padding: 4px 16px 12px;
+  box-sizing: border-box;
+  width: 100%;
 }
 </style>

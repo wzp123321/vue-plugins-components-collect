@@ -1,51 +1,89 @@
 <template>
   <tsm-theme-provider>
     <view class="container">
-      <text class="title">Tabs 标签页</text>
-
-      <view class="section">
-        <text class="section-title">默认用法 - Large 尺寸（均分宽度，最多5个）</text>
-        <tsm-tabs :list="largeList" size="large" @change="onLargeChange"></tsm-tabs>
-        <text class="event-log">当前选中：{{ largeIndex }}</text>
+      <view class="header">
+        <text class="title">Tabs 标签页</text>
       </view>
 
-      <view class="section">
-        <text class="section-title">默认用法 - Small 尺寸（紧凑排列，用于子分类）</text>
-        <tsm-tabs :list="smallList" size="small" @change="onSmallChange"></tsm-tabs>
-        <text class="event-log">当前选中：{{ smallIndex }}</text>
+      <view class="demo-card">
+        <text class="section-title">尺寸 - Large</text>
+        <tsm-tabs :list="sizeList" size="large" @change="onSizeLargeChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ sizeLargeIndex }}</text>
       </view>
 
-      <view class="section">
-        <text class="section-title">等距选项卡 - 可横向滑动 + 列表弹出层</text>
-        <tsm-tabs
-          :list="scrollableList"
-          scrollable
-          show-list-icon
-          @change="onScrollableChange"
-          @list-click="onListClick"
-        ></tsm-tabs>
+      <view class="demo-card">
+        <text class="section-title">尺寸 - Small</text>
+        <tsm-tabs :list="sizeList" size="small" @change="onSizeSmallChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ sizeSmallIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">布局 - 均分（isometric=false）</text>
+        <tsm-tabs :list="equalList" @change="onEqualChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ equalIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">布局 - 等距（isometric=true）</text>
+        <tsm-tabs :list="equidistantList" :isometric="true" @change="onEquidistantChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ equidistantIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">可滚动</text>
+        <tsm-tabs :list="scrollableList" scrollable @change="onScrollableChange"></tsm-tabs>
         <text class="event-log">当前选中：{{ scrollableIndex }}</text>
+      </view>
 
-        <tsm-popup mode="bottom" :show="showListPopup" @close="showListPopup = false">
-          <view class="list-popup">
-            <view class="list-popup__header">
-              <text class="list-popup__title">选择标签</text>
-              <icon-close class="list-popup__close" @tap="showListPopup = false" />
+      <view class="demo-card">
+        <text class="section-title">禁用状态</text>
+        <tsm-tabs :list="disabledList" @change="onDisabledChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ disabledIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">Tag 样式 - Large</text>
+        <tsm-tabs :list="tagList" item-type="tag" size="large" @change="onTagLargeChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ tagLargeIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">Tag 样式 - Small</text>
+        <tsm-tabs :list="tagList" :isometric="true" item-type="tag" size="small" @change="onTagSmallChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ tagSmallIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">Tag 样式 - 均分</text>
+        <tsm-tabs :list="tagEqualList" item-type="tag" @change="onTagEqualChange"></tsm-tabs>
+        <text class="event-log">当前选中：{{ tagEqualIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">Tag 样式 - 可滚动</text>
+        <tsm-tabs
+          :list="tagScrollableList"
+          item-type="tag"
+          :isometric="true"
+          scrollable
+          @change="onTagScrollableChange"
+          @list-click="handleListClick"
+        ></tsm-tabs>
+        <text class="event-log">当前选中：{{ tagScrollableIndex }}</text>
+      </view>
+
+      <view class="demo-card">
+        <text class="section-title">自定义插槽</text>
+        <tsm-tabs :list="slotList" @change="onSlotChange">
+          <template #item="{ item, index }">
+            <view class="custom-item">
+              <text class="custom-icon">{{ item.icon }}</text>
+              <text class="custom-text">{{ item.name }}</text>
+              <view v-if="item.count" class="custom-badge">{{ item.count }}</view>
             </view>
-            <view class="list-popup__body">
-              <view
-                v-for="(item, index) in scrollableList"
-                :key="index"
-                class="list-popup__item"
-                :class="{ 'list-popup__item--active': scrollableIndex === index }"
-                @tap="selectFromList(index)"
-              >
-                <text class="list-popup__item-text">{{ item.name }}</text>
-                <icon-check v-if="scrollableIndex === index" class="list-popup__item-icon" />
-              </view>
-            </view>
-          </view>
-        </tsm-popup>
+          </template>
+        </tsm-tabs>
+        <text class="event-log">当前选中：{{ slotIndex }}</text>
       </view>
     </view>
   </tsm-theme-provider>
@@ -54,44 +92,102 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const largeList = [{ name: '标签1' }, { name: '标签2' }, { name: '标签3' }];
+const sizeList = [{ name: '标签1' }, { name: '标签2' }, { name: '标签3' }];
 
-const smallList = [{ name: '全部' }, { name: '进行中' }, { name: '已完成' }, { name: '已取消' }];
+const equalList = [{ name: '推荐' }, { name: '热门' }, { name: '最新' }];
 
-const scrollableList = [
-  { name: '推荐' },
-  { name: '热门资讯' },
-  { name: '科技前沿' },
-  { name: '财经动态' },
-  { name: '体育赛事' },
-  { name: '娱乐八卦' },
-  { name: '生活百科' },
+const equidistantList = [
+  { name: '全部' },
+  { name: '待付款' },
+  { name: '待发货待发货待待待发' },
+  { name: '待收货' },
+  { name: '已完成' },
 ];
 
-const largeIndex = ref(0);
-const smallIndex = ref(0);
-const scrollableIndex = ref(0);
-const showListPopup = ref(false);
+const scrollableList = [{ name: '推荐推荐推荐推荐推荐推荐推荐' }, { name: '热门资讯' }, { name: '科技前沿' }];
 
-const onLargeChange = (index: number) => {
-  largeIndex.value = index;
+const disabledList = [{ name: '可选' }, { name: '已禁用', disabled: true }, { name: '可选2' }];
+
+const tagList = [{ name: '全部' }, { name: '待付款' }, { name: '待发货' }, { name: '已完成' }];
+
+const tagEqualList = [{ name: '推荐' }, { name: '热门' }, { name: '最新' }];
+
+const tagScrollableList = [
+  { name: '全部' },
+  { name: '待付款' },
+  { name: '待发货' },
+  { name: '已完成已完成已成' },
+  { name: '已取消' },
+  { name: '退款' },
+];
+
+const slotList = [
+  { name: '首页', icon: '🏠' },
+  { name: '消息', icon: '💬', count: 5 },
+  { name: '我的', icon: '👤' },
+];
+
+const sizeLargeIndex = ref(0);
+const sizeSmallIndex = ref(0);
+const equalIndex = ref(0);
+const equidistantIndex = ref(0);
+const scrollableIndex = ref(0);
+const disabledIndex = ref(0);
+const tagLargeIndex = ref(0);
+const tagSmallIndex = ref(0);
+const tagEqualIndex = ref(0);
+const tagScrollableIndex = ref(0);
+const slotIndex = ref(0);
+
+const onSizeLargeChange = (index: number) => {
+  sizeLargeIndex.value = index;
 };
 
-const onSmallChange = (index: number) => {
-  smallIndex.value = index;
+const onSizeSmallChange = (index: number) => {
+  sizeSmallIndex.value = index;
+};
+
+const onEqualChange = (index: number) => {
+  equalIndex.value = index;
+};
+
+const onEquidistantChange = (index: number) => {
+  equidistantIndex.value = index;
 };
 
 const onScrollableChange = (index: number) => {
   scrollableIndex.value = index;
 };
 
-const onListClick = () => {
-  showListPopup.value = true;
+const onDisabledChange = (index: number) => {
+  disabledIndex.value = index;
 };
 
-const selectFromList = (index: number) => {
-  scrollableIndex.value = index;
-  showListPopup.value = false;
+const onTagLargeChange = (index: number) => {
+  tagLargeIndex.value = index;
+};
+
+const onTagSmallChange = (index: number) => {
+  tagSmallIndex.value = index;
+};
+
+const onTagEqualChange = (index: number) => {
+  tagEqualIndex.value = index;
+};
+
+const onTagScrollableChange = (index: number) => {
+  tagScrollableIndex.value = index;
+};
+
+const onSlotChange = (index: number) => {
+  slotIndex.value = index;
+};
+
+const handleListClick = () => {
+  uni.showToast({
+    title: `点击了`,
+    icon: 'none',
+  });
 };
 </script>
 
@@ -99,83 +195,71 @@ const selectFromList = (index: number) => {
 @import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
 
 .container {
-  padding: 20px;
+  padding: 12px;
+  background: #f7f8fa;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 10px 10px 4px;
+  margin-bottom: 10px;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: 700;
   text-align: center;
+  color: #111827;
+  line-height: 1.2;
 }
 
-.section {
-  margin-bottom: 40px;
+.demo-card {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  margin-bottom: 10px;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #666;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111827;
 }
 
 .event-log {
-  margin-top: 16px;
-  font-size: 20px;
-  color: #999;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-.list-popup {
-  background-color: #fff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.list-popup__header {
+.custom-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid #ebedf0;
 }
 
-.list-popup__title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #323233;
+.custom-icon {
+  font-size: 16px;
+  margin-right: 4px;
 }
 
-.list-popup__close {
-  font-size: 32px;
-  color: #969799;
+.custom-text {
+  font-size: 14px;
+  color: var(--tsm-color-text-primary);
 }
 
-.list-popup__body {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.list-popup__item {
+.custom-badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  color: #fff;
+  background: var(--tsm-color-error);
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 24px 20px;
-  border-bottom: 1px solid #f7f8fa;
-}
-
-.list-popup__item--active {
-  background-color: #f7f8fa;
-}
-
-.list-popup__item-text {
-  font-size: 28px;
-  color: #323233;
-}
-
-.list-popup__item-icon {
-  font-size: 32px;
-  color: var(--tsm-color-primary);
+  justify-content: center;
 }
 </style>

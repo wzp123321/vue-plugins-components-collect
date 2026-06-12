@@ -1,0 +1,140 @@
+<template>
+  <view
+    class="tsm-pull-refresh"
+    @touchstart.passive="touchstartHandle"
+    @touchmove.passive="touchmoveHandle"
+    @touchend.passive="touchendHandle"
+    @touchcancel.passive="touchendHandle"
+    :style="contaniernStyle"
+  >
+    <view class="tsm-pull-refresh__refresher" :style="refresherStyle">
+      <text class="text" v-show="translateY < 50">下拉刷新</text>
+      <text class="text" v-show="translateY > 50">松手刷新</text>
+      <text class="text" v-show="isLoading && translateY === 50">正在刷新</text>
+      <text class="text" v-show="success">刷新完成</text>
+    </view>
+    <view class="tsm-pull-content">
+      <slot></slot>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import type { PullRefreshProps } from './props';
+import { defaultProps } from './props';
+import { addStyle } from '../../../libs/uniapp/function';
+
+/**
+ * @typedef {Object} PullRefreshProps - 列表组件属性
+ * @property {boolean} loading - 列表类型，决定列表项的展示形式
+ */
+const props = withDefaults(defineProps<PullRefreshProps>(), defaultProps);
+
+/**
+ * 事件约定：
+ * - item-click：点击列表项时触发，输出 item 和 index
+ * - update:list：切换开关时触发，输出更新后的 list 数组
+ */
+const emit = defineEmits<{
+  refresh: [];
+}>();
+const success = ref(false);
+const refreshing = ref(false);
+const translateY = ref(0);
+const duration = ref(300);
+const opacity = ref(0);
+let pageYOrigin = 0;
+
+const isLoading = computed(() => props.loading);
+// 刷新器样式
+const refresherStyle = computed(() => {
+  return addStyle({
+    height: `50px`,
+    opacity: opacity.value,
+  });
+});
+// 容器样式
+const contaniernStyle = computed(() => {
+  return addStyle({
+    transform: `translateY(${translateY.value}px)`,
+    'transition-duration': `${duration.value}ms`,
+    'pointer-events': 'auto',
+  });
+});
+// 滑动结束
+const touchendHandle = () => {
+  translateY.value = translateY.value < 50 ? 0 : 50;
+  duration.value = 300;
+  refreshing.value = translateY.value === 50;
+  pageYOrigin = 0;
+  if (refreshing.value) {
+    emit('refresh');
+  }
+};
+
+watch(
+  () => props.loading,
+  () => {
+    if (!props.loading) {
+      translateY.value = 0;
+      success.value = false;
+    }
+  }
+);
+// 开始滑动
+const touchstartHandle = (e: TouchEvent) => {
+  const { pageY: n } = e.touches[0];
+  pageYOrigin = n;
+};
+
+// 滑动
+const touchmoveHandle = (e: TouchEvent) => {
+  if (refreshing.value && pageYOrigin === 0) return;
+  duration.value = 0;
+  opacity.value = 1;
+  const { pageY } = e.touches[0];
+  const y = pageY - pageYOrigin;
+  if (y < 0) return;
+  if (y < 50) {
+    translateY.value = y;
+  } else {
+    translateY.value += 0.5;
+  }
+};
+</script>
+
+<style scoped lang="scss">
+.tsm-pull-refresh {
+  display: flex;
+  align-items: stretch;
+  align-content: stretch;
+  justify-content: flex-start;
+  transition-property: transform;
+  will-change: transform;
+  overflow: visible;
+  min-height: 100%;
+  width: 100%;
+}
+.tsm-pull-refresh__refresher {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-100%);
+  color: var(--tsm-color-text-placeholder);
+
+  /* Body/m */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+.tsm-pull-content {
+  width: 100%;
+}
+</style>

@@ -4,9 +4,9 @@ rate 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,16 +14,19 @@ rate 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| value | 当前评分 | number | 否 | 0 |
-| max | 最大评分 | number | 否 | 5 |
-| size | 图标大小 | number \| string | 否 | 20 |
-| activeColor | 选中颜色 | string | 否 | '#ff9900' |
-| inactiveColor | 未选中颜色 | string | 否 | '#c8c9cc' |
-| disabled | 是否禁用 | boolean | 否 | false |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名      | 说明                | 类型    | 是否必填 | 默认值 |
+| ----------- | ------------------- | ------- | -------- | ------ |
+| value       | 当前评分值（5分制） | number  | 否       | 0      |
+| disabled    | 是否禁用            | boolean | 否       | false  |
+| customClass | 自定义类名          | string  | 否       | -      |
+| customStyle | 自定义样式          | object  | 否       | {}     |
+
+## Events
+
+| 事件名       | 说明               | 参数          |
+| ------------ | ------------------ | ------------- |
+| change       | 评分变化时触发     | value: number |
+| update:value | v-model 绑定值更新 | value: number |
 
 <style>
 table {

@@ -2,8 +2,6 @@
  * Dialog 对话框组件 Props 定义
  * @description 简化版对话框组件，用于消息提示、确认等
  */
-import type { CSSProperties } from 'vue';
-
 export interface DialogProps {
   /** 是否显示对话框 */
   visible?: boolean;
@@ -25,15 +23,11 @@ export interface DialogProps {
   closeOnClickOverlay?: boolean;
   /** 弹窗动画时间 */
   duration?: number;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
 }
 
 export const defaultProps = {
   visible: false,
-  type: 'default' as DialogType,
+  type: 'default',
   title: '',
   content: '',
   confirmText: '确认',
@@ -42,6 +36,4 @@ export const defaultProps = {
   showCancelButton: true,
   closeOnClickOverlay: false,
   duration: 400,
-  customClass: '',
-  customStyle: () => ({}),
 } as const;

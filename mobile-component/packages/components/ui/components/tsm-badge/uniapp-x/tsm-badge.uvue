@@ -1,139 +1,532 @@
-/**
- * Badge 徽标组件
- * @description 该组件一般用于图标右上角显示未读的消息数量，提示用户点击
- */
+/** * Badge 徽标组件 * @description 该组件一般用于图标右上角显示未读的消息数量，提示用户点击 */
 <template>
-  <text
-    class="tsm-badge"
-    :class="bemClass"
-    :style="badgeStyle"
-    v-if="show && ((Number(value) === 0 ? showZero : true) || isDot)"
-    >{{ isDot ? '' : showValue }}</text
-  >
+  <view class="tsm-badge-wrapper" :style="wrapperContainerStyle">
+    <slot />
+    <view
+      class="tsm-badge"
+      :class="[bemClass]"
+      :style="wrapperStyle"
+		  v-if="show && ((parseInt(value.toString()) == 0 ? showZero : true) || isDot)"
+      @tap="handleTap"
+    >
+      <image v-if="shape === 'ribbon-right'" class="tsm-badge__bg-image" :src="ribbonBgImage" mode="scaleToFill" />
+      <text class="tsm-badge-text" :class="{ 'tsm-badge__content--ribbon-right': shape === 'ribbon-right' }">
+        {{ isDot ? '' : showValue }}
+      </text>
+    </view>
+  </view>
 </template>
 
 <script setup lang="uts">
-import { computed } from 'vue';
-import type { BadgeProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+import { computed, PropType } from 'vue';
+import { type BadgeProps, defaultProps } from './props.uts';
+import { bem, addUnit } from '../../../libs/uniapp-x/function/index.uts';
 
-const rawProps = defineProps<BadgeProps>();
-const props = { ...defaultProps, ...rawProps } as BadgeProps;
+import PicBadgeM from '../../../assets/image/badge/pic-badge-m.svg';
+import PicBadgeL from '../../../assets/image/badge/pic-badge-l.svg';
+import PicBadgeLightM from '../../../assets/image/badge/pic-badge-light-m.svg';
+import PicBadgeLightL from '../../../assets/image/badge/pic-badge-light-l.svg';
+import PicBadgePrimaryM from '../../../assets/image/badge/pic-badge-primary-m.svg';
+import PicBadgePrimaryL from '../../../assets/image/badge/pic-badge-primary-l.svg';
+import PicBadgePrimaryLightM from '../../../assets/image/badge/pic-badge-primary-light-m.svg';
+import PicBadgePrimaryLightL from '../../../assets/image/badge/pic-badge-primary-light-l.svg';
+import PicBadgeSuccessM from '../../../assets/image/badge/pic-badge-success-m.svg';
+import PicBadgeSuccessL from '../../../assets/image/badge/pic-badge-success-l.svg';
+import PicBadgeSuccessLightM from '../../../assets/image/badge/pic-badge-success-light-m.svg';
+import PicBadgeSuccessLightL from '../../../assets/image/badge/pic-badge-success-light-l.svg';
+import PicBadgeWarningM from '../../../assets/image/badge/pic-badge-warning-m.svg';
+import PicBadgeWarningL from '../../../assets/image/badge/pic-badge-warning-l.svg';
+import PicBadgeWarningLightM from '../../../assets/image/badge/pic-badge-warning-light-m.svg';
+import PicBadgeWarningLightL from '../../../assets/image/badge/pic-badge-warning-light-l.svg';
+import PicBadgeInfoM from '../../../assets/image/badge/pic-badge-info-m.svg';
+import PicBadgeInfoL from '../../../assets/image/badge/pic-badge-info-l.svg';
+import PicBadgeInfoLightM from '../../../assets/image/badge/pic-badge-info-light-m.svg';
+import PicBadgeInfoLightL from '../../../assets/image/badge/pic-badge-info-light-l.svg';
+
+const props = defineProps({
+  isDot: {
+    type: Boolean,
+    default: defaultProps.getBoolean('isDot')
+  },
+  value: {
+    type: [String, Number] as PropType<string | number>,
+    default: defaultProps.getString('value')
+  },
+  show: {
+    type: Boolean,
+    default: defaultProps.getBoolean('show')
+  },
+  max: {
+    type: [String, Number] as PropType<string | number>,
+    default: defaultProps.getNumber('max')
+  },
+  showZero: {
+    type: Boolean,
+    default: defaultProps.getBoolean('showZero')
+  },
+  shape: {
+    type: String,
+    default: defaultProps.getString('shape')
+  },
+  mode: {
+    type: String,
+    default: defaultProps.getString('mode')
+  },
+  theme: {
+    type: String,
+    default: defaultProps.getString('theme')
+  },
+  size: {
+    type: String,
+    default: defaultProps.getString('size')
+  },
+  numberType: {
+    type: String,
+    default: defaultProps.getString('numberType')
+  },
+  absolute: {
+    type: Boolean,
+    default: defaultProps.getBoolean('absolute')
+  },
+  offset: {
+    type: Array,
+    default: defaultProps.getArray('offset')
+  },
+})
+
+// 对外抛出点击事件
+const emit = defineEmits<{
+  click: [];
+}>();
+
+const handleTap = () => {
+  emit('click');
+};
+
+// ribbon-right 形状的背景图片
+const ribbonBgImage = computed(() => {
+  const isLarge = props.size === 'large';
+  const isLight = props.theme === 'light';
+  const mode = props.mode ?? 'error';
+
+  if (mode === 'primary') {
+    return isLarge
+      ? isLight
+        ? PicBadgePrimaryLightL
+        : PicBadgePrimaryL
+      : isLight
+        ? PicBadgePrimaryLightM
+        : PicBadgePrimaryM;
+  }
+  if (mode === 'success') {
+    return isLarge
+      ? isLight
+        ? PicBadgeSuccessLightL
+        : PicBadgeSuccessL
+      : isLight
+        ? PicBadgeSuccessLightM
+        : PicBadgeSuccessM;
+  }
+  if (mode === 'warning') {
+    return isLarge
+      ? isLight
+        ? PicBadgeWarningLightL
+        : PicBadgeWarningL
+      : isLight
+        ? PicBadgeWarningLightM
+        : PicBadgeWarningM;
+  }
+  if (mode === 'info') {
+    return isLarge ? (isLight ? PicBadgeInfoLightL : PicBadgeInfoL) : isLight ? PicBadgeInfoLightM : PicBadgeInfoM;
+  }
+  return isLarge ? (isLight ? PicBadgeLightL : PicBadgeL) : isLight ? PicBadgeLightM : PicBadgeM;
+});
+
+// 生成 BEM 风格类名：主题、形状、尺寸 + 模式、是否为圆点
+const hasWhiteBorder = computed(() => {
+  return props.isDot || (!props.isDot && props.shape === 'circle' && props.theme !== 'light');
+});
 
 const bemClass = computed(() => {
-  return bem('badge', [
-    props.type,
-    props.isDot ? 'dot' : 'not-dot',
-    props.inverted ? 'inverted' : '',
-    props.shape === 'horn' ? 'horn' : ''
-  ], {}, props.customClass);
+  return bem(
+    'badge',
+    [props.mode == '' || props.mode == null ? 'primary' : props.mode, props.shape, props.size],
+    [
+      [props.theme, !props.isDot],
+      ['dot', props.isDot],
+      ['not-dot', !props.isDot],
+      ['absolute', props.absolute],
+      ['border-white', hasWhiteBorder.value],
+    ],
+    {}
+  );
 });
 
-const badgeStyle = computed(() => {
-  const style: Record<string, any> = {};
-  if (props.color) style.color = props.color;
-  if (props.bgColor && !props.inverted) style.backgroundColor = props.bgColor;
+const wrapperStyle = computed(() => {
+  const style = {};
   if (props.absolute) {
-    style.position = 'absolute';
-    if (props.offset && props.offset.length) {
-      const top = props.offset[0];
-      const right = props.offset[1] || top;
-      style.top = typeof top === 'number' ? `${top}px` : top;
-      style.right = typeof right === 'number' ? `${right}px` : right;
+    style['position'] = 'absolute'
+    style['top'] = addUnit(0)
+    style['right'] = addUnit(0)
+    style['z-index'] = 1
+    style['display'] = 'inline-flex'
+    let offsetArray = props.offset as number[]
+    if (offsetArray.length > 0) {
+      const top = offsetArray[0]
+      style['top'] = addUnit(top)
+      if (offsetArray.length == 2) {
+        style['right'] = addUnit(offsetArray[1])
+      } else {
+        style['right'] = addUnit(top)
+      }
     }
   }
-  return { ...style, ...props.customStyle };
+  return style;
 });
 
-const showValue = computed(() => {
-  const value = Number(props.value);
-  const max = Number(props.max);
-  switch (props.numberType) {
-    case 'overflow':
-      return value > max ? `${max}+` : String(value);
-    case 'ellipsis':
-      return value > max ? '...' : String(value);
-    case 'limit':
-      if (value > 999) {
-        if (value >= 9999) {
-          return Math.floor((value / 1e4) * 100) / 100 + 'w';
-        }
-        return Math.floor((value / 1e3) * 100) / 100 + 'k';
-      }
-      return String(value);
-    default:
-      return String(value);
+const wrapperContainerStyle = computed(() => {
+  const style = {};
+  if (props.absolute) {
+    style['position'] = 'static'
   }
+  return style;
 });
+
+// 显示值
+const showValue = computed(():string => {
+		let valueReturn = ''
+		switch (props.numberType.toString()) {
+			case "overflow":
+				valueReturn = parseInt(props.value.toString()) > parseInt(props.max.toString()) ? props.max.toString() + "+" : props.value.toString()
+				break;
+			case "ellipsis":
+				valueReturn = parseInt(props.value.toString()) > parseInt(props.max.toString()) ? "..." : props.value.toString()
+				break;
+			case "limit":
+				valueReturn = parseInt(props.value.toString()) > 999
+						?
+							parseInt(props.value.toString()) >= 9999 ?
+							(Math.floor(parseInt(props.value.toString()) / 1e4 * 100) / 100).toString() + "w"
+							: (Math.floor(parseInt(props.value.toString()) / 1e3 * 100) / 100).toString() + "k"
+						: props.value.toString()
+				break;
+			default:
+				valueReturn = props.value.toString()
+		}
+		return valueReturn
+	})
 </script>
 
 <style scoped lang="scss">
+.tsm-badge-wrapper {
+  position: relative;
+}
+
 .tsm-badge {
-  border-top-right-radius: 100px;
-  border-top-left-radius: 100px;
-  border-bottom-left-radius: 100px;
-  border-bottom-right-radius: 100px;
   display: flex;
-  line-height: 11px;
-  text-align: center;
-  font-size: 11px;
+  flex-direction: row;
+  box-sizing: border-box;
+  transform: var(--tsm-badge-transform, none);
+}
+
+.tsm-badge.tsm-badge--absolute {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+
+
+.tsm-badge .tsm-badge-text {
+  white-space: nowrap;
 }
 
 .tsm-badge--dot {
-  height: 8px;
-  width: 8px;
+  width: 6px;
+  min-width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 999px;
 }
 
-.tsm-badge--inverted {
-  font-size: 13px;
+.tsm-badge--dot.tsm-badge--large {
+  width: 10px;
+  min-width: 10px;
+  height: 10px;
 }
 
-.tsm-badge--not-dot {
-  padding: 2px 5px;
+.tsm-badge--dot.tsm-badge--border-white {
+  box-shadow: 0 0 0 1px #ffffff;
 }
 
-.tsm-badge--horn {
-  border-bottom-left-radius: 0;
+.tsm-badge--not-dot.tsm-badge--circle {
+  padding: 0 2px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 100px;
 }
 
-.tsm-badge--primary {
-  background-color: #2979ff;
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--border-white {
+  box-shadow: 0 0 0 1px #ffffff;
 }
 
-.tsm-badge--primary--inverted {
-  color: #2979ff;
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--medium .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
 }
 
-.tsm-badge--error {
-  background-color: #fa3534;
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--large {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  text-align: center;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
 }
 
-.tsm-badge--error--inverted {
-  color: #fa3534;
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--large .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
 }
 
-.tsm-badge--success {
-  background-color: #19be6b;
+.tsm-badge--ribbon-right {
+  position: relative;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent !important;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
 }
 
-.tsm-badge--success--inverted {
-  color: #19be6b;
+.tsm-badge--ribbon-right .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
 }
 
-.tsm-badge--info {
-  background-color: #909399;
+.tsm-badge--ribbon-right.tsm-badge--large {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
 }
 
-.tsm-badge--info--inverted {
-  color: #909399;
+.tsm-badge--ribbon-right.tsm-badge--large .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
 }
 
-.tsm-badge--warning {
-  background-color: #ff9900;
+.tsm-badge__bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
-.tsm-badge--warning--inverted {
-  color: #ff9900;
+.tsm-badge__content--ribbon-right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg) translate(4px, -2px);
+}
+
+.tsm-badge--ribbon-right.tsm-badge--large .tsm-badge__content--ribbon-right {
+  transform: rotate(45deg) translate(6px, -3px);
+}
+
+.tsm-badge--ribbon-round {
+  border-radius: var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-s);
+  padding: 0 6px;
+  min-width: 32px;
+  height: 16px;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--ribbon-round .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--ribbon-round.tsm-badge--large {
+  min-width: 40px;
+  height: 18px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--ribbon-round.tsm-badge--large .tsm-badge-text{
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--bubble {
+  border-radius: var(--tsm-radius-m) var(--tsm-radius-l) var(--tsm-radius-l) var(--tsm-radius-none);
+  padding: 0 4px;
+  min-width: 32px;
+  height: 16px;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--bubble .tsm-badge-text {
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--bubble.tsm-badge--large {
+  min-width: 40px;
+  height: 18px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--bubble.tsm-badge--large .tsm-badge-text{
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--circle,
+.tsm-badge--ribbon-right,
+.tsm-badge--ribbon-round,
+.tsm-badge--bubble {
+  justify-content: center;
+  align-items: center;
+}
+
+.tsm-badge.tsm-badge--error {
+  background-color: var(--tsm-color-danger);
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--error .tsm-badge-text {
+  color: var(--tsm-color-text-white);
+
+}
+
+.tsm-badge.tsm-badge--error.tsm-badge--light {
+  background-color: var(--tsm-color-danger-bg);
+  color: var(--tsm-color-danger);
+}
+
+.tsm-badge.tsm-badge--error.tsm-badge--light .tsm-badge-text {
+  color: var(--tsm-color-danger);
+}
+
+.tsm-badge.tsm-badge--warning {
+  background-color: var(--tsm-color-warning);
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--warning .tsm-badge-text {
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--warning.tsm-badge--light {
+  background-color: var(--tsm-color-warning-bg);
+  color: var(--tsm-color-warning);
+}
+
+.tsm-badge.tsm-badge--warning.tsm-badge--light .tsm-badge-text{
+  color: var(--tsm-color-warning);
+}
+
+
+.tsm-badge.tsm-badge--primary {
+  background-color: var(--tsm-color-primary);
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--primary .tsm-badge-text{
+  color: var(--tsm-color-text-white);
+}
+
+
+
+.tsm-badge.tsm-badge--primary.tsm-badge--light {
+  background-color: var(--tsm-color-primary-bg);
+  color: var(--tsm-color-primary);
+}
+
+.tsm-badge.tsm-badge--primary.tsm-badge--light .tsm-badge-text{
+  color: var(--tsm-color-primary);
+}
+
+
+.tsm-badge.tsm-badge--success {
+  background-color: var(--tsm-color-success);
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--success .tsm-badge-text {
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--success.tsm-badge--light {
+  background-color: var(--tsm-color-success-bg);
+  color: var(--tsm-color-success);
+}
+
+.tsm-badge.tsm-badge--success.tsm-badge--light .tsm-badge-text {
+  color: var(--tsm-color-success);
+}
+
+.tsm-badge.tsm-badge--success.tsm-badge--light.tsm-badge--large {
+  color: var(--tsm-color-success);
+}
+
+.tsm-badge.tsm-badge--info {
+  background-color: var(--tsm-color-text-quaternary);
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--info .tsm-badge-text {
+  color: var(--tsm-color-text-white);
+}
+
+.tsm-badge.tsm-badge--info.tsm-badge--light {
+  background-color: var(--tsm-color-bg-secondary);
+  color: var(--tsm-color-text-secondary);
+}
+
+.tsm-badge.tsm-badge--info.tsm-badge--light .tsm-badge-text {
+  color: var(--tsm-color-text-secondary);
 }
 </style>

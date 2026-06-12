@@ -4,9 +4,9 @@ picker 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,18 +14,26 @@ picker 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| show | 是否显示 | boolean | 否 | false |
-| title | 选择器标题 | string | 否 | - |
-| columns | 选项列表 | any[] \| PickerColumn[] | 否 | () => [] |
-| defaultIndex | 当前选中项的索引 | number | 否 | 0 |
-| showCancelButton | 是否显示取消按钮 | boolean | 否 | true |
-| showConfirmButton | 是否显示确认按钮 | boolean | 否 | true |
-| cancelText | 取消按钮文字 | string | 否 | '取消' |
-| confirmText | 确认按钮文字 | string | 否 | '确认' |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名       | 说明                                  | 类型                | 是否必填 | 默认值                     |
+| ------------ | ------------------------------------- | ------------------- | -------- | -------------------------- |
+| options      | 选项数组                              | `PickerOption<T>[]` | 是       | () => [] as PickerOption[] |
+| show         | 弹层显示状态（v-model:show）          | `boolean`           | 是       | false                      |
+| title        | 标题文本                              | `string`            | 否       | -                          |
+| value        | 当前选中值（v-model:value，受控模式） | `T`                 | 否       | -                          |
+| defaultValue | 默认选中值（非受控模式）              | `T`                 | 否       | -                          |
+| confirmText  | 确认按钮文字                          | `string`            | 否       | '确定'                     |
+| customClass  | 自定义类名                            | `string`            | 否       | -                          |
+| customStyle  | 自定义样式                            | `object`            | 否       | {}                         |
+
+## Events
+
+| 事件名       | 说明              | 参数                      |
+| ------------ | ----------------- | ------------------------- |
+| confirm      | 确认事件          | `value: string \| number` |
+| cancel       | 取消事件          | `-`                       |
+| change       | 选项变更事件      | `value: string \| number` |
+| update:show  | 同步显示/隐藏状态 | `value: boolean`          |
+| update:value | 同步选中值        | `value: string \| number` |
 
 <style>
 table {

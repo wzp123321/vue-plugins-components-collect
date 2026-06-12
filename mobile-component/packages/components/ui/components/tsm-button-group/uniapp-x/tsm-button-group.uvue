@@ -1,0 +1,35 @@
+/**
+ * ButtonGroup 按钮组组件
+ * @description 按钮组组件，用于组合多个按钮
+ */
+<template>
+  <view class="tsm-button-group" :class="customClass" :style="customStyle">
+    <slot />
+  </view>
+</template>
+
+<script setup lang="uts">
+import { provide } from 'vue';
+import type { ButtonGroupProps } from './props.uts';
+
+const props = withDefaults(defineProps<ButtonGroupProps>(), {
+  customClass: '',
+  customStyle: () => ({})
+});
+
+// 提供标记，让子按钮知道自己在 group 中
+provide('tsmButtonGroup', true);
+</script>
+
+<style scoped lang="scss">
+.tsm-button-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  // 按钮组外边框
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+</style>

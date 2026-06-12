@@ -2,16 +2,53 @@
   <tsm-theme-provider>
     <view class="container">
       <div class="title" @click="show = true">底部弹窗</div>
+      <div class="title" @click="showTleft = true">底部弹窗(标题居左)</div>
       <div class="title" @click="showleft = true">左侧弹窗</div>
-      <div style="height: 5000px"></div>
-      <tsm-popup v-model:show="show" mode="bottom" closeable @open="open" @close="close">
-        <template #header>
-          <view>弹窗标题</view>
+      <tsm-popup
+        v-model:show="show"
+        mode="bottom"
+        closeable
+        @open="open"
+        @close="close"
+        popper-class="ppclass"
+        title="弹窗标题"
+      >
+        <template #header-left>
+          <view>左插槽</view>
+        </template>
+        <template #header-right>
+          <view style="color: red">右插槽</view>
         </template>
         <div style="height: 500px">弹窗内容</div>
         <template #footer>
-          <tsm-button style="flex: 1" @click="show = false">取消</tsm-button>
-          <tsm-button type="primary" style="flex: 1" @click="show = false">确认</tsm-button>
+          <view style="display: flex; align-items: center; gap: 12px">
+            <tsm-button type="outline" theme="default" style="flex: 1" @click="show = false">取消</tsm-button>
+            <tsm-button style="flex: 1" @click="show = false">确认</tsm-button>
+          </view>
+        </template>
+      </tsm-popup>
+      <tsm-popup
+        v-model:show="showTleft"
+        mode="bottom"
+        closeable
+        @open="open"
+        @close="close"
+        popper-class="ppclass"
+        title="弹窗标题"
+        title-position="left"
+      >
+        <template #header-left>
+          <view>左插槽</view>
+        </template>
+        <template #header-right>
+          <view>右插槽</view>
+        </template>
+        <div style="height: 500px">弹窗内容</div>
+        <template #footer>
+          <view style="display: flex; align-items: center; gap: 12px">
+            <tsm-button type="outline" theme="default" style="flex: 1" @click="show = false">取消</tsm-button>
+            <tsm-button style="flex: 1" @click="show = false">确认</tsm-button>
+          </view>
         </template>
       </tsm-popup>
       <tsm-popup v-model:show="showleft" mode="left" closeable>
@@ -25,6 +62,7 @@
 import { ref } from 'vue';
 const show = ref(false);
 const showleft = ref(false);
+const showTleft = ref(false);
 
 const open = () => {
   console.log('Popup opened');

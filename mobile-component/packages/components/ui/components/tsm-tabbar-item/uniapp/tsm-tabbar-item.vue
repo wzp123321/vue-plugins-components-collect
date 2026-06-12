@@ -74,10 +74,10 @@ const bemClass = computed(() => {
 
   .tsm-tabbar-item-icon {
     position: relative;
-    :deep(.tsm-tabbar-item-icon-img) {
+    .tsm-tabbar-item-icon-img {
       width: 18px;
       height: 18px;
-      color: var(--tsm-color-text-secondary) !important;
+      color: var(--tsm-color-text-secondary);
     }
   }
 

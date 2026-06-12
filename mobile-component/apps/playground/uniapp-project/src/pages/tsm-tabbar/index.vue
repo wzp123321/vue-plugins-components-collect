@@ -11,7 +11,7 @@
         </tsm-tabbar>
       </view>
 
-      <view class="section">
+      <view class="section2">
         <text class="section-title">胶囊样式</text>
         <tsm-tabbar v-model="activeIndex2" :fixed="false" bgColor="capsule" @change="onChange2">
           <tsm-tabbar-item text="首页" :icon="IconArithmetic" />
@@ -69,6 +69,11 @@ const onChange3 = (index: number) => {
 
 .section {
   margin-bottom: 30px;
+}
+.section2 {
+  padding: 20px 0;
+  background-image: url('./22.png');
+  background-size: cover;
 }
 
 .section-title {

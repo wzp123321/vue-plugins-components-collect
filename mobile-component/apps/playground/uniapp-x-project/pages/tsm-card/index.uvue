@@ -1,0 +1,122 @@
+<template>
+  <tsm-theme-provider>
+    <view class="container">
+      <view class="general">
+        <text style="margin: 10px 0;">card 基本用法</text>
+        <tsm-card
+          title="标题"
+          subTitle="副标题"
+          @info="handleInfo"
+          @more="handleMore"
+          @option="handleOption"
+        >
+          <view>
+            <text>card内容</text>
+          </view>
+        </tsm-card>
+      </view>
+      <view class="general">
+        <text style="margin: 10px 0;">隐藏info icon</text>
+        <tsm-card
+          title="标题"
+          subTitle="副标题"
+          :showInfoIcon="false"
+        @info="handleInfo"
+		   @more="handleMore"
+		   @option="handleOption"
+        >
+          <view>
+            <text>card内容</text>
+          </view>
+        </tsm-card>
+      </view>
+      <view class="general">
+        <text style="margin: 10px 0;">隐藏更多面板</text>
+        <tsm-card
+          title="标题"
+          subTitle="副标题"
+          :showMorePanel="false"
+         @info="handleInfo"
+		   @more="handleMore"
+		   @option="handleOption"
+        >
+          <view>
+            <text>card内容</text>
+          </view>
+        </tsm-card>
+      </view>
+      <view class="general">
+        <text style="margin: 10px 0;">隐藏操作面板</text>
+        <tsm-card
+          title="标题"
+          subTitle="副标题"
+          :showOptionPanel="false"
+         @info="handleInfo"
+		   @more="handleMore"
+		   @option="handleOption"
+        >
+          <view>
+            <text>card内容card内容card内容card内容card内容card内容card内容card内容card内容</text>
+          </view>
+        </tsm-card>
+      </view>
+      <view class="general">
+        <text style="margin: 10px 0;">嵌套卡片</text>
+        <tsm-card
+          title="外卡片"
+          subTitle="副标题"
+          @info="handleInfo"
+		   @more="handleMore"
+		   @option="handleOption"
+        >
+          <view>
+            <tsm-card
+              title="内卡片"
+              subTitle="副标题"
+              @info="handleInfo"
+              @more="handleMore"
+              @option="handleOption"
+            >
+              <view>
+                <text>card内容</text>
+              </view>
+            </tsm-card>
+          </view>
+        </tsm-card>
+      </view>
+    </view>
+  </tsm-theme-provider>
+</template>
+
+<script setup lang="uts">
+const handleInfo = () => {
+  uni.showToast({ title: '点击了内卡片info按钮' })
+}
+
+const handleMore = () => {
+  uni.showToast({ title: '点击了内卡片more按钮' })
+}
+
+const handleOption = () => {
+  uni.showToast({ title: '点击了内卡片option按钮' })
+}
+
+</script>
+
+<style scoped lang="scss">
+@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.general {
+  display: flex;
+  flex-direction: column;
+  margin: 20px 0;
+}
+
+</style>

@@ -1,190 +1,1080 @@
-/**
-* Button 按钮
-* @description 按钮组件，支持各种形状、大小、加载等功能。
-*/
 <template>
-	<button :hover-class="isActive ? '' : 'tsm-button--active'" class="tsm-button" :style="buttonStyle"
-		:class="bemClass" @tap="handleClick">
-		<template v-if="loading">
-			<text class="tsm-button__loading-text">{{ loadingText ?? text }}</text>
-		</template>
-		<template v-else>
-			<slot>
-				<text class="tsm-button__text">{{ text }}</text>
-			</slot>
-		</template>
-	</button>
+  <view
+    :hover-class="hoverClassName"
+    hover-stay-time="100"
+    class="tsm-button"
+    :class="buttonClasses"
+    :style="buttonStyles"
+    @tap="handleClick"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
+  >
+    <!-- 前缀图标 -->
+    <view v-if="showPrefixIcon" class="tsm-button__icon tsm-button__icon--prefix">
+      <slot name="prefix-icon">
+        <text class="tsm-button__icon-default" :style="textColorStyle"></text>
+      </slot>
+    </view>
+
+    <!-- 加载状?-->
+    <template v-if="loading">
+      <view class="tsm-button__loading">
+        <slot name="loading">
+          <view ref="spinnerRef" class="tsm-button__loading-spinner" :style="loadingSpinnerStyle">
+            <icon-loading /> 
+          </view>
+        </slot>
+      </view>
+      <text v-if="!isIconOnly" class="tsm-button__text" :style="textColorStyle">{{ (loadingText.length > 0 ? loadingText : label) }}</text>
+    </template>
+
+    <!-- 默认内容 -->
+    <template v-else>
+      <slot>
+        <text class="tsm-button__text" :style="textColorStyle">{{ label }}</text>
+      </slot>
+    </template>
+
+    <!-- 后缀图标（通用?-->
+    <view v-if="showSuffixIcon" class="tsm-button__icon tsm-button__icon--suffix">
+      <slot name="suffix">
+        <text class="tsm-button__icon-default" :style="textColorStyle"></text>
+      </slot>
+    </view>
+
+    <!-- 后缀图标（仅 iconText 类型使用?-->
+    <view v-if="type === 'iconText'" class="tsm-button__icon tsm-button__icon--suffix">
+      <slot name="suffix-icon">
+        <text class="tsm-button__icon-default" :style="textColorStyle"></text>
+      </slot>
+    </view>
+  </view>
 </template>
 
 <script setup lang="uts">
-	import { computed } from 'vue';
-	import type { ButtonProps } from './props.uts';
-	import { defaultProps } from './props.uts';
-	import { addStyle, bem } from '../../../libs/uniapp-x/function/index.uts';
-	import { empty } from '../../../libs/uniapp-x/function/test.uts';
+import { computed, ref, inject, watch, nextTick, onUnmounted, getCurrentInstance } from 'vue';
+import type { TsmButtonProps } from './props.uts';
+import { addStyle, bem } from '../../../libs/uniapp-x/function/index.uts';
 
-	const props = defineProps<ButtonProps>();
-	const {
-		type = defaultProps.type,
-		size = defaultProps.size,
-		shape = defaultProps.shape,
-		disabled = defaultProps.disabled,
-		loading = defaultProps.loading,
-		loadingText = defaultProps.loadingText,
-		text = defaultProps.text,
-		color = defaultProps.color,
-		customClass = defaultProps.customClass,
-		customStyle = defaultProps.customStyle,
-	} = props;
+const props = withDefaults(defineProps<TsmButtonProps>(), {
+  type: 'solid',
+  theme: 'default',
+  size: 'm',
+  shape: 'rectangle',
+  long: false,
+  prefixIcon: false,
+  suffixIcon: false,
+  disabled: false,
+  loading: false,
+  loadingText: '',
+  label: '',
+  color: '',
+  customClass: '',
+  customStyle: () => ({})
+});
 
-	const isActive = empty(props.disabled) && empty(props.loading)
+const emit = defineEmits<{
+  click: [e: Event];
+}>();
 
-	const emit = defineEmits<{
-		click : [e: Event];
-	}>();
+// ==================== ButtonGroup 检测 ====================
+const isInGroup = inject('tsmButtonGroup', false) as boolean;
 
-	const bemClass = computed(() => {
-		return bem('button', [props.type, props.shape, props.size],
-			{ disabled: !empty(disabled) || !empty(loading) }
-			, props.customClass);
-	});
+// ==================== 状态管理 ====================
+/** 是否处于按下状态（用于 active 样式） */
+const isPressed = ref(false);
 
-	const buttonStyle = computed(() => {
-		const style : UTSJSONObject = {};
-		if (!empty(props.color)) {
-			style['backgroundColor'] = props.color;
-			style['borderColor'] = props.color;
-			style['color'] = 'var(--tsm-color-static-white)';
-		}
-		return addStyle(UTSJSONObject.assign(style, props.customStyle ?? {}));
-	});
+// #ifdef APP-NVUE
+// ==================== Spin 动画 ====================
+const nvueAnimation = uni.requireNativePlugin('animation');
+const instance = getCurrentInstance();
+let isSpinning = false;
+let spinAngle = 0;
 
-	const handleClick = (e : Event) => {
-		if (isActive) {
-			emit('click', e);
-		}
-	};
+const runSpin = () => {
+  if (!isSpinning) return;
+  spinAngle = (spinAngle + 36) % 360;
+  const ctx = instance?.ctx as any;
+  if (ctx != null) {
+    const ref = ctx.$refs['spinnerRef'];
+    if (ref) {
+      nvueAnimation.transition(ref, {
+        styles: {
+          transform: `rotate(${spinAngle}deg)`,
+        },
+        duration: 100,
+        timingFunction: 'linear',
+      });
+    }
+  }
+  setTimeout(runSpin, 100);
+};
+
+const startSpin = () => {
+  if (isSpinning) return;
+  isSpinning = true;
+  nextTick(() => {
+    setTimeout(runSpin, 50);
+  });
+};
+
+const stopSpin = () => {
+  isSpinning = false;
+};
+// #endif
+
+// ==================== 方法（UTS 要求先定义后使用）====================
+
+// 颜色常量（UTS 要求全局作用域定义，供多个函数使用）
+const PRIMARY = '#6172f3';
+const PRIMARY_ACTIVE = '#4f5fd8';
+const DANGER = '#f04438';
+const DANGER_ACTIVE = '#d93d32';
+const TEXT_PRIMARY = 'rgba(0, 0, 0, 0.88)';
+const TEXT_DISABLED = 'rgba(0, 0, 0, 0.25)';
+const BORDER_PRIMARY = '#d9d9d9';
+const BORDER_DISABLED = '#d9d9d9';
+const BG_WHITE = '#ffffff';
+const BG_DISABLED = '#f5f5f5';
+
+/**
+ * 根据 type + theme + state 计算按钮颜色（uniapp-x 原生渲染不支持非根选择器的 CSS 变量）
+ */
+function getButtonColors(
+  type: string,
+  theme: string,
+  disabled: boolean,
+  loading: boolean
+): UTSJSONObject {
+  const style: UTSJSONObject = {};
+
+  // uni-app x App 端：border 需统一在 style 中定义，避免 CSS 拆分属性不生效
+  style['borderWidth'] = '1px';
+  style['borderStyle'] = 'solid';
+
+  if (disabled) {
+    // Disabled 状态
+    style['backgroundColor'] = BG_DISABLED;
+    style['borderColor'] = BORDER_DISABLED;
+    style['color'] = TEXT_DISABLED;
+    style['boxShadow'] = 'none';
+    style['transform'] = 'none';
+
+    if (type === 'ghost') {
+      style['backgroundColor'] = 'transparent';
+      style['boxShadow'] = 'none';
+      if (theme === 'danger') {
+        style['borderColor'] = DANGER;
+        style['color'] = DANGER;
+      } else {
+        style['borderColor'] = PRIMARY;
+        style['color'] = PRIMARY;
+      }
+    } else if (type === 'text' || type === 'link') {
+      style['backgroundColor'] = type === 'text' ? BG_WHITE : 'transparent';
+      style['borderColor'] = 'transparent';
+      if (theme === 'primary' || theme === 'danger') {
+        style['color'] = theme === 'danger' ? DANGER : PRIMARY;
+      }
+    } else if (type === 'outline' || type === 'dash') {
+      style['backgroundColor'] = BG_WHITE;
+      style['boxShadow'] = 'none';
+    }
+    return style;
+  }
+
+  // Normal / Loading 状态
+  switch (type) {
+    case 'solid':
+    case 'iconText':
+      if (theme === 'danger') {
+        style['backgroundColor'] = loading ? DANGER_ACTIVE : DANGER;
+        style['borderColor'] = DANGER;
+      } else {
+        style['backgroundColor'] = loading ? PRIMARY_ACTIVE : PRIMARY;
+        style['borderColor'] = PRIMARY;
+      }
+      style['color'] = '#fff';
+      // App 端避免 inset / 多阴影 / spreadRadius，统一用简化 shadow
+      style['boxShadow'] = '0 1px 2px 0 rgba(10, 13, 18, 0.05)';
+      break;
+
+    case 'outline':
+      style['backgroundColor'] = loading ? 'rgba(0, 0, 0, 0.04)' : BG_WHITE;
+      if (theme === 'danger') {
+        style['borderColor'] = DANGER;
+        style['color'] = loading ? DANGER : DANGER;
+      } else if (theme === 'primary') {
+        style['borderColor'] = PRIMARY;
+        style['color'] = loading ? PRIMARY : PRIMARY;
+      } else {
+        style['borderColor'] = BORDER_PRIMARY;
+        style['color'] = loading ? TEXT_PRIMARY : TEXT_PRIMARY;
+      }
+      // App 端简化 shadow：去掉 inset 和 spreadRadius
+      style['boxShadow'] = '0 1px 2px 0 rgba(10, 13, 18, 0.05)';
+      break;
+
+    case 'text':
+      style['backgroundColor'] = loading ? BG_WHITE : BG_WHITE;
+      style['borderColor'] = 'transparent';
+      style['boxShadow'] = 'none';
+      if (theme === 'danger') {
+        style['color'] = DANGER;
+      } else if (theme === 'primary') {
+        style['color'] = PRIMARY;
+      } else {
+        style['color'] = TEXT_PRIMARY;
+      }
+      break;
+
+    case 'link':
+      style['backgroundColor'] = 'transparent';
+      style['borderColor'] = 'transparent';
+      style['boxShadow'] = 'none';
+      if (theme === 'danger') {
+        style['color'] = DANGER;
+      } else if (theme === 'primary') {
+        style['color'] = PRIMARY;
+      } else {
+        style['color'] = TEXT_PRIMARY;
+      }
+      break;
+
+    case 'ghost':
+      style['backgroundColor'] = 'transparent';
+      style['boxShadow'] = '0 1px 2px 0 rgba(10, 13, 18, 0.05)';
+      if (theme === 'danger') {
+        style['borderColor'] = DANGER;
+        style['color'] = DANGER;
+      } else {
+        style['borderColor'] = PRIMARY;
+        style['color'] = PRIMARY;
+      }
+      break;
+
+    case 'dash':
+      style['backgroundColor'] = loading ? BG_WHITE : BG_WHITE;
+      style['borderColor'] = BORDER_PRIMARY;
+      style['color'] = loading ? TEXT_PRIMARY : TEXT_PRIMARY;
+      style['boxShadow'] = '0 1px 2px 0 rgba(10, 13, 18, 0.05)';
+      break;
+
+    default:
+      style['backgroundColor'] = PRIMARY;
+      style['borderColor'] = PRIMARY;
+      style['color'] = '#fff';
+      style['boxShadow'] = 'none';
+  }
+
+  return style;
+}
+
+function applyCustomColor(
+  style: UTSJSONObject,
+  color: string,
+  type: string
+) {
+  switch (type) {
+    case 'solid':
+      style['backgroundColor'] = color;
+      style['borderColor'] = color;
+      style['color'] = '#fff';
+      break;
+    case 'outline':
+    case 'dash':
+      style['backgroundColor'] = 'transparent';
+      style['borderColor'] = color;
+      style['color'] = color;
+      break;
+    case 'text':
+    case 'link':
+      style['backgroundColor'] = 'transparent';
+      style['borderColor'] = 'transparent';
+      style['color'] = color;
+      break;
+    case 'ghost':
+      style['backgroundColor'] = 'rgba(255, 255, 255, 0.1)';
+      style['borderColor'] = color;
+      style['color'] = color;
+      break;
+    case 'iconText':
+      style['backgroundColor'] = color;
+      style['borderColor'] = color;
+      style['color'] = '#fff';
+      break;
+    default:
+      style['backgroundColor'] = color;
+      style['borderColor'] = color;
+      style['color'] = '#fff';
+  }
+}
+
+// ==================== 计算属性 ====================
+
+/** 是否显示前缀图标 */
+const showPrefixIcon = computed(() => {
+  // loading 状态下隐藏前缀图标，避免和 loading 图标重叠
+  if (props.loading) return false;
+  return props.prefixIcon || props.type === 'iconText';
+});
+
+/** 是否显示后缀图标 */
+const showSuffixIcon = computed(() => {
+  // loading 状态下隐藏后缀图标，避免和 loading 图标重叠
+  if (props.loading) return false;
+  return props.suffixIcon;
+});
+
+/** 是否为纯图标模式（只有图标没有文字） */
+const isIconOnly = computed(() => {
+  // 有图标但没有文字（loading 不改变图标按钮的本质）
+  // 不依赖 showPrefixIcon/showSuffixIcon，因为 loading 时它们会返回 false
+  const hasIcon = props.prefixIcon || props.suffixIcon || props.type === 'iconText';
+  return hasIcon && props.label.length == 0;
+});
+
+/** hover 类名（uniapp hover-class 模拟 hover 状态）*/
+const hoverClassName = computed(() => {
+  if (props.disabled || props.loading) return '';
+  return 'tsm-button--hover';
+});
+
+/** 按钮类名组合 */
+const buttonClasses = computed(() => {
+  const { type, theme, size, shape, long, disabled, loading, customClass } = props;
+
+  return bem(
+    'button',
+    // fixed: 基础修饰符
+    [type, theme, size, shape],
+    // change: 条件修饰符 [string, boolean][]
+    [
+      ['disabled', disabled],
+      ['loading', loading],
+      ['long', long],
+      ['with-icon', showPrefixIcon.value || showSuffixIcon.value],
+      ['icon-only', isIconOnly.value],
+      ['pressed', isPressed.value && !disabled && !loading],
+      ['in-group', isInGroup],
+    ],
+    customClass
+  );
+});
+
+/** 按钮颜色对象（供样式和文字颜色共用） */
+const buttonColorObj = computed(() => {
+  // uniapp-x 原生渲染不支持非根选择器的 CSS 变量，颜色通过 JS 计算
+  const style = getButtonColors(props.type, props.theme, props.disabled, props.loading);
+
+  // 自定义颜色（最高优先级）
+  if (props.color.length > 0) {
+    applyCustomColor(style, props.color, props.type);
+  }
+
+  return style;
+});
+
+/** 按钮根节点样式 */
+const buttonStyles = computed(() => {
+  const style = { ...buttonColorObj.value };
+
+  // App 端 pressed 状态的焦点环也通过 style 绑定，避免 inset 多阴影在 CSS 中不生效
+  if (isPressed.value && !props.disabled && !props.loading) {
+    let borderColor = style['borderColor'] as string;
+    if (borderColor.length == 0) {
+      borderColor = PRIMARY;
+    }
+    if (props.type === 'solid' || props.type === 'outline' || props.type === 'ghost' || props.type === 'dash') {
+      style['boxShadow'] = '0 0 0 2px ' + borderColor;
+    } else if (props.type === 'text' || props.type === 'link') {
+      style['boxShadow'] = '0 0 0 2px ' + borderColor;
+    }
+  }
+
+  return addStyle({ ...style, ...props.customStyle });
+});
+
+/** 文字/图标颜色样式（uvue text 组件不继承父节点 color） */
+const textColorStyle = computed(() => {
+  const color = buttonColorObj.value['color'];
+  if (color != null) {
+    return addStyle({ color: color as string });
+  }
+  return '';
+});
+
+/** loading 圆环样式（跟随按钮文字色） */
+const loadingSpinnerStyle = computed(() => {
+  const style: UTSJSONObject = {};
+  const color = buttonColorObj.value['color'];
+  if (color != null) {
+    style['color'] = color as string;
+  }
+  return style;
+});
+
+// ==================== 事件处理 ====================
+
+/** 点击处理 */
+const handleClick = (e: Event) => {
+  if (props.disabled || props.loading) return;
+  emit('click', e);
+};
+
+/** 触摸开始 - 触发 active 状态 */
+const handleTouchStart = () => {
+  if (props.disabled || props.loading) return;
+  isPressed.value = true;
+};
+
+/** 触摸结束 - 取消 active 状态 */
+const handleTouchEnd = () => {
+  if (props.disabled || props.loading) return;
+  isPressed.value = false;
+};
+
+// #ifdef APP-NVUE
+// ==================== Spin 动画控制 ====================
+watch(
+  () => props.loading,
+  (newVal: boolean) => {
+    if (newVal) {
+      startSpin();
+    } else {
+      stopSpin();
+    }
+  }
+);
+
+onUnmounted(() => {
+  stopSpin();
+});
+// #endif
+
+
 </script>
 
 <style scoped lang="scss">
-	.tsm-button {
-		height: 40px;
-		padding: 0 12px;
-		border-width: 1px;
-		border-style: solid;
-		border-color: var(--tsm-color-primary-border);
-		border-radius: var(--tsm-radius-s);
-		background-color: var(--tsm-color-primary);
-		color: var(--tsm-color-static-white);
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-sizing: border-box;
-		flex-direction: row;
-		line-height: 1;
-	}
+// ==================== 基础样式层（只控制结构，不控制外观）====================
+.tsm-button {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  line-height: 1;
+  border-width: 1px;
+  border-style: solid;
+  transition: all 0.2s ease;
+}
 
-	.tsm-button__text {
-		font-size: var(--tsm-font-size-text-m);
-	}
+// ==================== Theme 层（只控制颜色）====================
+// 职责：定义背景色、边框色、文字色
+// 不控制：尺寸、圆角、边框样式（solid/dashed?
+// Primary 主题 - 文字、边框都是蓝?
+.tsm-button--primary {
+  --button-text-color: var(--tsm-color-primary);
+  --button-bg: var(--tsm-color-primary);
+  --button-bg-active: var(--tsm-color-primary-active);
+  --button-border-color: var(--tsm-color-primary-border);
+  --button-bg-hover: var(--tsm-color-primary-bg);
+  --focus-ring: 0 0 0 2px var(--tsm-color-bg-white), 0 0 0 4px var(--tsm-color-primary);
+}
 
-	.tsm-button__loading-text {
-		font-size: var(--tsm-font-size-text-m);
-		margin-left: var(--tsm-spacing-s);
-	}
+// Danger 主题 - 文字、边框都是红?
+.tsm-button--danger {
+  --button-text-color: var(--tsm-color-danger);
+  --button-bg: var(--tsm-color-danger);
+  --button-bg-active: var(--tsm-color-danger-active);
+  --button-border-color: var(--tsm-color-danger-border);
+  --button-bg-hover: var(--tsm-color-danger-bg);
+  --focus-ring: 0 0 0 2px var(--tsm-color-bg-white), 0 0 0 4px var(--tsm-color-danger);
+}
 
-	.tsm-button--small .tsm-button__loading-text {
-		font-size: var(--tsm-font-size-text-s);
-	}
+// Default 主题
+.tsm-button--default {
+  --button-bg: var(--tsm-color-bg-white);
+  --button-bg-active: var(--tsm-color-bg-active);
+  --button-border-color: var(--tsm-color-border-primary);
+  --button-text-color: var(--tsm-color-text-primary);
+  --button-bg-hover: var(--tsm-color-bg-tertiary);
+  --focus-ring: 0 0 0 2px var(--tsm-color-bg-white), 0 0 0 4px var(--tsm-color-primary);
+}
 
-	.tsm-button--mini .tsm-button__loading-text {
-		font-size: var(--tsm-font-size-text-xs);
-	}
+// ==================== Type 层（控制填充模式和边框样式）====================
+// 职责：根?type 使用 theme 定义的颜色变?// 不控制：具体的颜色值（?theme 提供?
+// Solid：填充背?+ 边框（只?primary/danger，没?default?// 文字始终是白?
+.tsm-button--solid {
+  background-color: var(--button-bg);
+  border-color: var(--button-border-color);
+  color: var(--tsm-color-text-white);
+  // Default 主题强制转为 primary
+}
+.tsm-button--solid.tsm-button--default {
+  --button-bg: var(--tsm-color-primary);
+  --button-bg-active: var(--tsm-color-primary-active);
+  --button-border-color: var(--tsm-color-primary-border);
+}
+.tsm-button--solid {
+  // Hover：背景变深（仅非 disabled?
+}
+.tsm-button--solid.tsm-button--hover {
+  background-color: var(--button-bg-active);
+}
+.tsm-button--solid {
+  // Active：按下效?+ 焦点环（仅非 disabled?
+}
+.tsm-button--solid.tsm-button--pressed {
+  background-color: var(--button-bg);
+  /* filter 在 uni-app x 中不支持，用 opacity 替代按压效果 */
+  transform: translateY(1px);
+  // App 端 shadow 走 style 绑定，避免 inset 多阴影不生效
+}
+.tsm-button--solid {
+  // Loading - 使用高特异性选择器覆?uni-app 默认 disabled 样式
+  // uni-button[disabled][type='default'] 特异性为 (0,2,1)
+}
+.tsm-button--solid.tsm-button--loading.tsm-button--loading {
+  background-color: var(--button-bg-active);
+  color: var(--tsm-color-text-white);
+  border-color: var(--button-border-color);
+  box-shadow: none;
+}
+.tsm-button--solid {
+  // Disabled（必须在最后，优先级最高）
+}
+.tsm-button--solid.tsm-button--disabled {
+  background-color: var(--tsm-color-bg-disabled) !important;
+  border-color: var(--tsm-color-border-disabled) !important;
+  color: var(--tsm-color-text-disabled) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  /* filter 在 uni-app x 中不支持 */
+}
 
-	.tsm-button--large {
-		width: 100%;
-		height: 50px;
-		padding: 0 16px;
-	}
+// Outline：透明背景 + 彩色边框
+// 文字颜色：primary/danger=theme? default=黑色
+// hover=active? disabled=border?
+.tsm-button.tsm-button--outline {
+  background-color: var(--tsm-color-bg-white);
+  border-color: var(--button-border-color);
+  // Primary/Danger：theme色文?
+}
+.tsm-button.tsm-button--outline.tsm-button--primary, .tsm-button.tsm-button--outline.tsm-button--danger {
+  color: var(--button-border-color);
+  // Hover：active?
+}
+.tsm-button.tsm-button--outline.tsm-button--primary.tsm-button--hover, .tsm-button.tsm-button--outline.tsm-button--danger.tsm-button--hover {
+  color: var(--button-bg-active);
+}
+.tsm-button.tsm-button--outline.tsm-button--primary, .tsm-button.tsm-button--outline.tsm-button--danger {
+  // Disabled：border?
+}
+.tsm-button.tsm-button--outline.tsm-button--primary.tsm-button--disabled, .tsm-button.tsm-button--outline.tsm-button--danger.tsm-button--disabled {
+  color: var(--button-border-color) !important;
+}
+.tsm-button.tsm-button--outline {
+  // Default：黑色文?
+}
+.tsm-button.tsm-button--outline.tsm-button--default {
+  color: var(--tsm-color-text-primary);
+}
+.tsm-button.tsm-button--outline {
+  // App 端 shadow 走 style 绑定，避免 inset 多阴影不生效
+  // Hover：浅色背?
+}
+.tsm-button.tsm-button--outline.tsm-button--hover {
+  background-color: var(--tsm-color-overlay-scrim);
+}
+.tsm-button.tsm-button--outline {
+  // Active：焦点环
+}
+.tsm-button.tsm-button--outline.tsm-button--pressed {
+  background-color: var(--tsm-color-bg-white);
+  // App 端 shadow 走 style 绑定
+}
+.tsm-button.tsm-button--outline {
+  // Loading - 高特异性选择?
+}
+.tsm-button.tsm-button--outline.tsm-button--loading.tsm-button--loading {
+  background-color: var(--tsm-color-overlay-scrim);
+  color: var(--button-text-color);
+  border-color: var(--button-border-color);
+}
+.tsm-button.tsm-button--outline {
+  // Disabled（default?
+}
+.tsm-button.tsm-button--outline.tsm-button--disabled {
+  background-color: var(--tsm-color-bg-white) !important;
+  border-color: var(--tsm-color-border-disabled) !important;
+  color: var(--tsm-color-text-disabled) !important;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05) !important;
+  transform: none !important;
+  /* filter 在 uni-app x 中不支持 */
+}
 
-	.tsm-button--normal {
-		height: 40px;
-	}
+// Text：纯文字（支?default, primary, danger?// 文字颜色：primary/danger=theme? default=黑色
+// hover=active? disabled=border?
+.tsm-button.tsm-button--text {
+  background-color: var(--tsm-color-bg-white);
+  border-color: transparent;
+  // Primary/Danger：theme色文?
+}
+.tsm-button.tsm-button--text.tsm-button--primary, .tsm-button.tsm-button--text.tsm-button--danger {
+  color: var(--button-border-color);
+  // Hover：active?
+}
+.tsm-button.tsm-button--text.tsm-button--primary.tsm-button--hover, .tsm-button.tsm-button--text.tsm-button--danger.tsm-button--hover {
+  color: var(--button-bg-active);
+}
+.tsm-button.tsm-button--text.tsm-button--primary, .tsm-button.tsm-button--text.tsm-button--danger {
+  // Disabled：border?
+}
+.tsm-button.tsm-button--text.tsm-button--primary.tsm-button--disabled, .tsm-button.tsm-button--text.tsm-button--danger.tsm-button--disabled {
+  color: var(--button-border-color) !important;
+}
+.tsm-button.tsm-button--text {
+  // Default：黑色文?
+}
+.tsm-button.tsm-button--text.tsm-button--default {
+  color: var(--tsm-color-text-primary);
+  // Disabled：text-disabled
+}
+.tsm-button.tsm-button--text.tsm-button--default.tsm-button--disabled {
+  color: var(--tsm-color-text-disabled) !important;
+}
+.tsm-button.tsm-button--text {
+  // Hover：浅色背?+ 下划?
+}
+.tsm-button.tsm-button--text.tsm-button--hover {
+  background-color: var(--button-bg-hover);
+  /* text-decoration 在 uni-app x 中不支持 */
+}
+.tsm-button.tsm-button--text {
+  // Active：白色背?+ 焦点?
+}
+.tsm-button.tsm-button--text.tsm-button--pressed {
+  background-color: var(--tsm-color-bg-white);
+  // App 端 shadow 走 style 绑定
+}
+.tsm-button.tsm-button--text {
+  // Loading - 高特异性选择?
+}
+.tsm-button.tsm-button--text.tsm-button--loading.tsm-button--loading {
+  background-color: var(--tsm-color-bg-white);
+  color: var(--button-text-color);
+}
 
-	.tsm-button--small {
-		height: 32px;
-		padding: 0 10px;
-	}
+// Link：文字链接（只支?s/m 尺寸，xs/l 映射?s/m?// 特点：hover 有下划线，active 有边?焦点环，其他状态无边框
+// 文字颜色：primary/danger=theme? default=黑色
+// hover=active? disabled=border?
+.tsm-button.tsm-button--link {
+  background-color: transparent;
+  border-color: transparent;
+  font-weight: var(--tsm-font-weight-bold);
+  // xs/s/m/l 尺寸定义
+}
+.tsm-button.tsm-button--link.tsm-button--xs, .tsm-button.tsm-button--link.tsm-button--s {
+  height: 22px;
+  padding: var(--tsm-spacing-none);
+  gap: var(--tsm-spacing-xs);
+  font-size: var(--tsm-font-size-text-m);
+}
+.tsm-button.tsm-button--link.tsm-button--m, .tsm-button.tsm-button--link.tsm-button--l {
+  height: 24px;
+  padding: var(--tsm-spacing-none);
+  gap: var(--tsm-spacing-xs);
+  font-size: var(--tsm-font-size-text-l);
+}
+.tsm-button.tsm-button--link {
+  // Primary/Danger：theme色文?
+}
+.tsm-button.tsm-button--link.tsm-button--primary, .tsm-button.tsm-button--link.tsm-button--danger {
+  color: var(--button-border-color);
+  // Hover：active?
+}
+.tsm-button.tsm-button--link.tsm-button--primary.tsm-button--hover, .tsm-button.tsm-button--link.tsm-button--danger.tsm-button--hover {
+  color: var(--button-bg-active);
+}
+.tsm-button.tsm-button--link.tsm-button--primary, .tsm-button.tsm-button--link.tsm-button--danger {
+  // Disabled：border?
+}
+.tsm-button.tsm-button--link.tsm-button--primary.tsm-button--disabled, .tsm-button.tsm-button--link.tsm-button--danger.tsm-button--disabled {
+  color: var(--button-border-color) !important;
+}
+.tsm-button.tsm-button--link {
+  // Default：黑色文字，但hover是primary-active（特殊！?
+}
+.tsm-button.tsm-button--link.tsm-button--default {
+  color: var(--tsm-color-text-primary);
+  // Hover：primary-active（蓝色）
+}
+.tsm-button.tsm-button--link.tsm-button--default.tsm-button--hover {
+  color: var(--tsm-color-primary-active);
+}
+.tsm-button.tsm-button--link.tsm-button--default {
+  // Disabled：text-disabled
+}
+.tsm-button.tsm-button--link.tsm-button--default.tsm-button--disabled {
+  color: var(--tsm-color-text-disabled) !important;
+}
+.tsm-button.tsm-button--link.tsm-button--hover {
+  /* text-decoration 在 uni-app x 中不支持 */
+}
+.tsm-button.tsm-button--link {
+  // Active：出现边?+ 焦点?
+}
+.tsm-button.tsm-button--link.tsm-button--pressed {
+  border-color: var(--button-border-color);
+  background-color: transparent;
+  // App 端 shadow 走 style 绑定
+}
+.tsm-button.tsm-button--link {
+  // Loading - 高特异性选择?
+}
+.tsm-button.tsm-button--link.tsm-button--loading.tsm-button--loading {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--button-text-color);
+}
 
-	.tsm-button--small .tsm-button__text {
-		font-size: var(--tsm-font-size-text-s);
-	}
+// Dash：虚线边框（只有 default 主题?
+.tsm-button--dash {
+  background-color: var(--tsm-color-bg-white);
+  border-style: dashed;
+  border-color: var(--tsm-color-border-primary);
+  color: var(--tsm-color-text-primary);
+  // App 端 shadow 走 style 绑定
+  // Hover：背景变?
+}
+.tsm-button--dash.tsm-button--hover {
+  background-color: var(--tsm-color-bg-tertiary);
+}
+.tsm-button--dash {
+  // Active：白色背?+ 蓝色焦点?
+}
+.tsm-button--dash.tsm-button--pressed {
+  background-color: var(--tsm-color-bg-white);
+  // App 端 shadow 走 style 绑定
+}
+.tsm-button--dash {
+  // Loading - 高特异性选择?
+}
+.tsm-button--dash.tsm-button--loading.tsm-button--loading {
+  background-color: var(--tsm-color-bg-white);
+  border-color: var(--tsm-color-border-primary);
+  color: var(--tsm-color-text-primary);
+}
+.tsm-button--dash {
+  // Disabled
+}
+.tsm-button--dash.tsm-button--disabled {
+  background-color: var(--tsm-color-bg-white) !important;
+  border-color: var(--tsm-color-border-disabled) !important;
+  color: var(--tsm-color-text-disabled) !important;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05) !important;
+}
 
-	.tsm-button--mini {
-		height: 26px;
-		padding: 0 8px;
-	}
+// Ghost：幽灵按钮（深色背景上用?// 主题：primary、danger（注意：用于深色背景?
+.tsm-button--ghost {
+  background-color: transparent;
+  // App 端 shadow 走 style 绑定，避免 inset 多阴影不生效
+  // primary主题
+}
+.tsm-button--ghost.tsm-button--primary {
+  border-color: var(--tsm-color-primary);
+  color: var(--tsm-color-primary);
+  // hover
+}
+.tsm-button--ghost.tsm-button--primary.tsm-button--hover {
+  background-color: var(--tsm-color-overlay-scrim);
+  border-color: var(--tsm-color-primary-active);
+  color: var(--tsm-color-primary-active);
+}
+.tsm-button--ghost.tsm-button--primary {
+  // active
+}
+.tsm-button--ghost.tsm-button--primary.tsm-button--pressed {
+  background-color: var(--tsm-color-overlay-scrim);
+  border-color: var(--tsm-color-primary);
+  color: var(--tsm-color-primary);
+  // App 端 focus ring 走 style 绑定
+}
+.tsm-button--ghost.tsm-button--primary {
+  // disabled
+}
+.tsm-button--ghost.tsm-button--primary.tsm-button--disabled {
+  background-color: transparent !important;
+  border-color: var(--tsm-color-primary-border) !important;
+  color: var(--tsm-color-primary-border) !important;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05) !important;
+}
+.tsm-button--ghost.tsm-button--primary {
+  // loading - 高特异性选择?
+}
+.tsm-button--ghost.tsm-button--primary.tsm-button--loading.tsm-button--loading {
+  background-color: transparent;
+  border-color: var(--tsm-color-primary);
+  color: var(--tsm-color-primary);
+}
+.tsm-button--ghost {
+  // danger主题
+}
+.tsm-button--ghost.tsm-button--danger {
+  border-color: var(--tsm-color-danger);
+  color: var(--tsm-color-danger);
+  // hover
+}
+.tsm-button--ghost.tsm-button--danger.tsm-button--hover {
+  background-color: var(--tsm-color-overlay-scrim);
+  border-color: var(--tsm-color-danger);
+  color: var(--tsm-color-danger-active);
+}
+.tsm-button--ghost.tsm-button--danger {
+  // active
+}
+.tsm-button--ghost.tsm-button--danger.tsm-button--pressed {
+  background-color: var(--tsm-color-overlay-scrim);
+  border-color: var(--tsm-color-danger);
+  color: var(--tsm-color-danger);
+  // App 端 focus ring 走 style 绑定
+}
+.tsm-button--ghost.tsm-button--danger {
+  // disabled
+}
+.tsm-button--ghost.tsm-button--danger.tsm-button--disabled {
+  background-color: transparent !important;
+  border-color: var(--tsm-color-danger-border) !important;
+  color: var(--tsm-color-danger-border) !important;
+  box-shadow: 0 1px 2px 0 rgba(10, 13, 18, 0.05) !important;
+}
+.tsm-button--ghost.tsm-button--danger {
+  // loading - 高特异性选择?
+}
+.tsm-button--ghost.tsm-button--danger.tsm-button--loading.tsm-button--loading {
+  background-color: transparent;
+  border-color: var(--tsm-color-danger);
+  color: var(--tsm-color-danger);
+}
 
-	.tsm-button--mini .tsm-button__text {
-		font-size: var(--tsm-font-size-text-xs);
-	}
+// IconText：图标文字按?
+.tsm-button--iconText {
+  background-color: var(--button-bg);
+  border-color: var(--button-border-color);
+  color: var(--button-text-color);
+}
+.tsm-button--iconText.tsm-button--hover {
+  background-color: var(--button-bg-active);
+}
+.tsm-button--iconText.tsm-button--pressed {
+  transform: translateY(1px);
+  /* filter 在 uni-app x 中不支持 */
+}
+.tsm-button--iconText {
+  // Loading - 高特异性选择?
+}
+.tsm-button--iconText.tsm-button--loading.tsm-button--loading {
+  background-color: var(--button-bg);
+  border-color: var(--button-border-color);
+  color: var(--button-text-color);
+}
+.tsm-button--iconText.tsm-button--disabled {
+  background-color: var(--tsm-color-bg-disabled) !important;
+  border-color: var(--tsm-color-border-disabled) !important;
+  color: var(--tsm-color-text-disabled) !important;
+  transform: none !important;
+  /* filter 在 uni-app x 中不支持 */
+}
 
-	.tsm-button--disabled {
-		opacity: 0.5;
-	}
+// ==================== Size 层（只控制尺寸）====================
+// 职责：height, padding, font-size, gap, icon-size
+// 不控制：颜色、圆?
+.tsm-button.tsm-button--xs {
+  height: 24px;
+  padding: 0 var(--tsm-spacing-m);
+  gap: var(--tsm-spacing-xs);
+  font-size: var(--tsm-font-size-text-m);
+}
+.tsm-button.tsm-button--xs .tsm-button__icon,
+.tsm-button.tsm-button--xs .tsm-button__icon .icon,
+.tsm-button.tsm-button--xs .tsm-button__icon-default {
+  width: var(--tsm-font-size-text-l);
+  height: var(--tsm-font-size-text-l);
+}
 
-	.tsm-button--active {
-		opacity: 0.85;
-	}
+.tsm-button.tsm-button--s {
+  height: 32px;
+  padding: 0 var(--tsm-spacing-xl);
+  gap: var(--tsm-spacing-xs);
+  font-size: var(--tsm-font-size-text-m);
+}
+.tsm-button.tsm-button--s .tsm-button__icon,
+.tsm-button.tsm-button--s .tsm-button__icon .icon,
+.tsm-button.tsm-button--s .tsm-button__icon-default {
+  width: var(--tsm-font-size-text-l);
+  height: var(--tsm-font-size-text-l);
+}
 
-	.tsm-button--default {
-		color: var(--tsm-color-text-primary);
-		background-color: var(--tsm-color-bg-white);
-		border-color: var(--tsm-color-border-secondary);
-	}
+.tsm-button.tsm-button--m {
+  height: 40px;
+  padding: 0 var(--tsm-spacing-xl);
+  gap: var(--tsm-spacing-xs);
+  font-size: var(--tsm-font-size-text-l);
+}
+.tsm-button.tsm-button--m .tsm-button__icon,
+.tsm-button.tsm-button--m .tsm-button__icon .icon,
+.tsm-button.tsm-button--m .tsm-button__icon-default {
+  width: var(--tsm-font-size-text-2xl);
+  height: var(--tsm-font-size-text-2xl);
+}
 
-	.tsm-button--info {
-		color: var(--tsm-color-static-white);
-		background-color: var(--tsm-color-info);
-		border-color: var(--tsm-color-info-border);
-	}
+.tsm-button.tsm-button--l {
+  height: 48px;
+  padding: 0 var(--tsm-spacing-2xl);
+  gap: var(--tsm-spacing-s);
+  font-size: var(--tsm-font-size-text-l);
+}
+.tsm-button.tsm-button--l .tsm-button__icon,
+.tsm-button.tsm-button--l .tsm-button__icon .icon,
+.tsm-button.tsm-button--l .tsm-button__icon-default {
+  width: 22px;
+  height: 22px;
+}
 
-	.tsm-button--success {
-		color: var(--tsm-color-static-white);
-		background-color: var(--tsm-color-success);
-		border-color: var(--tsm-color-success-border);
-	}
+// Link 类型不需要额外覆盖，?Type 层已定义
+// ==================== Shape 层（只控制圆角）====================
+// 职责：border-radius
+// 不控制：其他任何
+.tsm-button.tsm-button--rectangle {
+  border-radius: var(--tsm-radius-m);
+}
 
-	.tsm-button--primary {
-		color: var(--tsm-color-static-white);
-		background-color: var(--tsm-color-primary);
-		border-color: var(--tsm-color-primary-border);
-	}
+.tsm-button.tsm-button--round {
+  border-radius: var(--tsm-radius-full);
+}
 
-	.tsm-button--danger,
-	.tsm-button--error {
-		color: var(--tsm-color-static-white);
-		background-color: var(--tsm-color-danger);
-		border-color: var(--tsm-color-danger-border);
-	}
+.tsm-button.tsm-button--circle {
+  border-radius: var(--tsm-radius-full);
+  padding: 0;
+}
+.tsm-button.tsm-button--circle.tsm-button--xs {
+  width: 24px;
+}
+.tsm-button.tsm-button--circle.tsm-button--s {
+  width: 32px;
+}
+.tsm-button.tsm-button--circle.tsm-button--m {
+  width: 40px;
+}
+.tsm-button.tsm-button--circle.tsm-button--l {
+  width: 48px;
+}
+.tsm-button.tsm-button--circle .tsm-button__text {
+  display: none;
+}
 
-	.tsm-button--warning {
-		color: var(--tsm-color-static-white);
-		background-color: var(--tsm-color-warning);
-		border-color: var(--tsm-color-warning-border);
-	}
+// ==================== 文字样式 ====================
+.tsm-button__text {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-family: var(--tsm-font-family-regular);
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: 1;
+}
 
-	.tsm-button--block {
-		display: flex;
-		width: 100%;
-	}
+.tsm-button__icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.tsm-button__icon--prefix {
+  margin-right: var(--tsm-spacing-xs);
+}
+.tsm-button__icon--suffix {
+  margin-left: var(--tsm-spacing-xs);
+}
 
-	.tsm-button--circle {
-		border-radius: var(--tsm-radius-full);
-	}
+// ==================== 加载动画 ====================
+.tsm-button__loading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 
-	.tsm-button--square {
-		border-radius: var(--tsm-radius-s);
-	}
+.tsm-button__loading-text:empty {
+  display: none;
+}
+
+.tsm-button__loading-text {
+  font-weight: var(--tsm-font-weight-bold);
+}
+
+.tsm-button__loading-spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+
+}
+.tsm-button__loading-spinner .icon{
+  width: 100%;
+  height: 100%;
+}
+
+// ==================== 纯图标模式 ====================
+
+.tsm-button--icon-only .tsm-button__icon--prefix,
+.tsm-button--icon-only .tsm-button__icon--suffix {
+  margin: 0;
+}
+
+.tsm-button--icon-only .tsm-button__text {
+  display: none;
+}
+
+.tsm-button--icon-only .tsm-button__loading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// ==================== ButtonGroup 样式 ====================
+
+.tsm-button.tsm-button--in-group {
+  margin: 0;
+  border: none;
+  border-right: 1px solid var(--tsm-color-border-primary);
+  border-radius: var(--tsm-radius-none);
+  box-shadow: none !important;
+}
+
+.tsm-button.tsm-button--in-group:last-child {
+  border-right: none;
+}
+
+.tsm-button.tsm-button--in-group.tsm-button--solid {
+  border-right-color: var(--tsm-color-text-white);
+}
+
+// ==================== Long 长按?====================
+.tsm-button.tsm-button--long {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+// ==================== 禁用状态光?====================
+.tsm-button.tsm-button--disabled {
+  // 在移动端不需?
+  // cursor: not-allowed
+}
 </style>

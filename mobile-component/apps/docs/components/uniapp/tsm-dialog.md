@@ -4,9 +4,9 @@ dialog 组件的描述信息
 
 ## 平台支持
 
-| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |
+| H5  | 微信小程序 | App |
+| --- | ---------- | --- |
+| ✅  | -          | ✅  |
 
 ## 示例代码
 
@@ -14,26 +14,35 @@ dialog 组件的描述信息
 
 ## Props
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
-| --- | --- | --- | --- | --- |
-| show | 是否显示对话框 | boolean | 否 | false |
-| title | 标题内容 | string | 否 | - |
-| content | 对话框内容 | string | 否 | - |
-| confirmText | 确认按钮文字 | string | 否 | '确认' |
-| cancelText | 取消按钮文字 | string | 否 | '取消' |
-| showConfirmButton | 是否显示确认按钮 | boolean | 否 | true |
-| showCancelButton | 是否显示取消按钮 | boolean | 否 | false |
-| confirmColor | 确认按钮颜色 | string | 否 | '#2979ff' |
-| cancelColor | 取消按钮颜色 | string | 否 | '#606266' |
-| buttonReverse | 是否对调确认和取消按钮位置 | boolean | 否 | false |
-| zoom | 是否开启缩放模式 | boolean | 否 | true |
-| asyncClose | 是否异步关闭 | boolean | 否 | false |
-| closeOnClickOverlay | 是否允许点击遮罩关闭 | boolean | 否 | false |
-| width | 对话框宽度 | string \| number | 否 | '650rpx' |
-| duration | 弹窗动画时间 | number | 否 | 400 |
-| contentTextAlign | 内容文字对齐方式 | 'left' \| 'center' \| 'right' | 否 | 'left' |
-| customClass | 自定义类名 | string | 否 | - |
-| customStyle | 自定义样式 | object | 否 | {} |
+| 属性名              | 说明                 | 类型      | 是否必填 | 默认值  |
+| ------------------- | -------------------- | --------- | -------- | ------- | --------- | ---------------------------------------------------------------- | --- | --------- |
+| visible             | 是否显示对话框       | `boolean` | 否       | false   |
+| type                | 类型 default         | success   | danger   | warning | customize | `'default' \| 'success' \| 'danger' \| 'warning' \| 'customize'` | 否  | 'default' |
+| title               | 标题内容             | `string`  | 否       | -       |
+| content             | 对话框内容           | `string`  | 否       | -       |
+| confirmText         | 确认按钮文字         | `string`  | 否       | '确认'  |
+| cancelText          | 取消按钮文字         | `string`  | 否       | '取消'  |
+| showConfirmButton   | 是否显示确认按钮     | `boolean` | 否       | true    |
+| showCancelButton    | 是否显示取消按钮     | `boolean` | 否       | true    |
+| closeOnClickOverlay | 是否允许点击遮罩关闭 | `boolean` | 否       | false   |
+| duration            | 弹窗动画时间         | `number`  | 否       | 400     |
+
+## Events
+
+| 事件名  | 说明               | 参数                         |
+| ------- | ------------------ | ---------------------------- |
+| confirm | 点击确认按钮时触发 | `-`                          |
+| cancel  | 点击取消按钮时触发 | `-`                          |
+| close   | 关闭弹窗时触发     | `-`                          |
+| update  | 更新显示状态       | `visible': [value: boolean]` |
+
+## Slots
+
+| 插槽名         | 说明                                                             |
+| -------------- | ---------------------------------------------------------------- |
+| header-content | 插槽：header-content - 自定义头部内容（type="customize" 时使用） |
+| content        | 插槽：content - 自定义内容区域内容                               |
+| footer         | 插槽：footer - 自定义底部按钮区域内容                            |
 
 <style>
 table {

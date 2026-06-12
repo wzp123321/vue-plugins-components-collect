@@ -1,0 +1,27 @@
+{
+  "name": "@tiansu/ts-mobile-installer",
+  "version": "0.0.5",
+  "description": "TS Mobile UI 安装器 — 一键安装所有组件到 uni_modules",
+  "bin": {
+    "ts-mobile-installer": "dist/bin.js"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "postinstall": "node scripts/install.js"
+  },
+  "files": [
+    "dist",
+    "scripts/install.js"
+  ],
+  "publishConfig": {
+    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
+  },
+  "keywords": [
+    "ts-mobile-ui",
+    "uniapp",
+    "uniapp-x",
+    "installer"
+  ],
+  "author": "",
+  "license": "MIT"
+}

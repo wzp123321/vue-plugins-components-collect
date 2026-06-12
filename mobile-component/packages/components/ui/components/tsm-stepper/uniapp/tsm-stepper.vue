@@ -1,7 +1,7 @@
 /** * Button 按钮 * @description 按钮组件，支持各种形状、大小、加载等功能。 */
 <template>
-  <view class="tsm-stepper" :style="stepperStyle" :class="bemClass">
-    <template v-if="props.readonly">
+  <view class="tsm-stepper" :class="bemClass">
+    <template v-if="isReadonly">
       {{ currentValue }}
     </template>
     <template v-else>
@@ -17,7 +17,14 @@
         <icon-minus :color="btnColor(isDisabled(StepperOperation.Minus) || props.disabled)" />
       </view>
       <view class="tsm-stepper-value">
-        <input :disabled="props.disabled" v-model="currentValue" @blur="onBlur" @input="onInput" type="number" />
+        <input
+          class="tsm-stepper-value-input"
+          :disabled="props.disabled"
+          v-model="currentValue"
+          @blur="onBlur"
+          @input="onInput"
+          type="number"
+        />
       </view>
       <view
         :class="{ 'is-disabled': isDisabled(StepperOperation.Plus) }"
@@ -35,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
 import type { StepperProps } from './props';
 import { defaultProps, StepperOperation } from './props';
 import { addStyle, bem } from '../../../libs/uniapp/function/index';
@@ -43,8 +50,11 @@ import { addStyle, bem } from '../../../libs/uniapp/function/index';
 const props = withDefaults(defineProps<StepperProps>(), defaultProps);
 
 const emit = defineEmits<{
+  /** 值变化时触发 */
   change: [value: number];
+  /** 更新绑定值 */
   'update:modelValue': [value: number];
+  /** 输入框失去焦点时触发 */
   blur: [value: number];
 }>();
 
@@ -55,18 +65,19 @@ const bemClass = computed(() => {
     [
       ['disabled', props.disabled],
       ['small', props.small],
-      ['readonly', props.readonly],
-    ],
-    props.customClass
+      ['readonly', isReadonly.value],
+      ['editable', !isReadonly.value],
+    ]
   );
-});
-const stepperStyle = computed(() => {
-  const style: Record<string, string> = {};
-  return addStyle({ ...style, ...props.customStyle });
 });
 
 const btnColor = (disabled: boolean) =>
   disabled ? 'var(--tsm-color-text-placeholder)' : 'var(--tsm-color-text-primary)';
+
+// Inject FormItem 上下文（默认 null，独立使用时正常） 等formitem代码提交再改成FormItemContext
+const formItemContext = inject<any | null>('formItemContext', null);
+
+const isReadonly = computed(() => props.readonly || formItemContext?.readonly);
 
 // 当前值
 const currentValue = ref(props.modelValue);
@@ -120,6 +131,7 @@ const onChange = () => {
   const value = format(+currentValue.value + diff);
   updateValue(value);
   emit('change', value);
+  formItemContext?.onValueChange(value);
 };
 // 点击加减按钮
 const clickHandler = (type: StepperOperation) => {
@@ -166,6 +178,7 @@ const onBlur = (event: any) => {
   updateValue(value);
   // 发出blur事件
   emit('blur', value);
+  formItemContext?.onBlur();
 };
 // 输入框值发生变化
 const onInput = (e: any) => {
@@ -176,11 +189,13 @@ const onInput = (e: any) => {
       // 为空自动设为最小值
       updateValue(Number(props.min));
       emit('change', Number(props.min));
+      formItemContext?.onValueChange(Number(props.min));
       return;
     }
     const formatted = filter(value);
     updateValue(Number(formatted));
     emit('change', Number(formatted));
+    formItemContext?.onValueChange(Number(formatted));
   });
 };
 
@@ -197,101 +212,97 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.tsm-stepper {
-  &:not(.tsm-stepper--readonly) {
-    display: flex;
-    flex: 1 1 144px;
-    height: 40px;
-    min-width: 144px;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
-    gap: var(--tsm-padding-sm);
-    border: 1px solid var(--tsm-color-border-primary);
-    background: var(--tsm-color-bg-white);
-    box-sizing: border-box;
-    border-radius: var(--tsm-border-radius-sm, 8px);
-    border: 1px solid var(--tsm-color-border-primary);
-    background: var(--tsm-color-bg-white);
-    /* Shadow/shadow-xs */
-    box-shadow: 0 1px 2px 0 var(--Effects-Shadows-shadow-xs, rgba(10, 13, 18, 0.05));
+.tsm-stepper.tsm-stepper--editable {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 144px;
+  height: 40px;
+  min-width: 144px;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--tsm-color-border-primary);
+  background: var(--tsm-color-bg-white);
+  box-sizing: border-box;
+  border-radius: var(--tsm-radius-m);
+  box-shadow: 0 1px 2px 0 var(--tsm-shadow-xs);
+}
 
-    .tsm-stepper-minus {
-      border-right: 1px solid var(--tsm-color-border-primary);
-    }
+.tsm-stepper-minus {
+  border-right: 1px solid var(--tsm-color-border-primary);
+}
 
-    .tsm-stepper-value {
-      flex: 1 1 0%;
-      width: 0;
-      min-width: 0;
-      overflow: hidden;
-    }
+.tsm-stepper-value {
+  flex: 1 1 0%;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+}
 
-    .tsm-stepper-value input {
-      text-align: center;
-      min-width: 0;
-      max-width: 100%;
-      width: 100%;
-      color: var(--tsm-color-text-primary);
-    }
+.tsm-stepper-value .tsm-stepper-value-input {
+  text-align: center;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  color: var(--tsm-color-text-primary);
+  caret-color: var(--tsm-color-primary);
+}
 
-    .tsm-stepper-add {
-      border-left: 1px solid var(--tsm-color-border-primary);
-    }
+.tsm-stepper-add {
+  border-left: 1px solid var(--tsm-color-border-primary);
+}
 
-    .tsm-stepper-operation {
-      width: 40px;
-      max-width: 40px;
-      height: 40px;
-      flex-shrink: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      overflow: hidden;
-    }
+.tsm-stepper-operation {
+  width: 40px;
+  max-width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
-    .tsm-stepper-operation .icon {
-      width: 20px;
-      height: 20px;
-    }
+.tsm-stepper-operation .icon {
+  width: 20px;
+  height: 20px;
+}
 
-    &.tsm-stepper--small {
-      flex: 1 1 128px;
-      min-width: 128px;
-      height: 32px;
-    }
+.tsm-stepper.tsm-stepper--small {
+  flex: 1 1 128px;
+  min-width: 128px;
+  height: 32px;
+}
 
-    &.tsm-stepper--small .tsm-stepper-operation {
-      width: 32px;
-      max-width: 32px;
-      flex-shrink: 0;
-      height: 32px;
-    }
+.tsm-stepper.tsm-stepper--small .tsm-stepper-operation {
+  width: 32px;
+  max-width: 32px;
+  height: 32px;
+}
 
-    &.tsm-stepper--small .tsm-stepper-operation .icon {
-      width: 14px;
-      height: 14px;
-    }
+.tsm-stepper.tsm-stepper--small .tsm-stepper-operation .icon {
+  width: 14px;
+  height: 14px;
+}
 
-    &.tsm-stepper--disabled,
-    .tsm-stepper-minus.is-disabled,
-    .tsm-stepper-add.is-disabled,
-    .tsm-stepper-operation.tsm-stepper-hover {
-      background: var(--tsm-color-bg-disabled);
-    }
+.tsm-stepper.tsm-stepper--disabled,
+.tsm-stepper-minus.is-disabled,
+.tsm-stepper-add.is-disabled,
+.tsm-stepper-operation.tsm-stepper-hover {
+  background: var(--tsm-color-bg-disabled);
+}
 
-    &.tsm-stepper--disabled .tsm-stepper-value input {
-      color: var(--tsm-color-text-placeholder);
-    }
-  }
+.tsm-stepper.tsm-stepper--disabled .tsm-stepper-value .tsm-stepper-value-input {
+  color: var(--tsm-color-text-placeholder);
+}
 
-  &.tsm-stepper--readonly {
-    font-size: var(--tsm-font-size-text-l);
-    font-style: normal;
-    font-weight: var(-tsm-font-weight-regular);
-    line-height: var(--tsm-line-height-text-l); /* 150% */
-    color: var(--tsm-color-text-primary);
-  }
+.tsm-stepper.tsm-stepper--readonly {
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-l);
+  color: var(--tsm-color-text-primary);
 }
 </style>

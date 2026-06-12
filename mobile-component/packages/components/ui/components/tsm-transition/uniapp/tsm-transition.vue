@@ -1,7 +1,7 @@
 /** * Transition 动画组件 * @description 动画组件，用于显示/隐藏动画 */
 <template>
   <transition :name="transitionName" :duration="duration">
-    <view v-if="show" class="tsm-transition" :class="customClass" :style="customStyle">
+    <view v-if="show" class="tsm-transition" :class="customClass" :style="customStyle" @tap="onTap">
       <slot />
     </view>
   </transition>
@@ -21,6 +21,14 @@ import { defaultProps } from './props';
  * @property {object} customStyle - 自定义样式
  */
 const props = withDefaults(defineProps<TransitionProps>(), defaultProps);
+
+const emit = defineEmits<{
+  tap: [];
+}>();
+
+const onTap = () => {
+  emit('tap');
+};
 
 const transitionName = computed(() => {
   return `tsm-${props.mode}`;

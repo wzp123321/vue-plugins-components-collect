@@ -11,17 +11,21 @@
           <text class="section-title">基本用法</text>
           <tsmbiz-select-department-employee
             ref="selectRef"
-            title="选择部门/员工"
+            :http="http"
+            :multiple="multiple"
+            tenant-id="700"
+            organization-id="700"
             v-model:show="show"
-            @confirm="onConfirm"
+            v-model:selected="selected"
+            @confirm="handleConfirm"
           />
-          <button @click="showSelect" class="btn">打开选择器</button>
+          <button @click="show = true" class="btn">打开选择器</button>
         </view>
 
         <!-- 测试已选值 -->
         <view class="section">
           <text class="section-title">已选值</text>
-          <text v-if="selectedData" class="selected-text"> 已选择: {{ JSON.stringify(selectedData) }} </text>
+          <text v-if="selected" class="selected-text"> 已选择: {{ JSON.stringify(selected) }} </text>
           <text v-else class="selected-text">未选择任何数据</text>
         </view>
       </view>
@@ -29,21 +33,22 @@
   </tsm-theme-provider>
 </template>
 
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import type { dataProps } from '@/uni_modules/@tiansu/ts-mobile-biz-ui/common/list-cell/props';
+import Request from 'luch-request';
+
+const http = new Request({
+  baseURL: 'http://192.168.50.174:7300/mock/661e5f340c741600205e68c7/example',
+});
 
 const selectRef = ref(null);
 const show = ref(false);
-const selectedData = ref(null);
+const multiple = ref(true);
+const selected = ref<Array<dataProps>>([]);
 
-const showSelect = () => {
-  show.value = true;
-};
-
-const onConfirm = data => {
-  selectedData.value = data;
-  show.value = false;
-  console.log('选择结果:', data);
+const handleConfirm = () => {
+  console.log('选择结果:', selected.value);
 };
 </script>
 

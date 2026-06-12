@@ -1,23 +1,74 @@
 <template>
   <tsm-theme-provider>
     <view class="container">
+      <!-- 基本搜索框 -->
       <view class="section">
-        <text class="section-title">搜索框</text>
+        <text class="section-title">基本搜索框</text>
         <tsm-search
           v-model="inputValue1"
-          placeholder="请输入内容1"
-          :delay="500"
-          shape="round"
-          show-filter-btn
-          :filter-btn-has-condition="filterBtnHasCondition"
+          placeholder="请输入搜索关键词"
           @search="handleSearch"
           @input="handleInput"
           @confirm="handleConfirm"
           @blur="handleBlur"
           @focus="handleFocus"
           @clear="handleClear"
+        />
+      </view>
+
+      <!-- 圆角搜索框 -->
+      <view class="section">
+        <text class="section-title">圆角搜索框</text>
+        <tsm-search v-model="inputValue2" placeholder="圆角搜索" shape="round" @search="handleSearch" />
+      </view>
+
+      <!-- 白色背景搜索框 -->
+      <view class="section">
+        <text class="section-title">白色背景搜索框</text>
+        <tsm-search
+          v-model="inputValue3"
+          placeholder="白色背景"
+          bg-color="white"
+          shape="round"
+          @search="handleSearch"
+        />
+      </view>
+
+      <!-- 禁用状态 -->
+      <view class="section">
+        <text class="section-title">禁用状态</text>
+        <tsm-search v-model="inputValue4" placeholder="禁用状态" :disabled="true" />
+      </view>
+
+      <!-- 不带清除按钮 -->
+      <view class="section">
+        <text class="section-title">不带清除按钮</text>
+        <tsm-search v-model="inputValue5" placeholder="无清除按钮" :clearable="false" @search="handleSearch" />
+      </view>
+
+      <!-- 带延迟的搜索 -->
+      <view class="section">
+        <text class="section-title">带延迟的搜索(500ms)</text>
+        <tsm-search v-model="inputValue6" placeholder="输入后延迟搜索" :delay="500" @search="handleSearch" />
+      </view>
+
+      <!-- 显示筛选按钮 -->
+      <view class="section">
+        <text class="section-title">显示筛选按钮</text>
+        <tsm-search
+          v-model="inputValue7"
+          placeholder="带筛选按钮"
+          show-filter-btn
+          :filter-btn-has-condition="filterBtnHasCondition"
+          @search="handleSearch"
           @filter-btn-click="handleFilterBtnClick"
         />
+        <text class="tip">点击筛选按钮，模拟设置查询条件以达到切换筛选按钮状态</text>
+      </view>
+      <!-- 小号搜索框 -->
+      <view class="section">
+        <text class="section-title">小号搜索框</text>
+        <tsm-search v-model="inputValue7" placeholder="小号搜索" size="small" @search="handleSearch" />
       </view>
     </view>
   </tsm-theme-provider>
@@ -27,6 +78,12 @@
 import { ref } from 'vue';
 
 const inputValue1 = ref('');
+const inputValue2 = ref('');
+const inputValue3 = ref('');
+const inputValue4 = ref('');
+const inputValue5 = ref('');
+const inputValue6 = ref('');
+const inputValue7 = ref('');
 const filterBtnHasCondition = ref(false);
 
 const handleInput = (event: any) => {
@@ -81,6 +138,13 @@ const handleFilterBtnClick = () => {
   font-weight: 600;
   color: #1d2129;
   margin-bottom: 16px;
+  display: block;
+}
+
+.tip {
+  font-size: 12px;
+  color: #8a8f99;
+  margin-top: 12px;
   display: block;
 }
 

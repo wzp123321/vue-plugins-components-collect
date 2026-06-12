@@ -1,0 +1,8 @@
+{
+  "name": "ts-mobile-ui-playground-uniapp-x",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@tiansu/ts-mobile-installer": "^0.0.5"
+  }
+}

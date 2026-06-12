@@ -50,7 +50,7 @@ function setTheme(mode: ThemeMode) {
 .title {
   font-size: var(--tsm-font-size-display-xs);
   color: var(--tsm-color-text-primary);
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .desc {

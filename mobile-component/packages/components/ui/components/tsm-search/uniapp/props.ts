@@ -23,6 +23,8 @@ export interface SearchProps {
   showFilterBtn?: boolean;
   /**  条件筛选按钮是否设置了条件 */
   filterBtnHasCondition?: boolean;
+  /** 搜索框大小 */
+  size?: 'default' | 'small';
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -35,6 +37,7 @@ export const defaultProps = {
   placeholder: '请输入搜索关键词',
   clearable: true,
   delay: 0,
+  size: 'default',
   shape: 'rectangle',
   bgColor: 'default',
   showFilterBtn: false,

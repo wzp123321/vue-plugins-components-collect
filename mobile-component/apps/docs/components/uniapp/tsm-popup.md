@@ -26,6 +26,7 @@ popup 组件的描述信息
 | round               | 圆角值               | number                                 | 否       | 0        |
 | customClass         | 自定义类名           | string                                 | 否       | -        |
 | customStyle         | 自定义样式           | object                                 | 否       | {}       |
+| popperClass         | 自定义弹窗类名       | string                                 | 否       | -        |
 
 ## Events
 
@@ -36,11 +37,13 @@ popup 组件的描述信息
 
 ## 插槽
 
-| 插槽名  | 说明                                   |
-| ------- | -------------------------------------- |
-| default | 弹窗内容插槽                           |
-| header  | 弹窗标题插槽，mode=bottom时生效        |
-| footer  | 弹窗底部插槽，mode=bottom \| top时生效 |
+| 插槽名       | 说明                                   |
+| ------------ | -------------------------------------- |
+| default      | 弹窗内容插槽                           |
+| header       | 弹窗标题插槽，mode=bottom时生效        |
+| footer       | 弹窗底部插槽，mode=bottom \| top时生效 |
+| header-left  | 弹窗标题左插槽，mode=bottom时生效      |
+| header-right | 弹窗标题右插槽，mode=bottom时生效      |
 
 <style>
 table {

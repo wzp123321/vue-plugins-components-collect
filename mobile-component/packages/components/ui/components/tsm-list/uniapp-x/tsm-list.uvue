@@ -1,62 +1,88 @@
-/**
- * List 列表组件
- * @description 列表组件，用于显示列表内容
- */
 <template>
-  <view
-    class="tsm-list"
-    :class="[customClass]"
-    :style="customStyle"
-  >
-    <slot />
-    <view v-if="loading" class="tsm-list__loading">
-      <tsm-loading-icon :size="20" />
-      <text class="tsm-list__loading__text">加载中...</text>
+  <view class="tsm-list">
+    <view class="tsm-list__header" v-if="groupTitle">
+      <text class="tsm-list__header-title">{{ groupTitle }}</text>
     </view>
-    <view
-      v-else-if="finished"
-      class="tsm-list__finished"
-      @tap="onRetry"
-    >
-      <text class="tsm-list__finished__text">{{ finishedText }}</text>
+    <view v-if="type === 'default' || type === 'switch'">
+      <view
+        class="tsm-list__item tsm-list__item-default"
+        :class="{ 'tsm-list-disabled': item.disabled === true && type !== 'switch' }"
+        @tap="type === 'switch' && item.disabled === true ? null : handleItemClick(item, index)"
+        v-for="(item, index) in list"
+        :key="item.key ?? index"
+      >
+        <view class="tsm-list__content">
+          <text class="tsm-list__content-top" v-if="item.title">{{ item.title }}</text>
+          <view class="tsm-list__content-center">
+            <text class="tsm-list__content-label">{{ item.main }}</text>
+            <view class="tsm-list__content-arrow" v-if="type !== 'switch'">
+              <text class="tsm-list__content-text">{{ item.extra }}</text>
+              <image :src="PicPageRight" class='picPageInfo' alt="icon" />
+            </view>
+          </view>
+          <text class="tsm-list__content-description" v-if="item.description">{{ item.description }}</text>
+        </view>
+      </view>
     </view>
-    <view
-      v-else-if="error"
-      class="tsm-list__error"
-      @tap="onRetry"
-    >
-      <text class="tsm-list__error__text">{{ errorText }}</text>
+    <view v-else="type === 'person'">
+      <view class="tsm-list__item-user" v-for="(item, index) in list" :key="item.key ?? index">
+        <view class="tsm-list__item-left">
+          <view class="tsm-list__item-avatar">
+            <tsm-avatar type="picture" :src="item.avatar" />
+          </view>
+        </view>
+        <view class="tsm-list__item-right">
+          <view class="tsm-list__item-content">
+            <text class="tsm-list__content-main">{{ item.main }}</text>
+            <view class="tsm-list__item-tag">{{item.tag}}</view>
+          </view>
+          <text class="tsm-list__content-description" v-if="item.description">{{ item.description }}</text>
+        </view>
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="uts">
-import { computed, ref } from 'vue';
-import type { ListProps } from './props.uts';
+import { computed } from 'vue';
+import type {  ListProps } from './props.uts';
 import { defaultProps } from './props.uts';
+import { bem } from '../../../libs/uniapp-x/function';
+import PicPageRight from '../../../assets/image/card/pic-page-right.png';
 
 /**
- * List 组件 Props
- * @property {boolean} loading - 是否加载中
- * @property {boolean} finished - 是否加载完成
- * @property {string} finishedText - 加载完成文字
- * @property {string} errorText - 加载失败文字
- * @property {string} customClass - 自定义类名
- * @property {object} customStyle - 自定义样式
+ * @typedef {Object} ListProps - 列表组件属性
+ * @property {string} type - 列表类型，决定列表项的展示形式
+ * @property {string} status - 列表状态，影响列表项的交互状态
+ * @property {UTSJSONObject[]} list - 列表数据，每项至少包含 label 字段
+ * @property {boolean} isOthers - 是否显示其他信息（仅 type 为 default 时有效）
  */
-const rawProps = defineProps<ListProps>();
-const props = { ...defaultProps, ...rawProps } as ListProps;
+const props = withDefaults(defineProps<ListProps>(), {
+  groupTitle: () => '',
+  type: () => 'default',
+  list: () => [],
+});
 
+/**
+ * 事件约定：
+ * - item-click：点击列表项时触发，输出 item 和 index
+ * - update:list：切换开关时触发，输出更新后的 list 数组
+ */
 const emit = defineEmits<{
-  load: [];
-  retry: [];
+  'item-click': [item: UTSJSONObject, index: number];
+  'switch-change': [item: UTSJSONObject, index: number];
+  'update:list': [value: UTSJSONObject[]];
 }>();
 
-const error = ref(false);
 
-const onRetry = () => {
-  error.value = false;
-  emit('retry');
+// 点击列表项
+const handleItemClick = (item: UTSJSONObject, index: number) => {
+  emit('item-click', item, index);
+};
+// 切换开关
+const handleSwitchChange = (item: UTSJSONObject, index: number) => {
+  emit('update:list', [...props.list]);
+  emit('switch-change', item, index);
 };
 </script>
 
@@ -64,37 +90,173 @@ const onRetry = () => {
 .tsm-list {
   width: 100%;
 }
+.tsm-list__content {
+  width: 100%;
+}
+.tsm-list__item {
+  padding: var(--tsm-spacing-m) var(--tsm-spacing-xl) var(--tsm-spacing-m) 0;
+  border-bottom: 1px solid var(--tsm-color-border-tertiary);
+}
 
-.tsm-list__loading {
+.tsm-list-disabled:hover {
+  background: var(--tsm-color-bg-tertiary);
+}
+
+.tsm-list__content-top {
+  color: var(--tsm-color-text-secondary);
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+
+.tsm-list__content-center {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tsm-list__content-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* Body-Semibold/l */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-l); /* 150% */
+}
+
+
+.tsm-list__content-text {
+  color: var(--tsm-color-text-quaternary);
+  text-align: right;
+
+  /* Body/m */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+
+
+.tsm-list__content-description {
+  color: var(--tsm-color-text-secondary);
+
+  /* Body/s */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-s); /* 166.667% */
+}
+
+.tsm-list__header {
+  padding: var(--tsm-spacing-m) var(--tsm-spacing-xl) var(--tsm-spacing-m) 0;
+ 
+}
+
+.tsm-list__header-title {
+  color: var(--tsm-color-text-secondary);
+
+  /* Body/m */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+
+.tsm-list__item-default {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+
+.tsm-list-item__switch {
+  display: flex;
+  align-items: center;
+}
+
+.tsm-list__item-user {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  border-bottom: 1px solid var(--tsm-color-border-tertiary);
+}
+
+.tsm-list__item-left {
+  display: flex;
+  padding: var(--tsm-spacing-2xl) var(--tsm-spacing-m) var(--tsm-spacing-2xl) var(--tsm-spacing-none);
+  align-items: center;
+  flex-direction: row;
+  width: 40px;
+  height: 40px;
+  margin-right:4px;
+}
+
+.tsm-list__content-arrow {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: var(--tsm-font-size-text-m);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m); /* 157.143% */
+}
+
+tsm-list__item-avatar {
+  display: flex;
+  width: 40px;
+  height: 40px;
   justify-content: center;
-  padding: 16px 0;
+  align-items: center;
+  border-radius: var(--tsm-radius-full);
+  background: var(--tsm-color-primary-border);
 }
 
-.tsm-list__loading__text {
-  margin-left: 8px;
-  font-size: 14px;
-  color: #909399;
+.tsm-list__item-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1;
 }
 
-.tsm-list__finished {
-  padding: 16px 0;
-  text-align: center;
+.tsm-list__item-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  flex: 1;
+  width: 100%;
 }
 
-.tsm-list__finished__text {
-  font-size: 14px;
-  color: #909399;
+.tsm-list__content-main {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  lines: 2;
+  color: var(--tsm-color-text-primary);
+  flex:1;
+  /* Body-Semibold/l */
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-l); /* 150% */
 }
-
-.tsm-list__error {
-  padding: 16px 0;
-  text-align: center;
+.tsm-list__item-tag {
+  width: 40px;
+  align-self: flex-start;
 }
-
-.tsm-list__error__text {
-  font-size: 14px;
-  color: #fa3534;
+.picPageInfo {
+  width: 20px;
+  height:20px;
 }
 </style>

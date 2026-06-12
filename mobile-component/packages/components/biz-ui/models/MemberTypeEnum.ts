@@ -1,0 +1,26 @@
+export enum MemberTypeEnum {
+	// 指定成员
+	APPOINT_MEMBER = 'APPOINT_MEMBER',
+	// 发起人自己
+	STARTER = 'STARTER',
+	// 部门主管
+	DEPT_MANAGER = 'DEPT_MANAGER',
+	// 由上一步执行人指定
+	BACK_APPOINT = 'BACK_APPOINT',
+	// 业务指定
+	BUSINESS_APPOINT = 'BUSINESS_APPOINT',
+	// 指定部门
+	APPOINT_DEPT = 'APPOINT_DEPT',
+	// 指定岗位
+	APPOINT_JOB = 'APPOINT_JOB',
+	// 指定职务
+	APPOINT_TITLE = 'APPOINT_TITLE',
+	// 指定标签
+	APPOINT_LABEL = 'APPOINT_LABEL',
+	// 当前节点执行人
+	CURRENT_OPERATOR = 'CURRENT_OPERATOR',
+	// 当前节点抄送人
+	CURRENT_CC = 'CURRENT_CC',
+	// 当前节点候选人
+	CURRENT_CANDIDATE = 'CURRENT_CANDIDATE'
+}

@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: 'phillUI'
+  name: 'TS Mobile UI'
   text: '高颜值、极致体验的组件库'
   tagline: '全面兼容 UniApp & UniApp X (Vue 3)'
   actions:

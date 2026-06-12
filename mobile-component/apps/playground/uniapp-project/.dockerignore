@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+pnpm-lock.yaml
+.npm
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Build outputs
+unpackage
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage
+
+# Temp
+.turbo
+.cache
+temp
+tmp

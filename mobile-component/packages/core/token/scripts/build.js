@@ -5,19 +5,10 @@ const rootDir = path.resolve(__dirname, '..')
 const distDir = path.join(rootDir, 'dist')
 const srcPaletteJson = path.join(rootDir, 'src', 'palette.json')
 const srcThemesJson = path.join(rootDir, 'src', 'themes.json')
-const templateTsPath = path.join(rootDir, 'scripts', 'templates', 'index.ts.tpl')
-const templateUtsPath = path.join(rootDir, 'scripts', 'templates', 'index.uts.tpl')
 
 function cleanDist() {
   if (fs.existsSync(distDir)) fs.rmSync(distDir, { recursive: true, force: true })
   fs.mkdirSync(distDir, { recursive: true })
-}
-
-function loadTemplate(templatePath) {
-  if (!fs.existsSync(templatePath)) {
-    throw new Error(`template not found: ${templatePath}`)
-  }
-  return fs.readFileSync(templatePath, 'utf-8')
 }
 
 function formatGenerated(content) {
@@ -136,12 +127,53 @@ function buildTokensScss(themes) {
   return parts.join('\n')
 }
 
+function copyDir(src, dest, exclude = []) {
+  if (!fs.existsSync(src)) return
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    if (exclude.includes(entry.name)) continue
+    const s = path.join(src, entry.name)
+    const d = path.join(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyDir(s, d, exclude)
+    } else {
+      writeFile(d, fs.readFileSync(s, 'utf-8'))
+    }
+  }
+}
+
+function copyThemeProvider() {
+  const srcDir = path.join(rootDir, 'src', 'theme-provider')
+  const destDir = path.join(distDir, 'theme-provider')
+  copyDir(srcDir, destDir)
+}
+
+function copyEnvDts() {
+  const src = path.join(rootDir, 'src', 'env.d.ts')
+  const dest = path.join(distDir, 'env.d.ts')
+  if (fs.existsSync(src)) {
+    writeFile(dest, fs.readFileSync(src, 'utf-8'))
+  }
+}
+
+function copyTypes() {
+  const src = path.join(rootDir, 'src', 'types', 'index.d.ts')
+  const destDir = path.join(distDir, 'types')
+  if (fs.existsSync(src)) {
+    fs.mkdirSync(destDir, { recursive: true })
+    writeFile(path.join(destDir, 'index.d.ts'), fs.readFileSync(src, 'utf-8'))
+  }
+}
+
 function build() {
   cleanDist()
   const { themes } = readTokenData()
-  writeFile(path.join(distDir, 'index.ts'), loadTemplate(templateTsPath))
-  writeFile(path.join(distDir, 'index.uts'), loadTemplate(templateUtsPath))
+  writeFile(path.join(distDir, 'index.ts'), fs.readFileSync(path.join(rootDir, 'src', 'index.ts'), 'utf-8'))
+  writeFile(path.join(distDir, 'index.uts'), fs.readFileSync(path.join(rootDir, 'src', 'index.uts'), 'utf-8'))
   writeFile(path.join(distDir, 'tokens.scss'), buildTokensScss(themes))
+  copyThemeProvider()
+  copyEnvDts()
+  copyTypes()
 }
 
 build()

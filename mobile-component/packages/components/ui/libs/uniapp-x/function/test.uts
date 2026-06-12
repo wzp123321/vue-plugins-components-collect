@@ -193,11 +193,10 @@ export function empty(value?: any): boolean {
   // #ifdef H5
   // H5 标准逻辑
   return (
-    value === null
-    || value === undefined
+    value == null
     || value === ''
     || (typeof value === 'string' && value.trim() === '')
-    || (typeof value === 'object' && Object.keys(value).length === 0)
+    || (typeof value === 'object' && value != null && Object.keys(value).length === 0)
 	|| (typeof value === 'boolean' && !value)
   );
   // #endif
@@ -304,35 +303,5 @@ export function video(value: string): boolean {
 //     // return o && Object.prototype.toString.call(o) === '[object RegExp]'
 // }
 
-export default {
-    // email: email,
-    // mobile: mobile,
-    // url: url,
-    // date: date,
-    // dateISO: dateISO,
-    // number: number,
-    // digits,
-    // idCard,
-    // carNo,
-    // amount,
-    // chinese,
-    // letter,
-    // enOrNum,
-    // contains,
-    // // range,
-    // // rangeLength,
-    // empty,
-    // isEmpty: empty,
-    // // jsonString,
-    // landline,
-    // object,
-    // array: array
-    // code,
-    // func,
-    // promise,
-    // video,
-    // image,
-    // // regExp,
-    // string
-} as UTSJSONObject
+// export default { ... } as UTSJSONObject
 

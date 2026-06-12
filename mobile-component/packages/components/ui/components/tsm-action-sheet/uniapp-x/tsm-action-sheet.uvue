@@ -3,115 +3,582 @@
  * @description 操作菜单组件，用于显示操作选项
  */
 <template>
-  <tsm-popup
-    mode="bottom"
-    :show="show"
-    :closeOnClickOverlay="true"
-    :safeAreaInsetBottom="true"
-    @close="onClose"
-  >
-    <view class="tsm-action-sheet" :class="bemClass" :style="customStyle">
-      <view v-if="title" class="tsm-action-sheet__header">
-        <text class="tsm-action-sheet__title">{{ title }}</text>
+  <view v-if="show" class="tsm-action-sheet__overlay" @tap="onClose"></view>
+  <view v-if="show" class="tsm-action-sheet__wrapper">
+    <view class="tsm-action-sheet" :class="bemClass" :style="[customStyle, actionSheetStyle]">
+      <!-- 顶部描述 -->
+      <view
+        v-if="displayDescription.length > 0"
+        class="tsm-action-sheet__description"
+        :class="[
+          `tsm-action-sheet__description--${computedDescriptionAlign}`,
+          { 'tsm-action-sheet__description--no-divider': !computedShowDescriptionDivider }
+        ]"
+      >
+        <text class="tsm-action-sheet__description__text">{{ displayDescription }}</text>
       </view>
-      <view class="tsm-action-sheet__content">
-        <view
-          v-for="(item, index) in actions"
-          :key="index"
-          class="tsm-action-sheet__item"
-          :class="{ 'tsm-action-sheet__item--disabled': item.disabled }"
-          @tap="onSelect(item, index)"
+
+      <!-- 列表模式 -->
+      <template v-if="mode === 'list'">
+        <scroll-view
+          direction="vertical"
+          :scroll-y="true"
+          class="tsm-action-sheet__list" :style="listStyle" >
+          <view
+            v-for="(item, index) in actions"
+            :key="index"
+            class="tsm-action-sheet__item"
+            :class="getItemClass(item, index)"
+            @tap="onSelect(item, index)"
+          >
+            <slot :name="`action-${index}`" :item="item" :index="index">
+              <!-- 默认渲染：带图标 + 描述 -->
+              <template v-if="hasIconOrDesc(item)">
+                <image
+                  v-if="isImageUrl(item['icon'] as string | null)"
+                  :src="item['icon'] as string"
+                  class="tsm-action-sheet__item__icon"
+                  mode="aspectFit"
+                />
+                <view class="tsm-action-sheet__item__content">
+                  <text
+                    class="tsm-action-sheet__item__text"
+                    :class="`tsm-action-sheet__item__text--${getItemType(item)}`"
+                  >{{ item[textKey] }}</text>
+                  <text
+                    v-if="hasDescription(item)"
+                    class="tsm-action-sheet__item__desc"
+                  >{{ item[descriptionKey] }}</text>
+                </view>
+              </template>
+              <!-- 默认渲染：纯文字 -->
+              <text
+                v-else
+                class="tsm-action-sheet__item__text"
+                :class="`tsm-action-sheet__item__text--${getItemType(item)}`"
+              >{{ item[textKey] }}</text>
+            </slot>
+          </view>
+        </scroll-view>
+      </template>
+
+      <!-- 宫格模式 -->
+      <template v-else>
+        <scroll-view
+          class="tsm-action-sheet__grid"
+          :class="gridClass"
+          :style="gridStyle"
+          :scroll-y="gridMode === 'stack'"
+          :scroll-x="gridMode === 'scroll'"
         >
-          <text class="tsm-action-sheet__item__text" :style="{ color: item.color }">{{ item.text }}</text>
-        </view>
-      </view>
-      <view class="tsm-action-sheet__cancel" @tap="onCancel">
+          <view
+            v-for="(item, index) in actions"
+            :key="index"
+            class="tsm-action-sheet__grid-item"
+            :class="[getGridItemClass(item), props.gridMode === 'scroll' ? 'tsm-action-sheet__grid-item--scroll' : '']"
+            @tap="onSelect(item, index)"
+          >
+            <view class="tsm-action-sheet__grid-icon">
+              <slot :name="`grid-icon-${index}`" :item="item" :index="index">
+                <image
+                  v-if="isImageUrl(item['icon'] as string | null)"
+                  :src="item['icon'] as string"
+                  class="tsm-action-sheet__grid-icon__image"
+                  mode="aspectFit"
+                />
+                <text v-else-if="hasIcon(item)" class="tsm-action-sheet__grid-icon__text">{{ item['icon'] as string }}</text>
+              </slot>
+            </view>
+            <text
+              class="tsm-action-sheet__grid-text"
+              :class="`tsm-action-sheet__grid-text--${getItemType(item)}`"
+            >{{ item[textKey] }}</text>
+          </view>
+        </scroll-view>
+      </template>
+
+      <!-- 间隔区域 -->
+      <view v-if="showCancel" class="tsm-action-sheet__gap"></view>
+
+      <!-- 取消按钮 -->
+      <view v-if="showCancel" class="tsm-action-sheet__cancel" @tap="onCancel">
         <text class="tsm-action-sheet__cancel__text">{{ cancelText }}</text>
       </view>
     </view>
-  </tsm-popup>
+  </view>
 </template>
 
 <script setup lang="uts">
-import { computed } from 'vue';
+import { computed, ref, watch, onMounted, nextTick, getCurrentInstance } from 'vue';
 import type { ActionSheetProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+import { bem, tsmGetRect, getWindowInfo } from '../../../libs/uniapp-x/function/index.uts';
 
-const props = withDefaults(defineProps<ActionSheetProps>(),{ customClass: ' ' });
+const props = withDefaults(defineProps<ActionSheetProps>(), {
+  show: false,
+  actions: () => [],
+  cancelText: '取消',
+  showCancel: true,
+  title: '',
+  description: '',
+  descriptionAlign: '',
+  showDescriptionDivider: null,
+  itemAlign: 'center',
+  maxHeight: '',
+  mode: 'list',
+  gridMode: 'stack',
+  beforeClose: null,
+  textKey: 'label',
+  valueKey: '',
+  customClass: '',
+  customStyle: () => ({})
+});
+
+const sysInfo = getWindowInfo();
+const statusBarHeight = sysInfo.statusBarHeight == null ? 0 : sysInfo.statusBarHeight;
+const windowHeight = sysInfo.windowHeight == null ? 0 : sysInfo.windowHeight;
+const defaultMaxHeightNum = windowHeight - statusBarHeight;
+
+const instance = getCurrentInstance();
+const instanceProxy = instance != null && instance.proxy != null ? instance.proxy : null;
+const containerHeight = ref('');
+
+const calcContainerHeight = () => {
+  if (!props.show) return;
+  nextTick(() => {
+      tsmGetRect('.tsm-action-sheet', false, instanceProxy).then((rect: NodeInfo) => {
+      if (rect != null && rect.height != null) {
+        const measuredHeight = rect.height as number;
+        if (measuredHeight > defaultMaxHeightNum) {
+          containerHeight.value = `${defaultMaxHeightNum}px`;
+        } else {
+          containerHeight.value = `${measuredHeight}px`;
+        }
+      } else {
+        containerHeight.value = `${defaultMaxHeightNum}px`;
+      }
+    });
+  });
+};
 
 const emit = defineEmits<{
-  select: [item: any, index: number];
+  select: [item: UTSJSONObject, index: number, value?: any];
   cancel: [];
-  close: [];
+  'update:show': [value: boolean];
 }>();
 
 const bemClass = computed(() => {
   return bem('action-sheet', [], {}, props.customClass);
 });
 
-const onSelect = (item: any, index: number) => {
-  if (item.disabled) return;
-  emit('select', item, index);
-  emit('close');
+const displayDescription = computed(() => {
+  return props.description.length > 0 ? props.description : props.title;
+});
+
+const computedDescriptionAlign = computed(() => {
+  if (props.descriptionAlign.length > 0) return props.descriptionAlign;
+  return props.mode === 'grid' ? 'left' : 'center';
+});
+
+const computedShowDescriptionDivider = computed(() => {
+  if (props.showDescriptionDivider != null) return props.showDescriptionDivider;
+  return props.mode !== 'grid';
+});
+
+const actionSheetStyle = computed(() => {
+  const style: UTSJSONObject = {};
+  const mh = props.maxHeight as string;
+  if (mh.length > 0) {
+    style['height'] = mh;
+  } else if (containerHeight.value.length > 0) {
+    style['height'] = containerHeight.value;
+  }
+  style['display'] = 'flex';
+  style['flexDirection'] = 'column';
+  return style;
+});
+
+const listStyle = computed(() => {
+  const style: UTSJSONObject = {};
+  style['flex'] = '1';
+  style['overflowY'] = 'auto';
+  return style;
+});
+
+const gridStyle = computed(() => {
+  if (props.gridMode === 'stack') {
+    const style: UTSJSONObject = {};
+    style['flex'] = '1';
+    style['overflowY'] = 'auto';
+    return style;
+  }
+  return {} as UTSJSONObject;
+});
+
+const gridClass = computed(() => {
+  const classes: string[] = [];
+  if (props.gridMode === 'stack') {
+    classes.push('tsm-action-sheet__grid--stack');
+  } else if (props.gridMode === 'scroll') {
+    classes.push('tsm-action-sheet__grid--scroll');
+  }
+  return classes.join(' ');
+});
+
+watch((): boolean => props.show, (newVal: boolean) => {
+  if (newVal) {
+    calcContainerHeight();
+  }
+});
+
+watch((): UTSJSONObject[] => props.actions, () => {
+  calcContainerHeight();
+}, { deep: true });
+
+
+const isImageUrl = (icon: string | null | undefined): boolean => {
+  if (icon == null) return false;
+  const iconStr = icon as string;
+  if (iconStr.length == 0) return false;
+  return (
+    iconStr.startsWith('http') ||
+    iconStr.startsWith('data:') ||
+    iconStr.includes('/') ||
+    /\.(png|jpg|jpeg|svg|webp|gif)$/i.test(iconStr)
+  );
+};
+
+const hasIconOrDesc = (item: UTSJSONObject): boolean => {
+  const icon = item['icon'] as string | null;
+  const desc = item['description'] as string | null;
+  return (icon != null && icon.length > 0) || (desc != null && desc.length > 0);
+};
+
+const hasDescription = (item: UTSJSONObject): boolean => {
+  const desc = item['description'] as string | null;
+  return desc != null && desc.length > 0;
+};
+
+const doClose = (action: string) => {
+  const closeFn = () => {
+    emit('update:show', false);
+    emit('close');
+  };
+  const bc = props.beforeClose;
+  if (bc != null) {
+    const canClose = bc(action);
+    if (canClose) closeFn();
+    return;
+  }
+  closeFn();
+};
+
+const textKey = computed(() => props.textKey.length > 0 ? props.textKey : 'label');
+const descriptionKey = computed(() => 'description');
+
+const getValue = (item: UTSJSONObject): any => {
+  if (props.valueKey.length > 0) {
+    return item[props.valueKey] as any;
+  }
+  return null as any;
+};
+
+const getItemType = (item: UTSJSONObject): string => {
+  const t = item['type'] as string | null;
+  return t != null && t.length > 0 ? t : 'default';
+};
+
+const hasIcon = (item: UTSJSONObject): boolean => {
+  const icon = item['icon'] as string | null;
+  return icon != null && icon.length > 0;
+};
+
+const onSelect = (item: UTSJSONObject, index: number) => {
+  const itemType = item['type'] as string | null;
+  if (itemType != null && itemType === 'disabled') return;
+  emit('select', item, index, getValue(item));
+  doClose('select');
 };
 
 const onCancel = () => {
   emit('cancel');
-  emit('close');
+  doClose('cancel');
 };
 
 const onClose = () => {
-  emit('close');
+  doClose('overlay');
 };
+
+
+
+
+
+const getItemClass = (item: UTSJSONObject, index: number): string => {
+  const classes: string[] = [];
+  classes.push(`tsm-action-sheet__item--${props.itemAlign}`);
+  const itemType = item['type'] as string | null;
+  if (itemType != null && itemType === 'disabled') {
+    classes.push('tsm-action-sheet__item--disabled');
+  }
+  if (index === props.actions.length - 1) {
+    classes.push('tsm-action-sheet__item--last');
+  }
+  return classes.join(' ');
+};
+
+const getGridItemClass = (item: UTSJSONObject): string => {
+  const classes: string[] = [];
+  const itemType = item['type'] as string | null;
+  if (itemType != null && itemType === 'disabled') {
+    classes.push('tsm-action-sheet__grid-item--disabled');
+  }
+  return classes.join(' ');
+};
+
+
 </script>
 
 <style scoped lang="scss">
+@charset "UTF-8";
 .tsm-action-sheet {
-  background-color: #ffffff;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  background-color: transparent;
   overflow: hidden;
+  border-radius: var(--tsm-radius-2xl);
+  width: 100%;
+  max-width: 750rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
-.tsm-action-sheet__header {
-  padding: 16px;
+.tsm-action-sheet__description {
+  width: 100%;
+  padding: var(--tsm-spacing-2xl);
+  border-bottom: 1px solid var(--tsm-color-border-secondary);
+  background-color: var(--tsm-color-bg-white);
+}
+
+.tsm-action-sheet__description--center .tsm-action-sheet__description__text {
   text-align: center;
-  border-bottom: 1px solid #ebedf0;
 }
 
-.tsm-action-sheet__title {
-  font-size: 14px;
-  color: #909399;
+.tsm-action-sheet__description--left .tsm-action-sheet__description__text {
+  text-align: left;
 }
 
-.tsm-action-sheet__content {
-  padding: 8px 0;
+.tsm-action-sheet__description--no-divider {
+  border-bottom: none;
+}
+
+.tsm-action-sheet__description__text {
+  color: var(--tsm-color-text-secondary);
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-m);
+
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-m);
+}
+
+.tsm-action-sheet__list {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--tsm-color-bg-white);
 }
 
 .tsm-action-sheet__item {
-  padding: 14px 16px;
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--tsm-spacing-2xl);
+  border-bottom: 1px solid var(--tsm-color-border-secondary);
 }
 
-.tsm-action-sheet__item--disabled {
-  color: #c8c9cc;
+.tsm-action-sheet__item--center {
+  justify-content: center;
+}
+
+.tsm-action-sheet__item--left {
+  justify-content: flex-start;
+}
+
+.tsm-action-sheet__item--last {
+  border-bottom: none;
+}
+
+.tsm-action-sheet__item--disabled .tsm-action-sheet__item__text,
+.tsm-action-sheet__item--disabled .tsm-action-sheet__item__desc {
+  color: var(--tsm-color-text-disabled);
+}
+
+.tsm-action-sheet__item__icon {
+  width: 20px;
+  height: 20px;
+  margin-right: var(--tsm-spacing-m);
+  flex-shrink: 0;
+}
+
+.tsm-action-sheet__item__content {
+  display: flex;
+  flex-direction: column;
 }
 
 .tsm-action-sheet__item__text {
-  font-size: 16px;
-  color: #303133;
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-l);
+  text-align: center;
+}
+
+.tsm-action-sheet__item__text--default {
+  color: var(--tsm-color-text-primary);
+}
+
+.tsm-action-sheet__item__text--danger {
+  color: var(--tsm-color-danger);
+}
+
+.tsm-action-sheet__item__text--disabled {
+  color: var(--tsm-color-text-disabled);
+}
+
+.tsm-action-sheet__item__desc {
+  color: var(--tsm-color-text-secondary);
+  text-align: center;
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-s);
+
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-s);
+  margin-top: var(--tsm-spacing-xs);
+}
+
+/* ========== 宫格模式 ========== */
+.tsm-action-sheet__grid {
+  background-color: var(--tsm-color-bg-white);
+  width: 100%;
+  min-width: 0;
+}
+
+.tsm-action-sheet__grid--stack {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex: 1;
+  overflow: auto;
+}
+
+.tsm-action-sheet__grid--scroll {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+
+.tsm-action-sheet__grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--tsm-spacing-xl) 0;
+  box-sizing: border-box;
+  flex: 0 0 25%;
+}
+
+.tsm-action-sheet__grid-item--scroll {
+  flex: 0 0 80px;
+}
+
+.tsm-action-sheet__grid-item--disabled .tsm-action-sheet__grid-icon {
+  opacity: 0.4;
+}
+
+.tsm-action-sheet__grid-item--disabled .tsm-action-sheet__grid-text {
+  color: var(--tsm-color-text-disabled);
+}
+
+.tsm-action-sheet__grid-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--tsm-spacing-m);
+  background-color: var(--tsm-color-bg-tertiary);
+  border-radius: var(--tsm-radius-m);
+  overflow: hidden;
+}
+
+.tsm-action-sheet__grid-icon__image {
+  width: 24px;
+  height: 24px;
+}
+
+.tsm-action-sheet__grid-icon__text {
+  font-size: var(--tsm-font-size-display-m);
+}
+
+.tsm-action-sheet__grid-text {
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-s);
+  font-weight: var(--tsm-font-weight-regular);
+  line-height: var(--tsm-line-height-text-xs);
+  text-align: center;
+}
+
+.tsm-action-sheet__grid-text--default {
+  color: var(--tsm-color-text-primary);
+}
+
+.tsm-action-sheet__grid-text--danger {
+  color: var(--tsm-color-danger);
+}
+
+.tsm-action-sheet__grid-text--disabled {
+  color: var(--tsm-color-text-disabled);
+}
+
+/* ========== 底部 ========== */
+.tsm-action-sheet__gap {
+  height: var(--tsm-spacing-m);
+  background-color: var(--tsm-color-bg-tertiary);
 }
 
 .tsm-action-sheet__cancel {
-  padding: 14px 16px;
-  text-align: center;
-  background-color: #f7f8fa;
-  margin-top: 8px;
+  display: flex;
+  min-height: 48px;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+  background-color: var(--tsm-color-bg-white);
 }
 
 .tsm-action-sheet__cancel__text {
-  font-size: 16px;
-  color: #606266;
+  color: var(--tsm-color-text-primary);
+  text-align: center;
+  font-family: var(--tsm-font-family-regular);
+  font-size: var(--tsm-font-size-text-l);
+
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-l);
 }
+
+/* ========== 简单遮罩 + 底部容器（替代 tsm-popup） ========== */
+.tsm-action-sheet__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--tsm-color-overlay-mask);
+  z-index: 999;
+}
+
+.tsm-action-sheet__wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
 </style>

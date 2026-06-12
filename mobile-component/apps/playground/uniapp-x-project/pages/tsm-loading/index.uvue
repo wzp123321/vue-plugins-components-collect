@@ -1,0 +1,10 @@
+<template>
+  <tsm-theme-provider>
+    <tsm-loading />
+  </tsm-theme-provider>
+</template>
+
+<script setup lang="uts">
+</script>
+
+<style scoped lang="scss"></style>

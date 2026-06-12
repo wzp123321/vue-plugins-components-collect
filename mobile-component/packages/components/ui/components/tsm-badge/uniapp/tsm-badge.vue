@@ -1,29 +1,55 @@
 /** * Badge 徽标组件 * @description 该组件一般用于图标右上角显示未读的消息数量，提示用户点击 */
 <template>
   <view class="tsm-badge-wrapper">
-    <slot />
-    <text
+    <!-- 插槽：default - 被徽标标记的主体内容（通常是图标或按钮） -->
+    <slot></slot>
+    <view
       class="tsm-badge"
-      :class="[bemClass, { 'tsm-badge--with-slot': hasDefaultSlot }]"
+      :class="[bemClass]"
       :style="badgeStyle"
       v-if="show && ((Number(value) === 0 ? showZero : true) || isDot)"
       @tap="handleTap"
     >
-      {{ isDot ? '' : showValue }}
-    </text>
+      <img v-if="shape === 'ribbon-right'" class="tsm-badge__bg-image" :src="ribbonBgImage" mode="scaleToFill" />
+      <text class="tsm-badge-text" :class="{ 'tsm-badge__content--ribbon-right': shape === 'ribbon-right' }">
+        {{ isDot ? '' : showValue }}
+      </text>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed, useSlots } from 'vue';
-import type { BadgeProps } from './props';
-import { BadgeNumberType, defaultProps } from './props';
+import { type BadgeProps, BadgeNumberType, defaultProps } from './props';
 import { bem } from '../../../libs/uniapp/function/index';
+
+import PicBadgeM from '../../../assets/image/badge/pic-badge-m.svg';
+import PicBadgeL from '../../../assets/image/badge/pic-badge-l.svg';
+import PicBadgeLightM from '../../../assets/image/badge/pic-badge-light-m.svg';
+import PicBadgeLightL from '../../../assets/image/badge/pic-badge-light-l.svg';
+import PicBadgePrimaryM from '../../../assets/image/badge/pic-badge-primary-m.svg';
+import PicBadgePrimaryL from '../../../assets/image/badge/pic-badge-primary-l.svg';
+import PicBadgePrimaryLightM from '../../../assets/image/badge/pic-badge-primary-light-m.svg';
+import PicBadgePrimaryLightL from '../../../assets/image/badge/pic-badge-primary-light-l.svg';
+import PicBadgeSuccessM from '../../../assets/image/badge/pic-badge-success-m.svg';
+import PicBadgeSuccessL from '../../../assets/image/badge/pic-badge-success-l.svg';
+import PicBadgeSuccessLightM from '../../../assets/image/badge/pic-badge-success-light-m.svg';
+import PicBadgeSuccessLightL from '../../../assets/image/badge/pic-badge-success-light-l.svg';
+import PicBadgeWarningM from '../../../assets/image/badge/pic-badge-warning-m.svg';
+import PicBadgeWarningL from '../../../assets/image/badge/pic-badge-warning-l.svg';
+import PicBadgeWarningLightM from '../../../assets/image/badge/pic-badge-warning-light-m.svg';
+import PicBadgeWarningLightL from '../../../assets/image/badge/pic-badge-warning-light-l.svg';
+import PicBadgeInfoM from '../../../assets/image/badge/pic-badge-info-m.svg';
+import PicBadgeInfoL from '../../../assets/image/badge/pic-badge-info-l.svg';
+import PicBadgeInfoLightM from '../../../assets/image/badge/pic-badge-info-light-m.svg';
+import PicBadgeInfoLightL from '../../../assets/image/badge/pic-badge-info-light-l.svg';
+
+const slots = useSlots();
 
 const props = withDefaults(defineProps<BadgeProps>(), defaultProps);
 
-// 对外抛出点击事件
 const emit = defineEmits<{
+  /** 点击徽标 */
   click: [];
 }>();
 
@@ -31,40 +57,69 @@ const handleTap = () => {
   emit('click');
 };
 
-const slots = useSlots();
+const ribbonBgImage = computed(() => {
+  const isLarge = props.size === 'large';
+  const isLight = props.theme === 'light';
+  const mode = props.mode ?? 'error';
 
-// 是否存在实际渲染内容的默认插槽，用于决定徽标是否需要相对插槽内容绝对定位
-const hasDefaultSlot = computed(() => {
-  const defaultSlot = slots.default;
-  return Boolean(defaultSlot && defaultSlot().length);
+  const imageMap: Record<string, string> = {
+    error: isLarge ? (isLight ? PicBadgeLightL : PicBadgeL) : isLight ? PicBadgeLightM : PicBadgeM,
+    primary: isLarge
+      ? isLight
+        ? PicBadgePrimaryLightL
+        : PicBadgePrimaryL
+      : isLight
+        ? PicBadgePrimaryLightM
+        : PicBadgePrimaryM,
+    success: isLarge
+      ? isLight
+        ? PicBadgeSuccessLightL
+        : PicBadgeSuccessL
+      : isLight
+        ? PicBadgeSuccessLightM
+        : PicBadgeSuccessM,
+    warning: isLarge
+      ? isLight
+        ? PicBadgeWarningLightL
+        : PicBadgeWarningL
+      : isLight
+        ? PicBadgeWarningLightM
+        : PicBadgeWarningM,
+    info: isLarge ? (isLight ? PicBadgeInfoLightL : PicBadgeInfoL) : isLight ? PicBadgeInfoLightM : PicBadgeInfoM,
+  };
+  return imageMap[mode] ?? imageMap.error;
 });
 
-// 生成 BEM 风格类名：主题、形状、尺寸 + 模式、是否为圆点
+const hasSlot = computed(() => !!slots?.default);
+
+const hasWhiteBorder = computed(() => {
+  return props.isDot || (!props.isDot && props.shape === 'circle' && props.theme !== 'light');
+});
+
 const bemClass = computed(() => {
   return bem(
     'badge',
-    [props.theme || '', props.shape, props.size],
+    [props.mode || 'primary', props.shape, props.size],
     [
-      [props.mode, !props.isDot],
+      [props.theme, !props.isDot],
       ['dot', props.isDot],
       ['not-dot', !props.isDot],
-    ],
-    props.customClass
+      ['absolute', hasSlot.value],
+      ['border-white', hasWhiteBorder.value],
+    ]
   );
 });
 
 const badgeStyle = computed(() => {
   const style: Record<string, any> = {};
-  // 当包裹内容存在时，徽标相对于右上角做偏移，offset[0] 为水平偏移，offset[1] 为垂直偏移
-  if (hasDefaultSlot.value) {
+  if (props.absolute) {
+    style.position = 'absolute';
     const offsetX = props.offset?.[0] ?? 0;
     const offsetY = props.offset?.[1] ?? 0;
-    const x = typeof offsetX === 'number' ? `${offsetX}px` : offsetX;
-    const y = typeof offsetY === 'number' ? `${offsetY}px` : offsetY;
-    style.left = `calc(100% + ${x})`;
-    style.top = `calc(0px + ${y})`;
+    style.top = typeof offsetY === 'number' ? `${offsetY}px` : offsetY;
+    style.right = typeof offsetX === 'number' ? `${offsetX}px` : offsetX;
   }
-  return { ...style, ...props.customStyle };
+  return style;
 });
 
 const showValue = computed(() => {
@@ -94,192 +149,209 @@ const showValue = computed(() => {
 
 <style scoped lang="scss">
 .tsm-badge-wrapper {
-  display: inline-flex;
   position: relative;
+  display: flex;
 }
 
 .tsm-badge {
   display: flex;
   box-sizing: border-box;
+}
+
+.tsm-badge.tsm-badge--absolute {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+.tsm-badge--dot {
+  width: 6px;
+  min-width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.tsm-badge--dot.tsm-badge--large {
+  width: 10px;
+  min-width: 10px;
+  height: 10px;
+}
+
+.tsm-badge--not-dot.tsm-badge--circle {
+  padding: 0 2px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 100px;
+}
+
+.tsm-badge--dot.tsm-badge--border-white,
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--border-white {
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+.tsm-badge--not-dot .tsm-badge-text {
+  font-weight: var(--tsm-font-weight-bold);
+}
+
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--medium {
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--not-dot.tsm-badge--circle.tsm-badge--large {
+  min-width: 16px;
+  height: 16px;
+  text-align: center;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--ribbon-right {
+  position: relative;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent !important;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--ribbon-right.tsm-badge--large {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge__bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.tsm-badge__content--ribbon-right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg) translate(0px, -7px);
+}
+
+.tsm-badge--ribbon-round {
+  border-radius: var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-s);
+  padding: 0 6px;
+  min-width: 32px;
+  height: 16px;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--ribbon-round.tsm-badge--large {
+  min-width: 40px;
+  height: 18px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--bubble {
+  border-radius: var(--tsm-radius-m) var(--tsm-radius-l) var(--tsm-radius-l) var(--tsm-radius-none);
+  padding: 0 4px;
+  min-width: 32px;
+  height: 16px;
+  font-size: var(--tsm-font-size-text-2xs);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-2xs);
+}
+
+.tsm-badge--bubble.tsm-badge--large {
+  min-width: 40px;
+  height: 18px;
+  font-size: var(--tsm-font-size-text-s);
+  font-style: normal;
+  font-weight: var(--tsm-font-weight-bold);
+  line-height: var(--tsm-line-height-text-xs);
+}
+
+.tsm-badge--circle,
+.tsm-badge--ribbon-right,
+.tsm-badge--ribbon-round,
+.tsm-badge--bubble {
+  justify-content: center;
+  align-items: center;
+}
+
+.tsm-badge--error {
   background-color: var(--tsm-color-danger);
   color: var(--tsm-color-text-white);
-  transform: var(--tsm-badge-transform, none);
+}
 
-  &.tsm-badge--with-slot {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    --tsm-badge-transform: translate(-50%, -50%);
-  }
+.tsm-badge--error.tsm-badge--light {
+  background-color: var(--tsm-color-danger-bg);
+  color: var(--tsm-color-danger);
+}
 
-  &.tsm-badge--dot {
-    width: 6px;
-    min-width: 6px;
-    height: 6px;
-    padding: 0;
-    border-radius: 999px;
+.tsm-badge--warning {
+  background-color: var(--tsm-color-warning);
+  color: var(--tsm-color-text-white);
+}
 
-    &.tsm-badge--large {
-      width: 10px;
-      min-width: 10px;
-      height: 10px;
-    }
-  }
+.tsm-badge--warning.tsm-badge--light {
+  background-color: var(--tsm-color-warning-bg);
+  color: var(--tsm-color-warning);
+}
 
-  &.tsm-badge--not-dot {
-    &.tsm-badge--circle {
-      width: max-content;
-      padding: 0 2px;
-      min-width: 14px;
-      height: 14px;
-      border-radius: 100px;
+.tsm-badge--primary {
+  background-color: var(--tsm-color-primary);
+  color: var(--tsm-color-text-white);
+}
 
-      &.tsm-badge--medium {
-        font-size: var(--tsm-font-size-text-2xs);
-        font-style: normal;
-        font-weight: var(--tsm-font-weight-bold);
-        line-height: var(--tsm-line-height-text-2xs);
-      }
+.tsm-badge--primary.tsm-badge--light {
+  background-color: var(--tsm-color-primary-bg);
+  color: var(--tsm-color-primary);
+}
 
-      &.tsm-badge--large {
-        width: 16px;
-        min-width: 16px;
-        height: 16px;
-        text-align: center;
-        font-size: var(--tsm-font-size-text-s);
-        font-style: normal;
-        font-weight: var(--tsm-font-weight-bold);
-        line-height: var(--tsm-line-height-text-xs);
-      }
-    }
-  }
+.tsm-badge--success {
+  background-color: var(--tsm-color-success);
+  color: var(--tsm-color-text-white);
+}
 
-  &.tsm-badge--ribbon-right {
-    border-radius: 0;
-    width: 45.25px;
-    min-width: 45.25px;
-    height: 16px;
-    padding: 0;
-    transform-origin: center;
-    --tsm-badge-transform: rotate(45deg);
-    clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 100%, 0 100%);
-    font-size: var(--tsm-font-size-text-2xs);
-    font-style: normal;
-    font-weight: var(--tsm-font-weight-bold);
-    line-height: var(--tsm-line-height-text-2xs);
+.tsm-badge--success.tsm-badge--light {
+  background-color: var(--tsm-color-success-bg);
+  color: var(--tsm-color-success);
+}
 
-    &.tsm-badge--large {
-      width: 50.91px;
-      min-width: 50.91px;
-      height: 18px;
-      font-size: var(--tsm-font-size-text-s);
-      font-style: normal;
-      font-weight: var(--tsm-font-weight-bold);
-      line-height: var(--tsm-line-height-text-xs);
-    }
+.tsm-badge--success.tsm-badge--light.tsm-badge--large {
+  color: var(--tsm-color-success);
+}
 
-    &.tsm-badge--with-slot {
-      --tsm-badge-transform: translate(-50%, -50%) rotate(45deg);
-    }
-  }
+.tsm-badge--info {
+  background-color: var(--tsm-color-text-quaternary);
+  color: var(--tsm-color-text-white);
+}
 
-  &.tsm-badge--ribbon-round {
-    border-radius: var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-none) var(--tsm-radius-s);
-    width: max-content;
-    padding: 0 6px;
-    min-width: 32px;
-    height: 16px;
-    font-size: var(--tsm-font-size-text-2xs);
-    font-style: normal;
-    font-weight: var(--tsm-font-weight-bold);
-    line-height: var(--tsm-line-height-text-2xs);
-
-    &.tsm-badge--large {
-      min-width: 40px;
-      height: 18px;
-      font-size: var(--tsm-font-size-text-s);
-      font-style: normal;
-      font-weight: var(--tsm-font-weight-bold);
-      line-height: var(--tsm-line-height-text-xs);
-    }
-  }
-
-  &.tsm-badge--bubble {
-    border-radius: var(--tsm-radius-m) var(--tsm-radius-l) var(--tsm-radius-l) var(--tsm-radius-none);
-    width: max-content;
-    padding: 0 4px;
-    min-width: 32px;
-    height: 16px;
-    font-size: var(--tsm-font-size-text-2xs);
-    font-style: normal;
-    font-weight: var(--tsm-font-weight-bold);
-    line-height: var(--tsm-line-height-text-2xs);
-
-    &.tsm-badge--large {
-      min-width: 40px;
-      height: 18px;
-      font-size: var(--tsm-font-size-text-s);
-      font-style: normal;
-      font-weight: var(--tsm-font-weight-bold);
-      line-height: var(--tsm-line-height-text-xs);
-    }
-  }
-
-  &.tsm-badge--circle,
-  &.tsm-badge--ribbon-right,
-  &.tsm-badge--ribbon-round,
-  &.tsm-badge--bubble {
-    justify-content: center;
-    align-items: center;
-  }
-
-  &.tsm-badge--light {
-    background-color: var(--tsm-color-danger-bg);
-    color: var(--tsm-color-danger-active);
-  }
-
-  &.tsm-badge--warning {
-    background-color: var(--tsm-color-warning);
-    color: var(--tsm-color-text-white);
-
-    &.tsm-badge--light {
-      background-color: var(--tsm-color-warning-bg);
-      color: var(--tsm-color-warning);
-    }
-  }
-
-  &.tsm-badge--primary {
-    background-color: var(--tsm-color-primary);
-    color: var(--tsm-color-text-white);
-
-    &.tsm-badge--light {
-      background-color: var(--tsm-color-primary-bg);
-      color: var(--tsm-color-primary);
-    }
-  }
-
-  &.tsm-badge--success {
-    background-color: var(--tsm-color-success);
-    color: var(--tsm-color-text-white);
-
-    &.tsm-badge--light {
-      background-color: var(--tsm-color-success-bg);
-      color: var(--tsm-color-success);
-
-      &.tsm-badge--large {
-        color: var(--tsm-color-success-active);
-      }
-    }
-  }
-
-  &.tsm-badge--info {
-    background-color: var(--tsm-color-text-quaternary);
-    color: var(--tsm-color-text-white);
-
-    &.tsm-badge--light {
-      background-color: var(--tsm-color-bg-secondary);
-      color: var(--tsm-color-text-secondary);
-    }
-  }
+.tsm-badge--info.tsm-badge--light {
+  background-color: var(--tsm-color-bg-secondary);
+  color: var(--tsm-color-text-secondary);
 }
 </style>

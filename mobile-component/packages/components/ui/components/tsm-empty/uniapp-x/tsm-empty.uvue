@@ -1,51 +1,152 @@
-/**
- * Empty 空状态组件
- * @description 空状态组件，用于显示空数据提示
- */
+/** * Empty 空状态组件 * @description 空状态组件，用于显示空数据提示 */
 <template>
-  <view
-    class="tsm-empty"
-    :class="bemClass"
-    :style="customStyle"
-  >
-    <text class="tsm-empty__icon">📭</text>
-    <text
-      v-if="text"
-      class="tsm-empty__text"
-    >{{ text }}</text>
-    <slot />
-  </view>
+	<view class="tsm-empty" :class="bemClass" :style="customStyle">
+		<!-- 图标 -->
+		<view class="tsm-empty-icon" v-if="isIcon || scene === 'page'">
+			<image :src="typeImage[(type + (scene === 'block' ? 'Block' : '')) as keyof typeof typeImage]"
+				class="tsm-empty-icon-img" />
+		</view>
+		<!-- 标题 -->
+		<text v-if="title !==''  && scene === 'page'" class="tsm-empty-title">{{ title }}</text>
+		<!-- 描述 -->
+		<text v-if="description" class="tsm-empty-description">{{ description }}</text>
+		<!-- 按钮 -->
+		<tsm-button theme="primary" v-if="buttonText !=='' && buttonText !==null && scene === 'page'"
+			class="tsm-empty-button" @tap="handleButtonClick">
+			{{ buttonText }}
+		</tsm-button>
+	</view>
 </template>
 
-<script setup lang="uts">
-import { computed } from 'vue';
-import type { EmptyProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+<script setup lang="ts">
+	import { computed, ref } from 'vue';
+	import type { EmptyProps } from './props';
+	import { defaultProps } from './props';
+	import { bem } from '../../../libs/uniapp-x/function/index';
+	import picBlockNodata from '../../../assets/image/empty/pic-block-nodata.png';
+	import picBlockNoresult from '../../../assets/image/empty/pic-block-noresult.png';
+	import picBlockUnauthorized from '../../../assets/image/empty/pic-block-unauthorized.png';
+	import picPageLoadfailed from '../../../assets/image/empty/pic-page-loadfailed.png';
+	import picPageNoData from '../../../assets/image/empty/pic-page-nodata.png';
+	import picPageNointernet from '../../../assets/image/empty/pic-page-nointernet.png';
+	import picPageNomessage from '../../../assets/image/empty/pic-page-nomessage.png';
+	import picPageNoPicture from '../../../assets/image/empty/pic-page-nopicture.png';
+	import picPageNoresult from '../../../assets/image/empty/pic-page-noresult.png';
+	import picPageSuccessful from '../../../assets/image/empty/pic-page-successful.png';
+	import picPageUnauthorized from '../../../assets/image/empty/pic-page-unauthorized.png';
 
-const props = withDefaults(defineProps<EmptyProps>(),{ customClass: ' ' });
+	const props = withDefaults(defineProps<{
+		/**使用场景,block：区块场景，page：页面场景；block场景下支持支type为noData，noSearch，noAuthority */
+		scene ?: 'block' | 'page';
+		/**空类型：noData:无数据，noInternet:无网络，noSearch:无搜索结果，noAuthority:无权限，loadingError:加载失败，noMessage:无消息，noImage:无图片，successTips:成功提示 */
+		type ?:
+		| 'noData'
+		| 'noInternet'
+		| 'noSearch'
+		| 'noAuthority'
+		| 'loadingError'
+		| 'noMessage'
+		| 'noImage'
+		| 'successTips';
+		/**是否显示图标,block场景下支持,page场景下固定显示图标 */
+		isIcon ?: boolean;
+		/** 提示文字,page场景下支持 */
+		title ?: string;
+		/** 描述 */
+		description ?: string;
+		/** 按钮文字,空不显示按钮；page场景下支持 */
+		buttonText ?: string;
+		/** 自定义类名 */
+		customClass ?: string;
+		/** 自定义样式 */
+		customStyle ?: any;
+	}>(), {
+		scene: 'page',
+		type: 'noData',
+		isIcon: true,
+		title: '',
+		description: '',
+		buttonText: '',
+		customClass: '',
+		customStyle: {},
+	});
+	const emit = defineEmits(['btnClick']);
+	const typeImage = ref({
+		noDataBlock: picBlockNodata,
+		noSearchBlock: picBlockNoresult,
+		noAuthorityBlock: picBlockUnauthorized,
+		loadingError: picPageLoadfailed,
+		noData: picPageNoData,
+		noInternet: picPageNointernet,
+		noMessage: picPageNomessage,
+		noImage: picPageNoPicture,
+		noSearch: picPageNoresult,
+		successTips: picPageSuccessful,
+		noAuthority: picPageUnauthorized,
+	});
 
-const bemClass = computed(() => {
-  return bem('empty', [], {}, props.customClass);
-});
+	const bemClass = computed(() => {
+		return bem('empty', [props.scene], [] as string[], props.customClass);
+	});
+
+	const handleButtonClick = () => {
+		emit('btnClick');
+	};
 </script>
 
 <style scoped lang="scss">
-.tsm-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 0;
-}
+	.tsm-empty {
+		height: 100%;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 
-.tsm-empty__icon {
-  font-size: 48px;
-}
+		.tsm-empty-icon {
+			width: 100px;
+			height: 100px;
+			padding-right: 0.99px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: var(--tsm-spacing-xl);
 
-.tsm-empty__text {
-  margin-top: 12px;
-  font-size: 14px;
-  color: #909399;
-}
+			.tsm-empty-icon-img {
+				width: 100%;
+				height: 100%;
+			}
+		}
+
+		.tsm-empty-title {
+			color: var(--tsm-color-text-primary);
+			text-align: center;
+			font-family: var(--tsm-font-family-regular);
+			font-size: var(--tsm-font-size-text-l);
+			font-style: normal;
+			font-weight: var(-tsm-font-weight-regular);
+			line-height: var(--tsm-line-height-text-l);
+			margin-bottom: var(--tsm-spacing-xs);
+			/* 150% */
+		}
+
+		.tsm-empty-description {
+			color: var(--tsm-color-text-secondary);
+			text-align: center;
+			font-family: var(--tsm-font-family-regular);
+			font-size: var(--tsm-font-size-text-m);
+			font-style: normal;
+			font-weight: var(-tsm-font-weight-regular);
+			line-height: var(--tsm-line-height-text-m);
+			margin-bottom: var(--tsm-spacing-xl);
+			/* 157.143% */
+		}
+	}
+
+	.tsm-empty--block {
+		.tsm-empty-icon {
+			width: 60px;
+			height: 60px;
+		}
+	}
 </style>

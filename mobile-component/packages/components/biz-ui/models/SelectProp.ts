@@ -1,0 +1,15 @@
+import Option from './Option';
+export default class SelectProp {
+	// 标题
+	label: Nullable<string>;
+	// 默认提示
+	placeholder: Nullable<string>;
+	// 选项列表
+	items: Nullable<Option[]>;
+	// 默认选项
+	defaultOption: Nullable<Option>;
+	// 是否必填，默认为true
+	required: Nullable<boolean>;
+	// 布局设置，仅对pc端生效，一行分成24列，span为几表示占几列：24-整行、12-1/2行，默认为24
+	span: Nullable<number>;
+}

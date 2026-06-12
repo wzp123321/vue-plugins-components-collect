@@ -1,10 +1,19 @@
 {
   "name": "@tiansu/ts-mobile-token",
-  "version": "0.0.10",
+  "version": "0.0.20",
   "description": "Design tokens for ts-mobile-ui components",
   "main": "dist/index.ts",
   "module": "dist/index.ts",
-  "types": "dist/@tiansu/ts-mobile-ui/comps.d.ts",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/index.ts"
+    },
+    "./theme-provider/uniapp/*": "./dist/theme-provider/uniapp/*",
+    "./theme-provider/uniapp-x/*": "./dist/theme-provider/uniapp-x/*",
+    "./*": "./dist/*"
+  },
   "files": [
     "dist",
     "scripts"

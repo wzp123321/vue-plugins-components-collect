@@ -8,12 +8,15 @@
         class="tsm-empty-icon-img"
       />
     </view>
-    <!-- 标题 -->
-    <view v-if="title && scene === 'page'" class="tsm-empty-title">{{ title }}</view>
-    <!-- 描述 -->
-    <view v-if="description" class="tsm-empty-description">{{ description }}</view>
+    <view class="tsm-empty-cc">
+      <!-- 标题 -->
+      <view v-if="title && scene === 'page'" class="tsm-empty-title">{{ title }}</view>
+      <!-- 描述 -->
+      <view v-if="description" class="tsm-empty-description">{{ description }}</view>
+    </view>
+
     <!-- 按钮 -->
-    <tsm-button type="primary" v-if="buttonText && scene === 'page'" class="tsm-empty-button" @tap="handleButtonClick">
+    <tsm-button theme="primary" v-if="buttonText && scene === 'page'" class="tsm-empty-button" @tap="handleButtonClick">
       {{ buttonText }}
     </tsm-button>
   </view>
@@ -84,7 +87,13 @@ const handleButtonClick = () => {
       height: 100%;
     }
   }
-
+  .tsm-empty-cc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tsm-spacing-xs);
+  }
   .tsm-empty-title {
     color: var(--tsm-color-text-primary);
     text-align: center;

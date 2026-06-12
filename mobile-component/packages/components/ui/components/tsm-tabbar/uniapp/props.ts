@@ -17,7 +17,7 @@ export interface TabbarProps {
 }
 
 export const defaultProps = {
-  modelValue: 1,
+  modelValue: 0,
   fixed: true,
   bgColor: 'default',
   customClass: '',

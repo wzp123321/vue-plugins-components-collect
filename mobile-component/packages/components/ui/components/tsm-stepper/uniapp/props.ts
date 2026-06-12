@@ -1,8 +1,6 @@
 /**
- * Button 按钮组件 Props 定义
+ * Stepper 步进组件 Props 定义
  */
-import type { CSSProperties } from 'vue';
-
 // 操作类型
 export enum StepperOperation {
   /** 增加 */
@@ -26,10 +24,6 @@ export interface StepperProps {
   min?: string | number;
   /** 最大值 */
   max?: string | number;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
 }
 
 export const defaultProps = {
@@ -39,7 +33,5 @@ export const defaultProps = {
   small: false,
   step: 1,
   min: 0,
-  max: 9999, // Number.MAX_SAFE_INTEGER,
-  customClass: '',
-  customStyle: () => ({}),
+  max: 9999,
 } as const;

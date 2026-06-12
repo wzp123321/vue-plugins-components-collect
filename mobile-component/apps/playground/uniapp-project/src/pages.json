@@ -2,6 +2,7 @@
   "easycom": {
     "autoscan": true,
     "custom": {
+      "^tsm-theme-provider$": "@/uni_modules/@tiansu/ts-mobile-token/theme-provider/uniapp/tsm-theme-provider.vue",
       "^tsm-(.*)": "@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-$1/uniapp/tsm-$1.vue",
       "^tsmbiz-(.*)": "@/uni_modules/@tiansu/ts-mobile-biz-ui/components/tsmbiz-$1/uniapp/tsmbiz-$1.vue",
       "^icon-(.*)$": "@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-$1.vue"
@@ -15,9 +16,64 @@
       }
     },
     {
+      "path": "pages/tsm-list/index",
+      "style": {
+        "navigationBarTitleText": "list 列表组件"
+      }
+    },
+    {
+      "path": "pages/tsm-sidebar/index",
+      "style": {
+        "navigationBarTitleText": "sidebar 侧边栏"
+      }
+    },
+    {
+      "path": "pages/tsm-pull-refresh/index",
+      "style": {
+        "navigationBarTitleText": "pull-refresh 下拉刷新"
+      }
+    },
+    {
       "path": "pages/tsm-button/index",
       "style": {
         "navigationBarTitleText": "Button 按钮"
+      }
+    },
+    {
+      "path": "pages/tsm-checkbox/index",
+      "style": {
+        "navigationBarTitleText": "Checkbox 复选框"
+      }
+    },
+    {
+      "path": "pages/tsm-radio/index",
+      "style": {
+        "navigationBarTitleText": "Radio 单选框"
+      }
+    },
+    {
+      "path": "pages/tsm-action-sheet/index",
+      "style": {
+        "navigationBarTitleText": "ActionSheet 动作面板"
+      }
+    },
+    {
+      "path": "pages/tsm-textarea/index",
+      "style": {
+        "navigationBarTitleText": "Textarea 多行文本框"
+      }
+    },
+    {
+      "path": "pages/tsm-fab-button/index",
+      "style": {
+        "navigationBarTitleText": "悬浮按钮演示"
+      }
+    },
+
+    {
+      "path": "pages/tsm-card/index",
+      "style": {
+        "navigationBarTitleText": "card演示"
       }
     },
     {
@@ -57,6 +113,24 @@
       }
     },
     {
+      "path": "pages/tsm-steps/index",
+      "style": {
+        "navigationBarTitleText": "Steps 步骤组件"
+      }
+    },
+    {
+      "path": "pages/tsm-progress/index",
+      "style": {
+        "navigationBarTitleText": "Progress 进度条组件"
+      }
+    },
+    {
+      "path": "pages/tsm-upload/index",
+      "style": {
+        "navigationBarTitleText": "Upload 上传组件"
+      }
+    },
+    {
       "path": "pages/tsm-theme/index",
       "style": {
         "navigationBarTitleText": "主题切换演示"
@@ -93,7 +167,7 @@
       }
     },
     {
-      "path": "pages/tsm-bread-crumb/index",
+      "path": "pages/tsm-breadcrumb/index",
       "style": {
         "navigationBarTitleText": "Breadcrumb 面包屑导航"
       }
@@ -111,9 +185,51 @@
       }
     },
     {
+      "path": "pages/tsm-tag/index",
+      "style": {
+        "navigationBarTitleText": "Tag 标签"
+      }
+    },
+    {
       "path": "pages/tsmbiz-select-department-employee/index",
       "style": {
         "navigationBarTitleText": "选择部门/员工"
+      }
+    },
+    {
+      "path": "pages/tsm-picker/index",
+      "style": {
+        "navigationBarTitleText": "选择器组件"
+      }
+    },
+    {
+      "path": "pages/tsm-cascader/index",
+      "style": {
+        "navigationBarTitleText": "级联选择器"
+      }
+    },
+    {
+      "path": "pages/tsm-form/index",
+      "style": {
+        "navigationBarTitleText": "Form 表单验证"
+      }
+    },
+    {
+      "path": "pages/tsm-loading/index",
+      "style": {
+        "navigationBarTitleText": "Loading 加载中"
+      }
+    },
+    {
+      "path": "pages/tsm-toast/index",
+      "style": {
+        "navigationBarTitleText": "Toast 提示"
+      }
+    },
+    {
+      "path": "pages/tsm-rate/index",
+      "style": {
+        "navigationBarTitleText": "Rate 评分"
       }
     }
   ],

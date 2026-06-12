@@ -1,91 +1,107 @@
-/**
- * Tabbar 底部导航组件
- * @description 底部导航组件，用于页面底部导航切换
- */
+/** * Tabbar 底部导航组件 * @description 底部导航组件，用于页面底部导航切换 */
 <template>
-  <view
-    class="tsm-tabbar"
-    :class="bemClass"
-    :style="customStyle"
-  >
-    <slot />
-    <view v-if="safeAreaInsetBottom" class="tsm-tabbar__safe-area"></view>
-  </view>
+	<view class="tsm-tabbar" :class="bemClass" :style="customStyle">
+		<!-- 显示前4个tabbar-item -->
+		<slot name="default"></slot>
+		<!-- 更多按钮 -->
+		<!-- <tsm-tabbar-item text="更多" v-if="totalItems > 5" :icon="IconMore" @click="showMoreMenu = true" /> -->
+	</view>
 </template>
 
-<script setup lang="uts">
-import { ref, computed, watch, provide } from 'vue';
-import type { TabbarProps } from './props.uts';
-import { defaultProps } from './props.uts';
-import { bem } from '../../../libs/uniapp-x/function/index.uts';
+<script setup lang="ts">
+	import { type Ref, computed, ref, provide, onMounted } from 'vue';
+	import { bem } from '../../../libs/uniapp-x/function/index';
+	import {ff,tabbarType} from './props.uts'
+	const props = withDefaults(defineProps<{
+		/** 当前选中项的索引 */
+		modelValue ?: number;
+		/** 是否固定在底部 */
+		fixed ?: boolean;
+		/** 背景颜色 */
+		bgColor ?: 'default' | 'capsule';
+		/** 自定义类名 */
+		customClass ?: string;
+		/** 自定义样式 */
+		customStyle ?: any;
+	}>(), {
+		modelValue: 0,
+		fixed: true,
+		bgColor: 'default',
+		customClass: '',
+		customStyle: () => ({}),
+	});
 
-const props = withDefaults(defineProps<TabbarProps>(),{ customClass: ' ' });
+	const emit = defineEmits<{
+		change : [index: number];
+		'update:modelValue' : [value: number];
+	}>();
+	// interface f {
+	// 	text : string,
+	// 	icon : string
+	// };
+	// 内部选中索引
+	const currentIndex = computed(()=>{
+		return props.modelValue
+	});
 
-const emit = defineEmits<{
-  change: [index: number];
-  'update:value': [value: number | string];
-}>();
+	// 总项数
+	const totalItems = ref(0);
+	// 存储tabbar-item的信息
+	const tabbarItems = ref<ff[]>([]);
 
-const currentIndex = ref(props.value);
-const childrenCount = ref(0);
+	// 提供上下文给子组件
+	provide('tabbarContext', {
+		currentIndex,
+		onItemClick: (index : number) => {
+			emit('update:modelValue', index);
+			emit('change', index);
+		},
+		setItemIndex: (itemIndex : Ref<number>) => {
+			itemIndex.value = totalItems.value++;
+		},
+		registerItem: (item : ff) => {
+			tabbarItems.value.push(item);
+		},
+	});
 
-watch(
-  () => props.value,
-  (newVal) => {
-    currentIndex.value = newVal;
-  }
-);
-
-const bemClass = computed(() => {
-  return bem('tabbar', [
-    props.fixed ? 'fixed' : '',
-    props.borderTop ? 'border' : ''
-  ], {}, props.customClass);
-});
-
-const tabbarData = computed(() => ({
-  value: currentIndex.value,
-  activeColor: props.activeColor,
-  inactiveColor: props.inactiveColor
-}));
-
-const updateValue = (index: number) => {
-  currentIndex.value = index;
-  emit('update:value', index);
-  emit('change', index);
-};
-
-const addChild = (itemIndex: { value: number }) => {
-  itemIndex.value = childrenCount.value;
-  childrenCount.value++;
-};
-
-provide('tabbarData', tabbarData);
-provide('tabbarUpdateValue', updateValue);
-provide('tabbarChildren', { addChild });
+	const bemClass = computed(() => {
+		return bem(
+			'tabbar',
+			[props.fixed ? 'fixed' : '', props.bgColor === 'capsule' ? 'capsule' : ''],
+			[] as string[],
+			props.customClass
+		);
+	});
 </script>
 
 <style scoped lang="scss">
-.tsm-tabbar {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  background-color: #ffffff;
-}
+	.tsm-tabbar {
+		display: flex;
+		flex-direction: row;
+		padding: var(--tsm-spacing-xs);
+		justify-content: center;
+		align-items: center;
+		gap: var(--tsm-spacing-m);
+		background-color: var(--tsm-color-bg-white);
+		border-top: 1px solid var(--tsm-color-border-secondary);
+		position: relative;
+	}
 
-.tsm-tabbar--fixed {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 999;
-}
+	.tsm-tabbar--fixed {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		z-index: 99;
+	}
 
-.tsm-tabbar--border {
-  border-top: 1px solid #ebedf0;
-}
+	.tsm-tabbar--capsule {
+		border-radius: 296px;
+		background:#f7f7f7;
 
-.tsm-tabbar__safe-area {
-  height: env(safe-area-inset-bottom);
-}
+		:deep(.tsm-tabbar-item--active) {
+			border-radius: var(--tsm-radius-full);
+			background: var(--tsm-color-bg-secondary);
+		}
+	}
 </style>

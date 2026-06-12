@@ -5,20 +5,15 @@ const path = require('path');
 const componentConfigMap = {
   基础组件: {
     button: '按钮',
-    icon: '图标',
-    image: '图片',
-    text: '文本',
-    transition: '动画',
   },
   表单组件: {
-    calendar: '日历',
+    cascader: '级联选择器',
     checkbox: '复选框',
     'checkbox-group': '复选框组',
     'datetime-picker': '日期选择器',
     form: '表单',
     'form-item': '表单项',
     input: '输入框',
-    'number-box': '数字输入框',
     picker: '选择器',
     'picker-column': '选择器列',
     radio: '单选框',
@@ -26,6 +21,7 @@ const componentConfigMap = {
     rate: '评分',
     search: '搜索',
     slider: '滑块',
+    stepper: '步进器',
     switch: '开关',
     textarea: '文本域',
     upload: '上传',
@@ -35,20 +31,10 @@ const componentConfigMap = {
     'avatar-group': '头像组',
     badge: '徽标',
     card: '卡片',
-    cell: '单元格',
-    'cell-group': '单元格组',
-    collapse: '折叠面板',
-    'collapse-item': '折叠面板项',
-    'count-down': '倒计时',
-    divider: '分割线',
     empty: '空状态',
-    grid: '宫格',
-    'grid-item': '宫格项',
-    'index-anchor': '索引锚点',
-    'index-item': '索引项',
-    'index-list': '索引列表',
     list: '列表',
     'list-item': '列表项',
+    progress: '进度条',
     steps: '步骤条',
     'steps-item': '步骤条项',
     tag: '标签',
@@ -56,43 +42,37 @@ const componentConfigMap = {
   反馈组件: {
     'action-sheet': '动作面板',
     dialog: '弹窗',
-    'loading-icon': '加载图标',
-    'loading-page': '加载页',
+    loading: '加载',
     message: '消息提示',
     modal: '模态框',
-    notify: '通知',
     overlay: '遮罩层',
     popover: '气泡弹出框',
     popup: '弹出层',
     toast: '轻提示',
   },
   导航组件: {
-    navbar: '导航栏',
-    'navbar-mini': '小程序导航栏',
     tabbar: '底部导航栏',
     'tabbar-item': '底部导航栏项',
     tabs: '标签页',
-    'tabs-item': '标签页项',
   },
   布局组件: {
-    gap: '间隔槽',
-    'safe-bottom': '底部安全区',
-    'status-bar': '状态栏',
-    sticky: '吸顶容器',
   },
   其他组件: {
-    'back-top': '返回顶部',
-    'circle-progress': '圆形进度条',
-    'column-notice': '垂直通知',
-    'line-progress': '线形进度条',
-    loadmore: '加载更多',
-    'notice-bar': '通知栏',
-    'row-notice': '水平通知',
-    segmented: '分段器',
-    imageviewer: '图片预览',
-    stepper: '步进器',
+    'fab-button': '浮动按钮',
+    'pull-refresh': '下拉刷新',
+    sidebar: '侧边栏',
+    'breadcrumb': '面包屑',
   },
 };
+
+// 关联组件映射：子组件文档仅作为父组件文档的内嵌章节，不单独生成
+const relatedComponentsMap = {
+  'tsm-breadcrumb': ['tsm-breadcrumb-item'],
+};
+
+const embeddedOnlyComponents = new Set(
+  Object.values(relatedComponentsMap).reduce((acc, components) => acc.concat(components), [])
+);
 
 // 获取项目根目录
 const rootDir = process.cwd();
@@ -110,8 +90,9 @@ const componentsConfigPath = path.join(rootDir, 'apps', 'docs', '.vitepress', 'c
 // 读取模板
 const template = fs.readFileSync(templatePath, 'utf8');
 
-// 获取命令行参数，支持指定组件名
-const componentName = process.argv[2];
+// 获取命令行参数
+const force = process.argv.includes('--refresh');
+const componentName = process.argv.slice(2).find(arg => !arg.startsWith('--'));
 
 // 读取组件目录
 let components = fs.readdirSync(componentsDir);
@@ -141,6 +122,11 @@ if (componentName) {
 
 // 遍历组件
 components.forEach(component => {
+  if (isEmbeddedOnlyComponent(component)) {
+    console.log(`跳过组件: ${component}（仅作为关联组件内嵌到父组件文档）`);
+    return;
+  }
+
   const componentPath = path.join(componentsDir, component);
   
   const uniappPath = path.join(componentPath, 'uniapp');
@@ -177,7 +163,7 @@ function processComponent(component, componentPath, platform) {
   const vueFile = fs.readdirSync(componentPath).find(file => file.endsWith('.vue') || file.endsWith('.uvue'));
   const vuePath = vueFile ? path.join(componentPath, vueFile) : null;
 
-  if (!fs.existsSync(propsPath)) return { props: [], api: [] };
+  if (!fs.existsSync(propsPath)) return { props: [], api: [], emits: [] };
 
   // 提取 props
   const propsInfo = extractProps(propsPath, platform);
@@ -185,12 +171,18 @@ function processComponent(component, componentPath, platform) {
   // 提取 API (from defineExpose)
   const apiInfo = vuePath ? extractAPI(vuePath) : [];
 
-  console.log(`  ✅ 提取 ${platform} 版本的 props 和 API`);
+  // 提取 Emits (from defineEmits)
+  const emitsInfo = vuePath ? extractEmits(vuePath) : [];
+
+  // 提取 Slots (from @slot JSDoc or template)
+  const slotsInfo = vuePath ? extractSlots(vuePath) : [];
+
+  console.log(`  ✅ 提取 ${platform} 版本的 props、API、emits 和 slots`);
 
   // 生成文档
-  generateDocs(component, { props: propsInfo, api: apiInfo }, platform);
+  generateDocs(component, { props: propsInfo, api: apiInfo, emits: emitsInfo, slots: slotsInfo }, platform);
 
-  return { props: propsInfo, api: apiInfo };
+  return { props: propsInfo, api: apiInfo, emits: emitsInfo, slots: slotsInfo };
 }
 
 function extractProps(propsPath, platform) {
@@ -198,7 +190,7 @@ function extractProps(propsPath, platform) {
   const props = [];
 
   // 提取 Props 接口（支持带 export 的接口）
-  const propsInterfaceRegex = /(export\s+)?interface\s+\w+Props\s*{[\s\S]*?}/g;
+  const propsInterfaceRegex = /(export\s+)?interface\s+\w+Props(?:<[^>]+>)?\s*{[\s\S]*?}/g;
   const match = content.match(propsInterfaceRegex);
 
   if (match) {
@@ -266,30 +258,70 @@ function extractProps(propsPath, platform) {
     });
   }
 
-  // 提取默认值
-  const defaultPropsRegex = /export\s+const\s+defaultProps\s*=\s*{[\s\S]*?}/g;
-  const defaultMatch = content.match(defaultPropsRegex);
+  // 提取默认值（深度追踪处理嵌套 {}）
+  const dpStartMatch = content.match(/export\s+const\s+defaultProps\s*=\s*/);
+  if (dpStartMatch) {
+    let i = dpStartMatch.index + dpStartMatch[0].length;
+    if (content[i] === '{') {
+      let depth = 1;
+      i++;
+      const start = i;
+      while (depth > 0 && i < content.length) {
+        if (content[i] === '{') depth++;
+        else if (content[i] === '}') depth--;
+        i++;
+      }
+      if (depth === 0) {
+        const inner = content.substring(start, i - 1); // strip outer braces
 
-  if (defaultMatch) {
-    const defaultContent = defaultMatch[0];
-
-    // 提取所有默认值对
-    const defaultPairs = defaultContent.match(/\w+\s*:\s*[^,}]+/g);
-    if (defaultPairs) {
-      const defaultMap = {};
-      defaultPairs.forEach(pair => {
-        const [name, value] = pair.split(/\s*:\s*/);
-        if (name && value) {
-          defaultMap[name.trim()] = value.trim();
+        // 按逗号拆分 key-value pairs（追踪括号深度）
+        const defaultMap = {};
+        let kvStart = 0;
+        let braceDepth = 0, parenDepth = 0, bracketDepth = 0;
+        for (let j = 0; j <= inner.length; j++) {
+          const ch = inner[j];
+          if (ch === '{') braceDepth++;
+          else if (ch === '}') braceDepth--;
+          else if (ch === '(') parenDepth++;
+          else if (ch === ')') parenDepth--;
+          else if (ch === '[') bracketDepth++;
+          else if (ch === ']') bracketDepth--;
+          else if ((ch === ',' || j === inner.length) && braceDepth === 0 && parenDepth === 0 && bracketDepth === 0) {
+            const kv = inner.substring(kvStart, j).trim();
+            if (kv) {
+              // 找到第一个深度为0的冒号
+              let colonIdx = -1;
+              let cb = 0, cp = 0, cbr = 0;
+              for (let k = 0; k < kv.length; k++) {
+                const kch = kv[k];
+                if (kch === '{') cb++;
+                else if (kch === '}') cb--;
+                else if (kch === '(') cp++;
+                else if (kch === ')') cp--;
+                else if (kch === '[') cbr++;
+                else if (kch === ']') cbr--;
+                else if (kch === ':' && cb === 0 && cp === 0 && cbr === 0) {
+                  colonIdx = k;
+                  break;
+                }
+              }
+              if (colonIdx > 0) {
+                const key = kv.substring(0, colonIdx).trim();
+                const value = kv.substring(colonIdx + 1).trim();
+                if (key && value) defaultMap[key] = value;
+              }
+            }
+            kvStart = j + 1;
+          }
         }
-      });
 
-      // 为 props 添加默认值
-      props.forEach(prop => {
-        if (defaultMap[prop.name]) {
-          prop.default = defaultMap[prop.name];
-        }
-      });
+        // 为 props 添加默认值
+        props.forEach(prop => {
+          if (defaultMap[prop.name]) {
+            prop.default = defaultMap[prop.name];
+          }
+        });
+      }
     }
   }
 
@@ -318,6 +350,245 @@ function extractAPI(vuePath) {
   return api;
 }
 
+function extractEmits(vuePath) {
+  if (!vuePath || !fs.existsSync(vuePath)) return [];
+
+  const content = fs.readFileSync(vuePath, 'utf8');
+  const events = [];
+
+  // 匹配类型语法: defineEmits<{...}>()
+  const typeMatch = content.match(/const\s+emit\s*=\s*defineEmits<\{\s*([\s\S]*?)\s*\}>\(\)/);
+  if (typeMatch) {
+    return parseTypeEmits(typeMatch[1]);
+  }
+
+  // 匹配数组语法: defineEmits(['e1', 'e2'])
+  const arrayMatch = content.match(/const\s+emit\s*=\s*defineEmits\(\[([\s\S]*?)\]\)/);
+  if (arrayMatch) {
+    return parseArrayEmits(arrayMatch[1]);
+  }
+
+  return [];
+}
+
+/**
+ * 解析类型语法的 emits：按成员分号边界分割，追踪括号深度
+ */
+function parseTypeEmits(content) {
+  const events = [];
+  let pendingJSDoc = '';
+  let i = 0;
+
+  while (i < content.length) {
+    // 跳过空白
+    while (i < content.length && /\s/.test(content[i])) i++;
+    if (i >= content.length) break;
+
+    // 检测 JSDoc 注释 /** xxx */
+    if (content.startsWith('/**', i)) {
+      const endIdx = content.indexOf('*/', i);
+      if (endIdx !== -1) {
+        // 提取注释内容（去掉开头的 *）
+        const raw = content.substring(i + 3, endIdx).trim();
+        pendingJSDoc = raw.replace(/^\*\s?/, '').trim();
+        i = endIdx + 2;
+        continue;
+      }
+    }
+
+    // 找到成员边界（; 在所有括号深度为 0 时）
+    const memberStart = i;
+    let braceDepth = 0;
+    let bracketDepth = 0;
+    let angleDepth = 0;
+    let memberContent = '';
+
+    while (i < content.length) {
+      const char = content[i];
+      if (char === '{') braceDepth++;
+      else if (char === '}') braceDepth--;
+      else if (char === '[') bracketDepth++;
+      else if (char === ']') bracketDepth--;
+      else if (char === '<') angleDepth++;
+      else if (char === '>') angleDepth--;
+      else if (char === ';' && braceDepth === 0 && bracketDepth === 0 && angleDepth === 0) {
+        memberContent = content.substring(memberStart, i).trim();
+        i++; // 跳过分号
+        break;
+      }
+      i++;
+    }
+
+    // 处理最后一个成员（可能不以 ; 结尾，如接口最后一行）
+    if (!memberContent && i >= content.length && memberStart < content.length) {
+      memberContent = content.substring(memberStart).trim();
+    }
+
+    if (memberContent) {
+      const parsed = parseEmitMember(memberContent);
+      if (parsed) {
+        events.push({
+          name: parsed.name,
+          description: pendingJSDoc || '-',
+          params: parsed.params,
+        });
+      }
+      pendingJSDoc = '';
+    }
+  }
+
+  return events;
+}
+
+/**
+ * 解析单个 emit 成员，支持两种格式：
+ *   新格式: (e: 'submit', value: { validateResult: FormValidateResult; firstError: string }): void
+ *   旧格式: submit: [{ validateResult: FormValidateResult; firstError: string }]
+ */
+function parseEmitMember(memberStr) {
+  // 新格式: (e: 'eventName', ...params): void
+  const funcMatch = memberStr.match(/^\(\s*e\s*:\s*['"]([^'"]+)['"],?\s*(.*?)\s*\)\s*:\s*void$/);
+  if (funcMatch) {
+    const name = funcMatch[1];
+    const params = funcMatch[2].trim();
+    return { name, params: params || '-' };
+  }
+
+  // 旧格式: eventName: [...]
+  let braceDepth = 0;
+  let bracketDepth = 0;
+  let angleDepth = 0;
+  let colonIdx = -1;
+
+  for (let i = 0; i < memberStr.length; i++) {
+    const char = memberStr[i];
+    if (char === '{') braceDepth++;
+    else if (char === '}') braceDepth--;
+    else if (char === '[') bracketDepth++;
+    else if (char === ']') bracketDepth--;
+    else if (char === '<') angleDepth++;
+    else if (char === '>') angleDepth--;
+    else if (char === ':' && braceDepth === 0 && bracketDepth === 0 && angleDepth === 0) {
+      colonIdx = i;
+      break;
+    }
+  }
+
+  if (colonIdx === -1) return null;
+
+  const name = memberStr.substring(0, colonIdx).trim().replace(/^['"]|['"]$/g, '');
+  const params = memberStr.substring(colonIdx + 1).trim();
+
+  return {
+    name,
+    params: params === '[]' ? '-' : params,
+  };
+}
+
+/**
+ * 解析数组语法的 emits: defineEmits(['confirm', 'cancel'])
+ */
+function parseArrayEmits(content) {
+  const events = [];
+  const regex = /['"]([^'"]+)['"]/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    events.push({
+      name: match[1],
+      description: '-',
+      params: '-',
+    });
+  }
+  return events;
+}
+
+/**
+ * 提取组件的 Slot 信息
+ * 第一级：从 <script> 中解析 @slot JSDoc 声明
+ * 第二级：从 <template> 中解析 <slot> 标签前的 HTML 注释
+ */
+function extractSlots(vuePath) {
+  if (!vuePath || !fs.existsSync(vuePath)) return [];
+
+  const content = fs.readFileSync(vuePath, 'utf8');
+  const slots = [];
+
+  // 第一级：@slot JSDoc（在 <script> 中）
+  const scriptMatch = content.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+  if (scriptMatch) {
+    const scriptContent = scriptMatch[1];
+    const slotDocRegex = /@slot\s+(\S+)\s+(.+)/g;
+    let match;
+    while ((match = slotDocRegex.exec(scriptContent)) !== null) {
+      slots.push({
+        name: match[1],
+        description: match[2].trim(),
+      });
+    }
+  }
+
+  // 第二级：从 <template> 中的 HTML 注释提取（仅当没有 @slot 时）
+  if (slots.length === 0) {
+    // 用深度追踪提取根 template 内容（处理嵌套 <template v-if> 等）
+    const tplStart = content.match(/<template>/);
+    if (tplStart) {
+      let tplContent = '';
+      let depth = 1;
+      let idx = tplStart.index + '<template>'.length;
+      const closeRegex = /<\/template>/g;
+      const openRegex = /<template[\s>]/g;
+      while (depth > 0 && idx < content.length) {
+        closeRegex.lastIndex = idx;
+        openRegex.lastIndex = idx;
+        const closeMatch = closeRegex.exec(content);
+        const openMatch = openRegex.exec(content);
+        if (!closeMatch) break;
+        if (openMatch && openMatch.index < closeMatch.index) {
+          depth++;
+          idx = openMatch.index + openMatch[0].length;
+        } else {
+          depth--;
+          if (depth === 0) {
+            tplContent = content.substring(tplStart.index + '<template>'.length, closeMatch.index);
+            break;
+          }
+          idx = closeMatch.index + '</template>'.length;
+        }
+      }
+      const templateContent = tplContent;
+      const lines = templateContent.split('\n');
+      let pendingComment = '';
+
+      for (const line of lines) {
+        // 检测 HTML 注释：<!-- xxx -->
+        const commentMatch = line.match(/<!--\s*(.*?)\s*-->/);
+        if (commentMatch && !line.match(/<slot\b/)) {
+          // 是注释行，且不是 inline slot 的场景，记录下来
+          pendingComment = commentMatch[1].trim();
+          continue;
+        }
+
+        // 检测 <slot> 标签
+        const slotMatch = line.match(/<slot\b([^>]*)\/?>/);
+        if (slotMatch) {
+          const attrs = slotMatch[1];
+          const nameMatch = attrs.match(/name\s*=\s*["']([^"']+)["']/);
+          const name = nameMatch ? nameMatch[1] : 'default';
+          // 如果本行也有注释（inline），优先使用本行注释
+          const inlineCommentMatch = line.match(/<!--\s*(.*?)\s*-->/);
+          const description = inlineCommentMatch
+            ? inlineCommentMatch[1].trim()
+            : pendingComment || '-';
+          slots.push({ name, description });
+          pendingComment = '';
+        }
+      }
+    }
+  }
+
+  return slots;
+}
+
 function generateDocs(component, api, platform) {
   const componentPath = path.join(componentsDir, component);
   const uniappPath = path.join(componentPath, 'uniapp');
@@ -333,6 +604,129 @@ function generateDocs(component, api, platform) {
 
   // 处理 Props 部分
   const propsSection = api.props
+    .map(prop => {
+      let defaultValue = prop.default || '-';
+      if (defaultValue === "''") {
+        defaultValue = '-';
+      }
+      if (defaultValue === '() => ({})' || defaultValue === '() => ({') {
+        defaultValue = '{}';
+      }
+      // 折叠多行默认值，避免破坏 markdown 表格
+      defaultValue = defaultValue.replace(/\n\s*/g, ' ');
+      const escapedType = prop.type.replace(/\|/g, '\\|');
+      return `| ${prop.name} | ${prop.description || '-'} | \`${escapedType}\` | ${prop.required ? '是' : '否'} | ${defaultValue} |`;
+    })
+    .join('\n');
+
+  const propsFullSection = `## Props
+
+| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
+| --- | --- | --- | --- | --- |
+${propsSection}`;
+
+  content = content.replace(/## Props[\s\S]*?(?=\{\{events\}\})/g, propsFullSection + '\n\n');
+
+  // 处理 Events 部分
+  let eventsContent = '';
+  if (api.emits.length > 0) {
+    const eventsRows = api.emits
+      .map(evt => {
+        const escapedParams = evt.params.replace(/\|/g, '\\|');
+        return `| ${evt.name} | ${evt.description || '-'} | \`${escapedParams}\` |`;
+      })
+      .join('\n');
+
+    eventsContent = `## Events
+
+| 事件名 | 说明 | 参数 |
+| --- | --- | --- |
+${eventsRows}
+
+`;
+  }
+  content = content.replace(/\{\{events\}\}/g, eventsContent);
+
+  // 处理 Slots 部分
+  let slotsContent = '';
+  if (api.slots.length > 0) {
+    const slotsRows = api.slots
+      .map(slot => `| ${slot.name} | ${slot.description || '-'} |`)
+      .join('\n');
+
+    slotsContent = `## Slots
+
+| 插槽名 | 说明 |
+| --- | --- |
+${slotsRows}
+
+`;
+  }
+  content = content.replace(/\{\{slots\}\}/g, slotsContent);
+
+  // 追加关联组件文档片段
+  const relatedComponentsSection = buildRelatedComponentsSection(component, platform);
+  if (relatedComponentsSection) {
+    content += `\n\n${relatedComponentsSection}`;
+  }
+
+  // 处理平台支持部分
+  let platformSection;
+  if (platform === 'uniapp') {
+    platformSection = `| H5 | 微信小程序 | App |
+| --- | --- | --- |
+| ✅ | - | ✅ |`;
+  } else if (platform === 'uniapp-x') {
+    platformSection = `| H5 | 微信小程序 | App |
+| --- | --- | --- |
+| ✅ | - | ✅ |`;
+  }
+  content = content.replace(/\{\{ platformSupport \}\}/g, platformSection);
+
+  // 统一换行符并清理连续空行（最多保留一个空行）
+  content = content.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+  // 追加表格样式
+  content += `
+<style>
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+table th,
+table td {
+  word-break: break-all;
+}
+</style>`;
+
+  // 写入文档
+  let docPath;
+  if (platform === 'uniapp') {
+    docPath = path.join(docsDir, 'uniapp', `${component}.md`);
+  } else if (platform === 'uniapp-x') {
+    docPath = path.join(docsDir, 'uniapp-x', `${component}.md`);
+  }
+  
+  // 检查文档是否已存在
+  if (fs.existsSync(docPath) && !force) {
+    if (hasRelatedComponents(component)) {
+      console.log(
+        `  🔄 更新 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，以同步关联组件文档`
+      );
+    } else {
+      console.log(`  ⏭️  跳过生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，文件已存在`);
+      return;
+    }
+  }
+  
+  fs.writeFileSync(docPath, content);
+
+  console.log(
+    `  ✅ 生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})`
+  );
+}
+
+function buildPropsRows(props) {
+  return props
     .map(prop => {
       // 处理默认值，默认值为 '' 时展示 '-'
       let defaultValue = prop.default || '-';
@@ -350,60 +744,77 @@ function generateDocs(component, api, platform) {
       return `| ${prop.name} | ${prop.description || '-'} | ${escapedType} | ${prop.required ? '是' : '否'} | ${defaultValue} |`;
     })
     .join('\n');
+}
 
-  // 生成完整的 Props 部分
-  const propsFullSection = `## Props
+function hasRelatedComponents(component) {
+  return getRelatedComponents(component).length > 0;
+}
 
-| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
+function getRelatedComponents(component) {
+  return relatedComponentsMap[component] || [];
+}
+
+function isEmbeddedOnlyComponent(component) {
+  return embeddedOnlyComponents.has(component);
+}
+
+function buildRelatedComponentsSection(component, platform) {
+  const relatedComponents = getRelatedComponents(component);
+  if (relatedComponents.length === 0) {
+    return '';
+  }
+
+  const sections = [];
+
+  relatedComponents.forEach(relatedComponent => {
+    const relatedComponentRootPath = path.join(componentsDir, relatedComponent);
+    const relatedPlatformPath = path.join(relatedComponentRootPath, platform);
+    if (!fs.existsSync(relatedPlatformPath)) {
+      return;
+    }
+
+    const propsPath = path.join(relatedPlatformPath, platform === 'uniapp' ? 'props.ts' : 'props.uts');
+    if (!fs.existsSync(propsPath)) {
+      return;
+    }
+
+    const propsInfo = extractProps(propsPath, platform);
+    const vueFile = fs.readdirSync(relatedPlatformPath).find(file => file.endsWith('.vue') || file.endsWith('.uvue'));
+    const apiInfo = vueFile ? extractAPI(path.join(relatedPlatformPath, vueFile)) : [];
+    const { title, description } = extractComponentInfo(path.join(relatedComponentRootPath, 'uniapp'), relatedComponent);
+
+    const propsRows = buildPropsRows(propsInfo);
+    const relatedPropsSection = propsRows
+      ? `| 属性名 | 说明 | 类型 | 是否必填 | 默认值 |
 | --- | --- | --- | --- | --- |
-${propsSection}
+${propsRows}`
+      : '暂无 Props';
 
-<style>
-table {
-  width: 100%;
-  table-layout: fixed;
-}
-table th,
-table td {
-  word-break: break-all;
-}
-</style>`;
+    const relatedAPISection = apiInfo.length
+      ? `#### API
 
-  // 替换模板中的 Props 部分
-  content = content.replace(/## Props[\s\S]*/g, propsFullSection);
+| 名称 |
+| --- |
+${apiInfo.map(item => `| ${item.name} |`).join('\n')}`
+      : '';
 
-  // 处理平台支持部分
-  let platformSection;
-  if (platform === 'uniapp') {
-    platformSection = `| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |`;
-  } else if (platform === 'uniapp-x') {
-    platformSection = `| H5 | 微信小程序 | App |
-| --- | --- | --- |
-| ✅ | - | ✅ |`;
+    sections.push(`### ${title}
+
+${description}
+
+#### Props
+
+${relatedPropsSection}
+${relatedAPISection ? `\n\n${relatedAPISection}` : ''}`);
+  });
+
+  if (sections.length === 0) {
+    return '';
   }
-  content = content.replace(/\{\{ platformSupport \}\}/g, platformSection);
 
-  // 写入文档
-  let docPath;
-  if (platform === 'uniapp') {
-    docPath = path.join(docsDir, 'uniapp', `${component}.md`);
-  } else if (platform === 'uniapp-x') {
-    docPath = path.join(docsDir, 'uniapp-x', `${component}.md`);
-  }
-  
-  // 检查文档是否已存在
-  if (fs.existsSync(docPath)) {
-    console.log(`  ⏭️  跳过生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，文件已存在`);
-    return;
-  }
-  
-  fs.writeFileSync(docPath, content);
+  return `## 关联组件
 
-  console.log(
-    `  ✅ 生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})`
-  );
+${sections.join('\n\n')}`;
 }
 
 function extractComponentInfo(componentPath, component) {
