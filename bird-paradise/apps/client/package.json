@@ -1,0 +1,23 @@
+{
+  "name": "@bird-paradise/client",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wait-on http://localhost:4000/health -t 30000 && vite",
+    "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json"
+  },
+  "dependencies": {
+    "@bird-paradise/shared": "workspace:*",
+    "socket.io-client": "^4.7.5",
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.6.2",
+    "typescript": "~5.4.5",
+    "vite": "^4.5.5",
+    "vue-tsc": "^1.8.27"
+  }
+}

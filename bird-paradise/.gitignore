@@ -1,9 +1,23 @@
+# 依赖
 node_modules
+.pnpm-store
+
+# 构建产物
 dist
 dist-ssr
 *.local
-.DS_Store
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
-*.log
+.DS_Store
+
+# 测试
+coverage
+.nyc_output
