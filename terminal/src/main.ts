@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import router from './router';
 import './assets/css/index.less';
+import './styles/dashboard.less';
 import App from './app.vue';
 
 const app = createApp(App);

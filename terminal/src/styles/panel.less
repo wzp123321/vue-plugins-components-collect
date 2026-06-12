@@ -1,0 +1,44 @@
+/* 通用面板内的小标题、列表等 */
+.panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 0.32rem;
+    padding: 0 0.08rem;
+    font-size: 0.14rem;
+    color: rgba(230, 241, 255, 0.85);
+    border-bottom: 1px dashed rgba(64, 158, 255, 0.1);
+
+    &__rank {
+      display: inline-block;
+      width: 0.24rem;
+      height: 0.24rem;
+      line-height: 0.24rem;
+      text-align: center;
+      margin-right: 0.1rem;
+      background: rgba(64, 158, 255, 0.2);
+      color: #4cf3ff;
+      border-radius: 0.02rem;
+      font-weight: 600;
+
+      &--top {
+        background: linear-gradient(135deg, #ff5c5c, #ff9a3c);
+        color: #fff;
+      }
+    }
+  }
+}
+
+/* 通用文本颜色 */
+.text-primary { color: #4cf3ff; }
+.text-warning { color: #ff9a3c; }
+.text-success { color: #4caf50; }
+.text-danger { color: #ff5c5c; }
+.text-muted { color: rgba(230, 241, 255, 0.55); }

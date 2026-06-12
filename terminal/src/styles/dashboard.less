@@ -1,0 +1,194 @@
+/* 大屏全局样式：深色科技主题 */
+@import './panel.less';
+
+html,
+body {
+  background:
+    /* 顶部光晕 */
+    radial-gradient(
+      ellipse 60% 40% at 50% 0%,
+      rgba(64, 158, 255, 0.22) 0%,
+      transparent 60%
+    ),
+    /* 底部光晕 */
+      radial-gradient(
+        ellipse 80% 40% at 50% 100%,
+        rgba(76, 243, 255, 0.12) 0%,
+        transparent 60%
+      ),
+    /* 中心极光 */
+      radial-gradient(
+        ellipse 50% 50% at 50% 50%,
+        rgba(64, 158, 255, 0.08) 0%,
+        transparent 60%
+      ),
+    /* 大网格线 */
+      linear-gradient(rgba(64, 158, 255, 0.06) 1px, transparent 1px) 0 0 /
+      1.6rem 1.6rem,
+    linear-gradient(
+        90deg,
+        rgba(64, 158, 255, 0.06) 1px,
+        transparent 1px
+      )
+      0 0 / 1.6rem 1.6rem,
+    /* 大点阵 */
+      radial-gradient(rgba(76, 243, 255, 0.12) 1px, transparent 1.5px) 0 0 /
+      1.6rem 1.6rem,
+    /* 小点阵 */
+      radial-gradient(rgba(76, 243, 255, 0.06) 1px, transparent 1px) 0 0 /
+      0.4rem 0.4rem,
+    /* 整体底色 */
+      radial-gradient(ellipse at center, #0a1a3a 0%, #02060f 80%);
+  background-attachment: fixed;
+  color: #e6f1ff;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  overflow: hidden;
+}
+
+/* 全局扫描线 + 顶部星点 */
+#app {
+  position: relative;
+  min-height: 100%;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      /* 顶部星点 */
+      radial-gradient(2px 2px at 20% 8%, #fff, transparent 60%),
+      radial-gradient(1.5px 1.5px at 80% 12%, #fff, transparent 60%),
+      radial-gradient(1px 1px at 60% 4%, #fff, transparent 60%),
+      radial-gradient(1.5px 1.5px at 35% 15%, #fff, transparent 60%),
+      radial-gradient(1px 1px at 92% 6%, #fff, transparent 60%),
+      /* 扫描线 */
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        transparent 49%,
+        rgba(76, 243, 255, 0.08) 50%,
+        transparent 51%,
+        transparent 100%
+      );
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 0.18rem;
+    z-index: 0;
+    animation: scanline 6s linear infinite;
+  }
+}
+
+@keyframes scanline {
+  0% {
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0.18rem;
+  }
+}
+
+/* 全局角标装饰 */
+.bg-deco {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-deco--tl {
+  top: 0.6rem;
+  left: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-top: 1px solid rgba(76, 243, 255, 0.4);
+  border-left: 1px solid rgba(76, 243, 255, 0.4);
+  box-shadow: -1px 0 4px rgba(76, 243, 255, 0.2);
+}
+.bg-deco--tr {
+  top: 0.6rem;
+  right: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-top: 1px solid rgba(76, 243, 255, 0.4);
+  border-right: 1px solid rgba(76, 243, 255, 0.4);
+  box-shadow: 1px 0 4px rgba(76, 243, 255, 0.2);
+}
+.bg-deco--bl {
+  bottom: 0;
+  left: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-bottom: 1px solid rgba(76, 243, 255, 0.4);
+  border-left: 1px solid rgba(76, 243, 255, 0.4);
+}
+.bg-deco--br {
+  bottom: 0;
+  right: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-bottom: 1px solid rgba(76, 243, 255, 0.4);
+  border-right: 1px solid rgba(76, 243, 255, 0.4);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 0.04rem;
+  height: 0.04rem;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(64, 158, 255, 0.3);
+  border-radius: 0.02rem;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 通用工具类 */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.flex-1 {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 趋势标签 */
+.trend-up {
+  color: #ff5c5c;
+}
+.trend-down {
+  color: #4caf50;
+}
