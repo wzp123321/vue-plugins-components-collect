@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
   popperEl?.removeEventListener('mouseleave', onPopperLeave);
 });
 
-const popperOptions = {
+const popperOptions: Partial<Record<string, unknown>> = {
   strategy: 'fixed',
   modifiers: [
     { name: 'flip', enabled: false },

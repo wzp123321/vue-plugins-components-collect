@@ -19,7 +19,7 @@
             <th :colspan="6" style="background-color: #c0504d; color: white">分项成本</th>
           </tr>
           <tr>
-            <th v-for="item in " style="background-color: #f2dcdb">电用量</th>
+            <th style="background-color: #f2dcdb">电用量</th>
             <th style="background-color: #f2dcdb">电成本</th>
             <th style="background-color: #f2dcdb">水用量</th>
             <th style="background-color: #f2dcdb">水成本</th>

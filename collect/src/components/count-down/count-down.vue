@@ -33,7 +33,7 @@ export default defineComponent({
   },
 
   setup(props, context) {
-    const countDownData = ref([]);
+    const countDownData = ref<Array<{ label: string; value: number }>>([]);
     const timer = ref<NodeJS.Timeout | null>(null);
 
     let leftTime = props.leftTime;

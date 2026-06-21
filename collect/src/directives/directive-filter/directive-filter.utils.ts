@@ -1,177 +1,31 @@
 /*
  * @Author: wanzp
  * @Date: 2023-04-26 21:15:54
- * @LastEditors: wzp123321 wanzhipengx@163.com
- * @LastEditTime: 2024-02-22 21:10:48
- * @Description:
+ * @LastEditors: wanzp
+ * @LastEditTime: 2026-06-12 12:00:00
+ * @Description: v-inputFilter 对外 utils：兼容 hooks 的简化签名 + re-export 过滤函数
  */
-import { DirectiveBinding } from 'vue';
-import { IDirectiveNumberBindingVO, IDirectiveTextBindingVO } from './directive-filter.api';
+import type { DirectiveBinding } from 'vue';
+import type { IDirectiveNumberBindingVO, IDirectiveTextBindingVO } from './directive-filter.api';
+import { handleNumberFilter, handleTextFilter } from './directive-filter.filter';
+
+export { handleTextFilter, handleNumberFilter } from './directive-filter.filter';
+export { resolveInputTarget, addEventListener, removeEventListener } from './directive-filter.dom';
 
 /**
- * "123-foo" will be parsed to 123
- * This is used for the .number modifier in v-model
+ * 文本过滤的简化版（供 hooks / composables 直接调用，无需构造 DirectiveBinding）
+ * @param value 原始字符串
+ * @param options 文本过滤配置
+ * @returns 清洗后的字符串
  */
-export const looseToNumber = (val: any): any => {
-  const n = parseFloat(val);
-  return isNaN(n) ? val : n;
-};
-
-export const addEventListener = (
-  el: Element,
-  event: string,
-  handler: EventListener,
-  options?: EventListenerOptions,
-) => {
-  el.addEventListener(event, handler, options);
-};
-
-export function removeEventListener(
-  el: Element,
-  event: string,
-  handler: EventListener,
-  options?: EventListenerOptions,
-) {
-  el.removeEventListener(event, handler, options);
-}
-
-export const deduplicate = (target: string, symbol: string): string => {
-  if (target.includes(symbol)) {
-    const temp = target.split(symbol);
-    let str = `${temp.shift() ?? ''}${symbol}`;
-    temp.filter((v) => v).forEach((v) => (str += v));
-    return str;
-  }
-  return target;
-};
+export const filterTextValue = (value: string, options: IDirectiveTextBindingVO = {}): string =>
+  handleTextFilter(value, { value: options } as unknown as DirectiveBinding<IDirectiveTextBindingVO>);
 
 /**
- * 过滤文本
- * @param domValue 文本内容
- * @param binding 指令传参
- * @returns
+ * 数字过滤的简化版（供 hooks / composables 直接调用）
+ * @param value 原始字符串
+ * @param options 数字过滤配置
+ * @returns 清洗后的字符串
  */
-export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDirectiveTextBindingVO>) => {
-  const regExp = binding?.value?.regExp;
-  const allowSpace =
-    Object.prototype.toString.call(binding?.value?.allowSpace) === '[object Boolean]'
-      ? binding?.value?.allowSpace
-      : true;
-  const allowChinese =
-    Object.prototype.toString.call(binding?.value?.allowChinese) === '[object Boolean]'
-      ? binding?.value?.allowChinese
-      : true;
-
-  const characters: string = '';
-  const defaultStr = String.raw`\`\\;\'\"<>`;
-  const reg = new RegExp(String.raw`[${defaultStr}${characters}]`, 'g');
-  domValue = domValue?.replace(regExp && regExp instanceof RegExp ? regExp : reg, '');
-  // 过滤空格
-  if (!allowSpace) {
-    domValue = domValue?.replace(/\s+/g, '');
-  }
-  if (!allowChinese) {
-    domValue = domValue?.replace(/[^\x00-\xff]/g, '');
-  }
-  return domValue;
-};
-
-/**
- * 数字过滤
- * @param domValue 文本内容
- * @param binding 指令传参
- * @returns
- */
-export const handleNumberFilter = (domValue: string, binding: DirectiveBinding<IDirectiveNumberBindingVO>) => {
-  // 小数位
-  const decimal = binding?.value?.decimal ?? 4;
-  // 是否支持负数
-  const negativeFlag =
-    Object.prototype.toString.call(binding?.value?.negativeFlag) === '[object Boolean]'
-      ? binding?.value?.negativeFlag
-      : false;
-  // 是否支持0
-  const zeroFlag =
-    Object.prototype.toString.call(binding?.value?.zeroFlag) === '[object Boolean]' ? binding?.value?.zeroFlag : false;
-  // 正数
-  const integral = binding?.value?.integral ?? 10;
-  // 最小值
-  const min = binding?.value?.min;
-  // 最大值
-  const max = binding?.value?.max;
-  // 正则
-  const reg = new RegExp(String.raw`[^0-9${Math.ceil(decimal ?? 0) > 0 ? '.' : ''}${negativeFlag ? '-' : ''}]`, 'g');
-  domValue = domValue.replace(reg, '');
-  let symbol = '';
-  // 处理符号
-  if (domValue.substring(0, 1) === '-') {
-    symbol = '-';
-    domValue = domValue.substring(1);
-  }
-  domValue = domValue.replace(/[^0-9\.]/g, '');
-  console.log(domValue);
-
-  // 处理首位小数点
-  if (domValue.substring(0, 1) === '.') {
-    domValue = `0${domValue}`;
-  }
-  console.log(domValue);
-
-  // 禁止头部连续输入0
-  if (domValue.length > 1 && domValue.substring(0, 1) === '0' && domValue.substring(1, 2) !== '.') {
-    domValue = domValue.substring(1);
-  }
-  console.log(domValue);
-
-  // 是否支持0
-  if (!zeroFlag && domValue.substring(0, 1) === '0') {
-    domValue = '';
-  }
-  console.log(domValue);
-
-  // 处理头部多余的0
-  if (domValue.length > 1) {
-    domValue = domValue.replace(/^0+(?!\.)/, '');
-  }
-  console.log(domValue);
-
-  // 处理小数点及小数位数
-  if (domValue.includes('.')) {
-    domValue = deduplicate(domValue, '.');
-    const temp = domValue.split('.');
-    domValue = `${temp[0]}.${
-      temp[1]?.substring(0, (Math.ceil(decimal ?? 0) > 0 ? Math.ceil(decimal) : null) as number) ?? ''
-    }`;
-  }
-  console.log(domValue);
-
-  // 限制整数长度
-  const temp = domValue.split('.');
-  temp[0] = temp[0].substring(0, Math.ceil(integral ?? 10));
-  domValue = temp.length === 2 ? `${symbol}${temp[0]}.${temp[1]}` : `${symbol}${temp[0]}`;
-  console.log(domValue);
-
-  // 限制最大最小
-  if (
-    Object.prototype.toString.call(min) !== '[object Undefined]' &&
-    Object.prototype.toString.call(min) !== '[object Null]' &&
-    min &&
-    domValue !== '' &&
-    looseToNumber(domValue) < min
-  ) {
-    domValue = min + '';
-  }
-  console.log(domValue);
-  if (
-    Object.prototype.toString.call(max) !== '[object Undefined]' &&
-    Object.prototype.toString.call(max) !== '[object Null]' &&
-    max &&
-    domValue !== '' &&
-    looseToNumber(domValue) > max
-  ) {
-    domValue = max + '';
-  }
-  console.log(domValue);
-
-  return domValue;
-};
+export const filterNumberValue = (value: string, options: IDirectiveNumberBindingVO = {}): string =>
+  handleNumberFilter(value, { value: options } as unknown as DirectiveBinding<IDirectiveNumberBindingVO>);

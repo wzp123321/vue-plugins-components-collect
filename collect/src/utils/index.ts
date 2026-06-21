@@ -3,7 +3,6 @@ import { ICommonRes } from '@/services/common.api';
 export * from './date';
 export * from './number';
 export * from './storage';
-export * from './gcm';
 export * from './uuid';
 export * from './excel';
 
@@ -59,6 +58,23 @@ export const formatFontSize = (value: number): number => {
   if (!clientWidth) return value;
   const fontSize = clientWidth / 1920;
   return value * fontSize;
+};
+
+/**
+ * 格式化文件大小（B / KB / MB / GB）
+ * @param bytes 字节数
+ * @returns 形如 "1.23 MB"
+ */
+export const formatFileSize = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes < 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  return `${size.toFixed(unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`;
 };
 
 /**

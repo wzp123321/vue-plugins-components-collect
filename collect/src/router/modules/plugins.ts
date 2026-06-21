@@ -9,13 +9,6 @@ const pluginRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/plugins/vue3-slide-verify/vue3-slide-verify.vue'),
   },
   {
-    path: '/plugins-vue-virtual-scroller',
-    meta: {
-      name: 'vue-virtual-scroller',
-    },
-    component: () => import('../../pages/plugins/vue-virtual-scroller/vue-virtual-scroller.vue'),
-  },
-  {
     path: '/plugins-vueuse',
     meta: {
       name: 'vueuse',
