@@ -70,8 +70,8 @@
           max: 1000,
           negativeFlag: true,
           zeroFlag: true,
-          onClamp: (e) => log('n4 clamp', e),
-          onInvalidate: (e) => log('n4 invalidate', e),
+          onClamp: (e: any) => log('n4 clamp', e),
+          onInvalidate: (e: any) => log('n4 invalidate', e),
         }"
       />
     </div>
@@ -87,8 +87,8 @@
           decimal: 2,
           max: 1000,
           zeroFlag: true,
-          onClamp: (e) => log('n5 clamp', e),
-          onInvalidate: (e) => log('n5 invalidate', e),
+          onClamp: (e: any) => log('n5 clamp', e),
+          onInvalidate: (e: any) => log('n5 invalidate', e),
         }"
       />
     </div>
@@ -143,7 +143,7 @@
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n9 invalidate', e),
+          onInvalidate: (e: any) => log('n9 invalidate', e),
         }"
       />
     </div>
@@ -173,14 +173,14 @@
       <h5>⑱ 数字 - 边界：负零归一（"-0" / "+0" / "00.5" → "0" / "0.5"）</h5>
       <el-input
         v-model="n12Value"
-        placeholder='试输入 -0 / +0 / 0.0 / 00.5'
+        placeholder="试输入 -0 / +0 / 0.0 / 00.5"
         v-inputFilter:number="{
           integral: 4,
           decimal: 2,
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n12 invalidate', e),
+          onInvalidate: (e: any) => log('n12 invalidate', e),
         }"
       />
     </div>
@@ -216,7 +216,7 @@
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n14 invalidate', e),
+          onInvalidate: (e: any) => log('n14 invalidate', e),
         }"
       />
     </div>

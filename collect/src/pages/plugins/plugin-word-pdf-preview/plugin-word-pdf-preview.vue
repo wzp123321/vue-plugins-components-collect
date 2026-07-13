@@ -1,89 +1,122 @@
 <template>
   <div class="plugin-word-pdf-preview">
     <section class="pwpp-btn">
-      <el-button @click="handleFileChoose(ACCEPTS)">选择文件</el-button>
-      <el-button @click="handlePreview">预览</el-button>
-      <el-button>下载</el-button>
+      <el-button @click="handleChoose">选择文件</el-button>
+      <el-button :disabled="!currentFile" @click="handleDownload">下载</el-button>
     </section>
-    <ul class="pwpp-file-list">
-      <li v-for="item in fileList" :key="item.name">
+    <ul class="pwpp-file-list" v-if="fileList.length">
+      <li
+        v-for="item in fileList"
+        :key="item.name"
+        :class="{ active: currentFile?.name === item.name }"
+        @click="handleFileSelect(item)"
+      >
         <span class="pwpp-file-list-name">{{ item.name }}</span>
-        <span @click="handleFileDelete(item.name)">x</span>
+        <span class="pwpp-file-list-del" @click.stop="handleFileDelete(item.name)">x</span>
       </li>
     </ul>
-    <section class="pwpp-preview" v-if="fileList && fileList?.length > 0">
-      <VueOfficeDocx
-        v-if="[DOCX_ACCEPT_EXTENSIONS['.doc'], DOCX_ACCEPT_EXTENSIONS['.docx'] + ''].includes(fileType)"
+    <section class="pwpp-preview">
+      <component
+        v-if="previewType && fileSrc"
+        :is="PREVIEW_COMPONENT_MAP[previewType]"
         :src="fileSrc"
         @rendered="handleRendered"
         @error="handleError"
-      ></VueOfficeDocx>
-      <VueOfficePdf
-        v-if="fileType == PDF_ACCEPT_EXTENSIONS['.pdf']"
-        :src="fileSrc"
-        @rendered="handleRendered"
-        @error="handleError"
-      ></VueOfficePdf>
-      <VueOfficeExcel
-        v-if="
-          [
-            XLSX_ACCEPT_EXTENSIONS['.xls'],
-            XLSX_ACCEPT_EXTENSIONS['.xlsm'],
-            XLSX_ACCEPT_EXTENSIONS['.xlsx'] + '',
-          ].includes(fileType)
-        "
-        :src="fileSrc"
-        @rendered="handleRendered"
-        @error="handleError"
-      ></VueOfficeExcel>
+      />
     </section>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { useFileHandler } from '../../../hooks';
 import VueOfficeDocx from '@vue-office/docx';
 import VueOfficePdf from '@vue-office/pdf';
 import VueOfficeExcel from '@vue-office/excel';
 import {
-  XLSX_ACCEPT_EXTENSIONS,
-  XLSX_ACCEPT_EXTENSIONS_STR,
-  DOCX_ACCEPT_EXTENSIONS,
   DOCX_ACCEPT_EXTENSIONS_STR,
-  PDF_ACCEPT_EXTENSIONS,
   PDF_ACCEPT_EXTENSIONS_STR,
+  PREVIEW_MIME_MAP,
+  PreviewType,
+  XLSX_ACCEPT_EXTENSIONS_STR,
 } from '../../../config/enum';
 import '@vue-office/docx/lib/index.css';
 
+const ACCEPTS = `${XLSX_ACCEPT_EXTENSIONS_STR},${DOCX_ACCEPT_EXTENSIONS_STR},${PDF_ACCEPT_EXTENSIONS_STR}`;
+
+const PREVIEW_COMPONENT_MAP = {
+  pdf: VueOfficePdf,
+  docx: VueOfficeDocx,
+  excel: VueOfficeExcel,
+} as const;
+
 const { fileList, transferFileToUrl, handleFileChoose } = useFileHandler();
-/**
- * 文件类型
- */
-const fileType = computed<string>(() => {
-  console.log(fileList.value);
-  return fileList.value.length > 0 ? fileList.value[0].type : '';
-});
-// 文件地址
+
+/** 当前预览的文件 */
+const currentFile = ref<File | null>(null);
+/** 预览组件类型 */
+const previewType = computed<PreviewType | ''>(() =>
+  currentFile.value ? PREVIEW_MIME_MAP[currentFile.value.type] ?? '' : '',
+);
+/** 文件地址（ObjectURL） */
 const fileSrc = ref('');
 
-const ACCEPTS = `${XLSX_ACCEPT_EXTENSIONS_STR},${DOCX_ACCEPT_EXTENSIONS_STR},${PDF_ACCEPT_EXTENSIONS_STR}`;
+// 选中文件变化时刷新预览 URL，并释放上一个 URL
+watch(
+  currentFile,
+  (file) => {
+    if (fileSrc.value) {
+      URL.revokeObjectURL(fileSrc.value);
+    }
+    fileSrc.value = file ? transferFileToUrl(file) : '';
+  },
+  { immediate: true },
+);
+
+onUnmounted(() => {
+  if (fileSrc.value) {
+    URL.revokeObjectURL(fileSrc.value);
+    fileSrc.value = '';
+  }
+});
+
+/** 选择文件（多选），默认选中第一个 */
+const handleChoose = async () => {
+  const files = (await handleFileChoose(ACCEPTS, true)) as FileList;
+  const list = Array.from(files);
+  if (!list.length) return;
+  fileList.value = list;
+  currentFile.value = list[0];
+};
 
 const handleFileDelete = (name: string) => {
   fileList.value = fileList.value.filter((item) => item.name !== name);
+  if (currentFile.value?.name === name) {
+    currentFile.value = fileList.value[0] ?? null;
+  }
 };
-/**
- * 文件预览
- */
-const handlePreview = () => {
-  fileSrc.value = transferFileToUrl(fileList.value[0]);
+
+const handleFileSelect = (file: File) => {
+  if (currentFile.value?.name !== file.name) {
+    currentFile.value = file;
+  }
+};
+
+/** 下载当前预览文件 */
+const handleDownload = () => {
+  if (!currentFile.value || !fileSrc.value) return;
+  const a = document.createElement('a');
+  a.href = fileSrc.value;
+  a.download = currentFile.value.name;
+  a.click();
+  a.remove();
 };
 
 const handleRendered = () => {
-  console.log(1111111111);
+  console.log('preview rendered');
 };
-const handleError = () => {
-  console.log(1111111111);
+const handleError = (e: unknown) => {
+  console.error('preview error', e);
 };
 </script>
 
@@ -115,8 +148,18 @@ const handleError = () => {
       background-color: rgba(0, 0, 0, 0.08);
     }
 
+    li.active {
+      background-color: rgba(64, 158, 255, 0.12);
+      color: #409eff;
+    }
+
     .pwpp-file-list-name {
       flex: auto;
+    }
+
+    .pwpp-file-list-del {
+      cursor: pointer;
+      padding: 0 6px;
     }
   }
 
@@ -125,7 +168,9 @@ const handleError = () => {
     width: 100%;
     overflow-y: auto;
 
-    .vue-office-docx {
+    :deep(.vue-office-docx),
+    :deep(.vue-office-pdf),
+    :deep(.vue-office-excel) {
       height: 100%;
     }
   }

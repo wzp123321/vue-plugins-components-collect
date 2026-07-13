@@ -18,3 +18,5 @@ declare module 'crypto-js';
 declare module 'vue-virtual-scroller';
 declare module '@arco-iconbox/vue-te';
 declare module 'qrcode';
+declare module 'vue-i18n';
+declare module 'file-saver';

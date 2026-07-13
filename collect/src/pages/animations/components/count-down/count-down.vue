@@ -2,7 +2,11 @@
   <div class="count-down column center-center" :style="{ width: countDownWidth }">
     <div class="count-down-container column">
       <div class="count-down-content row center-center">
-        <div class="count-down-item row center-center relative" v-for="(item, index) in countDownData" :key="item.label">
+        <div
+          class="count-down-item row center-center relative"
+          v-for="(item, index) in countDownData"
+          :key="item.label"
+        >
           <div class="count-down-item-bg row center-center">
             <span class="count-down-item-number">{{ item.value }}</span>
           </div>
@@ -33,10 +37,10 @@ export default defineComponent({
   },
 
   setup(props, context) {
-    const countDownData = ref([]);
+    const countDownData = ref<any>([]);
     const timer = ref<NodeJS.Timeout | null>(null);
 
-    let leftTime = props.leftTime;
+    let leftTime: any = props.leftTime;
     const startCountDown = () => {
       timer.value = setInterval(() => {
         leftTime -= 1000;

@@ -47,8 +47,6 @@
 import { ref } from 'vue';
 import { ElButton, ElDivider, ElInput, ElTag } from 'element-plus';
 import type { IFilterCallbackInfo } from '../../../directives/directive-filter/directive-filter.api';
-import TextInputFilter from './if-text-filter/if-text-filter.vue';
-import NumberInputFilter from './if-number-filter/if-number-filter.vue';
 
 const logs = ref<string[]>([]);
 const f1Value = ref<string>('');
@@ -58,7 +56,9 @@ const textHint1 = '试试输入 \\ ; \' " < > 等符号';
 
 const log = (label: string, info: IFilterCallbackInfo): void => {
   const time = new Date().toLocaleTimeString();
-  logs.value.unshift(`[${time}] [${label}] type=${info.eventType} "${info.original}" → "${info.cleaned}"  (${info.reason})`);
+  logs.value.unshift(
+    `[${time}] [${label}] type=${info.eventType} "${info.original}" → "${info.cleaned}"  (${info.reason})`,
+  );
   if (logs.value.length > 30) logs.value.length = 30;
 };
 </script>

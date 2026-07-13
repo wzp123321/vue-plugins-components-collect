@@ -33,7 +33,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { lightList, inactiveColor } from './model';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 
 defineOptions({
   name: 'AnimationLightSwitch',

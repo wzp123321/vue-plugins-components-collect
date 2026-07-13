@@ -46,7 +46,7 @@ const handleDelete = () => {
  * 输入事件
  * @param e
  */
-const handleInput = (e: Event) => {
+const handleInput = (e: any) => {
   emits('valueChange', (e.target as HTMLInputElement).value);
 };
 

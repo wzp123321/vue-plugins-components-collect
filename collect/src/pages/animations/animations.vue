@@ -2,7 +2,7 @@
   <div class="animations-little">
     <h5>动画大全</h5>
     <el-row :gutter="20">
-      <el-col v-for="item in customComponents" :key="item" :span="12">
+      <el-col v-for="item in customComponents" :key="item.description" :span="12">
         <el-card class="box-card">
           <h5>{{ item.description }}</h5>
           <component :is="item.component"></component>

@@ -2,9 +2,12 @@
   <div class="rich-editor-page">
     <h5>富文本编辑器</h5>
     <el-alert type="info" :closable="false" style="margin-bottom: 20px">
-      演示两种主流富文本编辑器的用法：<strong>原生 contenteditable</strong>（轻量）和
-      <strong>WangEditor 风格封装</strong>（功能完整）。
-      如需引入真实 WangEditor，执行 <code>pnpm add @wangeditor/editor @wangeditor/editor-for-vue</code>
+      演示两种主流富文本编辑器的用法：
+      <strong>原生 contenteditable</strong>
+      （轻量）和
+      <strong>WangEditor 风格封装</strong>
+      （功能完整）。 如需引入真实 WangEditor，执行
+      <code>pnpm add @wangeditor/editor @wangeditor/editor-for-vue</code>
     </el-alert>
 
     <el-row :gutter="20">
@@ -19,13 +22,13 @@
               <el-button @click="execCmd('underline')"><u>U</u></el-button>
               <el-button @click="execCmd('strikeThrough')"><s>S</s></el-button>
             </el-button-group>
-            <el-button-group size="small" style="margin-left:8px">
+            <el-button-group size="small" style="margin-left: 8px">
               <el-button @click="execCmd('justifyLeft')">左</el-button>
               <el-button @click="execCmd('justifyCenter')">中</el-button>
               <el-button @click="execCmd('justifyRight')">右</el-button>
             </el-button-group>
-            <el-color-picker v-model="fontColor" size="small" style="margin-left:8px" @change="setFontColor" />
-            <el-select v-model="fontSize" size="small" style="width:80px;margin-left:8px" @change="setFontSize">
+            <el-color-picker v-model="fontColor" size="small" style="margin-left: 8px" @change="setFontColor" />
+            <el-select v-model="fontSize" size="small" style="width: 80px; margin-left: 8px" @change="setFontSize">
               <el-option v-for="s in fontSizes" :key="s" :label="s" :value="s" />
             </el-select>
           </div>
@@ -52,15 +55,15 @@
             <p class="guide-title">📦 安装</p>
             <pre class="code-block">pnpm add @wangeditor/editor @wangeditor/editor-for-vue</pre>
 
-            <p class="guide-title" style="margin-top:16px">💻 Vue3 使用方式</p>
+            <p class="guide-title" style="margin-top: 16px">💻 Vue3 使用方式</p>
             <pre class="code-block">{{ wangEditorCode }}</pre>
 
-            <p class="guide-title" style="margin-top:16px">🔧 常用配置</p>
+            <p class="guide-title" style="margin-top: 16px">🔧 常用配置</p>
             <pre class="code-block">{{ wangEditorConfig }}</pre>
           </div>
         </el-card>
 
-        <el-card style="margin-top:16px">
+        <el-card style="margin-top: 16px">
           <template #header>③ TipTap（更现代的选择）</template>
           <pre class="code-block">{{ tiptapCode }}</pre>
         </el-card>
@@ -104,7 +107,7 @@ const execCmd = (command: string, value?: string) => {
   document.execCommand(command, false, value);
 };
 
-const setFontColor = (color: string) => {
+const setFontColor = (color: any) => {
   restoreSelection();
   execCmd('foreColor', color);
 };

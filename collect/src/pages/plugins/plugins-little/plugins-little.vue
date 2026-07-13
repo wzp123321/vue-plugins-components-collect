@@ -20,7 +20,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col v-for="item in componentList" :key="item" :span="12">
+      <el-col v-for="item in componentList" :span="12">
         <el-card class="box-card">
           <component :is="item"></component>
         </el-card>

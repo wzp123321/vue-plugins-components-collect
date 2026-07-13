@@ -5,6 +5,7 @@ export * from './number';
 export * from './storage';
 export * from './uuid';
 export * from './excel';
+export * from './request';
 
 // 全屏
 export const requestFullScreen = (element: any) => {

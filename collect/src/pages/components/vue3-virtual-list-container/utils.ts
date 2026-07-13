@@ -1,4 +1,3 @@
-import { uuid } from '@/utils';
 import { CD_CostDetailConvertVO } from './list.api';
 
 export function mock(length = 1000, editing: boolean = false): CD_CostDetailConvertVO[] {

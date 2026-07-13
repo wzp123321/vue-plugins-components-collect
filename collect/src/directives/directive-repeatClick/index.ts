@@ -1,4 +1,4 @@
-import { isFunction } from 'lodash';
+import { isFunction } from 'lodash-es';
 import type { ObjectDirective } from 'vue';
 
 export const REPEAT_INTERVAL = 100;

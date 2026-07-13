@@ -48,7 +48,7 @@ import { useEChartsInit } from '@/hooks';
 import { IconExport } from '@arco-iconbox/vue-te';
 import { nightingaleChartsDataList, roseMinMaxRate } from '../model';
 import { EChartsOption, EChartsType } from 'echarts';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { handleElementToImage } from '@/utils/file';
 import { cardLinearBackgroundColors, pieColors } from '@/config/echarts/newConstant';
 import { floatMultiply, thousandSeparation } from '@/utils';

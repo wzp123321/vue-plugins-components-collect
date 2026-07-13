@@ -39,7 +39,7 @@
         v-model="t4Value"
         placeholder="输入超过 8 位会截断"
         maxlength="100"
-        v-inputFilter:text="{ maxLength: 8, onClamp: (e) => log('t4 clamp', e) }"
+        v-inputFilter:text="{ maxLength: 8, onClamp: (e: any) => log('t4 clamp', e) }"
       />
     </div>
 
@@ -54,7 +54,7 @@
         v-model="t6Value"
         placeholder="例如：  hello@world  →  hello#world"
         v-inputFilter:text="{
-          transform: (s) => s.trim().replace(/@/g, '#'),
+          transform: (s: any) => s.trim().replace(/@/g, '#'),
         }"
       />
     </div>
@@ -95,7 +95,7 @@
           integral: 4,
           decimal: 2,
           zeroFlag: false,
-          onInvalidate: (e) => log('n4 invalidate', e),
+          onInvalidate: (e: any) => log('n4 invalidate', e),
         }"
       />
     </div>
@@ -105,7 +105,7 @@
       <el-input
         v-model="n5Value"
         placeholder="< 0 变 0，> 100 变 100"
-        v-inputFilter:number="{ integral: 4, decimal: 0, min: 0, max: 100, onClamp: (e) => log('n5 clamp', e) }"
+        v-inputFilter:number="{ integral: 4, decimal: 0, min: 0, max: 100, onClamp: (e: any) => log('n5 clamp', e) }"
       />
     </div>
 
@@ -139,8 +139,8 @@
           zeroFlag: true,
           min: -1000,
           max: 1000,
-          onClamp: (e) => log('n8 clamp', e),
-          onInvalidate: (e) => log('n8 invalidate', e),
+          onClamp: (e: any) => log('n8 clamp', e),
+          onInvalidate: (e: any) => log('n8 invalidate', e),
         }"
       />
     </div>
@@ -160,7 +160,7 @@
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n9 invalidate', e),
+          onInvalidate: (e: any) => log('n9 invalidate', e),
         }"
       />
     </div>
@@ -194,7 +194,7 @@
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n12 invalidate', e),
+          onInvalidate: (e: any) => log('n12 invalidate', e),
         }"
       />
     </div>
@@ -222,7 +222,7 @@
           negativeFlag: true,
           allowPlus: true,
           zeroFlag: true,
-          onInvalidate: (e) => log('n14 invalidate', e),
+          onInvalidate: (e: any) => log('n14 invalidate', e),
         }"
       />
     </div>
@@ -261,7 +261,6 @@ import { reactive, ref } from 'vue';
 import { ElButton, ElInput, ElSwitch, ElTag } from 'element-plus';
 import type {
   IFilterCallbackInfo,
-  IDirectiveNumberBindingVO,
   IDirectiveTextBindingVO,
 } from '../../../directives/directive-filter/directive-filter.api';
 
@@ -324,7 +323,9 @@ const logs = ref<string[]>([]);
 
 const log = (label: string, info: IFilterCallbackInfo): void => {
   const time = new Date().toLocaleTimeString();
-  logs.value.unshift(`[${time}] [${label}] type=${info.eventType} "${info.original}" → "${info.cleaned}"  (${info.reason})`);
+  logs.value.unshift(
+    `[${time}] [${label}] type=${info.eventType} "${info.original}" → "${info.cleaned}"  (${info.reason})`,
+  );
   // 最多保留 30 条
   if (logs.value.length > 30) logs.value.length = 30;
 };

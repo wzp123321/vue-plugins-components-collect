@@ -1,3 +1,12 @@
+allowBuilds:
+  '@fortawesome/fontawesome-free': false
+  '@vue-office/docx': false
+  '@vue-office/excel': false
+  '@vue-office/pdf': false
+  babylonjs: false
+  esbuild: false
+  lint: false
+  vue-demi: false
 ignoredBuiltDependencies:
   - '@fortawesome/fontawesome-free'
   - '@vue-office/docx'

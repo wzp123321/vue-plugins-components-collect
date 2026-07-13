@@ -10,7 +10,7 @@ import {
   EAD_COUNT_COLOR,
   EAD_OVER_BG_COLOR,
 } from './plugins-antv-g6.api';
-import { mapLabelWidth } from './plugins-antv-g6.utils';
+import { mapLabelWidth } from '@/utils';
 
 export class EadChartService {
   private _chart: TreeGraph;
@@ -185,7 +185,7 @@ export class EadChartService {
       name: data.name,
       side: position,
       collapsed: false,
-      size: [mapLabelWidth(label) + (deep % 2 ? 0 : 32), 37, ...this.mapPaddingWidth(deep, position), 0],
+      size: [mapLabelWidth(label, '14px') + (deep % 2 ? 0 : 32), 37, ...this.mapPaddingWidth(deep, position), 0],
       extensions,
       children: children.map((item) => this.convert(item, deep + 1, this.mapColor(deep + 1) ?? color)),
     };
@@ -247,7 +247,7 @@ export class EadChartService {
         const textGroup = group?.addGroup({
           id: 'text-group',
         });
-        const leftPad = (size[0] - mapLabelWidth(config?.label + '')) / 2;
+        const leftPad = (size[0] - mapLabelWidth(config?.label + '', '14px')) / 2;
         const valueLabel = `<span style="font-weight: 700">${config?.value}</span>`;
         textGroup!.addShape('text', {
           name: 'node-text-name',
@@ -267,7 +267,7 @@ export class EadChartService {
         textGroup!.addShape('text', {
           name: 'node-text-value',
           attrs: {
-            x: size[2] + leftPad + mapLabelWidth(config?.name + '') + EAD_NAME_COUNT_GAP,
+            x: size[2] + leftPad + mapLabelWidth(config?.name + '', '14px') + EAD_NAME_COUNT_GAP,
             y: size[1] / 2 + 1 + size[4],
             text: config?.value,
             fill: config?.depth ? EAD_COUNT_COLOR : 'white',
@@ -286,9 +286,9 @@ export class EadChartService {
             x:
               size[2] +
               leftPad +
-              mapLabelWidth(config?.name + '') +
+              mapLabelWidth(config?.name + '', '14px') +
               EAD_NAME_COUNT_GAP +
-              mapLabelWidth(valueLabel) +
+              mapLabelWidth(valueLabel, '14px') +
               EAD_COUNT_UNIT_GAP,
             y: size[1] / 2 + 1 + size[4],
             text: config?.unit,
@@ -373,7 +373,7 @@ export class EadChartService {
         (config!.extensions as EAD_HOME_INodeExtensionItem[]).forEach((extension) => {
           count += extension.visible ? 1 : 0;
           const label = `${extension.name}：${extension.value ?? '--'}${extension.unit ?? ''}`;
-          const width = mapLabelWidth(label) + 20;
+          const width = mapLabelWidth(label, '14px') + 20;
           const y = size[4] - count * 35;
           group!.addShape('rect', {
             name: `node-extension-${extension.code}-box`,

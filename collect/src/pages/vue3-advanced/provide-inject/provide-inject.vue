@@ -94,7 +94,7 @@ provide('updateTheme', (color: string) => {
 const DeepChild = defineComponent({
   name: 'DeepChild',
   setup() {
-    const themeColor = inject<typeof ref>('themeColor', ref('#409eff'));
+    const themeColor = inject<typeof ref>('themeColor');
     const user = inject<{ name: any; level: any }>('user', { name: ref('未知'), level: ref(0) });
 
     return () =>

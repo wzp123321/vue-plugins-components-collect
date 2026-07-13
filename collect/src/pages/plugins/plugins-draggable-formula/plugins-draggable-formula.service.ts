@@ -1,7 +1,7 @@
 import { reactive } from 'vue';
 
 import { ConditionGroup, ConditionGroupClazz } from './entity/conditionGroup';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 
 /**
  * 服务

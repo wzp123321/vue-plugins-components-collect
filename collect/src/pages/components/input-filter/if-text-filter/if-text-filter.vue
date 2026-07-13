@@ -18,13 +18,13 @@
       </div>
       <el-input
         v-model="t1Value"
-        placeholder="试试输入 \ ; ' \" < > 符号和中文"
+        placeholder="试试输入特殊符号"
         clearable
         v-inputFilter:text="{
           allowChinese: t1.allowChinese,
           allowSpace: t1.allowSpace,
-          onClamp: (e) => log('t1 clamp', e),
-          onInvalidate: (e) => log('t1 invalidate', e),
+          onClamp: (e: any) => log('t1 clamp', e),
+          onInvalidate: (e: any) => log('t1 invalidate', e),
         }"
       />
     </div>
@@ -37,7 +37,7 @@
         placeholder="试输入 abc123def → 应剩 abcdef"
         v-inputFilter:text="{
           regExp: /\d/g,
-          onClamp: (e) => log('t2 clamp', e),
+          onClamp: (e: any) => log('t2 clamp', e),
         }"
       />
     </div>
@@ -50,7 +50,7 @@
         placeholder="试输入 AbC123def → 应剩 def"
         v-inputFilter:text="{
           allowPattern: /[a-z]/g,
-          onInvalidate: (e) => log('t3 invalidate', e),
+          onInvalidate: (e: any) => log('t3 invalidate', e),
         }"
       />
     </div>
@@ -63,7 +63,7 @@
         placeholder="试输入 1234567890 → 应被截到 6 位"
         v-inputFilter:text="{
           maxLength: 6,
-          onClamp: (e) => log('t4 clamp', e),
+          onClamp: (e: any) => log('t4 clamp', e),
         }"
       />
     </div>
@@ -77,7 +77,7 @@
         v-inputFilter:text="{
           transform: 'upper',
           allowPattern: /[a-zA-Z]/g,
-          onClamp: (e) => log('t5 clamp', e),
+          onClamp: (e: any) => log('t5 clamp', e),
         }"
       />
     </div>
@@ -92,8 +92,8 @@
         v-model="t6Value"
         placeholder="可粘贴带特殊符号 / 数字的混合内容"
         v-inputFilter:text="{
-          onClamp: (e) => log('t6 clamp', e),
-          onInvalidate: (e) => log('t6 invalidate', e),
+          onClamp: (e: any) => log('t6 clamp', e),
+          onInvalidate: (e: any) => log('t6 invalidate', e),
         }"
       />
     </div>

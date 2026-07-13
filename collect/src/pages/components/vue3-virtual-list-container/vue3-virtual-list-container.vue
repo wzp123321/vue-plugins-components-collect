@@ -37,7 +37,7 @@
           <tr
             class="vue3-virtual-list-item-container"
             v-for="(item, index) in pool"
-            :key="item.id"
+            :key="Number(item.id)"
             :style="`height: ${itemSize}px`"
             @click="rowClick(item, index)"
           >

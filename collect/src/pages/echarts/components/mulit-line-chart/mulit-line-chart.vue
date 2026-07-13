@@ -68,7 +68,7 @@ import {
   mockData,
 } from './model';
 import { formatDate, thousandSeparation } from '@/utils';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { useChartPaginateLegends } from './hooks';
 
 defineOptions({

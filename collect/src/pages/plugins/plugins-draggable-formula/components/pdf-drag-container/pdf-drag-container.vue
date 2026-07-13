@@ -37,7 +37,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref, PropType } from 'vue';
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { storeToRefs } from 'pinia';
 import draggable from 'vuedraggable';
 import dragStore from '../../../../../store/modules/drag';

@@ -5,3 +5,4 @@ export { default as ComponentDragLayout } from './component-drag-layout/componen
 export { default as ComponentLayoutDrag } from './component-layout-drag/component-layout-drag.vue';
 
 export { customComponents } from './model';
+export { teCustomComponents } from './te-model';

@@ -22,6 +22,24 @@ export default ({ mode }) => {
           find: './cptable',
           replacement: 'cptable',
         },
+        // @vue-office/* 包 postinstall 不会生成 lib/index.js，强制指向 vue3 构建产物
+        // CSS 路径放前面优先匹配，避免被下面 js 别名吞掉后缀
+        {
+          find: '@vue-office/docx/lib/index.css',
+          replacement: resolve(__dirname, 'node_modules/@vue-office/docx/lib/v3/index.css'),
+        },
+        {
+          find: '@vue-office/docx',
+          replacement: resolve(__dirname, 'node_modules/@vue-office/docx/lib/v3/index.js'),
+        },
+        {
+          find: '@vue-office/pdf',
+          replacement: resolve(__dirname, 'node_modules/@vue-office/pdf/lib/v3/index.js'),
+        },
+        {
+          find: '@vue-office/excel',
+          replacement: resolve(__dirname, 'node_modules/@vue-office/excel/lib/v3/index.js'),
+        },
       ],
       // 支持的后缀
       extensions: ['.js', '.ts', '.tsx', '.jsx', '.vue', '.less'],
@@ -50,7 +68,6 @@ export default ({ mode }) => {
           manualChunks: {
             'element-plus': ['element-plus'],
             axios: ['axios'],
-            lodash: ['lodash'],
             vue: ['vue'],
             'vue3-slide-verify': ['vue3-slide-verify'],
             echarts: ['echarts'],

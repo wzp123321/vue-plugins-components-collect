@@ -190,3 +190,20 @@ export const thousandSeparation = (value: number, returnType?: string) => {
  * @returns
  */
 export const getRandomNumInScope = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+/**
+ * 计算字符串dom长度
+ * @param label
+ * @returns
+ */
+export const mapLabelWidth = (label: string, fontSize: string = '14px'): number => {
+  const element = document.createElement('span');
+  element.style.visibility = 'hidden';
+  element.style.position = 'absolute';
+  element.style.fontSize = fontSize;
+  element.textContent = label;
+  document.body.appendChild(element);
+  const width = element.clientWidth;
+  document.body.removeChild(element);
+  return width;
+};

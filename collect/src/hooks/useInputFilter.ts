@@ -1,4 +1,4 @@
-import { throttle } from 'lodash';
+import { throttle } from 'lodash-es';
 
 /**
  * 输入框过滤
