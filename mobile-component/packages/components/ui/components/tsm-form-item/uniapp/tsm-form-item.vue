@@ -48,12 +48,11 @@ import { bem } from '../../../libs/uniapp/function/index';
  * @slot default 表单控件插槽，用于放置 input、picker 等输入组件
  * @slot label 自定义标签插槽，用于替换默认的 label 文本
  */
+// Slots
+const slots = useSlots();
 
 // Props 定义
 const props = withDefaults(defineProps<FormItemProps>(), defaultFormItemProps);
-
-// Slots
-const slots = useSlots();
 
 // Inject Form 上下文
 const formContext = inject<FormContext>('formContext', {

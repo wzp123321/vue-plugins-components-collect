@@ -16,19 +16,6 @@
   "vueCompilerOptions": {
     "strictTemplates": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "src/uni_modules/@tiansu/ts-mobile-ui/types/index.d.ts"
-  ],
-  "exclude": [
-    "src/uni_modules/@tiansu/ts-mobile-ui/components/**",
-    "src/uni_modules/@tiansu/ts-mobile-ui/libs/**",
-    "src/uni_modules/@tiansu/ts-mobile-ui/dist/**",
-    "src/uni_modules/@tiansu/ts-mobile-biz-ui/components/**",
-    "src/uni_modules/@tiansu/ts-mobile-biz-ui/libs/**",
-    "src/uni_modules/@tiansu/ts-mobile-biz-ui/dist/**"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/uni_modules/@tiansu/ts-mobile-ui/dist/**", "src/uni_modules/@tiansu/ts-mobile-biz-ui/dist/**"]
 }

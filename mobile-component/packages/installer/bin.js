@@ -5,6 +5,20 @@ const { execSync } = require('child_process');
 
 const projectRoot = process.env.INIT_CWD || process.cwd();
 
+// 检测包管理器：优先 pnpm > yarn > npm
+function detectPkgManager() {
+  if (fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml'))) return 'pnpm';
+  if (fs.existsSync(path.join(projectRoot, 'yarn.lock'))) return 'yarn';
+  // 检查 workspace 根目录（向上查找）
+  let dir = projectRoot;
+  while (dir !== path.parse(dir).root) {
+    if (fs.existsSync(path.join(dir, 'pnpm-workspace.yaml'))) return 'pnpm';
+    dir = path.dirname(dir);
+  }
+  return 'npm';
+}
+const pkgManager = detectPkgManager();
+
 // 检测是否为 uni-app 项目（pages.json 可能在根目录或 src/ 下）
 const isUniApp = fs.existsSync(path.join(projectRoot, 'pages.json'))
   || fs.existsSync(path.join(projectRoot, 'src', 'pages.json'));
@@ -109,8 +123,9 @@ function installPackage(packageName, version) {
     removeUniModule(packageName);
   }
   const exact = resolveExactVersion(packageName, version);
+  const npxCmd = pkgManager === 'pnpm' ? 'pnpm dlx' : 'npx -y';
   try {
-    execSync(`npx -y ${packageName}@${exact}`, { cwd: projectRoot, stdio: 'inherit' });
+    execSync(`${npxCmd} ${packageName}@${exact}`, { cwd: projectRoot, stdio: 'inherit' });
   } catch (e) {
     const stderr = e.stderr ? e.stderr.toString().trim() : '';
     const stdout = e.stdout ? e.stdout.toString().trim() : '';
@@ -131,15 +146,16 @@ function installDependencies() {
       });
     }
   }
-  for (const [dep, ver] of Object.entries(deps)) {
-    console.log(`  npm install ${dep}@${ver}`);
-    try {
-      execSync(`npm install ${dep}@${ver}`, { cwd: projectRoot, stdio: 'inherit' });
-    } catch (e) {
-      const stderr = e.stderr ? e.stderr.toString().trim() : '';
-      console.error(`  ✗ npm install ${dep}@${ver} 失败`);
-      if (stderr) console.error(`    ${stderr}`);
-    }
+  if (Object.keys(deps).length === 0) return;
+  const installCmd = pkgManager === 'pnpm' ? 'pnpm add' : pkgManager === 'yarn' ? 'yarn add' : 'npm install';
+  const depArgs = Object.entries(deps).map(([dep, ver]) => `${dep}@${ver}`).join(' ');
+  console.log(`  ${installCmd} ${depArgs}`);
+  try {
+    execSync(`${installCmd} ${depArgs}`, { cwd: projectRoot, stdio: 'inherit' });
+  } catch (e) {
+    const stderr = e.stderr ? e.stderr.toString().trim() : '';
+    console.error(`  ✗ ${installCmd} ${depArgs} 失败`);
+    if (stderr) console.error(`    ${stderr}`);
   }
 }
 
@@ -195,7 +211,7 @@ for (const [name, version] of Object.entries(config)) {
 console.log('\n检查 peer 依赖:');
 installPeerDependencies();
 
-console.log('\n安装 npm 依赖:');
+console.log(`\n安装依赖 (${pkgManager}):`);
 installDependencies();
 
 console.log('\n[ts-mobile-installer] 完成\n');

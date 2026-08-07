@@ -18,7 +18,7 @@
     "lint-staged": "lint-staged",
     "playground:use-source-components": "npm run build:token && node scripts/link-playground-components.cjs",
     "playground:use-dist-components": "npm run build:token && npm run build:ui && npm run build:biz-ui && node scripts/link-playground-components.cjs --restore",
-    "playground:use-remote-components": "node scripts/use-playground-remote-components.cjs"
+    "playground:use-remote-components": "node scripts/link-playground-components.cjs --remote"
   },
   "keywords": [
     "uniapp",
@@ -68,7 +68,7 @@
     "apps/playground/uniapp-project/src/**/*.{ts,vue}": [
       "prettier --write"
     ],
-    "*.{md,json,yml,yaml}": [
+    "*.{json,yml,yaml}": [
       "prettier --write"
     ]
   },

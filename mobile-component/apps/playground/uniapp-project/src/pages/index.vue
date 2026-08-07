@@ -53,6 +53,7 @@ const categories: Category[] = [
       { path: 'pages/tsm-picker/index', title: 'Picker 选择器' },
       { path: 'pages/tsm-datetime-picker/index', title: 'DateTimePicker 日期时间选择器' },
       { path: 'pages/tsm-cascader/index', title: 'Cascader 级联选择' },
+      { path: 'pages/tsm-select/index', title: 'Select 下拉选择器' },
       { path: 'pages/tsm-search/index', title: 'Search 搜索' },
       { path: 'pages/tsm-upload/index', title: 'Upload 上传' },
     ],

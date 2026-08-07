@@ -66,7 +66,8 @@ export default defineConfig({
             { text: 'Switch 开关', link: '/components/uniapp/tsm-switch' },
             { text: 'Textarea 文本域', link: '/components/uniapp/tsm-textarea' },
             { text: 'Upload 上传', link: '/components/uniapp/tsm-upload' },
-          ]
+                      { text: 'Select 选择器', link: '/components/uniapp/tsm-select' },
+]
         },
         {
           text: '数据展示',

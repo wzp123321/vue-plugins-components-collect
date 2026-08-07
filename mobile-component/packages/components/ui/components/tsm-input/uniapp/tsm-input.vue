@@ -133,7 +133,7 @@ const readonlyExpanded = computed(() => {
   return bem('input-readonly', [isReadonlyExpanded.value ? 'expanded' : ''], [], '');
 });
 watch(
-  () => inputValue,
+  () => props.readonly || formItemContext?.readonly,
   () => {
     nextTick(() => {
       if (props.readonly || formItemContext?.readonly) {

@@ -1,64 +1,89 @@
-/**
- * 选择部门/员工组件 Props 定义
- */
-import type { CSSProperties } from 'vue';
-import type { dataProps } from '../../../common/list-cell/props';
-import HttpRequest from 'luch-request';
-import { TreeNodeQueryStrategyEnum } from '../../../models/TreeNodeQueryStrategyEnum';
-import { OrganizationIdentityTypeEnum } from '../../../models/OrganizationIdentityTypeEnum';
-import DataPermissionCheck from '../../../models/DataPermissionCheck';
-
-export enum ORGANIZATION_TYPE {
-  /** 所有机构 */
-  ALL = 'ALL_CHOICE',
-  /** 本地机构 */
-  LOCAL = 'CHOSEN_FROM_LOCAL',
-  /** 共享机构 */
-  SHARED = 'CHOSEN_FROM_SHARED',
+export interface ValidateType {
+  mode: string;
+  trigger: 'blur' | 'change';
+  adapter: boolean;
+  [key: string]: any;
 }
 
+export type Rule = {
+  //规则唯一值
+  _fc_id: string;
+  //拖拽规则ID
+  _fc_drag_tag: string;
+  //拖拽模板规则ID
+  _fc_template?: string;
+  //生成组件名称
+  type: string;
+  //字段 ID
+  field: string;
+  //编号
+  name?: string;
+  //字段名称
+  title?: string;
+  //提示信息
+  info?: string;
+  //组件的值
+  value?: any;
+  //组件的配置
+  props: Object;
+  //组件样式
+  style: string | Object;
+  //组件class
+  class: string | Array<string>;
+  //组件事件
+  on?: { [key: string]: Function | Function[] };
+  //插槽名
+  slot?: string;
+  //组件的key
+  key?: string;
+  //是否必填
+  $required: boolean | string;
+  //组件的选择项
+  options?: Array<any>;
+  //选择项对应的组件prop名称
+  optionsTo?: string;
+  //不使用formItem和wrap包裹
+  native?: boolean;
+  //是否隐藏组件(无dom)
+  hidden?: boolean;
+  //是否显示组件(有dom)
+  display?: boolean;
+  //是否进入阅读模式
+  preview?: boolean;
+  //自定义阅读模式回显
+  readMode?: 'custom';
+  //组件验证规则
+  validate?: ValidateType[];
+  //子组件
+  children?: Rule[];
+  //联动数据
+  control?: Array<any>;
+  //FormItem配置
+  wrap?: Object;
+  //逻辑条件/计算公式
+  computed?: {
+    [key: string]: string | Object;
+  };
+  //自定义属性
+  effect?: {
+    //远程数据
+    fetch?: Object;
+  };
+  visiable?: boolean;
+  //其他扩展属性
+  [key: string]: any;
+};
 export interface TdfRenderProps {
-  /** 控制组件显示/隐藏 */
-  show?: boolean;
-  /** 自定义请求实例 */
-  http?: HttpRequest;
-  /** 租户ID */
-  tenantId: string;
-  /** 机构ID */
-  organizationId: string;
-  /** 选择模式：single-单选，multiple-多选 */
-  multiple?: boolean;
-  /** 多选时最大选择数量 */
-  multipleLimit?: number;
-  /** 限定根部门id */
-  rootDeptId?: string;
-  /** 限定根部门查询策略 */
-  rootDeptStrategy?: TreeNodeQueryStrategyEnum;
-  /** 数据权限校验 */
-  dataPermissionCheck?: DataPermissionCheck;
-  /** 是否共享机构 */
-  shareOrg?: boolean;
-  /** 近期选择的缓存key，空则不使用近期选择 */
-  latelyKey?: string;
-  /** 院区id */
-  campusIds?: string[];
-  /** 组织属性 */
-  orgIdentityType?: OrganizationIdentityTypeEnum[];
-  /** 选中项 */
-  selected?: Array<dataProps>;
-  /** 自定义类名 */
-  customClass?: string;
-  /** 自定义样式 */
-  customStyle?: CSSProperties;
+  /** 表单的值 */
+  modelValue: Record<string, any>;
+  /** 渲染数据 */
+  data?: Rule[];
+  /**是否只读 */
+  readonly?: boolean;
 }
 
 export const defaultProps = {
-  show: false,
-  http: undefined,
-  selected: () => [],
-  multiple: true,
-  multipleLimit: 500,
-  shareOrg: true,
-  customClass: '',
-  customStyle: () => ({}),
+  modelValue: () => ({}),
+  data: () => [],
+  readonly: false,
 } as const;

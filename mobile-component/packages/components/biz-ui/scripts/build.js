@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 /**
  * Build script for phillUI
@@ -14,19 +13,34 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.j
 const distPath = path.join(packageRoot, 'dist');
 const utsLibsSrc = path.join(packageRoot, 'uniapp-x', 'uts-libs');
 
+const SOURCE_EXCLUDES = new Set(['node_modules', 'dist', 'scripts', 'rollup.config.mjs', 'uniapp-x']);
+
 function clean() {
   if (fs.existsSync(distPath)) {
-    execSync(`rm -rf "${distPath}"`);
+    fs.rmSync(distPath, { recursive: true, force: true });
   }
   fs.mkdirSync(distPath, { recursive: true });
+}
+
+function copyDir(src, dest, excludes = new Set()) {
+  fs.mkdirSync(dest, { recursive: true });
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    if (excludes.has(entry.name)) continue;
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDir(srcPath, destPath, excludes);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
 }
 
 function syncSourceToDist() {
   console.log('[Build] Sync sources to dist...');
   fs.mkdirSync(distPath, { recursive: true });
-  execSync(
-    `rsync -aq --exclude='node_modules' --exclude='dist' --exclude='scripts' --exclude='rollup.config.mjs' --exclude='uniapp-x/uts-libs' "${packageRoot}/" "${distPath}/"`
-  );
+  copyDir(packageRoot, distPath, SOURCE_EXCLUDES);
 }
 
 function syncUtsLibs() {
@@ -36,7 +50,7 @@ function syncUtsLibs() {
   libs.forEach(lib => {
     const src = path.join(utsLibsSrc, lib);
     const dest = path.join(distPath, lib);
-    execSync(`rsync -aq "${src}/" "${dest}/"`);
+    copyDir(src, dest);
   });
 }
 
