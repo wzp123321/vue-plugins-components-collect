@@ -656,7 +656,11 @@ const initSpreadsheet = () => {
     about: false,
     autoCasting: true,
     // ===== 事件演示 =====
-    onload: (instance) => addLog('onload', `工作表「${instance.options.worksheetName}」加载完成`),
+    onload: (instance) => {
+      // onload 传入的是 SpreadsheetInstance，需通过 worksheets 拿到当前激活的工作表
+      const activeWs = instance?.worksheets?.[instance.getWorksheetActive?.() ?? 0];
+      addLog('onload', `工作表「${activeWs?.options?.worksheetName ?? ''}」加载完成`);
+    },
     onbeforechange: (instance, cell, x, y, value) =>
       addLog('onbeforechange', `${instance.options.worksheetName} ${colName(x)}${y + 1} 即将改为 "${value}"`),
     onchange: (instance, cell, x, y, value) =>
@@ -879,10 +883,6 @@ onBeforeUnmount(() => {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-
-    .el-button + .el-button {
-      margin-left: 0;
-    }
   }
 }
 

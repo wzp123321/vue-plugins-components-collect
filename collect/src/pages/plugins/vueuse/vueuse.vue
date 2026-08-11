@@ -53,8 +53,8 @@ import {
   useNow,
   useDateFormat,
   useTimeAgo,
-MaybeComputedElementRef,
-MaybeElement,
+  MaybeComputedElementRef,
+  MaybeElement,
 } from '@vueuse/core';
 
 import MousePosition from './vueuse-mouseposition/vueuse-mouseposition.vue';
@@ -158,10 +158,6 @@ const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isInter
   width: 100%;
   height: 100%;
   overflow-y: auto;
-
-  button + button {
-    margin-left: 12px;
-  }
 
   &-outside {
     width: 400px;
