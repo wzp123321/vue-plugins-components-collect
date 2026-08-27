@@ -187,7 +187,7 @@ const text = ref(
 );
 const voices = ref<SpeechSynthesisVoice[]>([]);
 const voiceName = ref<string>('');
-const rate = ref(1);
+const rate = ref(1.3);
 const pitch = ref(1);
 const volume = ref(1);
 const status = ref<TtsStatus>('idle');
