@@ -104,7 +104,14 @@ export const components: ComponentConfig[] = [
   { name: 'stepper', title: 'Stepper 步进器', category: '其他组件', hasUniapp: true, hasUniappX: false },
   { name: 'cascader', title: 'Cascader 级联选择器', category: '数据展示', hasUniapp: true, hasUniappX: false },
   { name: 'breadcrumb', title: 'Breadcrumb 面包屑', category: '其他组件', hasUniapp: true, hasUniappX: false },
-    { name: 'datetime-picker', title: 'Datetime-picker 日期选择器', category: '表单组件', hasUniapp: true, hasUniappX: false },
+  {
+    name: 'datetime-picker',
+    title: 'Datetime-picker 日期选择器',
+    category: '表单组件',
+    hasUniapp: true,
+    hasUniappX: false,
+  },
+  { name: 'select', title: 'Select 选择器', category: '表单组件', hasUniapp: true, hasUniappX: false },
 ];
 
 export const categories = ['基础组件', '表单组件', '数据展示', '反馈组件', '导航组件', '布局组件', '其他组件'];

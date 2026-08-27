@@ -16,25 +16,11 @@ const components: RouteRecordRaw[] = [
     component: () => import('../../pages/components/input-filter/input-filter.vue'),
   },
   {
-    path: '/component-vue3-virtual-list',
-    meta: {
-      name: '虚拟表格',
-    },
-    component: () => import('../../pages/components/vue3-virtual-list-container/vue3-virtual-list-container.vue'),
-  },
-  {
     path: '/spark-upload',
     meta: {
       name: '大文件上传',
     },
     component: () => import('../../pages/components/spark-upload/index.vue'),
-  },
-  {
-    path: '/virtual-card-load',
-    meta: {
-      name: '虚拟卡片加载',
-    },
-    component: () => import('../../pages/components/virtual-card-load/virtual-card-load.vue'),
   },
   {
     path: '/te-drag-design',
@@ -105,6 +91,16 @@ const components: RouteRecordRaw[] = [
     path: '/te-space-zone-tree',
     meta: { name: 'te-space-zone-tree 分区树' },
     component: () => import('../../pages/components/te-space-zone-tree/te-space-zone-tree.vue'),
+  },
+  {
+    path: '/component-qr-code',
+    meta: { name: 'qr-code 二维码生成' },
+    component: () => import('../../pages/components/qr-code/qr-code.vue'),
+  },
+  {
+    path: '/tree-select-transfer',
+    meta: { name: 'tree-select-transfer 树形穿梭' },
+    component: () => import('../../pages/components/tree-select-transfer/tree-select-transfer.vue'),
   },
 ];
 

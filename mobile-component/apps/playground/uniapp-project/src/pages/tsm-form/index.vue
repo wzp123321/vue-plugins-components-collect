@@ -55,6 +55,27 @@
               </tsm-radio-group>
             </tsm-form-item>
 
+            <tsm-form-item label="喜欢的水果" name="fruit" help="Select 单选，change 触发校验">
+              <tsm-select
+                v-model="formData.fruit as string"
+                :options="fruitOptions"
+                placeholder="请选择（必填）"
+                title="选择水果"
+                clearable
+              />
+            </tsm-form-item>
+
+            <tsm-form-item label="感兴趣的标签" name="tags" help="Select 多选，change 触发校验">
+              <tsm-select
+                v-model="formData.tags as (string | number)[]"
+                :options="tagOptions"
+                multiple
+                placeholder="请选择（必填，至少1个）"
+                title="选择标签"
+                clearable
+              />
+            </tsm-form-item>
+
             <tsm-form-item label="密码" name="password" help="密码长度至少6位">
               <tsm-input v-model="formData.password as string" placeholder="请输入密码" />
             </tsm-form-item>
@@ -161,6 +182,8 @@ const formData = reactive({
   verifyCode: '',
   agree: false,
   quantity: 1,
+  fruit: '',
+  tags: [] as (string | number)[],
   files: [] as { name: string; url: string; size?: number }[],
 });
 
@@ -219,6 +242,23 @@ function getCityLabel(value: string): string {
   const option = cityOptions.find(opt => opt.value === value);
   return option?.label || '';
 }
+
+const fruitOptions = [
+  { label: '苹果', value: 'apple' },
+  { label: '香蕉', value: 'banana' },
+  { label: '橙子', value: 'orange' },
+  { label: '葡萄', value: 'grape' },
+  { label: '草莓', value: 'strawberry' },
+];
+
+const tagOptions = [
+  { label: '前端', value: 'frontend' },
+  { label: '后端', value: 'backend' },
+  { label: '移动端', value: 'mobile' },
+  { label: 'AI', value: 'ai' },
+  { label: '设计', value: 'design' },
+  { label: '产品', value: 'product' },
+];
 
 function getRegionLabel(value: string): string {
   if (!value) return '';
@@ -280,6 +320,16 @@ const rules: FormRules = {
       validator: (value: boolean) => ({ result: value }),
       trigger: 'change' as Trigger,
       message: '请同意协议',
+    },
+  ],
+  fruit: [{ required: true, message: '请选择喜欢的水果', trigger: 'change' as Trigger }],
+  tags: [
+    {
+      validator: (value: (string | number)[]) => ({
+        result: Array.isArray(value) && value.length > 0,
+      }),
+      trigger: 'change' as Trigger,
+      message: '请至少选择一个标签',
     },
   ],
   quantity: [

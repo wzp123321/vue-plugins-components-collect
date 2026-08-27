@@ -44,10 +44,8 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   document.title = (to.meta?.name as string) ?? '收集系统';
-
-  next();
 });
 
 export default router;

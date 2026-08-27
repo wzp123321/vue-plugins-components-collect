@@ -1,3 +1,9 @@
+declare module 'vue' {
+  export interface GlobalComponents {
+    'tsm-theme-provider': typeof import('../theme-provider/uniapp/tsm-theme-provider.vue')['default']
+  }
+}
+
 declare module '@tiansu/ts-mobile-token' {
   export type ThemeMode = 'light' | 'dark'
 

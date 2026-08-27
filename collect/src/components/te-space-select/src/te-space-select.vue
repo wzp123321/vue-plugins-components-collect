@@ -70,17 +70,6 @@ const cascaderProps = computed(() => ({
   lazy: false,
 }));
 
-/* v-model 同步 */
-watch(
-  () => props.modelValue,
-  (v) => {
-    // 把 id 反推回 path
-    const map = new Map(flatMockSpaces().map((n) => [n.id, buildPath(n.id)]));
-    selectedPath.value = v.map((id) => map.get(id) || [id]);
-  },
-  { immediate: true },
-);
-
 const buildPath = (leafId: string): string[] => {
   const all = flatMockSpaces();
   const leaf = all.find((n) => n.id === leafId);
@@ -93,6 +82,17 @@ const buildPath = (leafId: string): string[] => {
   }
   return ids;
 };
+
+/* v-model 同步 */
+watch(
+  () => props.modelValue,
+  (v) => {
+    // 把 id 反推回 path
+    const map = new Map(flatMockSpaces().map((n) => [n.id, buildPath(n.id)]));
+    selectedPath.value = v.map((id) => map.get(id) || [id]);
+  },
+  { immediate: true },
+);
 
 const onChange = (paths: any) => {
   const ids = paths.map((p: any) => p[p.length - 1]);

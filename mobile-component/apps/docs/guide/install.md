@@ -77,7 +77,43 @@ src/uni_modules
 
 > `tsm-theme-provider` 来自 `@tiansu/ts-mobile-token` 包，需要单独配置精确匹配规则，放在通配规则之前优先匹配。
 
-## 3. 引入全局样式
+## 3. 配置 TypeScript
+
+为了让 IDE 获得组件的类型提示和 props 校验，需要正确配置 `tsconfig.json`。
+
+```json
+{
+  "extends": "@vue/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "lib": ["esnext", "dom"],
+    "types": ["@dcloudio/types"],
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "checkJs": false
+  },
+  "vueCompilerOptions": {
+    "strictTemplates": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/uni_modules/@tiansu/ts-mobile-ui/dist/**", "src/uni_modules/@tiansu/ts-mobile-biz-ui/dist/**"]
+}
+```
+
+| 配置项                                   | 说明                                                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `moduleResolution: "bundler"`            | **必须**。`"node"` 模式无法解析 `.vue` 文件，导致组件 props 类型推导为 `any`，IDE 不会对错误 prop 值报错 |
+| `vueCompilerOptions.strictTemplates`     | **必须**。启用模板类型检查，`<tsm-avatar type="ss">` 这种错误才能被 IDE 捕获                             |
+| `exclude` 中包含 `dist/**`               | 排除构建产物，减少类型检查噪音                                                                           |
+| `extends: "@vue/tsconfig/tsconfig.json"` | 继承 Vue 官方推荐配置（含 `strict: true`、`skipLibCheck: true` 等）                                      |
+
+> **提示**：`moduleResolution: "bundler"` 是关键配置。如果使用 `"node"`，`uni_modules` 中的 `.d.ts` 声明文件虽然会被加载，但其中的 `typeof import('.vue')` 无法正确解析组件类型，导致模板中的 props 检查失效。`vue-tsc` 需要升级到 `^2.1.0` 版本。
+
+## 4. 引入全局样式
 
 在 `App.vue`（或 `App.uvue`）中引入 token 全局 SCSS 变量，这样所有页面和组件都能使用主题相关的 CSS 变量。
 
@@ -101,17 +137,21 @@ src/uni_modules
 </style>
 ```
 
-## 4. 初始化
+## 5. 初始化
 
 配置完成后，执行：
 
 ```bash
+# npm
 npm install --foreground-scripts
+
+# 或 pnpm（workspace 项目）
+pnpm install
 ```
 
 `postinstall` 会自动执行安装器，将包安装到 `uni_modules` 目录。
 
-> **提示**：建议始终添加 `--foreground-scripts`，以便查看安装器的执行日志。若省略此参数，npm 10.x 会隐藏生命周期脚本的输出，可能误以为安装未执行。
+> **提示**：npm 建议添加 `--foreground-scripts` 以查看安装日志。pnpm 默认显示生命周期输出，无需额外参数。
 
 然后在项目入口文件中注册插件并初始化主题模式。
 
@@ -157,7 +197,7 @@ export function createApp() {
 
 > **注意**：uni-app-x 中 token 和 UI 包均使用 `.uts` 扩展名导入。
 
-## 5. 使用组件
+## 6. 使用组件
 
 easycom 配置完成后，组件可直接在模板中使用，无需手动 import：
 
@@ -170,7 +210,7 @@ easycom 配置完成后，组件可直接在模板中使用，无需手动 impor
 </template>
 ```
 
-## 6. 主题
+## 7. 主题
 
 ### 主题根容器（推荐）
 

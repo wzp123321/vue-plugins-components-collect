@@ -81,7 +81,7 @@ const transitionStyle = computed(() => {
     return deepMerge(style, { bottom: 0, top: 0, 'max-width': 'calc(100% - 44px)' });
   }
   if (props.mode === 'top' || props.mode === 'bottom') {
-    return deepMerge(style, { left: 0, right: 0, 'max-height': '100%' });
+    return deepMerge(style, { left: 0, right: 0, 'max-height': 'calc(100% - 44px)' });
   }
   return style;
 });
@@ -135,11 +135,11 @@ watch(
 .tsm-popup {
   overflow: hidden;
   .tsm-transition--slide-up {
-    max-height: 100%;
+    max-height: calc(100% - 44px);
   }
 
   .tsm-transition--slide-down {
-    max-height: 100%;
+    max-height: calc(100% - 44px);
   }
 
   .tsm-transition--slide-left {

@@ -9,13 +9,6 @@ const vue3AdvancedRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/vue3-advanced/index.vue'),
   },
   {
-    path: '/vue3-define-model',
-    meta: {
-      name: 'defineModel双向绑定',
-    },
-    component: () => import('../../pages/vue3-advanced/define-model/define-model.vue'),
-  },
-  {
     path: '/vue3-teleport',
     meta: {
       name: 'Teleport传送门',

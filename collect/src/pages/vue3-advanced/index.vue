@@ -22,12 +22,6 @@ const router = useRouter();
 
 const featureList = [
   {
-    icon: '🔗',
-    title: 'defineModel',
-    desc: 'Vue3.4+ 新写法，简化组件双向绑定，替代 modelValue + emit',
-    path: '/vue3-define-model',
-  },
-  {
     icon: '🚪',
     title: 'Teleport 传送门',
     desc: '将组件渲染到 DOM 树中任意位置，常用于弹窗、通知等场景',

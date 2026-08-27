@@ -16,6 +16,12 @@
       }
     },
     {
+      "path": "pages/tsmbiz-tdf-render/index",
+      "style": {
+        "navigationBarTitleText": "动态表单渲染器"
+      }
+    },
+    {
       "path": "pages/tsm-list/index",
       "style": {
         "navigationBarTitleText": "list 列表组件"
@@ -206,6 +212,12 @@
       "path": "pages/tsm-cascader/index",
       "style": {
         "navigationBarTitleText": "级联选择器"
+      }
+    },
+    {
+      "path": "pages/tsm-select/index",
+      "style": {
+        "navigationBarTitleText": "Select 下拉选择器"
       }
     },
     {

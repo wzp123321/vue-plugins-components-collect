@@ -1,180 +1,252 @@
 <template>
   <tsm-theme-provider>
-    <view class="container">
-      <view class="title">Upload 上传组件测试</view>
-      <view class="section">
-        <view class="section-title">media类型上传</view>
-        <tsm-upload
-          type="media"
-          v-model:fileList="mediaFileList"
-          :maxCountImage="5"
-          :maxCountVideo="1"
-          :mediaTypes="['image', 'video']"
-          :imageSourceType="['album', 'camera']"
-          :videoSourceType="['camera']"
-          :beforeUpload="beforeUpload"
-          :httpRequest="httpRequest"
-          @success="handleSuccess"
-          @error="handleError"
-          @remove="handleRemove"
-        />
-      </view>
-      <view class="section">
-        <view class="section-title">media只读态</view>
-        <tsm-upload type="media" readonly v-model:fileList="mediaFileList" />
-      </view>
-      <view class="section">
-        <view class="section-title">禁用状态</view>
-        <tsm-upload type="media" v-model:fileList="mediaFileList2" :mediaTypes="['image', 'video']" :disabled="true" />
-      </view>
-
-      <view class="section">
-        <view class="section-title">file类型上传</view>
-        <tsm-upload
-          type="file"
-          v-model:fileList="fileFileList"
-          :maxCountFile="4"
-          :beforeUpload="beforeUpload"
-          :httpRequest="httpRequest"
-          @success="handleSuccess"
-          @error="handleError"
-          @remove="handleRemove"
-        />
-      </view>
-      <view class="section">
-        <view class="section-title">file类型只读</view>
-        <tsm-upload type="file" readonly v-model:fileList="fileFileList" />
-      </view>
-      <view class="section">
-        <view class="section-title">file类型禁用</view>
-        <tsm-upload type="file" disabled v-model:fileList="fileFileList" />
-      </view>
-    </view>
+    <!-- 测试基本用法 -->
+    <tsmbiz-tdf-render :data="dsl" v-model="formData" @submit="submitData" />
   </tsm-theme-provider>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import TsmUpload from '../../../../../../packages/components/ui/components/tsm-upload/uniapp/tsm-upload.vue';
-import TsmThemeProvider from '../../../../../../packages/components/ui/components/tsm-theme-provider/uniapp/tsm-theme-provider.vue';
-const beforeUpload = (file: any) => {
-  return new Promise<boolean>((resolve, reject) => {
-    resolve(true);
-  });
-};
-// 上传请求函数
-const httpRequest = async (file: any) => {
-  //模拟上传请求
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve({
-        url: file.url,
-        name: file.name,
-        size: file.size,
-      });
-      // reject({ errMsg: '上传失败1111' });
-    }, 1000);
-  });
-};
 
-// 媒体文件列表
-const mediaFileList = ref([
+const dsl = ref([
   {
-    url: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    name: 'mov_bbb.mp4',
+    type: 'input',
+    field: 'name',
+    title: '名字',
+    info: '',
+    $required: '请输入',
+    props: {
+      placeholder: '请输入名字',
+      maxlength: 6,
+      showWordimit: true,
+    },
+    _fc_id: 'id_F8mkmqfz0j5facc',
+    name: 'ref_F4gimqfz0j5fadc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'input',
+    validate: [
+      {
+        mode: 'maxLen',
+        trigger: 'blur',
+        adapter: true,
+        maxLen: 6,
+      },
+      {
+        mode: 'email',
+        trigger: 'blur',
+        adapter: true,
+        email: true,
+        message: '请输入正确的邮箱格式',
+      },
+    ],
   },
   {
-    url: '/src/static/1.mp4',
-    name: '1.mp4',
+    type: 'input',
+    field: 'remark',
+    title: '备注',
+    info: '请输入',
+    $required: true,
+    props: {
+      type: 'textarea',
+      placeholder: '请输入',
+    },
+    _fc_id: 'id_Fgubmqfz0jmjafc',
+    name: 'ref_F78emqfz0jmjagc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'textarea',
   },
   {
-    url: '/src/static/ge.jpeg',
-    name: '3.mp4',
+    type: 'radio',
+    field: 'Fnacmqg8nfl5ahc',
+    title: '单选框',
+    info: '',
+    effect: {
+      fetch: '',
+    },
+    $required: false,
+    options: [
+      {
+        label: '选项01',
+        value: '1',
+      },
+      {
+        label: '选项02',
+        value: '2',
+      },
+      {
+        label: '选项03',
+        value: '3',
+      },
+    ],
+    _fc_id: 'id_Feh7mqg8nfl6aic',
+    name: 'ref_Frmumqg8nfl6ajc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'radio',
   },
   {
-    url: 'https://picsum.photos/200/200?random=2&.png',
-    name: '1.png',
+    type: 'checkbox',
+    field: 'Fn99mqg96vhlakc',
+    title: '多选框',
+    info: '',
+    effect: {
+      fetch: '',
+    },
+    $required: false,
+    options: [
+      {
+        label: '选项01',
+        value: '1',
+      },
+      {
+        label: '选项02',
+        value: '2',
+      },
+      {
+        label: '选项03',
+        value: '3',
+      },
+    ],
+    _fc_id: 'id_Fvt6mqg96vhlalc',
+    name: 'ref_Fdqbmqg96vhlamc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'checkbox',
   },
   {
-    url: 'https://picsum.photos/200/200?random=3',
-    name: '2.png',
+    type: 'rate',
+    field: 'Fw35mqg9ee69anc',
+    title: '评分',
+    info: '',
+    $required: '请打分',
+    _fc_id: 'id_Ffdlmqg9ee69aoc',
+    name: 'ref_Fid6mqg9ee69apc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'rate',
+    value: 0,
+  },
+  {
+    type: 'select',
+    field: 'Fbvbmqgahyb9aqc',
+    title: '城市',
+    info: '',
+    effect: {
+      fetch: '',
+    },
+    $required: false,
+    options: [
+      {
+        label: '选项01',
+        value: '1',
+      },
+      {
+        label: '选项02',
+        value: '2',
+      },
+      {
+        label: '选项03',
+        value: '3',
+      },
+    ],
+    _fc_id: 'id_Fn1lmqgahyb9arc',
+    name: 'ref_Ftelmqgahyb9asc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'select',
+    visiable: false,
+  },
+  {
+    type: 'select',
+    field: 'select1',
+    title: '城市',
+    info: '',
+    effect: {
+      fetch: '',
+    },
+    $required: false,
+    options: [
+      {
+        label: '选项01',
+        value: '1',
+      },
+      {
+        label: '选项02',
+        value: '2',
+      },
+      {
+        label: '选项03',
+        value: '3',
+      },
+    ],
+    _fc_id: 'id_Fn1lmqgahyb9arc',
+    name: 'ref_Ftelmqgahyb9asc',
+    display: true,
+    hidden: false,
+    _fc_drag_tag: 'select',
+    visiable: false,
   },
 ]);
-const mediaFileList2 = ref([
-  {
-    url: 'https://picsum.photos/200/200?random=4',
-    name: '3.png',
-  },
-  {
-    url: 'https://picsum.photos/200/200?random=5',
-    name: '4.png',
-  },
-  {
-    url: 'https://picsum.photos/200/200?random=6',
-    name: '5.png',
-  },
-  {
-    url: 'https://picsum.photos/200/200?random=7',
-    name: '6.png',
-  },
-]);
+const formData = ref<Record<string, any>>({
+  name: 'jakson',
+  Fbvbmqgahyb9aqc: '2',
+});
 
-// 文件类型文件列表
-const fileFileList = ref([
-  {
-    url: '',
-    name: '4bjpHQ8j6kd1Su.pdf',
-    size: 162176,
-  },
-  {
-    url: '',
-    name: '4bjpHQ8j6kd1Su.word',
-    size: 162176,
-  },
-  {
-    url: '',
-    name: '4bjpHQ8j6kd1Su.csv',
-  },
-]);
-
-// 处理上传成功
-const handleSuccess = (res: any) => {
-  console.log('上传成功:', res);
-};
-
-// 处理上传失败
-const handleError = (err: any) => {
-  console.log('上传失败:', err);
-};
-
-// 处理删除文件
-const handleRemove = (index: number) => {
-  console.log('删除文件:', index);
+const submitData = () => {
+  console.log(formData.value);
 };
 </script>
 
 <style scoped>
 .container {
   padding: 20rpx;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.header {
+  margin-bottom: 30rpx;
 }
 
 .title {
   font-size: 32rpx;
   font-weight: bold;
-  margin-bottom: 30rpx;
-  text-align: center;
+  color: #333;
+}
+
+.content {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
 }
 
 .section {
-  margin-bottom: 40rpx;
-  padding: 20rpx;
-  background-color: #f5f5f5;
-  border-radius: 10rpx;
+  margin-bottom: 30rpx;
 }
 
 .section-title {
   font-size: 28rpx;
-  font-weight: bold;
+  font-weight: 600;
+  color: #666;
   margin-bottom: 20rpx;
+}
+
+.btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  background-color: #1890ff;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.selected-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 40rpx;
+  white-space: pre-wrap;
 }
 </style>

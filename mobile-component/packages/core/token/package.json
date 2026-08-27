@@ -1,6 +1,6 @@
 {
   "name": "@tiansu/ts-mobile-token",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Design tokens for ts-mobile-ui components",
   "main": "dist/index.ts",
   "module": "dist/index.ts",
