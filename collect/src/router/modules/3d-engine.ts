@@ -78,6 +78,13 @@ const threejsRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/babylon/babylon-pbr/babylon-pbr.vue'),
   },
+  {
+    path: '/threejs-map',
+    meta: {
+      name: 'Threejs 地图',
+    },
+    component: () => import('../../pages/threejs/threejs-map/index.vue'),
+  },
 ];
 
 export default threejsRoutes;

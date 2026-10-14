@@ -353,6 +353,8 @@ function createScene() {
   // ---- 辅助工具 ----
   // 网格地面：10x10 单位，每格 1 单位
   const grid = new GridHelper(10, 10, 0x335577, 0x222244);
+  // grid.position.x = 0;
+  // grid.position.y = 1;
   scene.add(grid);
   log('网格辅助线添加: size=10, divisions=10');
 
