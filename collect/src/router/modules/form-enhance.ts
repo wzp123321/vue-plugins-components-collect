@@ -36,6 +36,20 @@ const formEnhanceRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-export-to-excel/plugins-export-to-excel.vue'),
   },
+  {
+    path: '/form-excel-data-entry',
+    meta: {
+      name: 'Excel数据录入',
+    },
+    component: () => import('../../pages/form-enhance/excel-data-entry/excel-data-entry.vue'),
+  },
+  {
+    path: '/form-excel-data-entry-vxe',
+    meta: {
+      name: 'Excel数据录入(vxe-table)',
+    },
+    component: () => import('../../pages/form-enhance/excel-data-entry-vxe/excel-data-entry-vxe.vue'),
+  },
 ];
 
 export default formEnhanceRoutes;

@@ -85,6 +85,20 @@ const threejsRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/threejs/threejs-map/index.vue'),
   },
+  {
+    path: '/threejs-earth-flyline',
+    meta: {
+      name: 'Threejs 地球大屏飞线',
+    },
+    component: () => import('../../pages/threejs/threejs-earth-flyline/threejs-earth-flyline.vue'),
+  },
+  {
+    path: '/threejs-china-3d-map',
+    meta: {
+      name: 'Threejs 中国3D地图(mega)',
+    },
+    component: () => import('../../pages/threejs/threejs-china-3d-map/threejs-china-3d-map.vue'),
+  },
 ];
 
 export default threejsRoutes;
