@@ -102,10 +102,37 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
   };
   watch(columns, () => nextTick(applyColumns));
 
+  // ===================== 拖拽列宽写回 =====================
+  // vxe 的 resizable 只改 DOM 列宽，defs.width 不变 → 一旦列配置重建（加列/撤销/套模板）宽度就回弹。
+  // 这里把"实际像素宽"按当前等比换算比例反算回基准宽，落盘后再由 columns 重建列。
+  // 拖拽过程会连续触发，故防抖到停手后再写（重建列会打断拖拽手感）
+  let widthTimer: number | null = null;
+  const onResizableChange = (p: any) => {
+    const field = p?.column?.field;
+    const px = Number(p?.resizeWidth);
+    if (!field || !px || px <= 0) return;
+    const vis = core.columnDefs.value.filter((d) => d.visible);
+    const sumBase = vis.reduce((a, d) => a + (d.width ?? DEFAULT_COL_WIDTH), 0);
+    const avail = bodyWidth.value - SEQ_WIDTH - 1;
+    if (avail <= 0 || sumBase <= 0) return;
+    // 实际宽 = 基准宽 × (avail / sumBase) → 基准宽 = 实际宽 ÷ 该比例
+    const ratio = avail / sumBase;
+    const base = Math.max(60, Math.round(px / (ratio || 1)));
+    if (widthTimer) window.clearTimeout(widthTimer);
+    widthTimer = window.setTimeout(() => {
+      widthTimer = null;
+      const def = core.columnDefs.value.find((d) => d.field === field);
+      if (!def || def.width === base) return;
+      def.width = base;
+      // columns 是 computed（依赖 columnDefs），赋值后 watch 会自动 applyColumns
+    }, 260);
+  };
+
   onBeforeUnmount(() => {
     bodyRO?.disconnect();
     bodyRO = null;
     observedEl = null;
+    if (widthTimer) window.clearTimeout(widthTimer);
   });
 
   return {
@@ -114,5 +141,6 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
     keyboardConfig,
     applyColumns,
     syncBodyWidth,
+    onResizableChange,
   };
 }

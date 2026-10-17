@@ -157,9 +157,30 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     const rowsText = text.replace(/\r/g, '').split('\n').filter((l) => l.length);
     if (!rowsText.length) return;
     const grid = rowsText.map((r) => r.split('\t'));
-    const visFields = core.visibleDefs.value.map((d) => d.field);
+    let visFields = core.visibleDefs.value.map((d) => d.field);
     const { startIdx, startCol } = resolvePasteAnchor();
     snap();
+    // 粘贴宽度超出可见列时自动补列（Excel 里粘更宽的数据不该丢列）：
+    // 新列一律 text 类型，label 用"粘贴列 N"，用户随后可在列设置里改类型/名称
+    let addedCols = 0;
+    const needCols = startCol + grid.reduce((m, r) => Math.max(m, r.length), 0);
+    if (needCols > visFields.length) {
+      const addN = needCols - visFields.length;
+      const stamp = Date.now().toString(36);
+      for (let i = 0; i < addN; i++) {
+        const def = {
+          field: `paste_${stamp}_${i}`,
+          label: `粘贴列 ${visFields.length + i + 1}`,
+          type: 'text' as const,
+          visible: true,
+          width: 120,
+        };
+        core.columnDefs.value.push(def);
+        for (const r of core.allRows.value) r[def.field] = '';
+      }
+      addedCols = addN;
+      visFields = core.visibleDefs.value.map((d) => d.field);
+    }
     let skippedNaN = 0;
     let droppedCols = 0;
     let skippedSelect = 0;
@@ -221,6 +242,7 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     // 粘贴区域闪烁反馈（与 Excel 粘贴后短暂高亮目标区一致；cellClassName 合并读取 core.flashKeys）
     if (written.length) core.flashCells(written.map(({ r, f }) => core.errKey(r.__id, f)), 900);
     ElMessage.success(`已粘贴 ${grid.length} 行 × ${grid[0].length} 列`);
+    if (addedCols) ElMessage.info(`粘贴宽度超出可见列，已自动新增 ${addedCols} 个文本列`);
     if (invalid) ElMessage.warning(`${invalid} 个单元格未通过校验（必填/格式），已标红`);
     if (skippedNaN) ElMessage.warning(`${skippedNaN} 个非数字内容已跳过（数字列只接受数值）`);
     if (skippedSelect) ElMessage.warning(`${skippedSelect} 个下拉列内容不在可选项中，已跳过`);

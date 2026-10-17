@@ -1,7 +1,8 @@
-// 拖拽填充手柄：锚点定位 / 手柄显隐 / 拖拽纵向填充（方向感知 + 序列填充）
-// 与快捷键填充互补：Ctrl+D = 选区内向下填充，Ctrl+Enter = 整区填当前格值，
-// 本手柄 = 把选区首/末行的值拖写到选区之外的新行（Excel 填充柄语义）。
-// 序列填充：数字按首两行差推算、日期按天差推算（+1 天起步），文本/下拉复制。
+// 拖拽填充手柄：锚点定位 / 手柄显隐 / 纵向+横向填充（方向感知 + 序列填充）/ 双击填至末行
+// 与快捷键填充互补：Ctrl+D = 向下填充，Ctrl+R = 向右填充，Ctrl+Enter = 整区填当前格值；
+// 本手柄 = 把选区边缘的值拖写到选区之外的新行/新列（Excel 填充柄语义）。
+// 序列填充：数字按首两格差推算、日期按天差推算（+1 天起步），文本/下拉复制。
+// 轴向判定：按指针相对按下点的位移主轴（|dx| > |dy| 为横向），比"看落点在哪一轴之外"更符合手感。
 import { reactive, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { ElMessage } from 'element-plus';
@@ -78,99 +79,235 @@ export function useFillHandle(
     () => refreshFillHandle(),
   );
 
-  // ===================== 拖拽填充 =====================
-  /** 按下填充柄开始拖拽：纵向（上/下）把源行值复制到目标行，拖拽过程闪烁预览目标区 */
-  const startFill = () => {
-    const anchor = fillAnchor();
-    if (!anchor?.row || !anchor?.field) return;
-    const srcField = anchor.field;
+  // ===================== 坐标解析 =====================
+  const fieldsNow = () => core.visibleDefs.value.map((d) => d.field);
+  const rowIdxFromPoint = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    const rowid = el?.closest('.vxe-body--row')?.getAttribute('rowid');
+    if (!rowid) return -1;
+    return core.processedRows.value.findIndex((r) => r.__id === rowid);
+  };
+  const colIdxFromPoint = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    const colid = el?.closest('.vxe-body--column')?.getAttribute('colid');
+    if (!colid) return -1;
+    const field = tableRef.value?.getColumnById?.(colid)?.field;
+    return field ? fieldsNow().indexOf(field) : -1;
+  };
+
+  /** 选区范围信息（行区间 + 列区间），无选区时退化为锚点单格 */
+  const rectRange = () => {
     const rows = core.processedRows.value;
-    const srcIdx = rows.findIndex((r) => r.__id === anchor.row.__id);
-    if (srcIdx < 0) return;
-    // 选区的首/末行（rowIds 插入序即行序）：决定方向感知的填充源与填充范围。
-    // 无选区（塌缩为单格）时首末同为锚点行，逻辑退化为单格向上/下填充
+    const fields = fieldsNow();
     const rect = sel.selRect.value;
-    const rectIds = rect ? Array.from(rect.rowIds) : [anchor.row.__id];
-    const topIdx = rows.findIndex((r) => r.__id === rectIds[0]);
-    const bottomIdx = rows.findIndex((r) => r.__id === rectIds[rectIds.length - 1]);
-    if (topIdx < 0 || bottomIdx < 0) return;
-    // 目标行 → 实际填充范围（仅覆盖原选区之外的新行，与 Excel 一致）：
-    // 向下拖 = 手柄行之下至目标行；向上拖 = 目标行至首行之上；落在原选区内则不填充
-    const fillRange = (tIdx: number): [number, number] | null => {
-      if (tIdx > bottomIdx) return [bottomIdx + 1, tIdx];
-      if (tIdx < topIdx) return [tIdx, topIdx - 1];
-      return null;
+    if (!rect) {
+      const cur = core.currentCell.value;
+      if (!cur) return null;
+      const ri = rows.findIndex((r) => r.__id === cur.row.__id);
+      const ci = fields.indexOf(cur.field);
+      if (ri < 0 || ci < 0) return null;
+      // 单格无选区时也允许横向/纵向填充：行集合退化为该行本身
+      return { rows, fields, topIdx: ri, bottomIdx: ri, leftIdx: ci, rightIdx: ci, rowIds: new Set([cur.row.__id]) };
+    }
+    const ids = Array.from(rect.rowIds);
+    const topIdx = rows.findIndex((r) => r.__id === ids[0]);
+    const bottomIdx = rows.findIndex((r) => r.__id === ids[ids.length - 1]);
+    const cols = rect.fields.map((f) => fields.indexOf(f)).filter((i) => i >= 0);
+    if (topIdx < 0 || bottomIdx < 0 || !cols.length) return null;
+    return { rows, fields, topIdx, bottomIdx, leftIdx: Math.min(...cols), rightIdx: Math.max(...cols), rowIds: rect.rowIds };
+  };
+
+  /** 纵向序列求值器：以选区首行为基准，数字按首两行差、日期按天差延续；文本复制 */
+  const verticalSeries = (srcField: string, rows: any[], topIdx: number, bottomIdx: number) => {
+    const def = core.columnDefs.value.find((d) => d.field === srcField);
+    const type = def?.type;
+    const seed: any[] = [];
+    for (let i = topIdx; i <= bottomIdx; i++) seed.push(rows[i]?.[srcField]);
+    const first = seed[0];
+    let step = 0;
+    if (type === 'number') {
+      const f = Number(first);
+      step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
+      if (!isFinite(step)) step = 0;
+    } else if (type === 'date') {
+      const d0 = parseDate(first);
+      const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
+      step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
+      if (!isFinite(step)) step = 1;
+    }
+    return (t: number): any => {
+      if (first === '' || first == null) return first; // 源为空：复制
+      const k = t - topIdx;
+      if (type === 'number') return Number((Number(first) + step * k).toFixed(6));
+      if (type === 'date') return addDays(first, step * k);
+      return first; // 文本/下拉：常量复制
     };
-    const rowIdxFromPoint = (x: number, y: number) => {
-      const el = document.elementFromPoint(x, y) as HTMLElement | null;
-      const rowid = el?.closest('.vxe-body--row')?.getAttribute('rowid');
-      if (!rowid) return -1;
-      return rows.findIndex((r) => r.__id === rowid);
+  };
+
+  /** 横向序列求值器：以选区最左列为基准，逐行独立推算（数字按首两列差、日期按天差） */
+  const horizontalSeries = (row: any, leftIdx: number, rightIdx: number, fields: string[]) => {
+    const def = core.columnDefs.value.find((d) => d.field === fields[leftIdx]);
+    const type = def?.type;
+    const seed: any[] = [];
+    for (let i = leftIdx; i <= rightIdx; i++) seed.push(row[fields[i]]);
+    const first = seed[0];
+    let step = 0;
+    if (type === 'number') {
+      const f = Number(first);
+      step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
+      if (!isFinite(step)) step = 0;
+    } else if (type === 'date') {
+      const d0 = parseDate(first);
+      const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
+      step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
+      if (!isFinite(step)) step = 1;
+    }
+    return (colIdx: number): any => {
+      if (first === '' || first == null) return first;
+      const k = colIdx - leftIdx;
+      if (type === 'number') return Number((Number(first) + step * k).toFixed(6));
+      if (type === 'date') return addDays(first, step * k);
+      return first;
     };
-    let filling = false;
-    const move = (ev: PointerEvent) => {
-      const tIdx = rowIdxFromPoint(ev.clientX, ev.clientY);
-      const range = tIdx >= 0 ? fillRange(tIdx) : null;
-      if (!range) {
-        flashKeys.value = new Set();
-        return;
-      }
-      const keys = new Set<string>();
-      for (let i = range[0]; i <= range[1]; i++) {
-        const r = rows[i];
-        if (r) keys.add(core.errKey(r.__id, srcField));
-      }
-      flashKeys.value = keys;
-    };
-    const up = (ev: PointerEvent) => {
-      if (!filling) return;
-      filling = false;
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      const tIdx = rowIdxFromPoint(ev.clientX, ev.clientY);
-      const range = tIdx >= 0 ? fillRange(tIdx) : null;
-      if (!range) {
-        flashKeys.value = new Set();
-        return;
-      }
-      // 方向感知的填充源（Excel 语义）：向下拖取选区末行（手柄行）的值，向上拖取首行的值
-      const down = tIdx > bottomIdx;
-      // 序列填充：从选区首两行推算步长——数字按差值；日期按天差；单行数字复制、单行日期 +1 天（Excel 语义）；
-      // 文本/下拉恒为复制（步长 0）。公式统一为 first + step*(i - topIdx)，覆盖向下与向上两种方向
-      const def = core.columnDefs.value.find((d) => d.field === srcField);
-      const type = def?.type;
-      const seed: any[] = [];
-      for (let i = topIdx; i <= bottomIdx; i++) seed.push(rows[i][srcField]);
-      const first = seed[0];
-      let step = 0;
-      if (type === 'number') {
-        const f = Number(first);
-        step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
-        if (!isFinite(step)) step = 0;
-      } else if (type === 'date') {
-        const d0 = parseDate(first);
-        const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
-        step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
-        if (!isFinite(step)) step = 1;
-      }
-      const seriesVal = (t: number): any => {
-        if (first === '' || first == null) return first; // 源为空：复制
-        const k = t - topIdx;
-        if (type === 'number') return Number((Number(first) + step * k).toFixed(6));
-        if (type === 'date') return addDays(first, step * k);
-        return first; // 文本/下拉：常量复制
-      };
-      snap();
-      let n = 0;
-      for (let i = range[0]; i <= range[1]; i++) {
-        const r = rows[i];
-        if (!r) continue;
-        r[srcField] = seriesVal(i);
+  };
+
+  /** 纵向填充：把 [fromIdx, toIdx] 区间按序列写入 srcField 列，返回写入格数 */
+  const applyVertical = (fromIdx: number, toIdx: number, srcField: string) => {
+    const rg = rectRange();
+    if (!rg) return 0;
+    const series = verticalSeries(srcField, rg.rows, rg.topIdx, rg.bottomIdx);
+    let n = 0;
+    for (let i = fromIdx; i <= toIdx; i++) {
+      const r = rg.rows[i];
+      if (!r) continue;
+      r[srcField] = series(i);
+      r.__dirty = true;
+      core.validateCell(r, srcField);
+      n++;
+    }
+    return n;
+  };
+
+  /** 横向填充：把 [fromCol, toCol] 列区间按逐行序列写入选区所有行，返回写入格数 */
+  const applyHorizontal = (fromCol: number, toCol: number) => {
+    const rg = rectRange();
+    if (!rg) return 0;
+    let n = 0;
+    for (const rowId of Array.from(rg.rowIds ?? [])) {
+      const r = rg.rows.find((x) => x.__id === rowId);
+      if (!r) continue;
+      const series = horizontalSeries(r, rg.leftIdx, rg.rightIdx, rg.fields);
+      for (let c = fromCol; c <= toCol; c++) {
+        const f = rg.fields[c];
+        if (!f) continue;
+        r[f] = series(c);
         r.__dirty = true;
-        core.validateCell(r, srcField);
+        core.validateCell(r, f);
         n++;
       }
-      ElMessage.success(n ? `已向${down ? '下' : '上'}填充 ${n} 行` : '没有可填充的行');
+    }
+    return n;
+  };
+
+  // ===================== 拖拽填充 =====================
+  // 双击检测：手柄上的 pointerdown 用了 .prevent，会吞掉兼容性鼠标事件（dblclick 收不到），
+  // 故在此自测双击间隔；命中即执行"填充至末行"，不再进入拖拽。
+  // 阈值取 420ms（Windows 默认双击间隔 500ms 留余量）；真拖拽结束后清零，避免"拖完立刻按下"被误判双击
+  let lastDownAt = 0;
+
+  /** 按下填充柄开始拖拽：按指针位移主轴决定纵向/横向，拖拽过程闪烁预览目标区 */
+  const startFill = (ev?: PointerEvent) => {
+    const now = Date.now();
+    if (now - lastDownAt < 420) {
+      lastDownAt = 0;
+      fillToEnd();
+      return;
+    }
+    lastDownAt = now;
+    const anchor = fillAnchor();
+    const rg = rectRange();
+    if (!anchor?.row || !anchor?.field || !rg) return;
+    const srcField = anchor.field;
+    const startX = ev?.clientX ?? 0;
+    const startY = ev?.clientY ?? 0;
+    let filling = false;
+
+    // 目标 → 实际填充范围（仅覆盖原选区之外的新行/新列，与 Excel 一致）；
+    // 落在原选区内返回 null（不填充）
+    const vRange = (tIdx: number): [number, number] | null => {
+      if (tIdx > rg.bottomIdx) return [rg.bottomIdx + 1, tIdx];
+      if (tIdx < rg.topIdx) return [tIdx, rg.topIdx - 1];
+      return null;
+    };
+    const hRange = (tCol: number): [number, number] | null => {
+      if (tCol > rg.rightIdx) return [rg.rightIdx + 1, tCol];
+      if (tCol < rg.leftIdx) return [tCol, rg.leftIdx - 1];
+      return null;
+    };
+    /** 轴向：指针位移主轴；没动够时返回 null（避免抖动误判） */
+    const axisOf = (x: number, y: number): 'v' | 'h' | null => {
+      const dx = Math.abs(x - startX);
+      const dy = Math.abs(y - startY);
+      if (dx < 4 && dy < 4) return null;
+      return dx > dy ? 'h' : 'v';
+    };
+
+    const previewKeys = (x: number, y: number) => {
+      const axis = axisOf(x, y);
+      const keys = new Set<string>();
+      if (axis === 'v') {
+        const r = vRange(rowIdxFromPoint(x, y));
+        if (!r) return keys;
+        for (let i = r[0]; i <= r[1]; i++) {
+          const row = rg.rows[i];
+          if (!row) continue;
+          for (const f of rg.fields.slice(rg.leftIdx, rg.rightIdx + 1)) keys.add(core.errKey(row.__id, f));
+        }
+      } else if (axis === 'h') {
+        const c = hRange(colIdxFromPoint(x, y));
+        if (!c) return keys;
+        for (const rowId of Array.from(rg.rowIds ?? [])) {
+          for (let i = c[0]; i <= c[1]; i++) {
+            const f = rg.fields[i];
+            if (f) keys.add(core.errKey(rowId, f));
+          }
+        }
+      }
+      return keys;
+    };
+
+    const move = (e: PointerEvent) => {
+      filling = true;
+      flashKeys.value = previewKeys(e.clientX, e.clientY);
+    };
+    const up = (e: PointerEvent) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (!filling) return;
+      filling = false;
+      const axis = axisOf(e.clientX, e.clientY);
+      flashKeys.value = new Set();
+      if (!axis) return; // 只是点了一下手柄，不填充
+      if (axis === 'v') {
+        const tIdx = rowIdxFromPoint(e.clientX, e.clientY);
+        const range = tIdx >= 0 ? vRange(tIdx) : null;
+        if (!range) return;
+        const down = tIdx > rg.bottomIdx;
+        // 方向感知的填充源（Excel 语义）：向下拖取选区末行、向上拖取首行；
+        // 序列仍以选区首行为基准（verticalSeries 内部按 topIdx 推算），行号连续故自然衔接
+        snap();
+        const n = applyVertical(range[0], range[1], srcField);
+        ElMessage.success(n ? `已向${down ? '下' : '上'}填充 ${n} 格` : '没有可填充的行');
+      } else {
+        const tCol = colIdxFromPoint(e.clientX, e.clientY);
+        const range = tCol >= 0 ? hRange(tCol) : null;
+        if (!range) return;
+        const right = tCol > rg.rightIdx;
+        snap();
+        const n = applyHorizontal(range[0], range[1]);
+        ElMessage.success(n ? `已向${right ? '右' : '左'}填充 ${n} 格` : '没有可填充的列');
+      }
+      lastDownAt = 0; // 真拖拽后清零双击计时
       setTimeout(() => (flashKeys.value = new Set()), 600);
       refreshFillHandle();
     };
@@ -178,7 +315,39 @@ export function useFillHandle(
     window.addEventListener('pointerup', up);
   };
 
-  return { fillHandle, flashKeys, hideFillHandle, refreshFillHandle, startFill };
+  /**
+   * 双击填充柄：纵向延续到"参照列最后一个非空行"（Excel 双击小黑点）。
+   * 参照列 = 选区左侧相邻可见列；选区已在首列时取右侧相邻列；都没有则退回选区首列。
+   */
+  const fillToEnd = () => {
+    const rg = rectRange();
+    if (!rg) return;
+    const fields = rg.fields;
+    const refIdx = rg.leftIdx > 0 ? rg.leftIdx - 1 : Math.min(rg.rightIdx + 1, fields.length - 1);
+    const refField = fields[refIdx];
+    const srcField = fields[rg.rightIdx];
+    if (!refField || !srcField) return;
+    // 从选区末行往下找参照列最后一个非空行（参照列自身上方已填满时才能可靠推断数据区末尾）
+    let last = -1;
+    for (let i = rg.rows.length - 1; i > rg.bottomIdx; i--) {
+      const v = rg.rows[i][refField];
+      if (v !== null && v !== undefined && v !== '') {
+        last = i;
+        break;
+      }
+    }
+    if (last < 0) {
+      ElMessage.info('参照列下方没有数据，无法自动填充');
+      return;
+    }
+    snap();
+    const n = applyVertical(rg.bottomIdx + 1, last, srcField);
+    ElMessage.success(n ? `已向下填充 ${n} 格（至参照列末行）` : '没有可填充的行');
+    setTimeout(() => (flashKeys.value = new Set()), 600);
+    refreshFillHandle();
+  };
+
+  return { fillHandle, flashKeys, hideFillHandle, refreshFillHandle, startFill, fillToEnd };
 }
 
 export type GridFillHandle = ReturnType<typeof useFillHandle>;

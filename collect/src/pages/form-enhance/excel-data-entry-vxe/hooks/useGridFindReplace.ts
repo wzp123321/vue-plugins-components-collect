@@ -1,45 +1,103 @@
-// 查找 / 替换：全局或当前列范围，支持大小写敏感与整格匹配，命中高亮 + 跳转
+// 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表
 import { ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
+import type { CellSelection } from './useCellSelection';
 
-export function useGridFindReplace(core: GridCore, scroll: GridScroll) {
+const HIT_LIMIT = 500;
+
+export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: CellSelection) {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   const findVisible = ref(false);
   const findText = ref('');
   const replaceText = ref('');
-  const findScope = ref<'all' | 'col'>('all');
+  const findScope = ref<'all' | 'col' | 'sel'>('all');
   const findCase = ref(false);
   const findWhole = ref(false);
+  /** 正则模式：findText 直接作为正则源；非法时置 regexError 并中止匹配 */
+  const findRegex = ref(false);
+  const regexError = ref('');
   const findMatches = ref<{ rowId: string; field: string }[]>([]);
   const findMatchKeys = ref<Set<string>>(new Set());
   const findIdx = ref(0);
+  /** 命中明细（带行/列标签与实际值），供查找条列表点击跳转 */
+  const findHits = ref<{ rowId: string; field: string; rowLabel: string; colLabel: string; value: string }[]>([]);
+
+  /** 匹配范围：列集合 + 行集合（选区范围取框选矩形） */
+  const scopeOf = () => {
+    const allFields = core.visibleDefs.value.map((d) => d.field);
+    const rect = sel.selRect.value;
+    if (findScope.value === 'sel' && rect) {
+      return { fields: rect.fields, rows: core.processedRows.value.filter((r) => rect.rowIds.has(r.__id)) };
+    }
+    if (findScope.value === 'col' && core.currentCell.value) {
+      return { fields: [core.currentCell.value.field], rows: core.processedRows.value };
+    }
+    return { fields: allFields, rows: core.processedRows.value };
+  };
 
   const computeFindMatches = () => {
-    const q = findCase.value ? findText.value : findText.value.toLowerCase();
+    regexError.value = '';
+    const q = findText.value;
     if (!q) {
       findMatches.value = [];
       findMatchKeys.value = new Set();
+      findHits.value = [];
       return;
     }
-    const fields = findScope.value === 'col' && core.currentCell.value ? [core.currentCell.value.field] : core.visibleDefs.value.map((d) => d.field);
+    let re: RegExp | null = null;
+    if (findRegex.value) {
+      try {
+        re = new RegExp(q, findCase.value ? '' : 'i');
+      } catch {
+        regexError.value = '正则表达式无效';
+        findMatches.value = [];
+        findMatchKeys.value = new Set();
+        findHits.value = [];
+        return;
+      }
+    }
+    const tgt = findCase.value ? q : q.toLowerCase();
+    const { fields, rows } = scopeOf();
+    const labelField = core.visibleDefs.value[0]?.field;
     const list: { rowId: string; field: string }[] = [];
-    for (const r of core.processedRows.value) {
+    const hits: { rowId: string; field: string; rowLabel: string; colLabel: string; value: string }[] = [];
+    for (const r of rows) {
       for (const f of fields) {
         const raw = String(r[f] ?? '');
-        const tgt = findCase.value ? raw : raw.toLowerCase();
-        const hit = findWhole.value ? tgt === q : tgt.includes(q);
-        if (hit) list.push({ rowId: r.__id, field: f });
+        let hit: boolean;
+        if (re) hit = re.test(raw);
+        else {
+          const s = findCase.value ? raw : raw.toLowerCase();
+          hit = findWhole.value ? s === tgt : s.includes(tgt);
+        }
+        if (!hit) continue;
+        list.push({ rowId: r.__id, field: f });
+        if (hits.length < HIT_LIMIT) {
+          hits.push({
+            rowId: r.__id,
+            field: f,
+            rowLabel: labelField ? String(r[labelField] ?? '') : '',
+            colLabel: core.labelOf(f),
+            value: raw,
+          });
+        }
       }
     }
     findMatches.value = list;
     findMatchKeys.value = new Set(list.map((m) => core.errKey(m.rowId, m.field)));
+    findHits.value = hits;
     // -1 = 尚未定位任何匹配：此时点"查找下一个"应落在第一项（早期初始为 0 又先自增，首击永远跳过第一项）
     findIdx.value = -1;
   };
-  watch([findText, findScope, findCase, findWhole], computeFindMatches, { immediate: true });
+  // 选区/当前格变化也要重算（range=选区时框选范围即匹配范围；range=当前列时列随当前格走）
+  watch(
+    [findText, findScope, findCase, findWhole, findRegex, () => sel.selRect.value, () => core.currentCell.value],
+    computeFindMatches,
+    { immediate: true },
+  );
 
   const jumpToMatch = (m: { rowId: string; field: string }) => {
     const row = core.allRows.value.find((r) => r.__id === m.rowId);
@@ -49,11 +107,18 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll) {
   /** 跳到下一个匹配项（循环）；findIdx 为 -1（尚未定位）时落在第一项 */
   const findNext = () => {
     if (!findMatches.value.length) {
-      ElMessage.info('未找到匹配项');
+      ElMessage.info(regexError.value || '未找到匹配项');
       return;
     }
     findIdx.value = (findIdx.value + 1) % findMatches.value.length;
     jumpToMatch(findMatches.value[findIdx.value]);
+  };
+  /** 跳到指定命中（命中列表点击） */
+  const jumpToHit = (i: number) => {
+    const m = findMatches.value[i];
+    if (!m) return;
+    findIdx.value = i;
+    jumpToMatch(m);
   };
   /** 替换一处（未定位匹配时替第一项）；替换后重算命中并停在同一序号，保持滚动定位 */
   const replaceOne = () => {
@@ -101,10 +166,14 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll) {
     findScope,
     findCase,
     findWhole,
+    findRegex,
+    regexError,
     findMatches,
     findMatchKeys,
+    findHits,
     findIdx,
     findNext,
+    jumpToHit,
     replaceOne,
     replaceAll,
   };

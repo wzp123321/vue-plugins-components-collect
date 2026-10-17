@@ -1,6 +1,36 @@
 // 录入台共享类型与基础常量
 export type ColType = 'text' | 'number' | 'select' | 'date';
 
+/**
+ * 单列校验规则（声明式）：加列、改列都能直接配规则，不必改校验代码。
+ * 空值一律跳过（必填由 required 单独判定），避免"没填就报格式错"。
+ */
+export interface ColRule {
+  /** 数字最小值（含） */
+  min?: number;
+  /** 数字最大值（含） */
+  max?: number;
+  /** 文本最小长度 */
+  minLen?: number;
+  /** 文本最大长度 */
+  maxLen?: number;
+  /** 正则源（不带斜杠），配合 patternMsg 给出可读提示 */
+  pattern?: string;
+  patternMsg?: string;
+  /** 值在整列内唯一（工号/邮箱等）；与空值无关，空值不参与 */
+  unique?: boolean;
+}
+
+/** 跨列规则：只支持最常用的四种，够覆盖"结束日期≥开始日期"这类需求 */
+export type CrossKind = 'gte' | 'lte' | 'eq' | 'requiredIf';
+
+export interface CrossRule {
+  kind: CrossKind;
+  /** 参照列 field */
+  other: string;
+  msg?: string;
+}
+
 export interface ColDef {
   field: string;
   label: string;
@@ -8,6 +38,10 @@ export interface ColDef {
   /** select 类型的可选项（同时用作列筛选器候选） */
   options?: string[];
   required?: boolean;
+  /** 单列校验规则（见 ColRule） */
+  rules?: ColRule;
+  /** 跨列校验规则：本列与 other 列的大小/相等/条件必填关系 */
+  cross?: CrossRule[];
   /** 是否可见（列设置抽屉切换，不可见的列不参与查询/复制/统计） */
   visible: boolean;
   /** 冻结在左侧（vxe fixed: 'left'） */

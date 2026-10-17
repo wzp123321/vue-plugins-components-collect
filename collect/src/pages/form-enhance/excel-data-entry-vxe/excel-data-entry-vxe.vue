@@ -18,8 +18,14 @@
       </div>
     </div>
 
-    <!-- 工具栏 / 查找替换条 / 批量填充面板 -->
+    <!-- 工具栏 / 查找替换条 / 查询条件 chips / 批量填充面板 -->
     <GridToolbar :core="core" :ops="ops" :tpl="tpl" :demo="demo" :io="io" :find="find" />
+    <GridQueryChips
+      :core="core"
+      :on-clear-filter="clearFilterChip"
+      :on-clear-sort="clearSortChip"
+      :on-clear-all="clearAllQuery"
+    />
     <GridFindBar :find="find" />
     <GridFillBar :core="core" :ops="ops" />
 
@@ -31,7 +37,7 @@
         :edit-config="editConfig"
         :keyboard-config="keyboardConfig"
         :mouse-config="{ selected: false }"
-        :sort-config="{ trigger: 'cell', remote: true, multiple: true }"
+        :sort-config="{ trigger: 'default', remote: true, multiple: true }"
         :filter-config="{ remote: true }"
         :tooltip-config="{ mode: 'title' }"
         :row-config="{ keyField: '__id', isHover: true }"
@@ -47,17 +53,19 @@
         :cell-class-name="cellClassName"
         :row-class-name="rowClassName"
         @cell-click="onCellClick"
+        @header-cell-click="onHeaderClick"
+        @column-resizable-change="gridColumns.onResizableChange"
         @sort-change="onSortChange"
         @filter-change="onFilterChange"
         @edit-actived="onEditActived"
         @edit-closed="onEditClosed"
       />
-      <!-- 拖拽填充手柄 -->
+      <!-- 拖拽填充手柄（双击 = 填充至参照列末行） -->
       <div
         v-show="fillHandle.show"
         class="dt-fillhandle"
         :style="fillHandle.style"
-        title="拖拽以填充（纵向复制）"
+        title="拖拽填充（向上下左右）· 双击填至末行"
         @pointerdown.stop.prevent="startFill"
       />
       <!-- 复制蚂蚁线（Excel：Ctrl+C 后源区域的虚线动画边框，标记剪贴板内容来源） -->
@@ -76,6 +84,7 @@
 
     <!-- 状态栏 -->
     <div class="dt-statusbar">
+      <span class="sb-item pos">{{ posLabel }}</span>
       <span class="sb-item">行数 <b>{{ processedRows.length.toLocaleString() }}</b></span>
       <span class="sb-item">改动 <b class="c-warn">{{ dirtyCount }}</b></span>
       <span class="sb-item">选中 <b class="c-ok">{{ selectionCount }}</b></span>
@@ -98,7 +107,7 @@
         <span class="sb-item">最大 <b>{{ selectionStats.max }}</b></span>
         <span class="sb-item">最小 <b>{{ selectionStats.min }}</b></span>
       </template>
-      <span class="sb-tip">提示：拖动框选单元格 · 点序号格选中整行 · 直接键入即编辑 · 双击/F2 编辑 · Ctrl+方向键跳边界 · PageUp/Down 翻屏 · Ctrl+D 向下填充 · Ctrl+A 全选 · 拖右下角 ▢ 序列填充 · F1 快捷键帮助</span>
+      <span class="sb-tip">提示：拖动框选单元格 · 点序号格选中整行 · 点列头选中整列 · 直接键入即编辑 · 双击/F2 编辑 · Ctrl+方向键跳边界 · PageUp/Down 翻屏 · Ctrl+D 向下填充 / Ctrl+R 向右填充 · Ctrl+A 全选 · 拖右下角 ▢ 向上下左右填充（双击=填到末行）· F1 快捷键帮助</span>
     </div>
 
     <!-- 分页（仅分页模式） -->
@@ -124,7 +133,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted, computed } from 'vue';
 import { VxeTable } from 'vxe-table';
 import 'vxe-table/es/style.css';
 import './theme.css';
@@ -132,6 +141,7 @@ import { registerAllRenderers } from './components/cells';
 import GridToolbar from './components/GridToolbar.vue';
 import GridFindBar from './components/GridFindBar.vue';
 import GridFillBar from './components/GridFillBar.vue';
+import GridQueryChips from './components/GridQueryChips.vue';
 import GridContextMenu from './components/GridContextMenu.vue';
 import GridHelpDialog from './components/GridHelpDialog.vue';
 import AddColumnDialog from './components/AddColumnDialog.vue';
@@ -141,6 +151,7 @@ import TemplateDialog from './components/TemplateDialog.vue';
 import { useGridCore } from './hooks/useGridCore';
 import { useGridColumns } from './hooks/useGridColumns';
 import { useGridScroll } from './hooks/useGridScroll';
+import { useGridDraft } from './hooks/useGridDraft';
 import { useGridOps } from './hooks/useGridOps';
 import { useGridTemplates } from './hooks/useGridTemplates';
 import { useGridDemoData } from './hooks/useGridDemoData';
@@ -166,11 +177,13 @@ const core = useGridCore();
 const scroll = useGridScroll(core, tableRef);
 const gridColumns = useGridColumns(core, tableRef);
 const sel = useCellSelection(core, tableRef, gridWrapper);
-const ops = useGridOps(core, tableRef, scroll, sel);
+// 草稿先于 ops 装配：提交成功时需要清草稿，故把 draft 注入 ops
+const draft = useGridDraft(core);
+const ops = useGridOps(core, tableRef, scroll, sel, draft);
 const tpl = useGridTemplates(core);
 const demo = useGridDemoData(core);
 const io = useGridIO(core, fileInputRef, sel);
-const find = useGridFindReplace(core, scroll);
+const find = useGridFindReplace(core, scroll, sel);
 const mouse = useGridMouse(core, tableRef, { gridBox, gridWrapper, io, find, ops, sel });
 
 // ---- 核心：查询管道 / 统计 / 编辑事件 ----
@@ -201,6 +214,60 @@ const { gridHeight, fillHandle, startFill, helpVisible, copyMarquee } = mouse;
 // ---- 框选统计（头部 pill 与状态栏共用） ----
 const { selectionCount, selectionStats } = ops;
 
+// ---- 活动格坐标指示（Excel 名称框语义：第几行 / 第几列 + 列名） ----
+const posLabel = computed(() => {
+  const a = sel.anchor.value;
+  if (!a) return '未选中';
+  const rows = core.processedRows.value;
+  const fields = core.visibleDefs.value.map((d) => d.field);
+  const ri = rows.findIndex((r) => r.__id === a.rowId);
+  const ci = fields.indexOf(a.field);
+  if (ri < 0 || ci < 0) return '未选中';
+  return `第 ${ri + 1} 行 / ${rows.length} · 第 ${ci + 1} 列 ${core.labelOf(a.field)}`;
+});
+
+// ---- 查询条件 chips 的清除动作：改数据状态的同时清掉 vxe 列头里的排序/筛选标记 ----
+const clearFilterChip = (field: string, value?: string) => {
+  const cur = core.columnFilters[field] ?? [];
+  const next = value ? cur.filter((v) => v !== value) : [];
+  if (next.length) core.columnFilters[field] = next;
+  else delete core.columnFilters[field];
+  tableRef.value?.clearFilter?.(field);
+  // clearFilter 会触发 filter-change 把 columnFilters 写回空，这里补回剩余值（多选筛选逐项清除的场景）
+  if (next.length) core.columnFilters[field] = next;
+};
+const clearSortChip = (field?: string) => {
+  core.sortList.value = field ? core.sortList.value.filter((s) => s.field !== field) : [];
+  if (field) tableRef.value?.clearSort?.(field);
+  else tableRef.value?.clearSort?.();
+};
+const clearAllQuery = () => {
+  core.searchText.value = '';
+  for (const k of Object.keys(core.columnFilters)) delete core.columnFilters[k];
+  core.sortList.value = [];
+  tableRef.value?.clearFilter?.();
+  tableRef.value?.clearSort?.();
+};
+
+// 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 选中整列。
+// 排序已改为 trigger:'default'（只在点列头排序图标时排序），故点表头不会再被排序动作抢走；
+// 仍用 vxe 给出的 triggerSort/triggerFilter/triggerResizable 兜底，避免点排序/筛选图标时误选整列
+const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }: any) => {
+  if (!column || triggerSort || triggerFilter || triggerResizable) return;
+  const fields = core.visibleDefs.value.map((d) => d.field);
+  const rows = core.processedRows.value;
+  if (column.type === 'seq') {
+    if (fields.length && rows.length) {
+      sel.selectAll(
+        { rowId: rows[0].__id, field: fields[0] },
+        { rowId: rows[rows.length - 1].__id, field: fields[fields.length - 1] },
+      );
+    }
+    return;
+  }
+  if (column.field) sel.selectColumn(column.field);
+};
+
 onMounted(() => {
   core.revalidateAll();
   nextTick(gridColumns.applyColumns);
@@ -208,6 +275,8 @@ onMounted(() => {
   nextTick(mouse.syncGridHeight);
   tpl.loadTemplates();
   nextTick(mouse.refreshFillHandle);
+  // 存在未提交草稿时询问是否恢复（恢复后自行重校）
+  draft.checkDraft();
 });
 
 // ===================== 单元格样式 =====================
@@ -226,6 +295,17 @@ const cellClassName = ({ row, column }: any) => {
   // 而 Excel 中白底始终留在起始格（anchor）上
   const act = sel.anchor.value;
   if (act && act.rowId === row.__id && act.field === field) cls.push('cell-active');
+  // 十字高亮：活动格所在行/列淡色引导（多列宽表录入时防串行）。
+  // 用 background-image 而非 background-color：与 cell-sel 的 background-color(!important) 可叠加不打架
+  if (act) {
+    const sameRow = act.rowId === row.__id;
+    const sameCol = act.field === field;
+    // 活动格自身不加（它已有 cell-active 白底，再叠淡蓝会脏）
+    if (!(sameRow && sameCol)) {
+      if (sameRow) cls.push('cross-row');
+      else if (sameCol) cls.push('cross-col');
+    }
+  }
   if (sel.isCellSelected(row.__id, field)) {
     // 选区内淡色底 + 区域外框（仅矩形四边的格带描边类，角格自动合成两条）。
     // 复制态下与 copiedRect 重合的格不再画实线外框——让位给蚂蚁线（Excel：Ctrl+C 后原边框被虚线动画替代），
@@ -319,6 +399,7 @@ html.dark .stat-pill.info { border-color: #2c3a66; }
   font-size: 12px; color: var(--dt-sub);
 }
 .dt-statusbar .sb-item b { color: var(--dt-text); margin: 0 2px; }
+.dt-statusbar .sb-item.pos { color: var(--dt-primary); font-weight: 650; font-variant-numeric: tabular-nums; }
 .dt-statusbar .sb-item .c-warn { color: var(--dt-warn); }
 .dt-statusbar .sb-item .c-danger { color: var(--dt-danger); }
 .dt-statusbar .sb-item .c-ok { color: var(--dt-ok); }
@@ -358,6 +439,15 @@ html.dark .stat-pill.info { border-color: #2c3a66; }
 :deep(.vxe-table .vxe-body--column.cell-found) { background-color: rgba(255,180,46,.16) !important; }
 :deep(.vxe-table .vxe-body--column.cell-flash) { background-color: var(--dt-primary-soft) !important; animation: dtflash .6s ease; }
 @keyframes dtflash { from { background-color: var(--dt-primary) !important; } to { background-color: var(--dt-primary-soft) !important; } }
+/* 十字高亮（活动格所在行/列）：background-image 与 cell-sel / cell-error 的 background-color 叠加，
+   不争抢同一属性，故无论是否在选区内都能看见 */
+:deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(59, 91, 219, 0.055), rgba(59, 91, 219, 0.055)); }
+:deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(59, 91, 219, 0.09), rgba(59, 91, 219, 0.09)); }
+:deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(59, 91, 219, 0.12), rgba(59, 91, 219, 0.12)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(107, 138, 253, 0.07), rgba(107, 138, 253, 0.07)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(107, 138, 253, 0.11), rgba(107, 138, 253, 0.11)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(107, 138, 253, 0.15), rgba(107, 138, 253, 0.15)); }
+
 /* 单元格框选（自研选区）：选区内淡色底，矩形四边由自定义属性拼出区域外框（角格两条） */
 :deep(.vxe-table .vxe-body--column.cell-sel) {
   background-color: var(--dt-primary-soft) !important;

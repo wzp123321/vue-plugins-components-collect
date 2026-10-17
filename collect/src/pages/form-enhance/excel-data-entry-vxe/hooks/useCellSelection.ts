@@ -131,6 +131,19 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
   };
 
+  // 点击列头：选中整列（Excel 语义），活动格落在该列首行；与 selectRow 一样用 keepSelection 跳过塌缩
+  const selectColumn = (field: string) => {
+    const rows = core.processedRows.value;
+    if (!rows.length) return;
+    anchor.value = { rowId: rows[0].__id, field };
+    focus.value = { rowId: rows[rows.length - 1].__id, field };
+    const cur = core.currentCell.value;
+    if (!cur || cur.row.__id !== rows[0].__id || cur.field !== field) {
+      keepSelection = true;
+      core.currentCell.value = { row: rows[0], field };
+    }
+  };
+
   // 同步 currentCell 但保留当前框选（右键菜单落在选区内时使用：Excel 中选区内右键不清选区）。
   // 同样仅在值确实变化时置位 keepSelection，否则标志会残留、吞掉后续一次正常的塌缩同步
   const setCurrentKeepSel = (row: any, field: string) => {
@@ -239,6 +252,7 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     extendTo,
     selectAll,
     selectRow,
+    selectColumn,
     setCurrentKeepSel,
   };
 }

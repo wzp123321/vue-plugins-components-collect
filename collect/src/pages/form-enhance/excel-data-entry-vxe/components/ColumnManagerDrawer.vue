@@ -1,19 +1,37 @@
 <script setup lang="ts">
-// 列设置抽屉：排序 / 显隐 / 冻结 / 必填 / 删除，改动即时生效
+// 列设置抽屉：排序 / 显隐 / 冻结 / 必填 / 校验规则 / 删除，改动即时生效
+import { ref } from 'vue';
 import type { GridCore } from '../hooks/useGridCore';
 import type { GridOps } from '../hooks/useGridOps';
-import { typeLabel } from '../types';
+import { type ColDef, typeLabel } from '../types';
+import RuleDialog from './RuleDialog.vue';
 
 defineOptions({ name: 'ColumnManagerDrawer' });
 const props = defineProps<{ core: GridCore; ops: GridOps }>();
 
 const { columnDefs } = props.core;
 const { colDrawer, moveCol, removeCol } = props.ops;
+
+// 校验规则弹窗：直接编辑 ColDef（响应式），保存后全量重校让标记立即同步
+const ruleVisible = ref(false);
+const ruleDef = ref<ColDef | null>(null);
+const openRule = (d: ColDef) => {
+  ruleDef.value = d;
+  ruleVisible.value = true;
+};
+const saveRule = (p: { rules: any; cross: any[] }) => {
+  const d = ruleDef.value;
+  if (!d) return;
+  d.rules = Object.keys(p.rules).length ? p.rules : undefined;
+  d.cross = p.cross.length ? p.cross : undefined;
+  props.core.revalidateAll();
+};
+const hasRule = (d: ColDef) => !!d.rules || !!d.cross?.length;
 </script>
 
 <template>
-  <el-drawer v-model="colDrawer" title="列设置" direction="rtl" size="440px" class="dt-dlg">
-    <div class="col-set-tip">拖拽排序、显隐、冻结、必填；改完即时生效。可删除多余列。</div>
+  <el-drawer v-model="colDrawer" title="列设置" direction="rtl" size="480px" class="dt-dlg">
+    <div class="col-set-tip">拖拽排序、显隐、冻结、必填、校验规则；改完即时生效。可删除多余列。</div>
     <div class="col-set-list">
       <div v-for="(d, i) in columnDefs" :key="d.field" class="col-set-item">
         <span class="col-order">
@@ -25,9 +43,25 @@ const { colDrawer, moveCol, removeCol } = props.ops;
         <el-switch v-model="d.visible" size="small" inline-prompt active-text="显" inactive-text="隐" />
         <el-switch v-model="d.frozen" size="small" inline-prompt active-text="冻" inactive-text="松" />
         <el-switch v-model="d.required" size="small" inline-prompt active-text="必" inactive-text="选" />
+        <el-button
+          text
+          size="small"
+          :type="hasRule(d) ? 'primary' : 'default'"
+          title="校验规则（区间/长度/正则/唯一/跨列）"
+          @click="openRule(d)"
+        >
+          ⚙
+        </el-button>
         <el-button text size="small" type="danger" title="删除列" @click="removeCol(d.field)">🗑</el-button>
       </div>
     </div>
+    <RuleDialog
+      :visible="ruleVisible"
+      :def="ruleDef"
+      :all-defs="columnDefs"
+      @close="ruleVisible = false"
+      @save="saveRule"
+    />
   </el-drawer>
 </template>
 

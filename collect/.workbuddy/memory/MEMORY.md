@@ -14,6 +14,10 @@
 - **`getActiveCell` 不是 vxe OSS 表格实例方法**（右键取格不要用它，会拿到过期值）：一律用坐标 → `.vxe-body--row@rowid` + `.vxe-body--column@colid` 降级解析。
 - **copy/paste/contextmenu 监听必须挂 window**：这些事件派发在 `document.activeElement`（点格后仍是 body）或最顶层元素（fixed 菜单会遮住单元格成为 target），挂在 gridWrapper 上不在事件路径上、永远收不到；作用域用 gridActive 标志判，输入框 target 豁免。
 - **Esc/F1 等全局键要放在 inGrid 守卫之前**：右键落点被菜单遮住时 mousedown target 是菜单 → gridActive=false，放在守卫后会整段失效。
+- **事件名**：表头点击是 `header-cell-click`（不存在 `header-click`）；列宽拖拽是 `column-resizable-change`（`resizable-change` 已标废弃）。点表头想干别的必须先看 sort-config：`trigger:'cell'` 会让点表头直接排序，改 `'default'` 才归你；params 自带 `triggerSort/triggerFilter/triggerResizable` 可做守卫。
+- **构造行必须剥离 init 里的 `__id/__dirty`**：`{ __id: uid(), ...init }` 遇 `makeRow({...row})`（复制行）会被原主键覆盖 → 两行同 id，vxe 报主键重复，编辑/选区/校验全串行。
+- 十字高亮这类"叠加态底色"要用 `background-image`：`background-color` 会被 `cell-sel`(!important) / `cell-error` 吃掉，image 可与任何底色共存。
+- 手柄类元素用了 `@pointerdown.prevent` 就收不到 dblclick（兼容性鼠标事件被吞），双击要自己按时间戳判。
 
 ## excel-data-entry-vxe 架构约定
 - 页面壳 `excel-data-entry-vxe.vue` + 12 个 hooks + 9 个 SFC + cells/（el 编辑器注册与 display 渲染器）；验证用 `node_modules/.bin/vue-tsc --noEmit` 筛选 `excel-data-entry-vxe`。

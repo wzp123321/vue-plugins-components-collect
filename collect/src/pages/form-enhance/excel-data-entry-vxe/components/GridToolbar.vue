@@ -20,6 +20,7 @@ const props = defineProps<{
 }>();
 
 const { addRow, insertRow, deleteSelected, duplicateSelected, clearAll, selectionCount } = props.ops;
+const { removeEmptyRows, removeDuplicateRows } = props.ops;
 const { openAddCol, colDrawer, fillVisible, submit, submitting, errDrawer } = props.ops;
 const { importExcel, onExportCommand } = props.io;
 const { onTplCommand, templates } = props.tpl;
@@ -85,6 +86,8 @@ const { findVisible } = props.find;
     <el-divider direction="vertical" />
     <div class="tb-group">
       <el-button type="success" @click="submit" :loading="submitting">💾 提交</el-button>
+      <el-button @click="removeEmptyRows" plain title="删除所有列都为空的整行">删空行</el-button>
+      <el-button @click="removeDuplicateRows" plain title="整行完全相同只保留首行">去重</el-button>
       <el-button @click="clearAll" plain>清空</el-button>
     </div>
     <el-divider direction="vertical" />

@@ -24,9 +24,11 @@ export function useGridKeys(
     gridWrapper: Ref<HTMLElement | undefined>;
     /** Esc 是跨状态机的全局键：由协调层（useGridMouse）关菜单 + 取消复制蚂蚁线 */
     onEscape: () => void;
+    /** Tab 到末行末尾时追加一行并返回它（由协调层注入 ops.addRow，避免键盘层直接依赖数据操作层） */
+    appendRow?: () => any;
   },
 ) {
-  const { gridBox, gridWrapper, onEscape } = deps;
+  const { gridBox, gridWrapper, onEscape, appendRow } = deps;
 
   // ===================== 网格激活判定 =====================
   const gridActive = ref(false);
@@ -67,6 +69,17 @@ export function useGridKeys(
         nr = Math.max(ri - 1, 0);
       } else if (nc >= fields.length) {
         nc = 0;
+        // 编辑态 Tab 到末行末尾同样追加新行（连续录入不中断）
+        if (!shift && ri === rows.length - 1 && core.viewMode.value === 'virtual' && appendRow) {
+          const nr2 = appendRow();
+          if (nr2) {
+            tableRef.value?.clearActived?.();
+            core.currentCell.value = { row: nr2, field: fields[0] };
+            sel.collapseTo(nr2.__id, fields[0]);
+            scrollCellIntoView(nr2, fields[0]);
+            return;
+          }
+        }
         nr = Math.min(ri + 1, rows.length - 1);
       }
     }
@@ -231,6 +244,36 @@ export function useGridKeys(
         }
       }
       ElMessage.success(n ? `已向下填充 ${n} 个单元格` : '选区内没有可填充的单元格');
+    } else if (mod && key === 'r') {
+      // Ctrl+R：向右填充——选区最左列逐行复制到右侧各列（与 Ctrl+D 对称，Excel 语义）
+      e.preventDefault();
+      const rect = sel.selRect.value;
+      if (!rect || rect.fields.length < 2) {
+        ElMessage.info('请先框选至少两列（最左列作为数据源）再向右填充');
+        return;
+      }
+      const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
+      if (!rows.length) return;
+      core.pushSnapshot(core.snapshotNow());
+      const srcField = rect.fields[0];
+      let n = 0;
+      for (const r of rows) {
+        for (let i = 1; i < rect.fields.length; i++) {
+          const f = rect.fields[i];
+          r[f] = r[srcField];
+          r.__dirty = true;
+          core.validateCell(r, f);
+          n++;
+        }
+      }
+      ElMessage.success(n ? `已向右填充 ${n} 个单元格` : '选区内没有可填充的单元格');
+    } else if (key === ' ' && (mod || shift)) {
+      // Ctrl+Space 选整列 / Shift+Space 选整行（Excel 标准快捷键，与"点列头选列"互为补充）
+      e.preventDefault();
+      const cur = moveBase();
+      if (!cur) return;
+      if (mod) sel.selectColumn(cur.field);
+      else sel.selectRow(cur.row.__id);
     } else if (mod && key === 'a') {
       // Ctrl+A：框选整个数据区（Excel 全选语义，替代已移除的复选框全选）。
       // 注意不要顺手改 currentCell——选区 watch 会把选区塌缩成单格，全选即被冲掉
@@ -332,6 +375,17 @@ export function useGridKeys(
       let nc = ci + (shift ? -1 : 1);
       if (nc >= fields.length) {
         nc = 0;
+        // 连续录入：末行末尾 Tab 自动追加一行并落到新行首格（仅虚拟滚动模式；
+        // 分页模式下新行不在当前页，跳过去会显示为空页）
+        if (!shift && ri === rows.length - 1 && core.viewMode.value === 'virtual' && appendRow) {
+          const nr2 = appendRow();
+          if (nr2) {
+            core.currentCell.value = { row: nr2, field: fields[0] };
+            sel.collapseTo(nr2.__id, fields[0]);
+            scrollCellIntoView(nr2, fields[0]);
+            return;
+          }
+        }
         nr = Math.min(ri + 1, rows.length - 1);
       } else if (nc < 0) {
         nc = fields.length - 1;

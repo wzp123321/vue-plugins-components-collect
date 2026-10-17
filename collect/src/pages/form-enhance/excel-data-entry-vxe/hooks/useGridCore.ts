@@ -19,12 +19,22 @@ import {
 
 export function useGridCore() {
   // ===================== 列元信息 =====================
+  // 校验规则全部声明在列定义里（required / rules / cross），加列改列都不必改校验代码
   const columnDefs = ref<ColDef[]>([
-    { field: 'name', label: '姓名', type: 'text', required: true, frozen: true, visible: true, width: 120 },
-    { field: 'age', label: '年龄', type: 'number', required: true, visible: true, width: 90 },
+    { field: 'name', label: '姓名', type: 'text', required: true, frozen: true, visible: true, width: 120, rules: { minLen: 2, maxLen: 12 } },
+    { field: 'age', label: '年龄', type: 'number', required: true, visible: true, width: 90, rules: { min: 18, max: 65 } },
     { field: 'department', label: '部门', type: 'select', options: DEPARTMENTS, required: true, visible: true, width: 110 },
-    { field: 'joinDate', label: '入职日期', type: 'date', required: true, visible: true, width: 130 },
-    { field: 'email', label: '邮箱', type: 'text', required: false, visible: true, width: 200 },
+    { field: 'joinDate', label: '入职日期', type: 'date', required: true, visible: true, width: 130, cross: [{ kind: 'lte', other: 'leaveDate', msg: '入职日期不能晚于离职日期' }] },
+    { field: 'leaveDate', label: '离职日期', type: 'date', required: false, visible: true, width: 130 },
+    {
+      field: 'email',
+      label: '邮箱',
+      type: 'text',
+      required: false,
+      visible: true,
+      width: 200,
+      rules: { unique: true, pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$', patternMsg: '邮箱格式不正确' },
+    },
     { field: 'status', label: '状态', type: 'select', options: STATUSES, required: true, visible: true, width: 100 },
     { field: 'remark', label: '备注', type: 'text', required: false, visible: true, width: 160 },
   ]);
@@ -32,9 +42,14 @@ export function useGridCore() {
   const labelOf = (f: string) => columnDefs.value.find((d) => d.field === f)?.label ?? f;
 
   // ===================== 行数据 =====================
-  /** 按当前列结构造一行：init 覆盖指定字段，其余列按 emptyValueFor 留空（下拉不预选首项） */
+  /**
+   * 按当前列结构造一行：init 覆盖指定字段，其余列按 emptyValueFor 留空（下拉不预选首项）。
+   * 注意：init 里的 __id / __dirty 必须剥离——复制行（duplicateSelected）会整行传入，
+   * 若被 init 覆盖就会产生两个相同 __id 的行（vxe 主键重复告警，且编辑/选区/校验会串行）
+   */
   const makeRow = (init: Record<string, any> = {}): Row => {
-    const row: Row = { __id: uid(), __dirty: false, ...init };
+    const { __id: _droppedId, __dirty: _droppedDirty, ...rest } = init;
+    const row: Row = { __id: uid(), __dirty: false, ...rest };
     for (const d of columnDefs.value) {
       if (!(d.field in row)) row[d.field] = emptyValueFor(d);
     }
@@ -54,8 +69,10 @@ export function useGridCore() {
       const joinDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const email = `emp${String(i + 1).padStart(4, '0')}@corp.example.com`;
       const status = STATUSES[i % STATUSES.length];
+      // 离职员工才有离职日期：给"入职≤离职"这条跨列规则提供真实数据面
+      const leaveDate = status === '离职' ? `${year + 2}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` : '';
       const remark = CITIES[i % CITIES.length];
-      arr[i] = makeRow({ name, age, department, joinDate, email, status, remark });
+      arr[i] = makeRow({ name, age, department, joinDate, leaveDate, email, status, remark });
     }
     return arr;
   };

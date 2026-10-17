@@ -135,6 +135,8 @@ export function useGridMouse(
       closeMenu();
       marquee.clearCopied();
     },
+    // Tab 到末行末尾自动续行：转调数据操作层的 addRow（返回新行供键盘层定位）
+    appendRow: () => ops.addRow(),
   });
 
   // ===================== 剪贴板 =====================

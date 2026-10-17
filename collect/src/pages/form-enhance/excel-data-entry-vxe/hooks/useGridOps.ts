@@ -1,13 +1,20 @@
-// 数据操作：行增删复制 / 自定义列增删移序 / 批量填充 / 提交 / 校验面板跳转
+// 数据操作：行增删复制 / 自定义列增删移序 / 批量填充 / 数据质量清理 / 提交 / 校验面板跳转
 import { ref, reactive, computed, nextTick } from 'vue';
 import type { Ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
 import type { CellSelection } from './useCellSelection';
+import type { GridDraft } from './useGridDraft';
 import { type ColDef, type ColType, emptyValueFor } from '../types';
 
-export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScroll, sel: CellSelection) {
+export function useGridOps(
+  core: GridCore,
+  tableRef: Ref<any>,
+  scroll: GridScroll,
+  sel: CellSelection,
+  draft?: GridDraft,
+) {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 框选选区（行选中移除后的批量作用域） =====================
@@ -58,7 +65,7 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
     };
     nextTick(locate);
   };
-  /** 定位到指定行并滚入可视区（新增/插入行后调用，见上方 locateRow 注释的重试原因） */
+  /** 追加一行并滚入可视区；返回新行（键盘层 Tab 到末行末尾时用它续录） */
   const addRow = () => {
     snap();
     const row = core.makeRow();
@@ -66,6 +73,7 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
     core.validateRow(row);
     core.allRows.value.push(row);
     locateRow(row);
+    return row;
   };
   /** 在当前格下方插入一行；无当前格时退化为追加到末尾 */
   const insertRow = () => {
@@ -106,6 +114,61 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
     snap();
     core.allRows.value = [];
     for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
+  };
+
+  // ===================== 数据质量：空行 / 重复行 =====================
+  // 只按"可见列全为空"判定空行：隐藏列里残留的值不阻止清理（用户视角就是空行）
+  const rowIsEmpty = (r: any) => core.visibleDefs.value.every((d) => r[d.field] === null || r[d.field] === undefined || r[d.field] === '');
+  const emptyRowCount = () => core.allRows.value.filter(rowIsEmpty).length;
+  // 整行签名：按可见列拼全值，用于找出"每一列都完全相同"的重复行
+  const dupSignature = (r: any) => core.visibleDefs.value.map((d) => String(r[d.field] ?? '')).join('\u0001');
+  const dupGroups = (): string[][] => {
+    const m = new Map<string, string[]>();
+    for (const r of core.allRows.value) {
+      if (rowIsEmpty(r)) continue; // 空行不计入重复，交给空行清理处理
+      const k = dupSignature(r);
+      const g = m.get(k);
+      if (g) g.push(r.__id);
+      else m.set(k, [r.__id]);
+    }
+    return [...m.values()].filter((g) => g.length > 1);
+  };
+
+  /** 一键删除空行（可撤销） */
+  const removeEmptyRows = () => {
+    const n = emptyRowCount();
+    if (!n) {
+      ElMessage.info('没有发现空行');
+      return;
+    }
+    snap();
+    core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
+    core.revalidateAll();
+    ElMessage.success(`已删除 ${n} 个空行`);
+  };
+
+  /** 一键去重：每组完全相同的行只保留首行（可撤销） */
+  const removeDuplicateRows = () => {
+    const groups = dupGroups();
+    const extra = groups.reduce((n, g) => n + g.length - 1, 0);
+    if (!extra) {
+      ElMessage.info('没有发现完全重复的行');
+      return;
+    }
+    ElMessageBox.confirm(`发现 ${groups.length} 组重复行，将删除其中 ${extra} 行（每组保留首行），是否继续？`, '去重', {
+      confirmButtonText: '删除重复行',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(() => {
+        snap();
+        const drop = new Set<string>();
+        for (const g of groups) for (let i = 1; i < g.length; i++) drop.add(g[i]);
+        core.allRows.value = core.allRows.value.filter((r) => !drop.has(r.__id));
+        core.revalidateAll();
+        ElMessage.success(`已删除 ${drop.size} 个重复行`);
+      })
+      .catch(() => {});
   };
 
   // ===================== 列操作 =====================
@@ -228,7 +291,33 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
 
   // ===================== 提交 =====================
   const submitting = ref(false);
+  /**
+   * 模拟服务端校验：真实项目把这里换成接口调用即可——返回结构统一为 { idx, field, msg }，
+   * 下方回填逻辑（写 cellErrors → 开校验面板 → 跳转首条）完全复用，不必改动。
+   * 故意只放"前端不该知道"的规则，用来演示前后端两段校验的合并。
+   */
+  const serverValidate = async (payload: Record<string, any>[]): Promise<{ idx: number; field: string; msg: string }[]> => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 400));
+    const errs: { idx: number; field: string; msg: string }[] = [];
+    payload.forEach((o, idx) => {
+      if (Number(o.age) > 62 && !String(o.remark ?? '').trim()) {
+        errs.push({ idx, field: 'remark', msg: '服务端：年龄超 62 岁须在备注中说明' });
+      }
+      if (/^test|测试/i.test(String(o.name ?? '').trim())) {
+        errs.push({ idx, field: 'name', msg: '服务端：姓名疑似测试数据，请修正' });
+      }
+    });
+    return errs;
+  };
+
   const submit = async () => {
+    // 1) 空行不参与提交：先剔除（可撤销），再全量重校（unique 计数会随之变化）
+    const emptyN = emptyRowCount();
+    if (emptyN) {
+      snap();
+      core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
+      ElMessage.info(`已移除并忽略 ${emptyN} 个空行`);
+    }
     core.revalidateAll();
     if (core.errorCount.value > 0) {
       ElMessage.error(`有 ${core.errorCount.value} 处校验未通过，请先修正标红单元格`);
@@ -241,13 +330,32 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
     }
     submitting.value = true;
     try {
-      const payload = core.allRows.value.map((r) => {
+      const rows = core.allRows.value;
+      const payload = rows.map((r) => {
         const o: Record<string, any> = {};
         for (const d of core.columnDefs.value) o[d.field] = r[d.field];
         return o;
       });
-      await new Promise<void>((resolve) => setTimeout(resolve, 600));
-      core.allRows.value.forEach((r) => (r.__dirty = false));
+      // 2) 服务端校验：错误逐格回填到前端错误表，定位口径与本地校验完全一致
+      const serverErrs = await serverValidate(payload);
+      if (serverErrs.length) {
+        for (const e of serverErrs) {
+          const row = rows[e.idx];
+          if (row) core.setCellError(row.__id, e.field, e.msg);
+        }
+        errDrawer.value = true;
+        const first = serverErrs[0];
+        const firstRow = rows[first.idx];
+        if (firstRow) {
+          scroll.scrollToCell(firstRow, first.field);
+          core.flashCell(firstRow.__id, first.field);
+        }
+        ElMessage.error(`服务端校验未通过 ${serverErrs.length} 处，已在表格标红`);
+        return;
+      }
+      // 3) 通过：清脏标记 + 清草稿
+      rows.forEach((r) => (r.__dirty = false));
+      draft?.clearDraft();
       ElMessage.success(`已提交 ${payload.length} 条记录（mock）`);
     } finally {
       submitting.value = false;
@@ -266,6 +374,10 @@ export function useGridOps(core: GridCore, tableRef: Ref<any>, scroll: GridScrol
     deleteSelected,
     duplicateSelected,
     clearAll,
+    // 数据质量
+    emptyRowCount,
+    removeEmptyRows,
+    removeDuplicateRows,
     // 列操作
     colDialogVisible,
     colDrawer,
