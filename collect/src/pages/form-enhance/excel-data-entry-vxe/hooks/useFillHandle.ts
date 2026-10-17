@@ -1,11 +1,29 @@
-// 拖拽填充手柄：锚点定位 / 手柄显隐 / 拖拽纵向填充（方向感知）
+// 拖拽填充手柄：锚点定位 / 手柄显隐 / 拖拽纵向填充（方向感知 + 序列填充）
 // 与快捷键填充互补：Ctrl+D = 选区内向下填充，Ctrl+Enter = 整区填当前格值，
-// 本手柄 = 把选区首/末行的值拖写到选区之外的新行（Excel 填充柄语义）
+// 本手柄 = 把选区首/末行的值拖写到选区之外的新行（Excel 填充柄语义）。
+// 序列填充：数字按首两行差推算、日期按天差推算（+1 天起步），文本/下拉复制。
 import { reactive, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
+
+// 日期解析 / 加天数（setDate 自动处理跨月与闰年，输出 YYYY-MM-DD）
+const parseDate = (v: any): Date | null => {
+  if (!v) return null;
+  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
+};
+const addDays = (v: any, days: number): string => {
+  const d = parseDate(v) ?? new Date();
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${mo}-${day}`;
+};
 
 export function useFillHandle(
   core: GridCore,
@@ -117,14 +135,37 @@ export function useFillHandle(
       }
       // 方向感知的填充源（Excel 语义）：向下拖取选区末行（手柄行）的值，向上拖取首行的值
       const down = tIdx > bottomIdx;
-      const srcRow = rows[down ? bottomIdx : topIdx];
-      const srcVal = srcRow[srcField];
+      // 序列填充：从选区首两行推算步长——数字按差值；日期按天差；单行数字复制、单行日期 +1 天（Excel 语义）；
+      // 文本/下拉恒为复制（步长 0）。公式统一为 first + step*(i - topIdx)，覆盖向下与向上两种方向
+      const def = core.columnDefs.value.find((d) => d.field === srcField);
+      const type = def?.type;
+      const seed: any[] = [];
+      for (let i = topIdx; i <= bottomIdx; i++) seed.push(rows[i][srcField]);
+      const first = seed[0];
+      let step = 0;
+      if (type === 'number') {
+        const f = Number(first);
+        step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
+        if (!isFinite(step)) step = 0;
+      } else if (type === 'date') {
+        const d0 = parseDate(first);
+        const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
+        step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
+        if (!isFinite(step)) step = 1;
+      }
+      const seriesVal = (t: number): any => {
+        if (first === '' || first == null) return first; // 源为空：复制
+        const k = t - topIdx;
+        if (type === 'number') return Number((Number(first) + step * k).toFixed(6));
+        if (type === 'date') return addDays(first, step * k);
+        return first; // 文本/下拉：常量复制
+      };
       snap();
       let n = 0;
       for (let i = range[0]; i <= range[1]; i++) {
         const r = rows[i];
         if (!r) continue;
-        r[srcField] = srcVal;
+        r[srcField] = seriesVal(i);
         r.__dirty = true;
         core.validateCell(r, srcField);
         n++;

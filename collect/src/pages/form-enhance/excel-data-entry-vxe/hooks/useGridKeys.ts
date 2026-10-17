@@ -1,4 +1,5 @@
-// 键盘交互：网格激活判定 + Excel 式单元格导航（方向键/Tab/Enter/F2/Delete）+ 快捷键（Ctrl+Z/Y/F/D/A/Enter）
+// 键盘交互：网格激活判定 + Excel 式单元格导航（方向键/Tab/Enter/F2/Delete + Ctrl+方向键跳边界/Home·End/PageUp·Down）
+//           + 选中即键入编辑（覆盖模式）+ 快捷键（Ctrl+Z/Y/F/D/A/Enter）
 // 设计要点：
 // - vxe OSS 方向键不感知 Shift，且其内部 selected 态与自研选区双轨运行会冲突，
 //   故键盘导航完全自管（keyboard-config 已在 useGridColumns 显式关闭对应项）
@@ -45,6 +46,100 @@ export function useGridKeys(
     tableRef.value?.scrollToColumn?.(field);
   };
 
+  // 编辑态 Enter/Tab：提交当前编辑并移动到下一格（Excel 语义：下移/右移，不自动续编）
+  // vxe 的 keyboardConfig.isEnter 已关闭，编辑内的 Enter/Tab 不会自动流转，须在此接管
+  const commitAndMove = (direction: 'down' | 'right', shift: boolean) => {
+    const cur = core.currentCell.value;
+    if (!cur) return;
+    const rows = core.processedRows.value;
+    const fields = core.visibleDefs.value.map((d) => d.field);
+    const ri = rows.findIndex((r) => r.__id === cur.row.__id);
+    const ci = fields.indexOf(cur.field);
+    if (ri < 0 || ci < 0) return;
+    let nr = ri;
+    let nc = ci;
+    if (direction === 'down') {
+      nr = Math.min(ri + (shift ? -1 : 1), rows.length - 1);
+    } else {
+      nc = ci + (shift ? -1 : 1);
+      if (nc < 0) {
+        nc = fields.length - 1;
+        nr = Math.max(ri - 1, 0);
+      } else if (nc >= fields.length) {
+        nc = 0;
+        nr = Math.min(ri + 1, rows.length - 1);
+      }
+    }
+    const nrow = rows[nr];
+    const nfield = fields[nc];
+    tableRef.value?.clearActived?.();
+    core.currentCell.value = { row: nrow, field: nfield };
+    sel.collapseTo(nrow.__id, nfield);
+    scrollCellIntoView(nrow, nfield);
+  };
+
+  // 选中格键入字符即覆盖进入编辑：text 直接用字符；number 仅数字/小数点/负号可覆盖；date/select 打开编辑器保留原值
+  const startOverwriteEdit = (row: any, field: string, ch: string) => {
+    const def = core.columnDefs.value.find((d) => d.field === field);
+    const type = def?.type;
+    let startVal: any = row[field];
+    if (type === 'text') {
+      startVal = ch;
+    } else if (type === 'number') {
+      if (/[0-9]/.test(ch)) startVal = Number(ch);
+      else if (ch === '.') startVal = 0;
+      else if (ch === '-') startVal = null; // 负号作起始：打开编辑但不覆盖
+      else return; // 非数字字符忽略
+    } else {
+      startVal = row[field]; // date/select：保留原值，仅打开编辑器供选取/输入
+    }
+    if (startVal !== row[field]) {
+      core.pushSnapshot(core.snapshotNow());
+      row[field] = startVal;
+      row.__dirty = true;
+    }
+    core.currentCell.value = { row, field };
+    sel.collapseTo(row.__id, field);
+    tableRef.value?.setEditCell?.(row, field);
+  };
+
+  // ===================== 数据边界 / 分页跳转辅助 =====================
+  const colHasValue = (row: any, field: string) =>
+    row[field] !== null && row[field] !== undefined && row[field] !== '';
+  // 列内向下/向上跳到数据块边界（Excel 语义：在连续数据块内跳到块首/块末；在空白区跳到最近的末非空行/列或极端）
+  const boundaryRow = (field: string, from: number, dir: 1 | -1): number => {
+    const rows = core.processedRows.value;
+    const has = (i: number) => colHasValue(rows[i], field);
+    if (dir === 1) {
+      if (has(from)) { let i = from; while (i + 1 < rows.length && has(i + 1)) i++; return i; }
+      for (let i = from + 1; i < rows.length; i++) if (has(i)) return i;
+      return rows.length - 1;
+    }
+    if (has(from)) { let i = from; while (i - 1 >= 0 && has(i - 1)) i--; return i; }
+    for (let i = from - 1; i >= 0; i--) if (has(i)) return i;
+    return 0;
+  };
+  // 行内向左/向右跳到数据块边界
+  const boundaryCol = (row: any, from: number, dir: 1 | -1, fields: string[]): number => {
+    const has = (i: number) => colHasValue(row, fields[i]);
+    if (dir === 1) {
+      if (has(from)) { let i = from; while (i + 1 < fields.length && has(i + 1)) i++; return i; }
+      for (let i = from + 1; i < fields.length; i++) if (has(i)) return i;
+      return fields.length - 1;
+    }
+    if (has(from)) { let i = from; while (i - 1 >= 0 && has(i - 1)) i--; return i; }
+    for (let i = from - 1; i >= 0; i--) if (has(i)) return i;
+    return 0;
+  };
+  // 估算可视行数（PageUp/PageDown 整屏翻动）
+  const visibleRowCount = (): number => {
+    const box = gridBox.value;
+    if (!box) return 10;
+    const sample = box.querySelector('.vxe-body--row') as HTMLElement | null;
+    const rh = sample ? sample.getBoundingClientRect().height : 36;
+    return Math.max(1, Math.floor((box.clientHeight || 400) / (rh || 36)) - 1);
+  };
+
   // 方向键/Tab/Enter 的移动基准格（Excel：白底活动格即 anchor，方向键从其移动并塌缩选区）：
   // - 键盘扩展流：currentCell 就是 focus 端（Shift+方向键刚移过），继续从其移动
   // - 鼠标拖选后：click 落在首/尾格的公共祖先上，vxe 收不到 cell-click，currentCell 为 null
@@ -66,11 +161,18 @@ export function useGridKeys(
     const ae = document.activeElement;
     const tag = (ae?.tagName || '').toLowerCase();
     const inField = tag === 'input' || tag === 'textarea' || tag === 'select';
-    // 输入框内一律放行原生行为（含 Ctrl+Z 文本撤销 / Ctrl+A 全选文本），网格快捷键不拦截
-    if (inField) return;
     const mod = e.ctrlKey || e.metaKey;
     const key = e.key.toLowerCase();
     const shift = e.shiftKey;
+    // 输入框内：编辑态接管 Enter/Tab（提交并移动）；其余放行原生（含 Ctrl+Z 文本撤销 / Esc 取消编辑）
+    if (inField) {
+      const inGridEdit = !!(ae && (ae as HTMLElement).closest && (ae as HTMLElement).closest('.vxe-table'));
+      if (inGridEdit && (key === 'enter' || key === 'tab')) {
+        e.preventDefault();
+        commitAndMove(key === 'enter' ? 'down' : 'right', shift);
+      }
+      return;
+    }
 
     // 全局键（不要求网格激活）：编辑态的 Esc 由输入框提前放行、交回 vxe 处理
     if (key === 'escape') {
@@ -86,6 +188,16 @@ export function useGridKeys(
 
     const inGrid = gridActive.value || (gridWrapper.value?.contains(ae as Node) ?? false);
     if (!inGrid) return;
+
+    // 选中格直接键入即进入编辑（覆盖模式，Excel 语义）：字母/数字/符号落到当前格并打开编辑器
+    if (!mod && !e.altKey && key.length === 1) {
+      const cur = moveBase();
+      if (cur) {
+        e.preventDefault();
+        startOverwriteEdit(cur.row, cur.field, key);
+        return;
+      }
+    }
 
     if (mod && key === 'z') {
       e.preventDefault();
@@ -152,7 +264,44 @@ export function useGridKeys(
         }
         ElMessage.success(n ? `已填充 ${n} 个单元格` : '选区内没有其他单元格');
       }
-    } else if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
+    } else if (
+      key === 'home' || key === 'end' || key === 'pageup' || key === 'pagedown' ||
+      (mod && (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright' || key === 'home' || key === 'end'))
+    ) {
+      // 边界/分页跳转：Home/End = 行内首/末列；Ctrl+方向键 = 跳数据块边界；
+      // Ctrl+Home/End = 数据区左上/右下角；PageUp/Down = 整屏翻动
+      const cur = moveBase();
+      if (!cur) return;
+      e.preventDefault();
+      const rows = core.processedRows.value;
+      const fields = core.visibleDefs.value.map((d) => d.field);
+      const ri = rows.findIndex((r) => r.__id === cur.row.__id);
+      const ci = fields.indexOf(cur.field);
+      if (ri < 0 || ci < 0) return;
+      let nr = ri;
+      let nc = ci;
+      if (mod && key.startsWith('arrow')) {
+        if (key === 'arrowdown') nr = boundaryRow(cur.field, ri, 1);
+        else if (key === 'arrowup') nr = boundaryRow(cur.field, ri, -1);
+        else if (key === 'arrowright') nc = boundaryCol(rows[ri], ci, 1, fields);
+        else nc = boundaryCol(rows[ri], ci, -1, fields);
+      } else if (mod && (key === 'home' || key === 'end')) {
+        nr = key === 'home' ? 0 : rows.length - 1;
+        nc = key === 'home' ? 0 : fields.length - 1;
+      } else if (key === 'home') {
+        nc = 0;
+      } else if (key === 'end') {
+        nc = fields.length - 1;
+      } else {
+        const step = visibleRowCount() * (key === 'pageup' ? -1 : 1);
+        nr = Math.min(Math.max(ri + step, 0), rows.length - 1);
+      }
+      const nrow = rows[nr];
+      const nfield = fields[nc];
+      core.currentCell.value = { row: nrow, field: nfield };
+      sel.collapseTo(nrow.__id, nfield);
+      scrollCellIntoView(nrow, nfield);
+    } else if ((key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') && !mod) {
       // 方向键导航：普通方向键塌缩为单格，Shift+方向键保持 anchor 扩展（extendTo 只动 focus）
       const cur = moveBase();
       if (!cur) return;

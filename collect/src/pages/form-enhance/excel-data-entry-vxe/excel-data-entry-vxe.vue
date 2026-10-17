@@ -98,7 +98,7 @@
         <span class="sb-item">最大 <b>{{ selectionStats.max }}</b></span>
         <span class="sb-item">最小 <b>{{ selectionStats.min }}</b></span>
       </template>
-      <span class="sb-tip">提示：拖动框选单元格 · 点序号格选中整行 · 双击/F2 编辑 · Ctrl+D 向下填充 · Ctrl+A 全选 · 拖右下角 ▢ 填充 · F1 快捷键帮助</span>
+      <span class="sb-tip">提示：拖动框选单元格 · 点序号格选中整行 · 直接键入即编辑 · 双击/F2 编辑 · Ctrl+方向键跳边界 · PageUp/Down 翻屏 · Ctrl+D 向下填充 · Ctrl+A 全选 · 拖右下角 ▢ 序列填充 · F1 快捷键帮助</span>
     </div>
 
     <!-- 分页（仅分页模式） -->
