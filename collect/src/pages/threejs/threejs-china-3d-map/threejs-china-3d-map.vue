@@ -1,34 +1,58 @@
 <template>
   <div class="china3d-page">
-    <ChinaMap3D :project-data="projectData" />
+    <ChinaMap3D
+      :project-data="projectData"
+      :show-column="cfg.showColumn"
+      :column-color="cfg.columnColor"
+      :show-flyline="cfg.showFlyline"
+      :flyline-color="cfg.flylineColor"
+      :flyline-speed="cfg.flylineSpeed"
+    />
+    <MapControlPanel
+      v-model:show-column="cfg.showColumn"
+      v-model:column-color="cfg.columnColor"
+      v-model:show-flyline="cfg.showFlyline"
+      v-model:flyline-color="cfg.flylineColor"
+      v-model:flyline-speed="cfg.flylineSpeed"
+    />
     <div class="china3d-overlay">
       <div class="china3d-title">
         <span class="china3d-title__main">全国数据分布 · 3D 地图</span>
-        <span class="china3d-title__sub">Three.js 立体中国地图（mega-vision 同源渲染）· 含城市飞线</span>
+        <span class="china3d-title__sub">Three.js 立体中国地图 · 双击下钻省/市 · 底部按钮返回上级</span>
       </div>
       <div class="china3d-hints">
-        <p>🖱️ 拖拽旋转 · 滚轮缩放</p>
-        <p>👆 悬停省份高亮 · 点击/自动缩放下钻</p>
+        <p>🖱️ 左键拖拽旋转 · 右键拖拽平移 · 滚轮缩放</p>
+        <p>👆 单击城市查看标牌 · 双击区域下钻 · 悬停看数据卡片</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import ChinaMap3D from './china-map-3d/components/ChinaMap3D.vue'
+import MapControlPanel from './china-map-3d/components/MapControlPanel.vue'
 import chinaGeo from '@/assets/geojson/china.json'
 
-// 演示数据：给每个省份一个随机"项目数"，驱动 mega-vision 的锥环标记与配色
+// 可视化控制参数（右上角控制台双向绑定）
+const cfg = reactive({
+  showColumn: true,
+  columnColor: '#5FC9EE',
+  showFlyline: true,
+  flylineColor: '#7FD4F5',
+  flylineSpeed: 0.2,
+})
+
+// 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色
 const projectData = ref<Record<number, number>>({})
 onMounted(() => {
-  const d: Record<number, number> = {}
-  for (const f of (chinaGeo as any).features) {
-    const adcode = Number(f.properties.adcode)
+  const data: Record<number, number> = {}
+  for (const feature of (chinaGeo as any).features) {
+    const adcode = Number(feature.properties.adcode)
     if (!adcode) continue
-    d[adcode] = 4 + Math.floor(Math.random() * 80)
+    data[adcode] = 4 + Math.floor(Math.random() * 80)
   }
-  projectData.value = d
+  projectData.value = data
 })
 </script>
 
@@ -39,7 +63,7 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 38%, #062255 0%, #03102e 55%, #010814 100%);
+    radial-gradient(circle at 50% 38%, #05173e 0%, #030f2a 55%, #01060f 100%);
 }
 .china3d-overlay {
   position: absolute;

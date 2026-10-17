@@ -15,6 +15,7 @@ declare global {
 
 declare var __COMPAT__: boolean;
 declare module 'crypto-js';
+declare module 'd3';
 declare module 'vue-virtual-scroller';
 declare module '@arco-iconbox/vue-te';
 declare module 'qrcode';

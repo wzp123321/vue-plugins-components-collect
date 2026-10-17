@@ -1,40 +1,52 @@
 import type { GeoJsonType } from '../types'
 import chinaJson from '@/assets/geojson/china.json'
 
-const geoJsonCache = new Map<string, GeoJsonType>()
+const cache = new Map<string, GeoJsonType>()
+
+// Vite 懒加载省级 GeoJSON：import.meta.glob 会为每个文件生成独立 chunk，
+// dev / 生产构建均可用（运行态 import('@/...') 在生产构建会退化为 404）
+const provinceLoaders = import.meta.glob('/src/assets/geojson/province/*.json')
 
 /**
- * 本地 GeoJSON 加载器（替代原高德 AMap DistrictExplorer）。
- * - 全国省级数据：已打包在 src/assets/geojson/china.json（静态导入）
+ * 本地 GeoJSON 加载器：
+ * - 全国省级数据：随包内置（src/assets/geojson/china.json）
  * - 各省市级数据：懒加载 src/assets/geojson/province/{adcode}.json
- * 完全不依赖高德 Key / 在线服务，离线可用。
+ * - 市 → 区县级数据：本地缺失时走 DataV CDN 兜底
  */
-
-// 兼容原 ChinaMap3D 中的 loadAmapScript() 调用：此处无需加载任何脚本，直接 resolve。
-export async function loadAmapScript(): Promise<void> {
-  return
-}
-
 export async function fetchChinaGeoJson(): Promise<GeoJsonType> {
   return chinaJson as unknown as GeoJsonType
 }
 
 export async function fetchDistrictGeoJson(adcode: string): Promise<GeoJsonType> {
-  const cacheKey = adcode
-  if (geoJsonCache.has(cacheKey)) {
-    return geoJsonCache.get(cacheKey)!
+  const cached = cache.get(adcode)
+  if (cached) return cached
+
+  const loader = provinceLoaders[`/src/assets/geojson/province/${adcode}.json`]
+  if (loader) {
+    try {
+      const module = (await loader()) as any
+      const geo = (module.default || module) as GeoJsonType
+      cache.set(adcode, geo)
+      return geo
+    } catch {
+      // 单文件加载失败 → 走 CDN 兜底
+    }
   }
+
   try {
-    const mod = await import(`@/assets/geojson/province/${adcode}.json`)
-    const geo = (mod.default || mod) as GeoJsonType
-    geoJsonCache.set(cacheKey, geo)
-    return geo
+    const response = await fetch(`https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`)
+    if (response.ok) {
+      const geo = (await response.json()) as GeoJsonType
+      cache.set(adcode, geo)
+      return geo
+    }
   } catch {
-    // 部分 adcode（如台湾 710000）无市级数据，下钻时静默降级
-    return { type: 'FeatureCollection', features: [] }
+    // 网络不可达时静默降级为无下级数据
   }
+
+  return { type: 'FeatureCollection', features: [] }
 }
 
 export function clearGeoJsonCache(): void {
-  geoJsonCache.clear()
+  cache.clear()
 }

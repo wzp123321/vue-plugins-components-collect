@@ -1,29 +1,38 @@
 <template>
   <div class="excel-entry-page">
     <h5>网页端 Excel 数据录入（AG Grid Community）</h5>
-    <el-alert type="info" :closable="false" style="margin-bottom: 12px">
+    <el-alert type="info" :closable="false" style="margin-bottom: 10px">
       <template #title>
-        类 Excel 录入：双击 / 回车编辑、Tab / 方向键移动、选中行批量删除；顶部搜索框可按任意列快速过滤；列支持排序 / 筛选 / 浮动筛选 / 拖拽 / 调整宽度 / 固定；可新增自定义列、导入导出 Excel / CSV、分页浏览、批量提交（mock）。
+        类 Excel 录入：单击单元格即编辑、回车进入下一行、Tab 右移（方向键也可移动）；点单元格不再选中整行，行选择用左侧勾选框；顶部搜索框可按任意列快速过滤；列支持排序 / 筛选 / 浮动筛选 / 拖拽 / 调整宽度 / 固定；可新增自定义列、导入导出 Excel / CSV、分页浏览、批量提交（mock）。
         标红单元格为校验未通过，悬停看原因；左侧橙条表示已改动（脏）行。
+        <br /><span style="color:#e6a23c">提示：AG Grid 社区版不支持单元格区域框选 / 拖拽填充（需企业版）；如需真正的 Excel 单元格交互，请使用 vxe-table 版录入台。</span>
       </template>
     </el-alert>
 
     <div class="toolbar">
-      <el-button type="primary" @click="addRow">＋ 新增一行</el-button>
-      <el-button type="danger" @click="deleteSelected" :disabled="!hasSelection">－ 删除选中行</el-button>
-      <el-button @click="openAddCol">＋ 新增列</el-button>
-      <el-button @click="colManageVisible = true" :disabled="!customColumns.length">管理自定义列</el-button>
-      <el-divider direction="vertical" />
-      <el-input v-model="quickFilterText" placeholder="快速搜索…" clearable style="width: 180px" />
-      <el-divider direction="vertical" />
-      <el-button @click="importExcel" :loading="importing">⬆ 导入 Excel</el-button>
-      <el-button @click="exportExcel">⬇ 导出 Excel</el-button>
-      <el-button @click="exportCsv">⬇ 导出 CSV</el-button>
-      <el-divider direction="vertical" />
-      <el-button type="success" @click="submit" :loading="submitting">💾 批量提交</el-button>
-      <el-button @click="clearAll">清空</el-button>
+      <el-button-group>
+        <el-button type="primary" size="small" @click="addRow">＋ 新增</el-button>
+        <el-button type="success" size="small" @click="submit" :loading="submitting">💾 提交</el-button>
+      </el-button-group>
+      <el-input v-model="quickFilterText" size="small" placeholder="搜索…" clearable style="width: 160px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+      <el-dropdown trigger="click" @command="onToolbarCommand">
+        <el-button size="small">更多 ▾</el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="delete" :disabled="!hasSelection">－ 删除选中</el-dropdown-item>
+            <el-dropdown-item command="import">⬆ 导入Excel</el-dropdown-item>
+            <el-dropdown-item command="exportExcel">⬇ 导出Excel</el-dropdown-item>
+            <el-dropdown-item command="exportCsv">⬇ 导出 CSV</el-dropdown-item>
+            <el-dropdown-item command="addCol" divided>＋ 新增列</el-dropdown-item>
+            <el-dropdown-item command="manageCol" :disabled="!customColumns.length">管理自定义列</el-dropdown-item>
+            <el-dropdown-item command="clear" divided>清空数据</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <input ref="fileInputRef" type="file" accept=".xlsx,.xls" style="display: none" @change="onFileChange" />
-      <span class="stat">共 {{ rowData.length }} 行 · 脏数据 {{ dirtyCount }} 行 · 校验错误 {{ errorCount }} 处</span>
+      <span class="stat">共 {{ rowData.length }} 行 · 脏 {{ dirtyCount }} · 错 {{ errorCount }}</span>
     </div>
 
     <!-- 主题类必须挂在网格的祖先元素上：AG Grid 会从网格根元素向上遍历读取 ag-theme-*，
@@ -39,6 +48,9 @@
         :quickFilterText="quickFilterText"
         :enableCellTextSelection="true"
         :stopEditingWhenCellsLoseFocus="true"
+        :singleClickEdit="true"
+        :enterNavigatesVertically="true"
+        :enterNavigatesVerticallyAfterEdit="true"
         :animateRows="true"
         :pagination="true"
         :paginationPageSize="20"
@@ -80,7 +92,7 @@
       <el-table v-else :data="customColumns" border>
         <el-table-column prop="label" label="列名" />
         <el-table-column label="类型" width="90">
-          <template #default="{ row }">{{ { text: '文本', number: '数字', select: '下拉', date: '日期' }[row.type] }}</template>
+          <template #default="{ row }">{{ ({ text: '文本', number: '数字', select: '下拉', date: '日期' } as Record<string, string>)[row.type] }}</template>
         </el-table-column>
         <el-table-column label="操作" width="80">
           <template #default="{ row }">
@@ -95,6 +107,7 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Search } from '@element-plus/icons-vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -283,7 +296,11 @@ const defaultColDef: ColDef = {
   floatingFilter: true,
 };
 
-const rowSelection = 'multiple';
+// v32.2 新对象式选行 API：multiRow 多选 + 关闭「点单元格即选中整行」（修复点击整行高亮）
+const rowSelection = {
+  mode: 'multiRow' as const,
+  enableClickSelection: false,
+};
 const rowClassRules = {
   'row-dirty': (p: RowClassParams) => !!(p.data as Row | undefined)?.__dirty,
 };
@@ -333,6 +350,17 @@ const clearAll = () => {
   rowData.value = [];
   gridApi?.applyTransaction({ remove: all });
   for (const k of Object.keys(cellErrors)) delete cellErrors[k];
+};
+
+// 工具栏「更多」下拉分发
+const onToolbarCommand = (cmd: string) => {
+  if (cmd === 'addCol') openAddCol();
+  else if (cmd === 'manageCol') colManageVisible.value = true;
+  else if (cmd === 'exportCsv') exportCsv();
+  else if (cmd === 'clear') clearAll();
+  else if (cmd === 'delete') deleteSelected();
+  else if (cmd === 'import') importExcel();
+  else if (cmd === 'exportExcel') exportExcel();
 };
 
 // ---------- 工具栏：自定义列 ----------
@@ -441,7 +469,7 @@ const cleanRows = () =>
     return o;
   });
 
-const mockSave = (rows: Record<string, any>[]) => new Promise<void>((resolve) => setTimeout(() => resolve(), 800));
+const mockSave = (_rows: Record<string, any>[]) => new Promise<void>((resolve) => setTimeout(() => resolve(), 800));
 
 const submit = async () => {
   validateAll();
@@ -470,7 +498,7 @@ const submit = async () => {
 
 <style lang="less" scoped>
 .excel-entry-page {
-  padding: 20px;
+  padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -480,25 +508,26 @@ const submit = async () => {
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  // 单行排布，空间不够时横向滚动，避免换行吃掉表格纵向空间
+  flex-wrap: nowrap;
+  overflow-x: auto;
 
   .stat {
     margin-left: auto;
     font-size: 12px;
     color: #909399;
+    white-space: nowrap;
   }
 }
 
 .grid-wrap {
-  // 必须给出「确定高度」：AG Grid 的 .ag-root-wrapper 靠 height:100% 撑满父容器，
-  // 父容器高度为 auto 时百分比高度会失效，表格会塌成一条线。
-  flex: 1 1 auto;
-  height: calc(100vh - 320px);
-  min-height: 420px;
   // 关键：ag-grid-vue3 会在网格外再套一层 div（高度 auto），
-  // 用单格 grid 让这层中间 div 默认被拉伸，百分比高度链才接得上。
+  // 用单格 grid 让这层中间 div 默认被拉伸，百分比高度链才接得上；
+  // 同时靠 flex:1 占满工具栏/提示以外的全部剩余高度（不再写死 calc）。
+  flex: 1 1 auto;
+  min-height: 320px;
   display: grid;
 }
 

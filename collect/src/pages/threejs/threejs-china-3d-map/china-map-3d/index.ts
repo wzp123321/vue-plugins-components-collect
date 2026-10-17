@@ -1,3 +1,5 @@
 export { default as ChinaMap3D } from './components/ChinaMap3D.vue'
-export { loadAmapScript, fetchChinaGeoJson, fetchDistrictGeoJson, clearGeoJsonCache } from './utils/amap-loader'
-export type { GeoJsonType, GeoJsonFeature, GeoLevel, ProjectionFnParam } from './types'
+export { fetchChinaGeoJson, fetchDistrictGeoJson, clearGeoJsonCache } from './utils/amap-loader'
+export type { GeoJsonType, GeoJsonFeature, GeoLevel } from './types'
+export type { MapLevel } from './composables/useMapLayer'
+export type { FitProjection } from './utils/projection'

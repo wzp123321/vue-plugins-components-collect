@@ -1,5 +1,3 @@
-import { Object3D } from 'three'
-
 export type GeoLevel = 'country' | 'province' | 'city' | 'district'
 
 export interface GeoJsonType {
@@ -53,12 +51,3 @@ export type GeometryCoordinates<T extends GeometryType> = T extends 'Point'
   : T extends 'GeometryCollection'
     ? any
     : never
-
-export interface ExtendObject3D extends Object3D {
-  customProperties: GeoJsonFeature['properties']
-}
-
-export interface ProjectionFnParam {
-  center: [number, number]
-  scale: number
-}

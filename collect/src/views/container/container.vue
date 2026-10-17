@@ -44,7 +44,7 @@ export default defineComponent({
       () => route.path,
       (path) => {
         selectedMenu.value = [path];
-      }
+      },
     );
 
     const isCollapsed = ref(false);
@@ -136,6 +136,7 @@ export default defineComponent({
       height: 100%;
       overflow-y: auto;
       background-color: #f0f2f5;
+      padding: 0;
     }
   }
 }

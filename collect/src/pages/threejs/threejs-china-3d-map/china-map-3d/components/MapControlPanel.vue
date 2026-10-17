@@ -1,0 +1,126 @@
+<template>
+  <div class="map-ctrl" :class="{ 'map-ctrl--collapsed': collapsed }">
+    <div class="map-ctrl__head" @click="collapsed = !collapsed">
+      <span class="map-ctrl__pulse"></span>
+      <span class="map-ctrl__title">可视化控制台</span>
+      <span class="map-ctrl__chev">{{ collapsed ? '▸' : '▾' }}</span>
+    </div>
+    <div v-show="!collapsed" class="map-ctrl__body">
+      <!-- 数据柱 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">数据柱</span>
+          <label class="map-ctrl__switch">
+            <input type="checkbox" v-model="showColumn" />
+            <span class="map-ctrl__track"></span>
+          </label>
+        </div>
+        <div v-show="showColumn" class="map-ctrl__field">
+          <span class="map-ctrl__label">高值色</span>
+          <span class="map-ctrl__swatch" :style="{ background: columnColor }"></span>
+          <input class="map-ctrl__color" type="color" v-model="columnColor" />
+        </div>
+        <div v-show="!showColumn" class="map-ctrl__note">已切换为地理标牌</div>
+      </div>
+      <!-- 飞线 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">飞线</span>
+          <label class="map-ctrl__switch">
+            <input type="checkbox" v-model="showFlyline" />
+            <span class="map-ctrl__track"></span>
+          </label>
+        </div>
+        <div v-show="showFlyline" class="map-ctrl__field">
+          <span class="map-ctrl__label">颜色</span>
+          <span class="map-ctrl__swatch" :style="{ background: flylineColor }"></span>
+          <input class="map-ctrl__color" type="color" v-model="flylineColor" />
+        </div>
+        <div v-show="showFlyline" class="map-ctrl__field map-ctrl__field--slider">
+          <span class="map-ctrl__label">速度</span>
+          <input class="map-ctrl__range" type="range" v-model.number="flylineSpeed" min="0.05" max="0.8" step="0.01" />
+          <span class="map-ctrl__num">{{ flylineSpeed.toFixed(2) }}x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+// 双向绑定控制参数（与 ChinaMap3D 的 props 一一对应）
+const showColumn = defineModel<boolean>('showColumn', { default: true })
+const columnColor = defineModel<string>('columnColor', { default: '#5FC9EE' })
+const showFlyline = defineModel<boolean>('showFlyline', { default: true })
+const flylineColor = defineModel<string>('flylineColor', { default: '#7FD4F5' })
+const flylineSpeed = defineModel<number>('flylineSpeed', { default: 0.16 })
+
+const collapsed = ref(false)
+</script>
+
+<style scoped>
+.map-ctrl {
+  position: absolute; top: 18px; right: 18px; z-index: 30;
+  width: 208px; padding: 12px 14px 14px;
+  background: rgba(6, 16, 40, 0.78);
+  border: 1px solid rgba(95, 216, 255, 0.22);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  color: #dcefff;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  user-select: none;
+}
+.map-ctrl__head {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px; color: #eaf6ff;
+  text-shadow: 0 0 10px rgba(54, 224, 255, 0.5);
+}
+.map-ctrl__pulse {
+  width: 7px; height: 7px; border-radius: 50%; background: #5FD8FF;
+  box-shadow: 0 0 8px #5FD8FF; animation: map-ctrl-blink 1.6s ease-in-out infinite;
+}
+@keyframes map-ctrl-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.map-ctrl__title { flex: 1; }
+.map-ctrl__chev { font-size: 12px; color: #6f9fc4; }
+.map-ctrl__body { margin-top: 10px; }
+.map-ctrl__group { padding: 8px 0; border-top: 1px solid rgba(95, 216, 255, 0.12); }
+.map-ctrl__group:first-child { border-top: none; padding-top: 4px; }
+.map-ctrl__groupHead { display: flex; align-items: center; justify-content: space-between; }
+.map-ctrl__groupTitle { font-size: 12px; color: #9fc4e0; letter-spacing: 0.5px; }
+.map-ctrl__field { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.map-ctrl__label { font-size: 12px; color: #7fa8c8; width: 32px; }
+.map-ctrl__note { margin-top: 8px; font-size: 11px; color: #6f9fc4; }
+.map-ctrl__swatch {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 0 8px currentColor;
+}
+.map-ctrl__color {
+  flex: 1; height: 24px; padding: 0; border: none; background: transparent; cursor: pointer;
+}
+.map-ctrl__color::-webkit-color-swatch-wrapper { padding: 0; }
+.map-ctrl__color::-webkit-color-swatch { border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; }
+.map-ctrl__field--slider { margin-top: 12px; }
+.map-ctrl__range { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 3px; background: linear-gradient(90deg, #2FC0FF, #8FE9FF); outline: none; }
+.map-ctrl__range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: #eaf6ff; border: 2px solid #2FC0FF; box-shadow: 0 0 8px #2FC0FF; cursor: pointer;
+}
+.map-ctrl__num { font-size: 11px; color: #8FE9FF; width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 开关 */
+.map-ctrl__switch { position: relative; display: inline-block; width: 40px; height: 20px; cursor: pointer; }
+.map-ctrl__switch input { opacity: 0; width: 0; height: 0; }
+.map-ctrl__track {
+  position: absolute; inset: 0; border-radius: 20px;
+  background: rgba(120, 150, 180, 0.25); border: 1px solid rgba(95, 216, 255, 0.2);
+  transition: background 0.2s ease;
+}
+.map-ctrl__track::before {
+  content: ''; position: absolute; left: 3px; top: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: #9fc4e0; transition: transform 0.2s ease, background 0.2s ease;
+}
+.map-ctrl__switch input:checked + .map-ctrl__track { background: rgba(47, 192, 255, 0.4); }
+.map-ctrl__switch input:checked + .map-ctrl__track::before { transform: translateX(20px); background: #eaf6ff; box-shadow: 0 0 8px #5FD8FF; }
+</style>

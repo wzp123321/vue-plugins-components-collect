@@ -1,28 +1,40 @@
 import * as THREE from 'three'
 
-/** 递归销毁 Three.js 对象及其子对象，释放 GPU 内存 */
-export function disposeObject3D(obj: THREE.Object3D): void {
-  obj.traverse((child) => {
-    const mesh = child as THREE.Mesh
-    if (mesh.geometry) {
-      mesh.geometry.dispose()
+const TEXTURE_KEYS = [
+  'map',
+  'emissiveMap',
+  'bumpMap',
+  'normalMap',
+  'roughnessMap',
+  'metalnessMap',
+  'aoMap',
+  'displacementMap',
+  'envMap',
+  'lightMap',
+  'alphaMap',
+] as const
+
+/**
+ * 递归释放对象占用的 GPU 资源。
+ * 带 userData.shared 的材质 / 几何 / 贴图会被跳过 —— 它们是跨层级复用的，
+ * 一旦在这里销毁，下一层重建时就会用到已被释放的缓冲。
+ */
+export function disposeObject3D(root: THREE.Object3D): void {
+  root.traverse((child) => {
+    const node = child as THREE.Mesh
+    if (node.geometry && !(node.geometry.userData as any)?.shared) {
+      node.geometry.dispose()
     }
-    if (mesh.material) {
-      const materials = Array.isArray(mesh.material)
-        ? mesh.material
-        : [mesh.material]
-      for (const m of materials) {
-        const mat = m as any
-        ;[
-          'map', 'emissiveMap', 'bumpMap', 'normalMap',
-          'roughnessMap', 'metalnessMap', 'aoMap',
-          'displacementMap', 'envMap', 'lightMap', 'alphaMap',
-        ].forEach((key) => {
-          const tex = mat[key]
-          if (tex) tex.dispose()
-        })
-        m.dispose()
+    if (!node.material) return
+    const materials = Array.isArray(node.material) ? node.material : [node.material]
+    for (const material of materials) {
+      const target = material as any
+      if (target.userData?.shared) continue
+      for (const key of TEXTURE_KEYS) {
+        const texture = target[key]
+        if (texture && !texture.userData?.shared) texture.dispose()
       }
+      material.dispose()
     }
   })
 }

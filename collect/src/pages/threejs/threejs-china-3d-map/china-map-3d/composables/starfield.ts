@@ -1,143 +1,144 @@
 /**
- * 星空背景。球面 360° 环绕地图，种子随机数确保位置固定。
- * 6 组独立闪烁，PointsMaterial 可靠渲染。
+ * 星空背景：环绕地图的单次绘制 Points + 着色器闪烁。
+ * 全部星星共用一个 BufferGeometry（1 个 draw call），
+ * 闪烁在 GPU 里按顶点相位计算，CPU 每帧只需要更新一个 uniform。
  */
-
 import * as THREE from 'three'
 
-/** 种子随机数生成器（mulberry32），固定种子 → 固定序列 */
+const STAR_COUNT = 520
+/** 地图半宽约 65，星星只铺在外围，避免压在地图与飞线上 */
+const INNER_RADIUS = 110
+const OUTER_RADIUS = 260
+const SEED = 20240608
+
 function createRng(seed: number) {
-  let s = seed | 0
+  let value = seed | 0
   return () => {
-    s |= 0; s = s + 0x6D2B79F5 | 0
-    let t = Math.imul(s ^ s >>> 15, 1 | s)
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t
-    return ((t ^ t >>> 14) >>> 0) / 4294967296
+    value |= 0
+    value = (value + 0x6d2b79f5) | 0
+    let t = Math.imul(value ^ (value >>> 15), 1 | value)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
 
-function createStarSprite(size = 100): THREE.CanvasTexture {
+function createStarTexture(size = 96): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')
-  canvas.width = size; canvas.height = size
+  canvas.width = canvas.height = size
   const ctx = canvas.getContext('2d')!
-  const h = size / 2, arm = h * 0.95
+  const half = size / 2
+  const arm = half * 0.95
 
-  // 中心光晕（缩小）
-  const glow = ctx.createRadialGradient(h, h, 0, h, h, h * 0.1)
+  const glow = ctx.createRadialGradient(half, half, 0, half, half, half * 0.12)
   glow.addColorStop(0, 'rgba(255,255,255,1)')
-  glow.addColorStop(0.3, 'rgba(200,220,255,0.5)')
-  glow.addColorStop(0.6, 'rgba(100,140,200,0.1)')
+  glow.addColorStop(0.35, 'rgba(200,220,255,0.45)')
   glow.addColorStop(1, 'rgba(0,0,0,0)')
-  ctx.fillStyle = glow; ctx.fillRect(0, 0, size, size)
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, size, size)
 
-  // 十字旋转45°：对角线为主光芒，十字为副
-  const rays: [number, number, number, number][] = [
-    [h, h, h - arm, h - arm], [h, h, h + arm, h + arm],
-    [h, h, h + arm, h - arm], [h, h, h - arm, h + arm],
-    [h, h, h, h - arm * 0.6], [h, h, h, h + arm * 0.6],
-    [h, h, h - arm * 0.6, h], [h, h, h + arm * 0.6, h],
+  // 对角线为主、十字为辅的四射线
+  const rays: Array<[number, number, number, number]> = [
+    [half, half, half - arm, half - arm],
+    [half, half, half + arm, half + arm],
+    [half, half, half + arm, half - arm],
+    [half, half, half - arm, half + arm],
+    [half, half, half, half - arm * 0.6],
+    [half, half, half, half + arm * 0.6],
+    [half, half, half - arm * 0.6, half],
+    [half, half, half + arm * 0.6, half],
   ]
-
   ctx.globalCompositeOperation = 'lighter'
   for (const [x1, y1, x2, y2] of rays) {
-    const dx = x2 - x1, dy = y2 - y1, s = 0.5
-    const sx = x1 + dx * s, sy = y1 + dy * s
-    // 粗光芒（变细）
-    const g1 = ctx.createLinearGradient(x1, y1, sx, sy)
-    g1.addColorStop(0, 'rgba(230,245,255,0.85)')
-    g1.addColorStop(0.3, 'rgba(160,200,240,0.3)')
-    g1.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.strokeStyle = g1; ctx.lineWidth = 1.8
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(sx, sy); ctx.stroke()
-
-    // 细光芒（变细）
-    const g2 = ctx.createLinearGradient(x1, y1, x2, y2)
-    g2.addColorStop(0, 'rgba(255,255,255,0.85)')
-    g2.addColorStop(0.4, 'rgba(140,180,220,0.1)')
-    g2.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.strokeStyle = g2; ctx.lineWidth = 0.8
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
+    const gradient = ctx.createLinearGradient(x1, y1, (x1 + x2) / 2, (y1 + y2) / 2)
+    gradient.addColorStop(0, 'rgba(235,248,255,0.9)')
+    gradient.addColorStop(0.35, 'rgba(150,190,235,0.22)')
+    gradient.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.strokeStyle = gradient
+    ctx.lineWidth = 1.6
+    ctx.beginPath()
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
+    ctx.stroke()
   }
 
-  const t = new THREE.CanvasTexture(canvas); t.needsUpdate = true
-  return t
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.userData = { shared: true }
+  return texture
 }
 
-/**
- * 环形分布：在 xy 平面上的宽环中分布星星，z 在各层变化。
- * 保证从俯视摄像机角度地图四周星星数量均匀。
- */
-function ringDistribution(count: number, rng: () => number): Float32Array {
-  const arr = new Float32Array(count * 3)
-  // 均匀覆盖地图下方及四周
-  const innerR = 50, outerR = 220
-  for (let i = 0; i < count; i++) {
+export function createStarfield() {
+  const rng = createRng(SEED)
+  const positions = new Float32Array(STAR_COUNT * 3)
+  const phases = new Float32Array(STAR_COUNT)
+  const scales = new Float32Array(STAR_COUNT)
+
+  for (let i = 0; i < STAR_COUNT; i++) {
     const angle = rng() * Math.PI * 2
-    const r = innerR + rng() * (outerR - innerR)  // 均匀半径分布
-    arr[i * 3]     = Math.cos(angle) * r
-    arr[i * 3 + 1] = Math.sin(angle) * r
-    arr[i * 3 + 2] = (rng() - 0.5) * 120
+    const radius = INNER_RADIUS + rng() * (OUTER_RADIUS - INNER_RADIUS)
+    positions[i * 3] = Math.cos(angle) * radius
+    positions[i * 3 + 1] = Math.sin(angle) * radius
+    positions[i * 3 + 2] = -20 + (rng() - 0.5) * 120
+    phases[i] = rng() * Math.PI * 2
+    scales[i] = 0.55 + rng() * 0.85
   }
-  return arr
-}
 
-const MASTER_SEED = 20240608
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1))
+  geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
 
-export function createStarfield(count = 500) {
-  const groups = 15
-  const perGroup = Math.ceil(count / groups)
-  const sprite = createStarSprite()
+  const texture = createStarTexture()
+  const uniforms = {
+    uTime: { value: 0 },
+    uMap: { value: texture },
+    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+    uSize: { value: 42 },
+  }
 
-  // 每层用不同种子生成独立分布
-  const items = Array.from({ length: groups }, (_, g) => {
-    const rng = createRng(MASTER_SEED + g * 1000)
-    const positions = ringDistribution(perGroup, rng)
-
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-
-    const material = new THREE.PointsMaterial({
-      map: sprite,
-      size: 80,
-      sizeAttenuation: false,
-      transparent: true,
-      opacity: 0.5,
-      depthTest: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
-
-    return {
-      points: new THREE.Points(geometry, material),
-      phase: (g / groups) * Math.PI * 2,  // 15组均匀错开，始终有亮有暗
-      speed: 0.3,  // 统一节奏，不漂移
-    }
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: `
+      attribute float aPhase;
+      attribute float aScale;
+      uniform float uTime;
+      uniform float uPixelRatio;
+      uniform float uSize;
+      varying float vBright;
+      void main() {
+        // sin¹² 让亮峰短促，闪烁更有「星星」感
+        float wave = max(0.0, sin(uTime * 0.55 + aPhase));
+        vBright = 0.22 + 0.78 * pow(wave, 12.0);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = uSize * aScale * uPixelRatio * (0.85 + 0.35 * vBright);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D uMap;
+      varying float vBright;
+      void main() {
+        vec4 tex = texture2D(uMap, gl_PointCoord);
+        gl_FragColor = vec4(tex.rgb * vBright, tex.a * vBright);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.AdditiveBlending,
   })
 
-  const t0 = performance.now() * 0.001
-  const colorDim = new THREE.Color(0x1166FF)
-  const colorBright = new THREE.Color(0x66AAFF)
+  const points = new THREE.Points(geometry, material)
+  points.frustumCulled = false
 
   return {
-    points: items.map((g) => g.points),
-
-    update(time: number) {
-      const t = time - t0
-      for (const g of items) {
-        const mat = g.points.material as THREE.PointsMaterial
-        const raw = Math.sin(t * g.speed + g.phase)
-        const b = raw * raw; const brightness = b * b * b * b * b * b // sin¹²: 亮峰更短
-        mat.opacity = 0.25 + brightness * 0.9
-        mat.color.copy(colorDim).lerp(colorBright, brightness)
-      }
+    points: [points],
+    update(elapsed: number) {
+      uniforms.uTime.value = elapsed
     },
-
     dispose() {
-      for (const g of items) {
-        g.points.geometry.dispose()
-        ;(g.points.material as THREE.PointsMaterial).dispose()
-      }
-      sprite.dispose()
+      geometry.dispose()
+      material.dispose()
+      texture.dispose()
     },
   }
 }
