@@ -42,8 +42,8 @@ import { setLineResolution } from '../utils/lineMaterials'
 import { createStarfield } from './starfield'
 
 // ── 相机 / 取景相关常量 ──────────────────────────────────────────
-/** 相机视线相对「地图法线(Z 轴)」的倾角：30° 俯视倾斜，越平越像桌面俯瞰 */
-const VIEW_TILT = Math.PI / 6
+/** 相机视线相对「地图法线(Z 轴)」的倾角(度)：30° 俯视倾斜，越平越像桌面俯瞰，全局统一 */
+const VIEW_TILT_DEG = 30
 /** 透视相机视场角(度)。偏小 → 透视畸变弱、更像正交俯视图 */
 const FOV = 32
 /** 极角下限：>0 避免相机俯到正上方(天顶)导致万向锁/翻转 */
@@ -96,6 +96,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   let composer: EffectComposer | null = null
   let bloomComposer: EffectComposer | null = null
   let starfield: ReturnType<typeof createStarfield> | null = null
+  // 底部辉光地面：地图正下方放射状光晕（纯装饰背景，不参与拾取）
+  let groundGlow: THREE.Mesh | null = null
   let rafId = 0
   let elapsed = 0
   let lastTime = 0
@@ -105,10 +107,25 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
 
-  // 视线方向：绕 X 轴俯仰 VIEW_TILT，落在 -Y / +Z 组成的斜上方
-  const viewDirection = () => {
-    return new THREE.Vector3(0, -Math.sin(VIEW_TILT), Math.cos(VIEW_TILT))
-  };
+  /**
+   * 通用视线方向：给定倾角(度)与方位角(度)返回单位向量。
+   * ⚠️ 相机 up=+Z，故方位角 azim 绕 Z 轴量起：
+   *   azim=0 → 相机落在 +X 方向斜上方；azim=90° → +Y 方向；
+   *   倾角 tilt=0 → 正俯视，tilt=90° → 贴边正前视。
+   * 全局统一 azim=0，保证「初始视角 / focus 下钻取景 / 视角预设」方位一致，
+   * 否则不同方位角会让预设之间切换时方位跳变、且「斜视」无法还原初始角度。
+   */
+  const viewDir = (tiltDeg: number, azimDeg: number): THREE.Vector3 => {
+    const t = (tiltDeg * Math.PI) / 180
+    const a = (azimDeg * Math.PI) / 180
+    return new THREE.Vector3(
+      Math.sin(t) * Math.cos(a),
+      Math.sin(t) * Math.sin(a),
+      Math.cos(t),
+    )
+  }
+  /** 默认取景方向：倾角 VIEW_TILT_DEG、方位角 0（沿 +X 轴斜俯视），start/focus/oblique 共用 */
+  const viewDirection = () => viewDir(VIEW_TILT_DEG, 0)
 
   /**
    * 精确取景距离：把地图包围盒 8 个角点投影到 NDC，
@@ -250,6 +267,71 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
   };
 
+  /**
+   * 视角预设：把相机平滑推到三种取景之一，全部走 viewDir() 同一套倾角/方位公式。
+   * ⚠️ 关键修复：之前 oblique 用 azim=20°、而初始相机是 azim=270°(-Y 方向)，
+   *   三者方位根本不同 —— 点预设后无法回到「进页面那个角度」。
+   *   现在全局统一 azim=0，且 oblique 精确还原初始（倾角 30° + 默认距离 2.2×EXTENT），
+   *   故「斜视」按钮 == 初始化视角，可来回切换、彻底可逆。
+   * ⚠️ front 倾角 56° 必须 < MAX_POLAR(58.4°)，否则会被极角限幅钳断、看似「切不回去」。
+   * @param name 'top'=俯视(2°) · 'oblique'=默认斜视(30°，==初始) · 'front'=近正前(56°)
+   */
+  const viewPreset = (name: 'top' | 'oblique' | 'front') => {
+    if (!camera || !controls) return
+    const target = controls.target.clone()
+    const tiltDeg = name === 'top' ? 2 : name === 'front' ? 56 : VIEW_TILT_DEG
+    // oblique 还原初始：用默认距离；top/front 保留用户当前缩放距离（只改倾角更自然）
+    const radius = name === 'oblique'
+      ? MAP_EXTENT * 2.2
+      : camera.position.distanceTo(target) || MAP_EXTENT * 1.6
+    const dir = viewDir(tiltDeg, 0)
+    const position = target.clone().addScaledVector(dir, radius)
+    controls.enabled = false
+    gsap.killTweensOf(controls.target)
+    gsap.killTweensOf(camera.position)
+    gsap.to(controls.target, { x: target.x, y: target.y, z: target.z, duration: 0.7, ease: 'power2.out' })
+    gsap.to(camera.position, {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      duration: 0.7,
+      ease: 'power2.out',
+      onComplete: () => {
+        if (disposed || !controls) return
+        // 收尾时按当前距离设定可缩放上下限，避免被放宽到 1~4000 后缩放失控
+        controls.minDistance = radius * 0.42
+        controls.maxDistance = radius * 2.1
+        controls.enabled = true
+        controls.update()
+      },
+    })
+    controls.minDistance = 1
+    controls.maxDistance = 4000
+  };
+
+  /**
+   * 自动巡游：开关 OrbitControls.autoRotate（绕地图法线缓慢自转）。
+   * @param enabled true=开始巡游，false=停下（停下后保留当前角度）
+   */
+  const setAutoRotate = (enabled: boolean) => {
+    if (!controls) return
+    controls.autoRotate = enabled
+    controls.autoRotateSpeed = 0.5
+  };
+
+  /**
+   * 截图：返回当前画布的 PNG dataURL（已开启 preserveDrawingBuffer，
+   * 最近一帧画面会保留在缓冲区，直接读取即可）。
+   */
+  const screenshot = (): string | null => {
+    if (!renderer) return null
+    try {
+      return renderer.domElement.toDataURL('image/png')
+    } catch {
+      return null
+    }
+  };
+
   /** 容器尺寸变化时同步相机宽高比、渲染器与两个 composer 的尺寸 */
   const resize = () => {
     const element = host()
@@ -292,7 +374,13 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     for (const canvas of Array.from(element.querySelectorAll('canvas'))) canvas.remove()
 
     scene = new THREE.Scene()
-    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: true })
+    renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: true,
+      // 截图需要：保留绘制缓冲，否则 toDataURL 在帧间会被清空得到黑图
+      preserveDrawingBuffer: true,
+    })
     renderer.setClearColor(0x000000, 0)
     // 限制像素比，避免 4K/Retina 屏下设备像素比过大导致 fill-rate 爆炸掉帧
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
@@ -368,6 +456,44 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     starfield = createStarfield()
     for (const points of starfield.points) scene.add(points)
 
+    // 底部辉光地面：半径 = MAP_EXTENT * decor.ground.radius 的圆盘，
+    // 放射状青色光晕（中心亮、边缘透明），加法混合贴在地图正下方 z=-0.1。
+    const groundGeo = new THREE.CircleGeometry(MAP_EXTENT * mapConfig.decor.ground.radius, 72)
+    const groundMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uColor: { value: new THREE.Color(mapConfig.decor.ground.color) },
+        uOpacity: { value: mapConfig.decor.ground.opacity },
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform vec3 uColor;
+        uniform float uOpacity;
+        uniform float uTime;
+        void main() {
+          float d = distance(vUv, vec2(0.5));
+          float a = smoothstep(0.5, 0.0, d);
+          a = pow(a, 1.7);
+          // 极缓慢呼吸，避免静止光晕显得"死板"
+          float pulse = 0.92 + 0.08 * sin(uTime * 0.6);
+          gl_FragColor = vec4(uColor * a * pulse, a * uOpacity * pulse);
+        }
+      `,
+    })
+    groundGlow = new THREE.Mesh(groundGeo, groundMat)
+    groundGlow.position.z = -0.1
+    scene.add(groundGlow)
+
     // 阻止滚轮冒泡到页面（页面本身可能带滚动）
     renderer.domElement.addEventListener(
       'wheel',
@@ -393,6 +519,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       controls?.update()
       for (const tick of ticks) tick(dt, elapsed)
       starfield?.update(elapsed)
+      // 底部辉光地面呼吸动画
+      if (groundGlow) (groundGlow.material as THREE.ShaderMaterial).uniforms.uTime.value = elapsed
       render()
     }
     loop()
@@ -412,6 +540,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     document.removeEventListener('visibilitychange', onVisibility, false)
     controls?.removeEventListener('change', clampTarget)
     starfield?.dispose()
+    // 释放底部辉光地面（几何 / 材质）
+    if (groundGlow) {
+      groundGlow.geometry.dispose()
+      ;(groundGlow.material as THREE.Material).dispose()
+      groundGlow = null
+    }
     composer?.dispose?.()
     bloomComposer?.dispose?.()
     controls?.dispose()
@@ -432,6 +566,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     start,
     stop,
     focus,
+    viewPreset,
+    setAutoRotate,
+    screenshot,
     setDragMode,
     dragMode: () => dragMode,
     onTick: (tick: Tick) => {

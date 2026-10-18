@@ -21,6 +21,8 @@ interface Options {
   onHover?: (pick: PickResult | null) => void
   onSelect?: (pick: PickResult | null) => void
   onDrill?: (pick: PickResult) => void
+  /** 单击落空（未命中任何可拾取物）时回调，用于"点空白取消选中" */
+  onMiss?: () => void
 }
 
 /** 拖拽判定阈值：超过这个位移就当成旋转/平移，不触发点击选中 */
@@ -137,7 +139,10 @@ export const usePointerPick = (options: Options) => {
    */
   const handleClick = (event: MouseEvent) => {
     if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD) return
-    options.onSelect?.(pickAt(event.clientX, event.clientY))
+    const pick = pickAt(event.clientX, event.clientY)
+    if (pick) options.onSelect?.(pick)
+    // 落空（没有命中任何板块 / 标记）→ 通知外部取消选中
+    else options.onMiss?.()
   };
 
   /** 双击：下钻到命中区域（busy 时不响应，避免重建期间重复触发） */

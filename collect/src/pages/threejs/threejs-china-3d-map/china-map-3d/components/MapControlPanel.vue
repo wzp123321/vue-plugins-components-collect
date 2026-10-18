@@ -79,6 +79,39 @@
           <span class="map-ctrl__num">{{ flylineSpeed.toFixed(2) }}x</span>
         </div>
       </div>
+      <!-- 展示特效 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">展示特效</span>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">棱锥点位</span>
+          <label class="map-ctrl__switch"><input type="checkbox" v-model="showPyramid" /><span class="map-ctrl__track"></span></label>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">轨道路线</span>
+          <label class="map-ctrl__switch"><input type="checkbox" v-model="showOrbit" /><span class="map-ctrl__track"></span></label>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">高度热力</span>
+          <label class="map-ctrl__switch"><input type="checkbox" v-model="showHeatmap" /><span class="map-ctrl__track"></span></label>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">分档饼图</span>
+          <label class="map-ctrl__switch"><input type="checkbox" v-model="showPie" /><span class="map-ctrl__track"></span></label>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">侧壁流光</span>
+          <label class="map-ctrl__switch"><input type="checkbox" v-model="showWallScan" /><span class="map-ctrl__track"></span></label>
+        </div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label">标签</span>
+          <div class="map-ctrl__seg">
+            <button type="button" class="map-ctrl__segBtn" :class="{ 'map-ctrl__segBtn--on': labelMode === 'sprite' }" @click="labelMode = 'sprite'">Sprite</button>
+            <button type="button" class="map-ctrl__segBtn" :class="{ 'map-ctrl__segBtn--on': labelMode === 'css2d' }" @click="labelMode = 'css2d'">CSS2D</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -93,6 +126,13 @@ const columnColor = defineModel<string>('columnColor', { default: '#5FC9EE' })
 const showFlyline = defineModel<boolean>('showFlyline', { default: true })
 const flylineColor = defineModel<string>('flylineColor', { default: '#7FD4F5' })
 const flylineSpeed = defineModel<number>('flylineSpeed', { default: 0.16 })
+// 展示型特效开关（与 ChinaMap3D 的对应 props 一一映射）
+const showPyramid = defineModel<boolean>('showPyramid', { default: true })
+const showOrbit = defineModel<boolean>('showOrbit', { default: true })
+const showHeatmap = defineModel<boolean>('showHeatmap', { default: false })
+const showPie = defineModel<boolean>('showPie', { default: true })
+const showWallScan = defineModel<boolean>('showWallScan', { default: false })
+const labelMode = defineModel<'sprite' | 'css2d'>('labelMode', { default: 'sprite' })
 
 const collapsed = ref(false)
 </script>
@@ -152,6 +192,7 @@ const collapsed = ref(false)
   box-shadow: 0 0 10px rgba(47, 192, 255, 0.35);
 }
 .map-ctrl__groupTitle { font-size: 12px; color: #9fc4e0; letter-spacing: 0.5px; }
+.map-ctrl__row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
 .map-ctrl__field { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .map-ctrl__label { font-size: 12px; color: #7fa8c8; width: 32px; }
 .map-ctrl__note { margin-top: 8px; font-size: 11px; color: #6f9fc4; }

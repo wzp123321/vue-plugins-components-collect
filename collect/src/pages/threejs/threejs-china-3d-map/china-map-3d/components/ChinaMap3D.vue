@@ -46,53 +46,84 @@
     />
     <MapTooltip v-bind="tooltip" />
     <MapLegend :items="legend" />
+    <MapPieChart v-if="showPie" :segments="pie" title="数据分档" />
     <MapNavBar :crumbs="crumbs" @back="handleBack" @jump="handleJump" />
     <MapStageTip :stage="stage" :notice="notice" :raised="canGoBack" />
+    <MapToolbar
+      v-model:roam="roamOn"
+      :current="currentView"
+      @view="handleViewPreset"
+      @fullscreen="toggleFullscreen"
+      @screenshot="doScreenshot"
+      @help="showHelp = true"
+    />
+    <MapHelpDialog v-model:visible="showHelp" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import MapTooltip from './MapTooltip.vue'
-import MapLegend from './MapLegend.vue'
-import MapNavBar from './MapNavBar.vue'
-import MapStageTip from './MapStageTip.vue'
-import MapSearchBox from './MapSearchBox.vue'
-import type { SearchItem } from './MapSearchBox.vue'
-import { useMapViewport } from '../composables/useMapViewport'
-import { useMapLayer } from '../composables/useMapLayer'
-import type { MapLevel } from '../composables/useMapLayer'
-import { useMapLevels } from '../composables/useMapLevels'
-import { useSpotMarkers } from '../composables/useSpotMarkers'
-import { useFlyLines } from '../composables/useFlyLines'
-import { usePointerPick } from '../composables/usePointerPick'
-import type { PickResult } from '../composables/usePointerPick'
-import { useZoomDrill } from '../composables/useZoomDrill'
-import { LEVEL_TEXT, readCount } from '../utils/data'
-import { checkCountryCompliance } from '../utils/geo'
-import { prefetchDistrictGeoJson } from '../utils/amap-loader'
-import { mapConfig } from '../utils/mapConfig'
-import type { GeoJsonFeature } from '../types'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import MapTooltip from './MapTooltip.vue';
+import MapLegend from './MapLegend.vue';
+import MapNavBar from './MapNavBar.vue';
+import MapStageTip from './MapStageTip.vue';
+import MapSearchBox from './MapSearchBox.vue';
+import type { SearchItem } from './MapSearchBox.vue';
+import { useMapViewport } from '../composables/useMapViewport';
+import { useMapLayer } from '../composables/useMapLayer';
+import type { MapLevel } from '../composables/useMapLayer';
+import { useMapLevels } from '../composables/useMapLevels';
+import { useSpotMarkers } from '../composables/useSpotMarkers';
+import { useFlyLines } from '../composables/useFlyLines';
+import { usePointerPick } from '../composables/usePointerPick';
+import type { PickResult } from '../composables/usePointerPick';
+import { useZoomDrill } from '../composables/useZoomDrill';
+import { LEVEL_TEXT, readCount } from '../utils/data';
+import { checkCountryCompliance } from '../utils/geo';
+import { prefetchDistrictGeoJson } from '../utils/amap-loader';
+import { mapConfig } from '../utils/mapConfig';
+import type { GeoJsonFeature } from '../types';
+import MapPieChart from './MapPieChart.vue';
+import MapToolbar from './MapToolbar.vue';
+import MapHelpDialog from './MapHelpDialog.vue';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { updateRegionScan, setRegionScan } from '../utils/drawRegion';
+import { usePyramidMarkers } from '../composables/usePyramidMarkers';
+import { useOrbitRoutes } from '../composables/useOrbitRoutes';
+import { useHeatmap } from '../composables/useHeatmap';
+import { useCss2dLabels } from '../composables/useCss2dLabels';
 
 const props = withDefaults(
   defineProps<{
-    initialAdcode?: string
-    maxDrillLevel?: 'province' | 'city' | 'district'
-    zoomDrillEnabled?: boolean
-    zoomDrillThreshold?: number
-    deferEntrance?: boolean
-    projectData?: Record<number, number | { count: number; names: string[]; ids: string[] }>
+    initialAdcode?: string;
+    maxDrillLevel?: 'province' | 'city' | 'district';
+    zoomDrillEnabled?: boolean;
+    zoomDrillThreshold?: number;
+    deferEntrance?: boolean;
+    projectData?: Record<number, number | { count: number; names: string[]; ids: string[] }>;
     /** 是否显示数据柱（关闭时改为显示地理位置标牌） */
-    showColumn?: boolean
+    showColumn?: boolean;
     /** 数据柱高值档颜色（分级色板以它为高值锚点） */
-    columnColor?: string
-    showFlyline?: boolean
-    flylineColor?: string
-    flylineSpeed?: number
+    columnColor?: string;
+    showFlyline?: boolean;
+    flylineColor?: string;
+    flylineSpeed?: number;
     /** 是否显示搜索框（在当前层级内搜索行政区） */
-    showSearch?: boolean
+    showSearch?: boolean;
     /** 左键拖拽行为：pan=拖动地图（上下拖即远近），rotate=绕地图旋转 */
-    dragMode?: 'pan' | 'rotate'
+    dragMode?: 'pan' | 'rotate';
+    /** 展示型装饰：动态棱锥点位 */
+    showPyramid?: boolean;
+    /** 展示型装饰：轨道路线 + 卫星 */
+    showOrbit?: boolean;
+    /** 展示型装饰：高度热力图 */
+    showHeatmap?: boolean;
+    /** 标签渲染模式：sprite=现有 Sprite 卡片；css2d=DOM 高清标签 */
+    labelMode?: 'sprite' | 'css2d';
+    /** 是否显示分档饼图卡片 */
+    showPie?: boolean;
+    /** 展示型装饰：侧壁扫描流光 */
+    showWallScan?: boolean;
   }>(),
   {
     maxDrillLevel: 'district',
@@ -106,25 +137,39 @@ const props = withDefaults(
     flylineSpeed: mapConfig.fly.speed,
     showSearch: true,
     dragMode: 'pan',
+    showPyramid: false,
+    showOrbit: true,
+    showHeatmap: false,
+    labelMode: 'sprite',
+    showPie: true,
+    showWallScan: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'drill-down', properties: GeoJsonFeature['properties']): void
-  (e: 'ready'): void
-  (e: 'geo-data-loaded', geoJson: unknown): void
-  (e: 'reset-to-country'): void
-  (e: 'level-change', level: { name: string; level: MapLevel['level']; adcode: number | null }): void
-  (e: 'hover-change', properties: GeoJsonFeature['properties'] | null): void
-  (e: 'select-change', adcode: number | null): void
-  (e: 'error', error: unknown): void
-}>()
+  (e: 'drill-down', properties: GeoJsonFeature['properties']): void;
+  (e: 'ready'): void;
+  (e: 'geo-data-loaded', geoJson: unknown): void;
+  (e: 'reset-to-country'): void;
+  (e: 'level-change', level: { name: string; level: MapLevel['level']; adcode: number | null }): void;
+  (e: 'hover-change', properties: GeoJsonFeature['properties'] | null): void;
+  (e: 'select-change', adcode: number | null): void;
+  (e: 'error', error: unknown): void;
+}>();
 
 // 画布容器 host：渲染器创建的 <canvas> 会 appendChild 进这里（不在模板里），
 // ⚠️ 坑④：HMR 残留画布就发生在这个容器上，需在 viewport 内做 mount 清空。
-const canvasHost = ref<HTMLDivElement | null>(null)
+const canvasHost = ref<HTMLDivElement | null>(null);
+/** CSS2D 标签渲染器：与 WebGL 共用 canvas 宿主，把 CSS2DObject 投影成 DOM 标签 */
+let css2dRenderer: CSS2DRenderer | null = null;
 // 搜索框实例引用，供键盘 "/" 聚焦使用。
-const searchRef = ref<InstanceType<typeof MapSearchBox> | null>(null)
+const searchRef = ref<InstanceType<typeof MapSearchBox> | null>(null);
+/** 帮助面板可见性（F1 / 工具栏「?」切换） */
+const showHelp = ref(false);
+/** 自动巡游开关（与工具栏 v-model:roam 同步） */
+const roamOn = ref(false);
+/** 当前视角预设（高亮工具栏分段按钮） */
+const currentView = ref<'top' | 'oblique' | 'front'>('oblique');
 
 /**
  * viewport — 渲染视口（相机 / 渲染器 / OrbitControls / 渲染循环）。
@@ -134,7 +179,7 @@ const searchRef = ref<InstanceType<typeof MapSearchBox> | null>(null)
  * ⚠️ 坑②：内部已 camera.up.set(0,0,1) 设 Z-up，并 clampTarget 把视点夹在
  *   ±130 内（坑③）；canvas 由它 appendChild（坑④）。
  */
-const viewport = useMapViewport(() => canvasHost.value)
+const viewport = useMapViewport(() => canvasHost.value);
 
 /**
  * layer — 图层构建（GeoJSON → 三维网格、下钻重建、选择性泛光）。
@@ -142,7 +187,7 @@ const viewport = useMapViewport(() => canvasHost.value)
  * ⚠️ 坑①：build() 即"下钻=重建地图"，fitProjection 把任意层级最大边长归一到
  *   MAP_EXTENT=130；⚠️ 坑⑤：泛光用相机图层切换实现选择性发光。
  */
-const layer = useMapLayer(() => viewport.scene())
+const layer = useMapLayer(() => viewport.scene());
 
 /**
  * markers — 标记层（数据柱 / 地理标牌）。
@@ -158,7 +203,7 @@ const markers = useSpotMarkers({
   projectData: () => props.projectData,
   columnColor: () => props.columnColor,
   showColumn: () => props.showColumn,
-})
+});
 
 /**
  * flies — 流星飞线层。
@@ -172,11 +217,44 @@ const flies = useFlyLines({
   visible: () => props.showFlyline,
   color: () => props.flylineColor,
   speed: () => props.flylineSpeed,
-})
+});
+
+/**
+ * 展示型装饰层（棱锥 / 轨道 / 热力 / CSS2D 标签）：与 markers/flys 同款 composable 模式，
+ * 挂到同一 root，随层级重建，toggle 控制显隐。几何与层级无关的项（轨道）也借 root 挂载。
+ */
+const pyramids = usePyramidMarkers({
+  getRoot: () => layer.root(),
+  projectData: () => props.projectData,
+  color: () => props.columnColor,
+  visible: () => props.showPyramid,
+});
+const orbits = useOrbitRoutes({
+  getRoot: () => layer.root(),
+  visible: () => props.showOrbit,
+});
+const heat = useHeatmap({
+  getRoot: () => layer.root(),
+  projectData: () => props.projectData,
+  visible: () => props.showHeatmap,
+});
+const c2d = useCss2dLabels({
+  getRoot: () => layer.root(),
+  projectData: () => props.projectData,
+  visible: () => props.labelMode === 'css2d',
+});
+
+/** 标签模式同步：css2d 开 → 显示 DOM 标签并隐藏 Sprite 卡片；否则反之（并恢复选中态） */
+const syncLabels = () => {
+  const css2dOn = props.labelMode === 'css2d';
+  c2d.setVisible(css2dOn);
+  markers.setCardsVisible(!css2dOn && props.showColumn);
+  if (!css2dOn) markers.applyMode();
+};
 
 /** 一次性提示：错误 / 无数据，优先于进度条展示 */
-const notice = ref<{ text: string; tone: 'info' | 'error' } | null>(null)
-let noticeTimer: ReturnType<typeof setTimeout> | null = null
+const notice = ref<{ text: string; tone: 'info' | 'error' } | null>(null);
+let noticeTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * pushNotice — 弹出一个一次性提示（toast），自动定时消失。
@@ -186,12 +264,12 @@ let noticeTimer: ReturnType<typeof setTimeout> | null = null
  * 实现：先清掉旧定时器再起新的，避免多条提示互相覆盖提前消失。
  */
 const pushNotice = (text: string, tone: 'info' | 'error' = 'info', duration = 2800) => {
-  notice.value = { text, tone }
-  if (noticeTimer) clearTimeout(noticeTimer)
+  notice.value = { text, tone };
+  if (noticeTimer) clearTimeout(noticeTimer);
   noticeTimer = setTimeout(() => {
-    notice.value = null
-    noticeTimer = null
-  }, duration)
+    notice.value = null;
+    noticeTimer = null;
+  }, duration);
 };
 
 /**
@@ -225,42 +303,52 @@ const {
   onEnter: async (level, { rise, report }) => {
     // 全国底图合规校验：台湾省与九段线缺一不可
     if (level.level === 'country') {
-      const compliance = checkCountryCompliance(level.geo)
+      const compliance = checkCountryCompliance(level.geo);
       if (!compliance.ok) {
-        console.warn(`[china-map-3d] 底图缺少要素：${compliance.missing.join('、')}`)
-        pushNotice(`底图缺少${compliance.missing.join('、')}，请核对数据源`, 'error', 6000)
+        console.warn(`[china-map-3d] 底图缺少要素：${compliance.missing.join('、')}`);
+        pushNotice(`底图缺少${compliance.missing.join('、')}，请核对数据源`, 'error', 6000);
       }
     }
     // ⚠️ 坑①：level.fit 由 fitProjection 计算（最大边长归一到 MAP_EXTENT=130），
     //   全国/省/市三级共用同一套相机距离参数，因此聚焦逻辑无需按层级特判。
-    viewport.focus(level.fit, 0.5)
+    viewport.focus(level.fit, 0.5);
     // 重建地图：把该层级 GeoJSON 投影成三维网格（见坑①说明）。
-    await layer.build(level, { rise, report })
-    report({ text: '正在投影数据…', ratio: 0.88 })
+    await layer.build(level, { rise, report });
+    report({ text: '正在投影数据…', ratio: 0.88 });
     // 数据柱/标牌：deferEntrance 为 true 时由外部 playEntrance() 触发增长动画，
     // 否则立即长出（!deferEntrance）。
-    markers.build(level, !props.deferEntrance)
+    markers.build(level, !props.deferEntrance);
     // 柱体长到一半再让流星起飞，两个动画不抢同一个瞬间
-    flies.build(level, props.deferEntrance ? 0 : 0.72)
+    flies.build(level, props.deferEntrance ? 0 : 0.72);
+    // 展示型装饰层随层级重建（几何与层级无关的项也借 root 挂载）
+    pyramids.build(level);
+    orbits.build(level);
+    heat.build(level);
+    c2d.build(level);
+    syncLabels();
     // 下钻后把缩放/下钻控制器复位到初始距离，避免沿用上层的相机状态。
-    zoom.reset(viewport.camera(), viewport.controls())
-    emit('geo-data-loaded', level.geo)
+    zoom.reset(viewport.camera(), viewport.controls());
+    emit('geo-data-loaded', level.geo);
   },
   // 离开当前层（准备下钻 / 返回 / 跳级）时执行：先清交互态，再下沉/清空图层。
   // 切层时先清掉悬停态（picker 在下方创建，回调可安全引用：切层发生在挂载之后）
   onLeave: async () => {
-    picker.clearHover()
-    flies.clear()
-    await layer.sink()
-    markers.clear()
+    picker.clearHover();
+    flies.clear();
+    pyramids.clear();
+    orbits.clear();
+    heat.clear();
+    c2d.clear();
+    await layer.sink();
+    markers.clear();
   },
   onError: (error) => {
-    console.error('[china-map-3d] 图层加载失败：', error)
-    pushNotice('地理数据加载失败，请检查网络后重试', 'error', 4000)
-    emit('error', error)
+    console.error('[china-map-3d] 图层加载失败：', error);
+    pushNotice('地理数据加载失败，请检查网络后重试', 'error', 4000);
+    emit('error', error);
   },
   onNoChild: (name) => pushNotice(`${name} 暂无下级行政区数据`),
-})
+});
 
 /**
  * zoom — 滚轮缩放下钻（useZoomDrill），默认关闭，仅当 zoomDrillEnabled=true 生效。
@@ -276,33 +364,39 @@ const zoom = useZoomDrill({
   threshold: () => props.zoomDrillThreshold,
   isBusy: () => busy.value,
   hitCenter: () => {
-    const camera = viewport.camera()
-    const root = layer.root()
-    if (!camera || !root) return false
+    const camera = viewport.camera();
+    const root = layer.root();
+    if (!camera || !root) return false;
     // 以屏幕中心为圆心，向四周取 5 个采样点（中心 + 上下左右各 0.05）发射射线，
     // 任一命中"可下钻板块"即触发下钻，提升命中宽容度。
-    for (const [sx, sy] of [[0, 0], [0.05, 0], [-0.05, 0], [0, 0.05], [0, -0.05]]) {
-      viewport.pointer.set(sx, sy)
-      viewport.raycaster.setFromCamera(viewport.pointer, camera)
-      const hits = viewport.raycaster.intersectObjects(root.children, true)
-      const hit = hits.find((item: any) => item.object.userData?.kind === 'surface')
-      const region = (hit?.object as any)?.userData?.region
+    for (const [sx, sy] of [
+      [0, 0],
+      [0.05, 0],
+      [-0.05, 0],
+      [0, 0.05],
+      [0, -0.05],
+    ]) {
+      viewport.pointer.set(sx, sy);
+      viewport.raycaster.setFromCamera(viewport.pointer, camera);
+      const hits = viewport.raycaster.intersectObjects(root.children, true);
+      const hit = hits.find((item: any) => item.object.userData?.kind === 'surface');
+      const region = (hit?.object as any)?.userData?.region;
       if (region?.customProperties) {
-        drill(region.customProperties)
-        return true
+        drill(region.customProperties);
+        return true;
       }
     }
-    return false
+    return false;
   },
-})
+});
 
 /** 点击锁定：显示该城市的标牌并高亮板块 */
 // ⚠️ 坑⑦：地理标牌默认全部收起，这里 markers.select(adcode) 才让"该城市"
 //   的标牌单独显示；传 null 则恢复全部收起。
 const selectAdcode = (adcode: number | null) => {
-  markers.select(adcode)
-  layer.setSelected(adcode)
-  emit('select-change', adcode)
+  markers.select(adcode);
+  layer.setSelected(adcode);
+  emit('select-change', adcode);
 };
 
 /**
@@ -311,10 +405,10 @@ const selectAdcode = (adcode: number | null) => {
  * @returns 合法的正数 adcode，否则 null（0 / NaN / 负数一律视为无效）。
  */
 const adcodeOf = (pick: PickResult | null): number | null => {
-  if (!pick) return null
-  const info = pick.spot ?? pick.properties
-  const adcode = Number(info?.adcode)
-  return Number.isFinite(adcode) && adcode > 0 ? adcode : null
+  if (!pick) return null;
+  const info = pick.spot ?? pick.properties;
+  const adcode = Number(info?.adcode);
+  return Number.isFinite(adcode) && adcode > 0 ? adcode : null;
 };
 
 /**
@@ -322,8 +416,8 @@ const adcodeOf = (pick: PickResult | null): number | null => {
  * @param properties 目标行政区属性（含 adcode / name / center 等）。
  */
 const drillProperties = (properties: GeoJsonFeature['properties']) => {
-  emit('drill-down', properties)
-  drill(properties)
+  emit('drill-down', properties);
+  drill(properties);
 };
 
 /**
@@ -331,12 +425,12 @@ const drillProperties = (properties: GeoJsonFeature['properties']) => {
  * @param pick 指针拾取结果，优先取 spot（标记），其次取板块 properties。
  */
 const handleDrill = (pick: PickResult) => {
-  const info = pick.spot ?? pick.properties
-  if (!info) return
-  drillProperties(info as GeoJsonFeature['properties'])
+  const info = pick.spot ?? pick.properties;
+  if (!info) return;
+  drillProperties(info as GeoJsonFeature['properties']);
 };
 
-let lastHoverAdcode: number | null = null
+let lastHoverAdcode: number | null = null;
 
 /**
  * picker — 指针拾取（usePointerPick）：把鼠标事件换算成"悬停/单击/双击谁"。
@@ -353,27 +447,31 @@ const picker = usePointerPick({
   pointer: viewport.pointer,
   isBusy: () => busy.value,
   onHover: (pick) => {
-    const adcode = adcodeOf(pick)
-    layer.setHover(adcode)
+    const adcode = adcodeOf(pick);
+    layer.setHover(adcode);
     // 悬停即后台预取下级数据，等真正双击时通常已经落在本地
     if (pick?.properties && adcode && canDrill(pick.properties as GeoJsonFeature['properties'])) {
-      prefetchDistrictGeoJson(String(adcode))
+      prefetchDistrictGeoJson(String(adcode));
     }
     if (adcode !== lastHoverAdcode) {
-      lastHoverAdcode = adcode
-      emit('hover-change', (pick?.spot ?? pick?.properties ?? null) as GeoJsonFeature['properties'] | null)
+      lastHoverAdcode = adcode;
+      emit('hover-change', (pick?.spot ?? pick?.properties ?? null) as GeoJsonFeature['properties'] | null);
     }
   },
   onSelect: (pick) => selectAdcode(adcodeOf(pick)),
   onDrill: handleDrill,
-})
+  // 点空白（未命中任何板块 / 标记）→ 若当前有选中则取消选中
+  onMiss: () => {
+    if (markers.selectedAdcode.value != null) selectAdcode(null)
+  },
+});
 
 const tooltip = computed(() => {
-  const hover = picker.hovered.value
-  const info = hover ? hover.spot ?? hover.properties : null
-  if (!info) return { visible: false, x: 0, y: 0, name: '', levelText: '', value: '' }
-  const adcode = Number(info.adcode)
-  const value = info.value ?? readCount(props.projectData?.[adcode])
+  const hover = picker.hovered.value;
+  const info = hover ? (hover.spot ?? hover.properties) : null;
+  if (!info) return { visible: false, x: 0, y: 0, name: '', levelText: '', value: '' };
+  const adcode = Number(info.adcode);
+  const value = info.value ?? readCount(props.projectData?.[adcode]);
   return {
     visible: true,
     x: picker.position.value.x + 16,
@@ -381,10 +479,17 @@ const tooltip = computed(() => {
     name: String(info.name ?? ''),
     levelText: LEVEL_TEXT[info.level] ?? String(info.level ?? ''),
     value: value > 0 ? value : '—',
-  }
-})
+  };
+});
 
-const legend = computed(() => markers.legend.value)
+const legend = computed(() => markers.legend.value);
+
+/** 饼图分段：分档颜色 + 标签 + 各档城市数量（来自 markers 的统计） */
+const pie = computed(() =>
+  markers.legend.value
+    .map((e, i) => ({ color: e.color, label: e.label, value: markers.tierCounts.value[i] ?? 0 }))
+    .filter((s) => s.value > 0),
+);
 
 /**
  * searchItems — 搜索候选项 = 当前层级的全部行政区。
@@ -400,7 +505,7 @@ const searchItems = computed<SearchItem[]>(() =>
       adcode: Number(feature.properties.adcode) || 0,
       levelText: LEVEL_TEXT[feature.properties.level] ?? '',
     })),
-)
+);
 
 /**
  * handleSearchPick — 用户从下拉候选中点选某行政区。
@@ -408,12 +513,12 @@ const searchItems = computed<SearchItem[]>(() =>
  * @param item 候选条目（含 adcode）。
  */
 const handleSearchPick = (item: SearchItem) => {
-  const feature = findFeature(String(item.adcode))
-  if (!feature) return
-  if (canDrill(feature.properties)) drillProperties(feature.properties)
+  const feature = findFeature(String(item.adcode));
+  if (!feature) return;
+  if (canDrill(feature.properties)) drillProperties(feature.properties);
   else {
-    selectAdcode(item.adcode)
-    pushNotice(`已选中 ${feature.properties.name}（无下级行政区）`)
+    selectAdcode(item.adcode);
+    pushNotice(`已选中 ${feature.properties.name}（无下级行政区）`);
   }
 };
 
@@ -423,13 +528,13 @@ const handleSearchPick = (item: SearchItem) => {
  * @param keyword 用户输入的原始关键词。
  */
 const handleSearchKeyword = async (keyword: string) => {
-  if (!keyword) return
-  const result = await locateByName(keyword)
+  if (!keyword) return;
+  const result = await locateByName(keyword);
   if (!result) {
-    pushNotice(`未找到「${keyword}」`, 'info')
-    return
+    pushNotice(`未找到「${keyword}」`, 'info');
+    return;
   }
-  if (!result.drilled) selectAdcode(result.adcode)
+  if (!result.drilled) selectAdcode(result.adcode);
 };
 
 /**
@@ -438,10 +543,10 @@ const handleSearchKeyword = async (keyword: string) => {
  * stack.length===2 表示"当前在省级、再退就回全国"，此时额外广播 reset-to-country。
  */
 const handleBack = () => {
-  selectAdcode(null)
+  selectAdcode(null);
   // 回到全国时通知外部
-  if (stack.value.length === 2) emit('reset-to-country')
-  back()
+  if (stack.value.length === 2) emit('reset-to-country');
+  back();
 };
 
 /**
@@ -449,51 +554,51 @@ const handleBack = () => {
  * @param index 目标层级在 crumbs 中的下标（0 = 全国）。
  */
 const handleJump = (index: number) => {
-  selectAdcode(null)
-  if (index === 0 && stack.value.length === 2) emit('reset-to-country')
-  jumpTo(index)
+  selectAdcode(null);
+  if (index === 0 && stack.value.length === 2) emit('reset-to-country');
+  jumpTo(index);
 };
 
 /** 外部 API：按 adcode 下钻 */
 const drillByAdcode = (adcode: string) => {
-  const feature = findFeature(adcode)
-  const camera = viewport.camera()
-  if (!feature || !camera) return
+  const feature = findFeature(adcode);
+  const camera = viewport.camera();
+  if (!feature || !camera) return;
   // 没有真实鼠标事件，这里手工拼一个 PickResult（kind='region'），复用 handleDrill 下钻。
-  handleDrill({ kind: 'region', properties: feature.properties, spot: null, point: camera.position.clone() })
+  handleDrill({ kind: 'region', properties: feature.properties, spot: null, point: camera.position.clone() });
 };
 
 /** 外部 API：按 adcode 跨层级定位（自动沿省→市路径下钻） */
 const locateByCode = async (adcode: string | number) => {
-  const code = await locateByAdcode(adcode)
+  const code = await locateByAdcode(adcode);
   if (code == null) {
-    pushNotice(`未找到 adcode ${adcode}`, 'info')
-    return null
+    pushNotice(`未找到 adcode ${adcode}`, 'info');
+    return null;
   }
-  selectAdcode(code)
-  return code
+  selectAdcode(code);
+  return code;
 };
 
 /** 外部 API：按名称定位 */
 const locateByNames = async (name: string) => {
-  const result = await locateByName(name)
+  const result = await locateByName(name);
   if (!result) {
-    pushNotice(`未找到「${name}」`, 'info')
-    return null
+    pushNotice(`未找到「${name}」`, 'info');
+    return null;
   }
-  if (!result.drilled) selectAdcode(result.adcode)
-  return result.adcode
+  if (!result.drilled) selectAdcode(result.adcode);
+  return result.adcode;
 };
 
 /** 外部 API：回到全国 */
 const resetToRoot = () => {
-  selectAdcode(null)
-  resetToCountry()
+  selectAdcode(null);
+  resetToCountry();
 };
 
 /** 入场动画（deferEntrance 时由外部触发） */
 const playEntrance = () => {
-  layer.playEntrance()
+  layer.playEntrance();
 };
 
 // 对外暴露的实例 API（父组件 / 外部可通过 ref 调用）：
@@ -512,120 +617,233 @@ defineExpose({
   resetToCountry: resetToRoot,
   playEntrance,
   currentLevel: () => current.value as MapLevel | null,
-})
+});
 
 watch(
   () => props.projectData,
   () => {
-    const level = current.value
+    const level = current.value;
     // 数据 / 配色变更即时生效，重播入场动画会显得整屏在抖
-    if (level && layer.root()) markers.build(level, false)
+    if (level && layer.root()) {
+      markers.build(level, false);
+      // 依赖数据的装饰层同步重建：棱锥 / 热力 / CSS2D 标签
+      pyramids.build(level);
+      heat.build(level);
+      c2d.build(level);
+    }
   },
   { deep: true },
-)
+);
 
 // showColumn 切换数据柱 ↔ 地理标牌：applyMode() 不重建，仅切换呈现模式。
 // ⚠️ 坑⑦：切到标牌模式后默认全部收起，需单击城市才显示（见 selectAdcode）。
 watch(
   () => props.showColumn,
   () => markers.applyMode(),
-)
+);
 
 watch(
   () => props.columnColor,
   () => {
-    const level = current.value
+    const level = current.value;
     // 数据 / 配色变更即时生效，重播入场动画会显得整屏在抖
-    if (level && layer.root()) markers.build(level, false)
+    if (level && layer.root()) markers.build(level, false);
   },
-)
+);
 
 watch(
   () => props.dragMode,
   (mode) => viewport.setDragMode(mode),
-)
+);
 
 watch(
   () => props.showFlyline,
   (visible) => flies.setVisible(visible),
-)
+);
 
 watch(
   () => props.flylineColor,
   (color) => flies.setColor(color),
-)
+);
 
 watch(
   () => props.flylineSpeed,
   (speed) => flies.setSpeed(speed),
-)
+);
+
+// 装饰层开关：直接切换显隐（几何已随层级构建，不必重建）
+watch(
+  () => props.showPyramid,
+  (v) => pyramids.setVisible(v),
+);
+watch(
+  () => props.showOrbit,
+  (v) => orbits.setVisible(v),
+);
+watch(
+  () => props.showHeatmap,
+  (v) => heat.setVisible(v),
+);
+// 标签模式：css2d 开 → 显示 DOM 标签并隐藏 Sprite 卡片；否则反之
+watch(
+  () => props.labelMode,
+  () => syncLabels(),
+);
+
+// 自动巡游：开关 OrbitControls 自转
+watch(
+  () => roamOn.value,
+  (on) => viewport.setAutoRotate(on),
+  { immediate: true },
+);
+
+// 侧壁扫描流光：切换共享材质的强度 uniform
+watch(
+  () => props.showWallScan,
+  (on) => setRegionScan(on),
+  { immediate: true },
+);
 
 // 层级变化对外广播（外部可据此同步标题 / 列表）
 watch(
   () => current.value?.adcode,
   () => {
-    const level = current.value
-    if (!level) return
-    emit('level-change', { name: level.name, level: level.level, adcode: level.adcode })
+    const level = current.value;
+    if (!level) return;
+    emit('level-change', { name: level.name, level: level.level, adcode: level.adcode });
   },
-)
+);
 
-/** 键盘：Esc 返回上级 · 空格复位视角 · / 聚焦搜索 */
+/** CSS2D 渲染器随容器尺寸变化同步 */
+const onCss2dResize = () => {
+  const hostEl = canvasHost.value;
+  if (css2dRenderer && hostEl) css2dRenderer.setSize(hostEl.clientWidth, hostEl.clientHeight);
+};
+
+/** 键盘：F1 帮助 · Esc 先取消选中再返回上级 · 空格复位视角 · / 聚焦搜索 */
 const handleKeydown = (event: KeyboardEvent) => {
-  const target = event.target as HTMLElement | null
-  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+  const target = event.target as HTMLElement | null;
+  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
 
-  if (event.key === 'Escape' && canGoBack.value) {
-    event.preventDefault()
-    handleBack()
+  if (event.key === 'F1') {
+    // 浏览器默认会打开帮助页，必须阻止
+    event.preventDefault();
+    showHelp.value = !showHelp.value;
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    // 优先取消选中；已无选中且还能返回时才回上一级
+    if (markers.selectedAdcode.value != null) selectAdcode(null);
+    else if (canGoBack.value) handleBack();
+    else if (showHelp.value) showHelp.value = false;
   } else if (event.code === 'Space') {
-    event.preventDefault()
-    viewport.focus(current.value?.fit ?? null, 0.5)
+    event.preventDefault();
+    viewport.focus(current.value?.fit ?? null, 0.5);
   } else if (event.key === '/' && props.showSearch) {
-    event.preventDefault()
-    searchRef.value?.focus()
+    event.preventDefault();
+    searchRef.value?.focus();
   }
 };
 
-let tickOff: (() => void) | null = null
+/** 视角预设：转交 viewport 平滑切换，并回写 currentView 高亮 */
+const handleViewPreset = (name: 'top' | 'oblique' | 'front') => {
+  currentView.value = name;
+  viewport.viewPreset(name);
+};
+
+/** 全屏切换：对画布容器调用 Fullscreen API */
+const toggleFullscreen = () => {
+  const el = canvasHost.value;
+  if (!el) return;
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  else el.requestFullscreen?.().catch(() => pushNotice('当前环境不支持全屏', 'info'));
+};
+
+/** 截图：从 viewport 取 PNG dataURL，触发下载 */
+const doScreenshot = () => {
+  const url = viewport.screenshot();
+  if (!url) {
+    pushNotice('截图失败，请稍后重试', 'error');
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `china-map-${Date.now()}.png`;
+  a.click();
+  pushNotice('已保存截图', 'info');
+};
+
+let tickOff: (() => void) | null = null;
 
 onMounted(async () => {
-  await nextTick()
-  viewport.setDragMode(props.dragMode)
-  viewport.start()
+  await nextTick();
+  viewport.setDragMode(props.dragMode);
+  viewport.start();
   // ⚠️ 坑④：canvas 由 viewport 以 appendChild 注入 canvasHost（不在模板里）。
   //   HMR 时旧实例可能残留画布，viewport 内部会在 mount 时先清空容器内已有
   //   canvas 再挂新的，避免两块画布叠加。
-  const canvas = viewport.canvas()
-  if (canvas) picker.attach(canvas)
+  const canvas = viewport.canvas() as any;
+  if (canvas) picker.attach(canvas);
+
+  // CSS2D 标签渲染器：与 WebGL 共用 canvas 宿主（绝对定位覆盖其上，不拦截鼠标）
+  const hostEl = canvasHost.value;
+  if (hostEl) {
+    css2dRenderer = new CSS2DRenderer();
+    css2dRenderer.setSize(hostEl.clientWidth || 1200, hostEl.clientHeight || 700);
+    const c2dEl = css2dRenderer.domElement;
+    c2dEl.style.position = 'absolute';
+    c2dEl.style.top = '0';
+    c2dEl.style.left = '0';
+    c2dEl.style.pointerEvents = 'none';
+    c2dEl.style.zIndex = '4';
+    hostEl.appendChild(c2dEl);
+    window.addEventListener('resize', onCss2dResize, false);
+  }
 
   tickOff = viewport.onTick((dt, elapsed) => {
-    flies.tick(dt, elapsed, viewport.camera())
-    zoom.update(viewport.camera()!, viewport.controls())
-  })
+    flies.tick(dt, elapsed, viewport.camera());
+    pyramids.tick(dt, elapsed);
+    orbits.tick(dt);
+    // 侧壁扫描流光：推进共享材质的时间戳
+    updateRegionScan(elapsed);
+    // CSS2D 标签：与 WebGL 同帧投影 DOM 标签
+    const cam = viewport.camera();
+    const scn = viewport.scene();
+    if (cam && scn && css2dRenderer) css2dRenderer.render(scn, cam);
+    zoom.update(viewport.camera()!, viewport.controls());
+  });
 
-  window.addEventListener('keydown', handleKeydown, false)
+  window.addEventListener('keydown', handleKeydown, false);
 
-  await loadCountry(!props.deferEntrance)
-  zoom.reset(viewport.camera(), viewport.controls())
-  emit('ready')
+  await loadCountry(!props.deferEntrance);
+  zoom.reset(viewport.camera(), viewport.controls());
+  emit('ready');
 
-  if (props.initialAdcode) drillByAdcode(props.initialAdcode)
-})
+  if (props.initialAdcode) drillByAdcode(props.initialAdcode);
+});
 
 onUnmounted(() => {
-  tickOff?.()
-  tickOff = null
-  window.removeEventListener('keydown', handleKeydown, false)
-  if (noticeTimer) clearTimeout(noticeTimer)
-  picker.detach()
-  markers.clear()
-  flies.clear()
-  layer.dispose()
+  tickOff?.();
+  tickOff = null;
+  window.removeEventListener('keydown', handleKeydown, false);
+  window.removeEventListener('resize', onCss2dResize, false);
+  if (noticeTimer) clearTimeout(noticeTimer);
+  picker.detach();
+  pyramids.clear();
+  orbits.clear();
+  heat.clear();
+  c2d.clear();
+  markers.clear();
+  flies.clear();
+  layer.dispose();
   // ⚠️ 坑④：停掉渲染循环并释放 GPU 资源；viewport.stop() 内部还会把注入的
   //   canvas.remove() 摘掉 DOM，确保 unmount 后不残留画布。
-  viewport.stop()
-})
+  viewport.stop();
+  // CSS2D 渲染器的 DOM 不在 scene 内，需手动摘除以免残留标签层
+  if (css2dRenderer) {
+    css2dRenderer.domElement.remove();
+    css2dRenderer = null;
+  }
+});
 </script>
 
 <style scoped>
@@ -644,5 +862,41 @@ onUnmounted(() => {
   display: block;
   width: 100% !important;
   height: 100% !important;
+}
+/* CSS2D 城市标签样式见文件末尾非 scoped <style> 块：
+   标签 DOM 由 useCss2dLabels 用 document.createElement 动态注入到
+   CSS2DRenderer.domElement，scoped 样式不会命中它，故必须放全局块，
+   否则会回落到浏览器默认样式（透明底 + 黑字）。 */
+</style>
+
+<!--
+  非 scoped 样式块：CSS2D 城市标签。
+  标签 DOM 由 composables/useCss2dLabels.ts 用 document.createElement 动态创建，
+  并 append 到 CSS2DRenderer.domElement（在组件根之外注入），Vue 的 scoped 属性
+  选择器无法命中这类动态节点，会把它们留成浏览器默认样式（透明底 + 黑字）。
+  因此这一组样式必须放在非 scoped 块里，才能稳定生效。
+-->
+<style>
+.map-c2d-label {
+  padding: 2px 8px;
+  background: rgba(6, 16, 30, 0.82);
+  border: 1px solid #5fc9ee;
+  border-left-width: 3px;
+  border-radius: 4px;
+  color: #eaf8ff;
+  font:
+    600 12px/1.2 'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+}
+.map-c2d-label__name {
+  color: #a9dcf2;
+  margin-right: 6px;
+}
+.map-c2d-label__value {
+  color: #ffffff;
 }
 </style>

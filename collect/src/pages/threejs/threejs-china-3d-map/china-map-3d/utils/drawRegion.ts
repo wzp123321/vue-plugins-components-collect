@@ -42,8 +42,9 @@ export interface RegionNode {
 let sideMaterial: THREE.ShaderMaterial | null = null
 
 /**
- * 侧壁：竖直渐变，所有区域共用一套材质（只需编译一次）。
- * 顶点里直接传 position.z（0=底, depth=顶），片元按 vZ/depth 在底/顶色间 mix。
+ * 侧壁：竖直渐变 + 自上而下的"扫描流光"带，所有区域共用一套材质（只需编译一次）。
+ * 顶点里直接传 position.z（0=底, depth=顶），片元按 vZ/depth 在底/顶色间 mix，
+ * 并叠加一条随时间自下而上扫掠的发光带（uScanIntensity=0 时完全不显示，等同原版）。
  * 注意：侧壁不参与拾取，射线只在顶面命中（见 createRegion 中 mesh.userData）。
  */
 const getSideMaterial = (): THREE.ShaderMaterial => {
@@ -53,6 +54,11 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
       topColor: { value: new THREE.Color(mapConfig.sideColorTop) },
       bottomColor: { value: new THREE.Color(mapConfig.sideColorBottom) },
       depth: { value: mapConfig.depth },
+      uTime: { value: 0 },
+      uScanColor: { value: new THREE.Color(mapConfig.decor.scan.color) },
+      uScanWidth: { value: mapConfig.decor.scan.width },
+      uScanSpeed: { value: mapConfig.decor.scan.speed },
+      uScanIntensity: { value: 0 },
     },
     vertexShader: `
       varying float vZ;
@@ -65,14 +71,50 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
       uniform vec3 topColor;
       uniform vec3 bottomColor;
       uniform float depth;
+      uniform float uTime;
+      uniform vec3 uScanColor;
+      uniform float uScanWidth;
+      uniform float uScanSpeed;
+      uniform float uScanIntensity;
       varying float vZ;
       void main() {
-        gl_FragColor = vec4(mix(bottomColor, topColor, clamp(vZ / depth, 0.0, 1.0)), 1.0);
+        vec3 base = mix(bottomColor, topColor, clamp(vZ / depth, 0.0, 1.0));
+        // 自下而上扫掠的发光带：head 从 0 升到 1 循环，窄带高亮
+        float h = clamp(vZ / depth, 0.0, 1.0);
+        float head = fract(uTime * uScanSpeed);
+        float d = abs(h - head);
+        // 环形过渡：到顶/底不突变（用 min 距离两端）
+        d = min(d, abs((h + 1.0) - head));
+        float scan = smoothstep(uScanWidth, 0.0, d);
+        // 极淡的静态等高条纹，增加"科技感"底纹（强度仅 0.05，几乎不可见）
+        float contour = 0.04 * (0.5 + 0.5 * sin(h * 46.0 - uTime * 0.6));
+        base += uScanColor * (scan * uScanIntensity + contour * uScanIntensity * 0.18);
+        gl_FragColor = vec4(base, 1.0);
       }
     `,
   })
   sideMaterial.userData = { shared: true }
   return sideMaterial
+};
+
+/**
+ * 每帧推进侧壁扫描动画的时间戳（驱动 uTime）。
+ * @param elapsed 渲染循环累计秒数
+ */
+export const updateRegionScan = (elapsed: number) => {
+  if (sideMaterial) (sideMaterial.uniforms.uTime as { value: number }).value = elapsed
+};
+
+/**
+ * 开启 / 关闭侧壁扫描流光（直接改共享材质的强度 uniform）。
+ * @param enabled true=显示扫掠带，false=回到纯渐变（等同原版）
+ */
+export const setRegionScan = (enabled: boolean): void => {
+  if (sideMaterial) {
+    (sideMaterial.uniforms.uScanIntensity as { value: number }).value = enabled
+      ? mapConfig.decor.scan.intensity
+      : 0
+  }
 };
 
 /**

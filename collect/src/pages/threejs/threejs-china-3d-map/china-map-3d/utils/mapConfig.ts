@@ -75,8 +75,32 @@ export const mapConfig = {
     /** 头部光点直径与不透明度 */
     headSize: 1.5,
     headOpacity: 0.32,
-    /** 默认每秒前进的弧长比例 */
-    speed: 0.2,
+  /** 默认每秒前进的弧长比例 */
+  speed: 0.2,
+  },
+
+  /** 展示型大屏装饰层参数（棱锥 / 轨道 / 热力），集中配置便于调参 */
+  decor: {
+    /** 动态棱锥点位 */
+    pyramid: { height: 9, radius: 1.1 },
+    /** 轨道路线：多条由近到远倾斜环 + 卫星 */
+    orbit: {
+      count: 3,
+      radiusNear: 150,
+      radiusFar: 210,
+      tilt: 0.35,
+      lift: 22,
+      tube: 0.32,
+      satSize: 2.4,
+      speed: 0.06,
+      color: '#7FD4F5',
+    },
+    /** 高度热力面 */
+    heat: { grid: 96, opacity: 0.55, zOffset: 0.12 },
+    /** 侧壁扫描流光：自下而上扫掠的发光带（强度由 intensity 控制，0=关闭） */
+    scan: { color: '#7FE9FF', width: 0.055, speed: 0.14, intensity: 1.0 },
+    /** 底部辉光地面：地图正下方的放射状光晕 */
+    ground: { color: '#0B3B5E', radius: 1.7, opacity: 0.9 },
   },
 
   /** 选择性泛光：只有该图层参与 bloom */

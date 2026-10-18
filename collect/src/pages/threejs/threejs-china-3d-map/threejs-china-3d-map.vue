@@ -23,6 +23,12 @@
       :flyline-color="flylineColor"
       :flyline-speed="flylineSpeed"
       :drag-mode="dragMode"
+      :show-pyramid="showPyramid"
+      :show-orbit="showOrbit"
+      :show-heatmap="showHeatmap"
+      :show-pie="showPie"
+      :show-wall-scan="showWallScan"
+      :label-mode="labelMode"
     />
     <MapControlPanel
       v-model:drag-mode="dragMode"
@@ -31,6 +37,12 @@
       v-model:show-flyline="showFlyline"
       v-model:flyline-color="flylineColor"
       v-model:flyline-speed="flylineSpeed"
+      v-model:show-pyramid="showPyramid"
+      v-model:show-orbit="showOrbit"
+      v-model:show-heatmap="showHeatmap"
+      v-model:show-pie="showPie"
+      v-model:show-wall-scan="showWallScan"
+      v-model:label-mode="labelMode"
     />
     <div class="china3d-overlay">
       <div class="china3d-title">
@@ -41,7 +53,7 @@
         <p>🖱️ 左键拖拽平移（上下拖＝远近）· 右键拖拽旋转 · 滚轮缩放</p>
         <p>👆 单击城市查看标牌 · 双击区域下钻 · 悬停看数据卡片</p>
         <p>🔎 左上角搜索当前层级行政区 · 面包屑点击可跳到任意层级</p>
-        <p>⌨️ Esc 返回上级 · 空格复位视角 · / 聚焦搜索框</p>
+        <p>⌨️ Esc 先取消选中/再返回上级 · 空格复位视角 · / 聚焦搜索 · F1 帮助</p>
       </div>
     </div>
   </div>
@@ -61,6 +73,14 @@ const showFlyline = ref(true)
 const flylineColor = ref('#7FD4F5')
 const flylineSpeed = ref(0.2)
 const dragMode = ref<'pan' | 'rotate'>('pan')
+// 展示型特效开关（下发到 ChinaMap3D，并由右上角控制台双向调节）
+// 棱锥/热力默认关：避免与数据柱空间重叠显得杂乱；轨道环/饼图默认开（不与数据柱冲突）
+const showPyramid = ref(false)
+const showOrbit = ref(true)
+const showHeatmap = ref(false)
+const showPie = ref(true)
+const showWallScan = ref(false)
+const labelMode = ref<'sprite' | 'css2d'>('sprite')
 
 // 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色。
 // 真实业务中应替换为后端按 adcode 返回的统计值。

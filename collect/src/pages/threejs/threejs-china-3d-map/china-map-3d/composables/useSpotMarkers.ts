@@ -49,6 +49,7 @@ const GROW_DURATION = 0.95
  */
 export const useSpotMarkers = (options: Options) => {
   const legend = ref<LegendEntry[]>([])
+  const tierCounts = ref<number[]>([])
   const selectedAdcode = ref<number | null>(null)
 
   let layer: SpotLayer | null = null
@@ -130,6 +131,10 @@ export const useSpotMarkers = (options: Options) => {
     const tiers: Tier[] = buildTiers(values, options.columnColor())
     for (const item of items) item.tier = tierOf(item.value, tiers)
     legend.value = tiers.map((tier) => ({ color: tier.color, label: tier.label }))
+    // 各分档城市数量（供饼图统计用）
+    const counts = new Array<number>(tiers.length).fill(0)
+    for (const item of items) counts[item.tier]++
+    tierCounts.value = counts
 
     // 以最大值为柱高归一化基准，建出柱体 + 标牌 + 热区
     layer = createSpotLayer(items, tiers, Math.max(...values))
@@ -165,10 +170,16 @@ export const useSpotMarkers = (options: Options) => {
 
   return {
     legend,
+    tierCounts,
     selectedAdcode,
     build,
     clear,
     select,
     applyMode,
+    /** CSS2D 标签模式下隐藏 Sprite 数值卡片，避免两种标签重叠 */
+    setCardsVisible(visible: boolean) {
+      if (!layer) return
+      for (const card of layer.cardByAdcode.values()) card.visible = visible
+    },
   }
 };
