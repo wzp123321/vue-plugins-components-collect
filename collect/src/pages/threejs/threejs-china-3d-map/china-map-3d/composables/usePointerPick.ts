@@ -29,7 +29,7 @@ const DRAG_THRESHOLD = 6
  * 指针交互：悬停高亮 + 单击选中 + 双击下钻。
  * 旋转 / 平移 / 缩放全部交给 OrbitControls，这里只做拾取。
  */
-export function usePointerPick(options: Options) {
+export const usePointerPick = (options: Options) => {
   const hovered = shallowRef<PickResult | null>(null)
   const position = ref({ x: 0, y: 0 })
 
@@ -39,7 +39,7 @@ export function usePointerPick(options: Options) {
   let framePending = false
   let pendingEvent: MouseEvent | null = null
 
-  function pickAt(clientX: number, clientY: number): PickResult | null {
+  const pickAt = (clientX: number, clientY: number): PickResult | null => {
     const camera = options.camera()
     const root = options.getRoot()
     if (!camera || !root || !host) return null
@@ -70,9 +70,9 @@ export function usePointerPick(options: Options) {
       }
     }
     return null
-  }
+  };
 
-  function handleMove(event: MouseEvent) {
+  const handleMove = (event: MouseEvent) => {
     if (host) {
       const rect = host.getBoundingClientRect()
       // 存相对容器的坐标，tooltip 直接拿去定位
@@ -92,40 +92,40 @@ export function usePointerPick(options: Options) {
       host.style.cursor = pick ? 'pointer' : 'default'
       options.onHover?.(pick)
     })
-  }
+  };
 
-  function handleLeave() {
+  const handleLeave = () => {
     hovered.value = null
     if (host) host.style.cursor = 'default'
     options.onHover?.(null)
-  }
+  };
 
-  function handleDown(event: MouseEvent) {
+  const handleDown = (event: MouseEvent) => {
     downX = event.clientX
     downY = event.clientY
-  }
+  };
 
-  function handleClick(event: MouseEvent) {
+  const handleClick = (event: MouseEvent) => {
     if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD) return
     options.onSelect?.(pickAt(event.clientX, event.clientY))
-  }
+  };
 
-  function handleDoubleClick(event: MouseEvent) {
+  const handleDoubleClick = (event: MouseEvent) => {
     if (options.isBusy()) return
     const pick = pickAt(event.clientX, event.clientY)
     if (pick) options.onDrill?.(pick)
-  }
+  };
 
-  function attach(element: HTMLElement) {
+  const attach = (element: HTMLElement) => {
     host = element
     element.addEventListener('mousemove', handleMove, false)
     element.addEventListener('mouseleave', handleLeave, false)
     element.addEventListener('mousedown', handleDown, false)
     element.addEventListener('click', handleClick, false)
     element.addEventListener('dblclick', handleDoubleClick, false)
-  }
+  };
 
-  function detach() {
+  const detach = () => {
     if (!host) return
     host.removeEventListener('mousemove', handleMove, false)
     host.removeEventListener('mouseleave', handleLeave, false)
@@ -134,7 +134,7 @@ export function usePointerPick(options: Options) {
     host.removeEventListener('dblclick', handleDoubleClick, false)
     host = null
     hovered.value = null
-  }
+  };
 
   return {
     attach,
@@ -148,4 +148,4 @@ export function usePointerPick(options: Options) {
       if (host) host.style.cursor = 'default'
     },
   }
-}
+};

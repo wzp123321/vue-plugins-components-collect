@@ -38,6 +38,12 @@ const bloomMixShader = {
 
 type Tick = (dt: number, elapsed: number) => void
 
+/** 左键拖拽的行为：pan=拖着地图走（上下拖即视觉上的前后移动），rotate=绕地图转动 */
+export type DragMode = 'pan' | 'rotate'
+
+/** 平移边界：超过这个范围就把视点夹回来，避免地图被拖出画面 */
+const PAN_LIMIT = 130
+
 /**
  * 渲染引擎：场景 / 相机 / 控制器 / 后期 / 渲染循环 / 视口尺寸。
  *
@@ -46,7 +52,7 @@ type Tick = (dt: number, elapsed: number) => void
  * 2. 选择性泛光用相机图层切换实现，不再逐帧遍历场景替换材质；
  * 3. 卸载时显式移除 canvas —— 否则 HMR 重挂载会残留旧画布（看起来像「地图下面多了一张图」）。
  */
-export function useMapViewport(host: () => HTMLElement | null) {
+export const useMapViewport = (host: () => HTMLElement | null) => {
   let scene: THREE.Scene | null = null
   let camera: THREE.PerspectiveCamera | null = null
   let renderer: THREE.WebGLRenderer | null = null
@@ -58,20 +64,21 @@ export function useMapViewport(host: () => HTMLElement | null) {
   let elapsed = 0
   let lastTime = 0
   let disposed = false
+  let dragMode: DragMode = 'pan'
   const ticks = new Set<Tick>()
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
 
-  function viewDirection() {
+  const viewDirection = () => {
     return new THREE.Vector3(0, -Math.sin(VIEW_TILT), Math.cos(VIEW_TILT))
-  }
+  };
 
   /**
    * 精确取景距离：把地图包围盒 8 个角点投影到 NDC，
    * 迭代反推相机距离直到角点都落在 margin 内。
    * 比 FOV 经验公式可靠 —— 视口宽高比、俯视倾角都自动适配。
    */
-  function fitDistance(fit: FitProjection, margin = FIT_MARGIN): number {
+  const fitDistance = (fit: FitProjection, margin = FIT_MARGIN): number => {
     const element = host()
     const aspect = element && element.clientHeight > 0
       ? element.clientWidth / element.clientHeight
@@ -112,10 +119,10 @@ export function useMapViewport(host: () => HTMLElement | null) {
       distance = next
     }
     return Math.max(60, Math.min(2000, distance))
-  }
+  };
 
   /** 把相机推到一个能完整看下当前层级的位置 */
-  function focus(fit: FitProjection | null, duration = 0.55) {
+  const focus = (fit: FitProjection | null, duration = 0.55) => {
     if (!camera || !controls) return
     const target = new THREE.Vector3(0, 0, mapConfig.depth)
     const distance = fit ? fitDistance(fit) : MAP_EXTENT * 2
@@ -141,9 +148,44 @@ export function useMapViewport(host: () => HTMLElement | null) {
     gsap.to(camera.position, { x: position.x, y: position.y, z: position.z, duration, ease: 'power2.out', onComplete: finish })
     controls.minDistance = 1
     controls.maxDistance = 4000
-  }
+  };
 
-  function resize() {
+  /** 平移过头会把地图拖出画面：把视点夹在地图范围内 */
+  const clampTarget = () => {
+    if (!controls) return
+    const target = controls.target
+    let touched = false
+    if (target.x < -PAN_LIMIT || target.x > PAN_LIMIT) {
+      target.x = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, target.x))
+      touched = true
+    }
+    if (target.y < -PAN_LIMIT || target.y > PAN_LIMIT) {
+      target.y = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, target.y))
+      touched = true
+    }
+    if (!touched) return
+    // 相机同步补偿，否则视点被夹住而相机留在原地会变成一次「斜着看」
+    if (camera) {
+      const offset = new THREE.Vector3().subVectors(camera.position, target)
+      camera.position.copy(target).add(offset)
+    }
+    controls.update()
+  };
+
+  /** 切换左键拖拽行为；控制器还没创建时先记下来，start 时再套用 */
+  const setDragMode = (mode: DragMode) => {
+    dragMode = mode
+    if (!controls) return
+    const pan = mode === 'pan'
+    controls.mouseButtons = pan
+      ? { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }
+      : { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }
+    controls.touches = pan
+      ? { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE }
+      : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
+  };
+
+  const resize = () => {
     const element = host()
     if (!element || !renderer || !camera) return
     const width = element.clientWidth
@@ -155,9 +197,9 @@ export function useMapViewport(host: () => HTMLElement | null) {
     composer?.setSize(width, height)
     bloomComposer?.setSize(width, height)
     setLineResolution(width, height)
-  }
+  };
 
-  function render() {
+  const render = () => {
     if (!renderer || !camera || !composer) return
     const bloomLayer = mapConfig.bloomLayer
     // 只渲染泛光层 → 得到干净的 bloom 纹理；再切回默认层渲染全场景
@@ -167,9 +209,9 @@ export function useMapViewport(host: () => HTMLElement | null) {
     }
     camera.layers.set(0)
     composer.render()
-  }
+  };
 
-  function start() {
+  const start = () => {
     const element = host()
     if (!element || renderer) return
 
@@ -204,12 +246,10 @@ export function useMapViewport(host: () => HTMLElement | null) {
     controls.maxPolarAngle = MAX_POLAR
     controls.minDistance = 40
     controls.maxDistance = 1200
-    controls.mouseButtons = {
-      LEFT: THREE.MOUSE.ROTATE,
-      MIDDLE: THREE.MOUSE.DOLLY,
-      RIGHT: THREE.MOUSE.PAN,
-    }
-    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
+    // screenSpacePanning=true：上下拖拽即沿屏幕推进 / 拉远，也就是「往里往外地拖」
+    controls.screenSpacePanning = true
+    setDragMode(dragMode)
+    controls.addEventListener('change', clampTarget)
     controls.update()
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.52))
@@ -278,18 +318,19 @@ export function useMapViewport(host: () => HTMLElement | null) {
       render()
     }
     loop()
-  }
+  };
 
-  function onVisibility() {
+  const onVisibility = () => {
     if (!document.hidden) lastTime = performance.now()
-  }
+  };
 
-  function stop() {
+  const stop = () => {
     disposed = true
     cancelAnimationFrame(rafId)
     ticks.clear()
     window.removeEventListener('resize', resize, false)
     document.removeEventListener('visibilitychange', onVisibility, false)
+    controls?.removeEventListener('change', clampTarget)
     starfield?.dispose()
     composer?.dispose?.()
     bloomComposer?.dispose?.()
@@ -305,12 +346,14 @@ export function useMapViewport(host: () => HTMLElement | null) {
     composer = null
     bloomComposer = null
     starfield = null
-  }
+  };
 
   return {
     start,
     stop,
     focus,
+    setDragMode,
+    dragMode: () => dragMode,
     onTick: (tick: Tick) => {
       ticks.add(tick)
       return () => ticks.delete(tick)
@@ -322,4 +365,4 @@ export function useMapViewport(host: () => HTMLElement | null) {
     raycaster,
     pointer,
   }
-}
+};

@@ -14,19 +14,19 @@ interface Options {
  * 缩放触发下钻：只有「从外向内跨过阈值」这一瞬间触发一次，
  * 之后必须缩回参考距离以上才重新武装，避免连续误触发。
  */
-export function useZoomDrill(options: Options) {
+export const useZoomDrill = (options: Options) => {
   let referenceDistance = 0
   let armed = false
   let previousDistance = 0
 
-  function reset(camera: THREE.PerspectiveCamera | null, controls: OrbitControls | null) {
+  const reset = (camera: THREE.PerspectiveCamera | null, controls: OrbitControls | null) => {
     if (!camera || !controls) return
     referenceDistance = camera.position.distanceTo(controls.target)
     previousDistance = referenceDistance
     armed = false
-  }
+  };
 
-  function update(camera: THREE.PerspectiveCamera | null, controls: OrbitControls | null) {
+  const update = (camera: THREE.PerspectiveCamera | null, controls: OrbitControls | null) => {
     if (!camera || !controls || !options.enabled() || options.isBusy() || !referenceDistance) return
     const distance = camera.position.distanceTo(controls.target)
     const trigger = referenceDistance * options.threshold()
@@ -38,7 +38,7 @@ export function useZoomDrill(options: Options) {
     }
     if (armed && distance >= referenceDistance) armed = false
     previousDistance = distance
-  }
+  };
 
   return { update, reset }
-}
+};

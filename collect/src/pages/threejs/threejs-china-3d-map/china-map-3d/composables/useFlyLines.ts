@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import { createProjection } from '../utils/projection'
 import type { ProjectionFn } from '../utils/projection'
+import { anchorOf } from '../utils/anchor'
 import { createFlyLine, setFlyLineTint, updateFlyLine } from '../utils/drawFlyLine'
 import type { FlyAnim } from '../utils/drawFlyLine'
 import { disposeObject3D } from '../utils/dispose'
@@ -38,7 +39,7 @@ interface Options {
  * 流星飞线：全国以北京为枢纽辐射省会，省内以首市为枢纽辐射其它市。
  * 逐帧推进交给渲染循环（dt 累加），与帧率完全解耦。
  */
-export function useFlyLines(options: Options) {
+export const useFlyLines = (options: Options) => {
   let group: THREE.Group | null = null
   let anims: FlyAnim[] = []
   /** 延迟起飞计时器（柱体长完再让流星出现） */
@@ -47,7 +48,7 @@ export function useFlyLines(options: Options) {
   const lastCameraPos = new THREE.Vector3()
   let needsOrientation = true
 
-  function clear() {
+  const clear = () => {
     revealTimer?.kill()
     revealTimer = null
     if (group) {
@@ -58,12 +59,15 @@ export function useFlyLines(options: Options) {
     }
     anims = []
     needsOrientation = true
-  }
+  };
 
-  function projectHub(level: MapLevel, project: ProjectionFn): { hub: [number, number]; spokes: [number, number][] } | null {
+  const projectHub = (
+    level: MapLevel,
+    project: ProjectionFn,
+  ): { hub: [number, number]; spokes: [number, number][] } | null => {
     if (level.level === 'country') {
       const beijing = level.geo.features.find((feature) => Number(feature.properties.adcode) === 110000)
-      const hub = ((beijing?.properties.center as [number, number]) || BEIJING)
+      const hub = (beijing && anchorOf(beijing)) || BEIJING
       const spokes: [number, number][] = []
       for (const coord of FLY_CITIES) {
         const point = project(coord)
@@ -73,20 +77,20 @@ export function useFlyLines(options: Options) {
     }
 
     const first = level.geo.features[0]
-    const hub = first?.properties.center as [number, number] | undefined
+    const hub = first && anchorOf(first)
     if (!hub) return null
     const spokes: [number, number][] = []
     for (const feature of level.geo.features) {
-      const center = feature.properties.center as [number, number] | undefined
+      const center = anchorOf(feature)
       if (!center || center.length !== 2) continue
       if (center[0] === hub[0] && center[1] === hub[1]) continue
       const point = project(center)
       if (Number.isFinite(point[0]) && Number.isFinite(point[1])) spokes.push(point)
     }
     return spokes.length ? { hub, spokes } : null
-  }
+  };
 
-  function build(level: MapLevel, delay = 0) {
+  const build = (level: MapLevel, delay = 0) => {
     clear()
     const root = options.getRoot()
     // 区县层级连线过密，不绘制
@@ -121,7 +125,7 @@ export function useFlyLines(options: Options) {
     } else {
       group.visible = options.visible()
     }
-  }
+  };
 
   return {
     build,
@@ -151,4 +155,4 @@ export function useFlyLines(options: Options) {
       for (const anim of anims) anim.speed = speed
     },
   }
-}
+};

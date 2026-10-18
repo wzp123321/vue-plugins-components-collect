@@ -54,7 +54,7 @@ export interface FlyLine {
 
 let trackMaterial: THREE.MeshBasicMaterial | null = null
 /** 轨道：正常混合的深青条带，能看出轨迹但不抢戏 */
-function getTrackMaterial(): THREE.MeshBasicMaterial {
+const getTrackMaterial = (): THREE.MeshBasicMaterial => {
   if (!trackMaterial) {
     trackMaterial = new THREE.MeshBasicMaterial({
       vertexColors: true,
@@ -68,11 +68,11 @@ function getTrackMaterial(): THREE.MeshBasicMaterial {
     trackMaterial.userData = { shared: true }
   }
   return trackMaterial
-}
+};
 
 let streakMaterial: THREE.MeshBasicMaterial | null = null
 /** 拖尾：加法混合，颜色越暗越接近透明（天然形成尾焰收细的观感） */
-function getStreakMaterial(): THREE.MeshBasicMaterial {
+const getStreakMaterial = (): THREE.MeshBasicMaterial => {
   if (!streakMaterial) {
     streakMaterial = new THREE.MeshBasicMaterial({
       vertexColors: true,
@@ -86,10 +86,10 @@ function getStreakMaterial(): THREE.MeshBasicMaterial {
     streakMaterial.userData = { shared: true }
   }
   return streakMaterial
-}
+};
 
 /** 三角带骨架：每点 2 个顶点（左、右），相邻点两两成段 */
-function createRibbonGeometry(pointCount: number) {
+const createRibbonGeometry = (pointCount: number) => {
   const positions = new Float32Array(pointCount * 6)
   const colors = new Float32Array(pointCount * 6)
   const indices: number[] = []
@@ -106,20 +106,20 @@ function createRibbonGeometry(pointCount: number) {
   geometry.setAttribute('color', colorAttr)
   geometry.setIndex(indices)
   return { geometry, positions, colors, positionAttr, colorAttr }
-}
+};
 
 /**
  * 按当前相机位置重算条带的左右顶点。
  * 横向 = 切线 × 视线，保证条带始终正对相机（否则侧视会退化成一条线）。
  * widthAt 提供每个采样点的半宽：拖尾用它在尾部收细成尖，头部保持饱满。
  */
-function writeRibbon(
+const writeRibbon = (
   positions: Float32Array,
   points: THREE.Vector3[],
   tangents: THREE.Vector3[],
   cameraPos: THREE.Vector3,
   widthAt: (index: number) => number,
-) {
+) => {
   for (let i = 0; i < points.length; i++) {
     const point = points[i]
     toCamScratch.copy(cameraPos).sub(point)
@@ -138,9 +138,9 @@ function writeRibbon(
     positions[o + 4] = point.y - sideScratch.y * halfWidth
     positions[o + 5] = point.z - sideScratch.z * halfWidth
   }
-}
+};
 
-function collectTangents(points: THREE.Vector3[]): THREE.Vector3[] {
+const collectTangents = (points: THREE.Vector3[]): THREE.Vector3[] => {
   const tangents: THREE.Vector3[] = []
   for (let i = 0; i < points.length; i++) {
     const prev = points[Math.max(0, i - 1)]
@@ -151,16 +151,16 @@ function collectTangents(points: THREE.Vector3[]): THREE.Vector3[] {
     tangents.push(tangent)
   }
   return tangents
-}
+};
 
 /** 建线时的临时相机位（首帧 tick 会立刻覆盖成真实相机位置） */
 const INITIAL_CAMERA = new THREE.Vector3(0, -180, 300)
 
-export function createFlyLine(
+export const createFlyLine = (
   from: [number, number],
   to: [number, number],
   options: { tint: string; speed?: number; phase?: number },
-): FlyLine {
+): FlyLine => {
   const z = mapConfig.spotZ
   const distance = Math.hypot(to[0] - from[0], to[1] - from[1])
   const arc = mapConfig.fly.arcBase + Math.min(mapConfig.fly.arcMax, distance * mapConfig.fly.arcRatio)
@@ -245,18 +245,18 @@ export function createFlyLine(
     phase: Math.random() * Math.PI * 2,
   }
   return { object, anim }
-}
+};
 
 /** 复用同一个临时向量，避免每帧为每条飞线分配新对象 */
 const sampleScratch = new THREE.Vector3()
 
-function samplePoint(points: THREE.Vector3[], p: number): THREE.Vector3 {
+const samplePoint = (points: THREE.Vector3[], p: number): THREE.Vector3 => {
   const clamped = Math.min(0.999999, Math.max(0, p))
   const raw = clamped * (points.length - 1)
   const index = Math.floor(raw)
   const next = Math.min(points.length - 1, index + 1)
   return sampleScratch.copy(points[index]).lerp(points[next], raw - index)
-}
+};
 
 /**
  * 逐帧推进流星：
@@ -264,13 +264,13 @@ function samplePoint(points: THREE.Vector3[], p: number): THREE.Vector3 {
  * - 弧线首尾各留一小段淡入淡出，避免「瞬移」的突兀感
  * - 相机移动时同步重算条带朝向；相机静止则跳过，省一半顶点写入
  */
-export function updateFlyLine(
+export const updateFlyLine = (
   anim: FlyAnim,
   dt: number,
   elapsed: number,
   cameraPos: THREE.Vector3 | null,
   cameraMoved: boolean,
-) {
+) => {
   const band = mapConfig.fly.streakBand
   anim.p += dt * anim.speed
   if (anim.p >= 1) anim.p -= 1
@@ -324,10 +324,10 @@ export function updateFlyLine(
   const pulse = 1 + Math.sin(elapsed * 9 + anim.phase) * 0.1
   anim.head.scale.setScalar(mapConfig.fly.headSize * pulse)
   anim.headMat.opacity = mapConfig.fly.headOpacity * fade
-}
+};
 
 /** 修改拖尾色调（控制台换色时调用，下一帧立即生效） */
-export function setFlyLineTint(anim: FlyAnim, tint: string) {
+export const setFlyLineTint = (anim: FlyAnim, tint: string) => {
   anim.tint.set(tint)
   anim.headMat.color.set(tint)
-}
+};

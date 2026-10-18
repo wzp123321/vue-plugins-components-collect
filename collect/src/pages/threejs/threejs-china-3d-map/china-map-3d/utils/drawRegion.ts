@@ -20,7 +20,7 @@ export interface RegionNode {
 let sideMaterial: THREE.ShaderMaterial | null = null
 
 /** 侧壁：竖直渐变，所有区域共用一套材质（只需编译一次） */
-function getSideMaterial(): THREE.ShaderMaterial {
+const getSideMaterial = (): THREE.ShaderMaterial => {
   if (sideMaterial) return sideMaterial
   sideMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -47,9 +47,9 @@ function getSideMaterial(): THREE.ShaderMaterial {
   })
   sideMaterial.userData = { shared: true }
   return sideMaterial
-}
+};
 
-function ringPositions(ring: Ring, project: ProjectionFn, z: number): number[] | null {
+const ringPositions = (ring: Ring, project: ProjectionFn, z: number): number[] | null => {
   const positions: number[] = []
   for (const [lng, lat] of ring) {
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
@@ -59,13 +59,13 @@ function ringPositions(ring: Ring, project: ProjectionFn, z: number): number[] |
   }
   // 至少 3 个点才构成面
   return positions.length >= 9 ? positions : null
-}
+};
 
 /**
  * 生成单个行政区的 3D 板块。
  * 顶面用 Phong 受光，与外轮廓线共用同一份投影，保证边界严丝合缝。
  */
-export function createRegion(feature: GeoJsonFeature, project: ProjectionFn): RegionNode | null {
+export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): RegionNode | null => {
   const rings = featureRings(feature)
   if (!rings.length) return null
 
@@ -117,4 +117,4 @@ export function createRegion(feature: GeoJsonFeature, project: ProjectionFn): Re
 
   if (!topMaterials.length) return null
   return { object, topMaterials, properties: feature.properties }
-}
+};

@@ -6,6 +6,33 @@
       <span class="map-ctrl__chev">{{ collapsed ? '▸' : '▾' }}</span>
     </div>
     <div v-show="!collapsed" class="map-ctrl__body">
+      <!-- 拖拽行为 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">左键拖拽</span>
+        </div>
+        <div class="map-ctrl__seg">
+          <button
+            type="button"
+            class="map-ctrl__segBtn"
+            :class="{ 'map-ctrl__segBtn--on': dragMode === 'pan' }"
+            @click="dragMode = 'pan'"
+          >
+            平移
+          </button>
+          <button
+            type="button"
+            class="map-ctrl__segBtn"
+            :class="{ 'map-ctrl__segBtn--on': dragMode === 'rotate' }"
+            @click="dragMode = 'rotate'"
+          >
+            旋转
+          </button>
+        </div>
+        <div class="map-ctrl__note">
+          {{ dragMode === 'pan' ? '左键拖着地图走（上下拖＝远近）· 右键旋转 · 滚轮缩放' : '左键旋转 · 右键拖着地图走 · 滚轮缩放' }}
+        </div>
+      </div>
       <!-- 数据柱 -->
       <div class="map-ctrl__group">
         <div class="map-ctrl__groupHead">
@@ -50,6 +77,7 @@
 import { ref } from 'vue'
 
 // 双向绑定控制参数（与 ChinaMap3D 的 props 一一对应）
+const dragMode = defineModel<'pan' | 'rotate'>('dragMode', { default: 'pan' })
 const showColumn = defineModel<boolean>('showColumn', { default: true })
 const columnColor = defineModel<string>('columnColor', { default: '#5FC9EE' })
 const showFlyline = defineModel<boolean>('showFlyline', { default: true })
@@ -88,6 +116,31 @@ const collapsed = ref(false)
 .map-ctrl__group { padding: 8px 0; border-top: 1px solid rgba(95, 216, 255, 0.12); }
 .map-ctrl__group:first-child { border-top: none; padding-top: 4px; }
 .map-ctrl__groupHead { display: flex; align-items: center; justify-content: space-between; }
+.map-ctrl__seg {
+  display: flex;
+  margin-top: 10px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(120, 150, 180, 0.16);
+  border: 1px solid rgba(95, 216, 255, 0.14);
+}
+.map-ctrl__segBtn {
+  flex: 1;
+  padding: 4px 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #8fb8d6;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.map-ctrl__segBtn--on {
+  background: rgba(47, 192, 255, 0.34);
+  color: #eaf6ff;
+  box-shadow: 0 0 10px rgba(47, 192, 255, 0.35);
+}
 .map-ctrl__groupTitle { font-size: 12px; color: #9fc4e0; letter-spacing: 0.5px; }
 .map-ctrl__field { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .map-ctrl__label { font-size: 12px; color: #7fa8c8; width: 32px; }

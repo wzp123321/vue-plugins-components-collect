@@ -19,7 +19,7 @@ const TEXTURE_KEYS = [
  * 带 userData.shared 的材质 / 几何 / 贴图会被跳过 —— 它们是跨层级复用的，
  * 一旦在这里销毁，下一层重建时就会用到已被释放的缓冲。
  */
-export function disposeObject3D(root: THREE.Object3D): void {
+export const disposeObject3D = (root: THREE.Object3D): void => {
   root.traverse((child) => {
     const node = child as THREE.Mesh
     if (node.geometry && !(node.geometry.userData as any)?.shared) {
@@ -37,4 +37,4 @@ export function disposeObject3D(root: THREE.Object3D): void {
       material.dispose()
     }
   })
-}
+};

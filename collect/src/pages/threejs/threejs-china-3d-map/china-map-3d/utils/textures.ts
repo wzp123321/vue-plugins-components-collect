@@ -3,7 +3,7 @@ import * as THREE from 'three'
 let glowTexture: THREE.Texture | null = null
 
 /** 径向光斑（柱顶光点 / 流星头部共用），首次调用后缓存 */
-export function getGlowTexture(): THREE.Texture {
+export const getGlowTexture = (): THREE.Texture => {
   if (glowTexture) return glowTexture
   const size = 64
   const canvas = document.createElement('canvas')
@@ -19,12 +19,12 @@ export function getGlowTexture(): THREE.Texture {
   glowTexture = new THREE.CanvasTexture(canvas)
   glowTexture.userData = { shared: true }
   return glowTexture
-}
+};
 
 /** 统一的 Canvas 文本测量上下文（避免 DOM 测量触发强制重排） */
 let measureCtx: CanvasRenderingContext2D | null = null
 
-export function measureText(text: string, font: string): number {
+export const measureText = (text: string, font: string): number => {
   if (!measureCtx) {
     const canvas = document.createElement('canvas')
     canvas.width = canvas.height = 4
@@ -32,16 +32,16 @@ export function measureText(text: string, font: string): number {
   }
   measureCtx.font = font
   return measureCtx.measureText(text).width
-}
+};
 
-export function roundRect(
+export const roundRect = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   width: number,
   height: number,
   radius: number,
-) {
+) => {
   ctx.beginPath()
   ctx.moveTo(x + radius, y)
   ctx.lineTo(x + width - radius, y)
@@ -53,14 +53,14 @@ export function roundRect(
   ctx.lineTo(x, y + radius)
   ctx.quadraticCurveTo(x, y, x + radius, y)
   ctx.closePath()
-}
+};
 
 /** 把 canvas 包成精灵：线性过滤 + 关闭深度测试，保证永远压在地图之上 */
-export function canvasToSprite(
+export const canvasToSprite = (
   canvas: HTMLCanvasElement,
   height: number,
   renderOrder: number,
-): THREE.Sprite {
+): THREE.Sprite => {
   const texture = new THREE.CanvasTexture(canvas)
   texture.minFilter = THREE.LinearFilter
   texture.magFilter = THREE.LinearFilter
@@ -70,4 +70,4 @@ export function canvasToSprite(
   sprite.renderOrder = renderOrder
   sprite.scale.set(height * (canvas.width / canvas.height), height, 1)
   return sprite
-}
+};

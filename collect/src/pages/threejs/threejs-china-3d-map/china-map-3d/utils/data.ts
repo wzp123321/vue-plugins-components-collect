@@ -11,20 +11,20 @@ export interface Tier {
 export type ProjectData = Record<number, number | { count: number }>
 
 /** 兼容 number 与 { count } 两种数据形态 */
-export function readCount(value: number | { count: number } | undefined): number {
+export const readCount = (value: number | { count: number } | undefined): number => {
   if (value == null) return 0
   return typeof value === 'number' ? value : value.count
-}
+};
 
 /** 外部没给数据时，按 adcode 生成确定性伪随机值，保证下钻后仍有内容可看 */
-export function syntheticCount(adcode: number, level: GeoLevel | string): number {
+export const syntheticCount = (adcode: number, level: GeoLevel | string): number => {
   let hash = (adcode >>> 0) || 1
   hash = Math.imul(hash ^ (hash >>> 16), 2246822507) >>> 0
   hash = Math.imul(hash ^ (hash >>> 13), 3266489909) >>> 0
   hash ^= hash >>> 16
   const base = level === 'district' ? 6 : level === 'city' ? 20 : 50
   return base + (hash % (base * 2))
-}
+};
 
 export const LEVEL_TEXT: Record<string, string> = {
   country: '国家',
@@ -39,7 +39,7 @@ const DEEP_COLOR = new THREE.Color('#0F3A57')
  * 按分位点把数值分 4 档，档位色从深蓝插值到「高值色」锚点。
  * 分档而非线性映射，是为了让配色在一眼扫过时就能读出量级差异。
  */
-export function buildTiers(values: number[], highColor: string): Tier[] {
+export const buildTiers = (values: number[], highColor: string): Tier[] => {
   const anchor = new THREE.Color(highColor || '#5FC9EE')
   const colors = [0.3, 0.55, 0.78, 1].map(
     (k) => `#${DEEP_COLOR.clone().lerp(anchor, k).getHexString()}`,
@@ -56,9 +56,9 @@ export function buildTiers(values: number[], highColor: string): Tier[] {
     { max: t3, color: colors[2], label: `${t2} - ${t3}` },
     { max: Infinity, color: colors[3], label: `> ${t3}` },
   ]
-}
+};
 
-export function tierOf(value: number, tiers: Tier[]): number {
+export const tierOf = (value: number, tiers: Tier[]): number => {
   for (let i = 0; i < tiers.length; i++) if (value <= tiers[i].max) return i
   return tiers.length - 1
-}
+};

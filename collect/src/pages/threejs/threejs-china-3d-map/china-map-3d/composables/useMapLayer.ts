@@ -23,6 +23,10 @@ export type Report = (stage: { text: string; ratio: number } | null) => void
 /** 每帧最多占用的构建时间：超出就让出主线程，保证加载动画不掉帧 */
 const SLICE_BUDGET_MS = 8
 
+/** 悬停 / 选中时板块沿 Z 轴抬起的高度（世界单位） */
+const LIFT_HOVER = 1.8
+const LIFT_FOCUS = 0.9
+
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 /**
@@ -31,7 +35,7 @@ const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() 
  * 加载节奏刻意分两步：先把边境线画出来（一次成型、很快），
  * 再按时间切片逐块生成立体板块并让它们「升」起来。
  */
-export function useMapLayer(getScene: () => THREE.Scene | null) {
+export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   let root: THREE.Object3D | null = null
   let outline: THREE.Object3D | null = null
   let regions: RegionNode[] = []
@@ -41,7 +45,14 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
 
   const adcodeOf = (node: RegionNode) => Number(node.properties.adcode) || 0
 
-  function paint() {
+  /** 悬停抬得最高，选中次之，其余贴回原位 */
+  const liftOf = (adcode: number): number => {
+    if (adcode && adcode === hoveredAdcode) return LIFT_HOVER
+    if (adcode && adcode === selectedAdcode) return LIFT_FOCUS
+    return 0
+  };
+
+  const paint = () => {
     for (const node of regions) {
       const adcode = adcodeOf(node)
       const active = adcode === selectedAdcode ? 'focus' : adcode === hoveredAdcode ? 'hover' : 'base'
@@ -51,12 +62,23 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
         )
         material.opacity = active === 'base' ? mapConfig.opacity : 1
       }
+
+      // 抬升：只给「高度变了」的板块补间，避免每帧重复起 tween
+      const target = liftOf(adcode)
+      const current = Number(node.object.userData.lift ?? 0)
+      if (current !== target) {
+        node.object.userData.lift = target
+        gsap.killTweensOf(node.object.position)
+        gsap.to(node.object.position, { z: target, duration: 0.22, ease: 'power2.out' })
+      }
     }
-  }
+  };
 
   /** 清空当前图层：移除节点并释放 GPU 资源 */
-  function clear() {
+  const clear = () => {
     if (!root) return
+    // 抬升补间还挂在旧板块上，先掐断再释放
+    for (const node of regions) gsap.killTweensOf(node.object.position)
     const scene = getScene()
     disposeObject3D(root)
     scene?.remove(root)
@@ -65,9 +87,9 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
     regions = []
     hoveredAdcode = null
     selectedAdcode = null
-  }
+  };
 
-  async function build(level: MapLevel, options: { rise: boolean; report: Report }) {
+  const build = async (level: MapLevel, options: { rise: boolean; report: Report }) => {
     const scene = getScene()
     if (!scene) return
     clear()
@@ -115,10 +137,10 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
       })
     }
     options.report(null)
-  }
+  };
 
   /** 旧图下沉：板块竖向压扁到 0，再释放资源（切层过渡） */
-  function sink(duration = 0.28): Promise<void> {
+  const sink = (duration = 0.28): Promise<void> => {
     const current = root
     if (!current) return Promise.resolve()
     return new Promise((resolve) => {
@@ -132,7 +154,7 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
       gsap.to(current.scale, { z: 0.001, duration, ease: 'power2.in', onComplete: finish })
       setTimeout(finish, duration * 1000 + 260)
     })
-  }
+  };
 
   return {
     build,
@@ -164,4 +186,4 @@ export function useMapLayer(getScene: () => THREE.Scene | null) {
       clear()
     },
   }
-}
+};

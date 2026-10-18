@@ -11,7 +11,7 @@ const INNER_RADIUS = 110
 const OUTER_RADIUS = 260
 const SEED = 20240608
 
-function createRng(seed: number) {
+const createRng = (seed: number) => {
   let value = seed | 0
   return () => {
     value |= 0
@@ -20,9 +20,9 @@ function createRng(seed: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}
+};
 
-function createStarTexture(size = 96): THREE.CanvasTexture {
+const createStarTexture = (size = 96): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = size
   const ctx = canvas.getContext('2d')!
@@ -64,9 +64,9 @@ function createStarTexture(size = 96): THREE.CanvasTexture {
   const texture = new THREE.CanvasTexture(canvas)
   texture.userData = { shared: true }
   return texture
-}
+};
 
-export function createStarfield() {
+export const createStarfield = () => {
   const rng = createRng(SEED)
   const positions = new Float32Array(STAR_COUNT * 3)
   const phases = new Float32Array(STAR_COUNT)
@@ -141,4 +141,4 @@ export function createStarfield() {
       texture.dispose()
     },
   }
-}
+};

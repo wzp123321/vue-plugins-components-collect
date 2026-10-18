@@ -5,7 +5,21 @@
         <span class="map-nav__arrow">‹</span>
         <span>返回上级</span>
       </button>
-      <div class="map-nav__crumb">{{ crumbText }}</div>
+      <div class="map-nav__crumb">
+        <template v-for="(item, index) in crumbs" :key="index">
+          <button
+            v-if="index < crumbs.length - 1"
+            class="map-nav__crumbItem map-nav__crumbItem--link"
+            type="button"
+            :title="`跳到${item.name}（${item.count} 个下级）`"
+            @click="emit('jump', index)"
+          >
+            {{ item.name }}
+          </button>
+          <span v-else class="map-nav__crumbItem map-nav__crumbItem--current">{{ item.name }}</span>
+          <span v-if="index < crumbs.length - 1" class="map-nav__sep">›</span>
+        </template>
+      </div>
     </div>
   </transition>
 </template>
@@ -18,10 +32,13 @@ const props = defineProps<{
   crumbs: Array<{ name: string; count: number }>
 }>()
 
-const emit = defineEmits<{ (e: 'back'): void }>()
+const emit = defineEmits<{
+  (e: 'back'): void
+  /** 面包屑跳级：直接切到路径上的第 index 层 */
+  (e: 'jump', index: number): void
+}>()
 
 const canGoBack = computed(() => props.crumbs.length > 1)
-const crumbText = computed(() => props.crumbs.map((item) => item.name).join('   ›   '))
 </script>
 
 <style scoped>
@@ -59,11 +76,36 @@ const crumbText = computed(() => props.crumbs.map((item) => item.name).join('   
 }
 .map-nav__arrow { font-size: 17px; line-height: 1; margin-top: -2px; }
 .map-nav__crumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   letter-spacing: 1px;
   color: #7fb4d8;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
 }
+.map-nav__crumbItem {
+  padding: 2px 4px;
+  font-size: 11px;
+  font-family: inherit;
+  letter-spacing: 1px;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: default;
+}
+.map-nav__crumbItem--link {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.map-nav__crumbItem--link:hover {
+  color: #eaf6ff;
+  background: rgba(47, 192, 255, 0.16);
+  text-shadow: 0 0 10px rgba(54, 224, 255, 0.6);
+}
+.map-nav__crumbItem--current { color: #bfe9ff; }
+.map-nav__sep { color: #4d7ea3; }
 .nav-pop-enter-active,
 .nav-pop-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
 .nav-pop-enter-from,

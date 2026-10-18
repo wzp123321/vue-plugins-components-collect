@@ -8,15 +8,15 @@ import { mapConfig } from './mapConfig'
  */
 const resolution = new THREE.Vector2(1, 1)
 
-function createLineMaterial(options: Record<string, unknown>): LineMaterial {
+const createLineMaterial = (options: Record<string, unknown>): LineMaterial => {
   const material = new (LineMaterial as any)({ ...options, resolution: resolution.clone() }) as LineMaterial
   ;(material as any).userData = { shared: true }
   return material
-}
+};
 
 let innerLine: LineMaterial | null = null
 /** 层级内部界线（省界 / 市界） */
-export function getInnerLineMaterial(): LineMaterial {
+export const getInnerLineMaterial = (): LineMaterial => {
   if (!innerLine) {
     innerLine = createLineMaterial({
       color: mapConfig.innerLineColor,
@@ -28,11 +28,11 @@ export function getInnerLineMaterial(): LineMaterial {
     })
   }
   return innerLine
-}
+};
 
 let outline: LineMaterial | null = null
 /** 当前层级外轮廓实线 */
-export function getOutlineMaterial(): LineMaterial {
+export const getOutlineMaterial = (): LineMaterial => {
   if (!outline) {
     outline = createLineMaterial({
       color: mapConfig.outlineColor,
@@ -44,11 +44,11 @@ export function getOutlineMaterial(): LineMaterial {
     })
   }
   return outline
-}
+};
 
 let outlineGlow: LineMaterial | null = null
 /** 外轮廓光晕：更宽更淡的一层，叠在实线下制造辉光 */
-export function getOutlineGlowMaterial(): LineMaterial {
+export const getOutlineGlowMaterial = (): LineMaterial => {
   if (!outlineGlow) {
     outlineGlow = createLineMaterial({
       color: mapConfig.outlineColor,
@@ -60,12 +60,12 @@ export function getOutlineGlowMaterial(): LineMaterial {
     })
   }
   return outlineGlow
-}
+};
 
 /** 视口尺寸变化：同步所有 Line2 材质的分辨率，否则线宽会错乱 */
-export function setLineResolution(width: number, height: number) {
+export const setLineResolution = (width: number, height: number) => {
   resolution.set(width, height)
   for (const material of [innerLine, outline, outlineGlow]) {
     if (material?.resolution) material.resolution.set(width, height)
   }
-}
+};

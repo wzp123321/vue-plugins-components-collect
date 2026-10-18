@@ -32,11 +32,11 @@ const FALLBACK: FitProjection = {
   bounds: { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 1, height: 1, cx: 0, cy: 0 },
 }
 
-function makeProjection(center: [number, number], scale: number) {
+const makeProjection = (center: [number, number], scale: number) => {
   return d3.geoMercator().center(center).scale(scale).translate([0, 0]) as any
-}
+};
 
-function boundsOf(rings: Ring[], proj: any, step = 1): FitBounds {
+const boundsOf = (rings: Ring[], proj: any, step = 1): FitBounds => {
   let minX = Infinity
   let maxX = -Infinity
   let minY = Infinity
@@ -65,7 +65,7 @@ function boundsOf(rings: Ring[], proj: any, step = 1): FitBounds {
     cx: (minX + maxX) / 2,
     cy: (minY + maxY) / 2,
   }
-}
+};
 
 /**
  * 为任意层级 GeoJSON 计算自适应墨卡托投影：
@@ -73,7 +73,7 @@ function boundsOf(rings: Ring[], proj: any, step = 1): FitBounds {
  * 这样全国 / 省 / 市三级的世界尺度一致 —— 拉伸厚度、数据柱尺寸、
  * 飞线弧度、相机距离都可以沿用同一套数值。
  */
-export function fitProjection(geo: GeoJsonType, extent = MAP_EXTENT): FitProjection {
+export const fitProjection = (geo: GeoJsonType, extent = MAP_EXTENT): FitProjection => {
   const rings = focusRings(geo)
   if (!rings.length) return FALLBACK
 
@@ -107,10 +107,10 @@ export function fitProjection(geo: GeoJsonType, extent = MAP_EXTENT): FitProject
 
   bounds = boundsOf(rings, makeProjection(center, scale), 1)
   return { center, scale, bounds }
-}
+};
 
 /** 由投影参数生成投影函数：输出 [x, y]，y 向下（与 d3 屏幕坐标系一致） */
-export function createProjection(center: [number, number], scale: number): ProjectionFn {
+export const createProjection = (center: [number, number], scale: number): ProjectionFn => {
   const proj = makeProjection(center, scale)
   return (coord) => proj(coord) as [number, number]
-}
+};

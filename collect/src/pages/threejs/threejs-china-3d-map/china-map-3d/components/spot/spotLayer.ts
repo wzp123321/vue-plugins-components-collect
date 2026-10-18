@@ -52,7 +52,7 @@ const GROW_MAX_DELAY = 0.34
  * 只改 transform 与卡片透明度，不动 visible —— 否则会和
  * `applySpotVisibility` 的显隐规则互相覆盖。
  */
-export function applySpotGrowth(layer: SpotLayer, t: number) {
+export const applySpotGrowth = (layer: SpotLayer, t: number) => {
   for (const grower of layer.growers) {
     const span = 1 - grower.delay
     const raw = span > 0 ? (t - grower.delay) / span : t
@@ -76,7 +76,7 @@ export function applySpotGrowth(layer: SpotLayer, t: number) {
       material.opacity = eased
     }
   }
-}
+};
 
 /** 同一档位共用一个柱体材质 */
 const columnMaterials = new Map<string, THREE.ShaderMaterial>()
@@ -96,7 +96,7 @@ const faceScratch = new THREE.Vector3()
  * 就成了硬锯齿 + 明暗台阶（正是「一节一节错位」的来源）。
  * 单个平面没有任何分段，边缘用 smoothstep 做解析抗锯齿，既干净又省多边形。
  */
-function getColumnGeometry(): THREE.PlaneGeometry {
+const getColumnGeometry = (): THREE.PlaneGeometry => {
   if (!columnGeometry) {
     const geometry = new THREE.PlaneGeometry(1, 1)
     // 立起来：uv.v = 1 落在柱顶
@@ -105,9 +105,9 @@ function getColumnGeometry(): THREE.PlaneGeometry {
     columnGeometry = geometry
   }
   return columnGeometry
-}
+};
 
-function getColumnMaterial(color: string): THREE.ShaderMaterial {
+const getColumnMaterial = (color: string): THREE.ShaderMaterial => {
   const cached = columnMaterials.get(color)
   if (cached) return cached
   const material = new THREE.ShaderMaterial({
@@ -148,9 +148,9 @@ function getColumnMaterial(color: string): THREE.ShaderMaterial {
   material.userData = { shared: true }
   columnMaterials.set(color, material)
   return material
-}
+};
 
-function getTopMaterial(color: string): THREE.SpriteMaterial {
+const getTopMaterial = (color: string): THREE.SpriteMaterial => {
   const cached = topMaterials.get(color)
   if (cached) return cached
   const material = new THREE.SpriteMaterial({
@@ -165,7 +165,7 @@ function getTopMaterial(color: string): THREE.SpriteMaterial {
   material.userData = { shared: true }
   topMaterials.set(color, material)
   return material
-}
+};
 
 /** 卡片避让：相邻太近的次级卡片不画，否则华东一片会糊成一团 */
 const CARD_MIN_SEPARATION = 12
@@ -182,7 +182,7 @@ const PLATE_BASE_LIFT = 5
  * - plates：地理标牌 + 定位点（默认隐藏，点击城市时显示）
  * - hits：透明热区（拾取用，不参与渲染视觉）
  */
-export function createSpotLayer(items: SpotItem[], tiers: Tier[], maxValue: number): SpotLayer {
+export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: number): SpotLayer => {
   const group = new THREE.Group()
   group.userData = { kind: 'spots' }
   const columns = new THREE.Group()
@@ -336,14 +336,14 @@ export function createSpotLayer(items: SpotItem[], tiers: Tier[], maxValue: numb
     leaderByAdcode,
     growers,
   }
-}
+};
 
 /**
  * 应用到显隐规则：
  * - 数据柱模式：只显示被点选城市的标牌（其余收起，避免满屏标签）；被选中城市自身的数值卡片让位给标牌
  * - 标牌模式（关闭数据柱）：显示全部标牌
  */
-export function applySpotVisibility(layer: SpotLayer, showColumns: boolean, selectedAdcode: number | null) {
+export const applySpotVisibility = (layer: SpotLayer, showColumns: boolean, selectedAdcode: number | null) => {
   layer.columns.visible = showColumns
   for (const [adcode, plate] of layer.plateByAdcode) {
     plate.visible = showColumns ? adcode === selectedAdcode : true
@@ -357,4 +357,4 @@ export function applySpotVisibility(layer: SpotLayer, showColumns: boolean, sele
   for (const [adcode, card] of layer.cardByAdcode) {
     card.visible = adcode !== selectedAdcode
   }
-}
+};

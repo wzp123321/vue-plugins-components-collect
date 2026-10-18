@@ -5,7 +5,7 @@ const NAME_FONT = (size: number) => `500 ${size}px Roboto, 'PingFang SC', 'Micro
 const VALUE_FONT = (size: number) => `800 ${size}px Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif`
 
 /** 柱顶数据卡片：暗底圆角 + 名称（浅青）/ 数值（白色加粗） */
-export function createValueCard(name: string, value: string, accent: string): THREE.Sprite {
+export const createValueCard = (name: string, value: string, accent: string): THREE.Sprite => {
   const pad = 11
   const nameSize = 20
   const valueSize = 24
@@ -42,10 +42,10 @@ export function createValueCard(name: string, value: string, accent: string): TH
   const sprite = canvasToSprite(canvas, 2.9, 22)
   sprite.userData = { kind: 'spot', variant: 'card' }
   return sprite
-}
+};
 
 /** 地理位置标牌：圆角暗底 + 名称/数值 + 底部指示三角（点击城市时展示） */
-export function createPlate(name: string, value: string, accent: string): THREE.Sprite {
+export const createPlate = (name: string, value: string, accent: string): THREE.Sprite => {
   const pad = 14
   const nameSize = 24
   const valueSize = 22
@@ -88,12 +88,12 @@ export function createPlate(name: string, value: string, accent: string): THREE.
   const sprite = canvasToSprite(canvas, 3.2, 23)
   sprite.userData = { kind: 'spot', variant: 'plate' }
   return sprite
-}
+};
 
 let anchorGeometry: THREE.CircleGeometry | null = null
 
 /** 标牌锚点：贴在地表的小亮圆点（共享几何，避免逐点创建） */
-export function createAnchor(color: string): THREE.Mesh {
+export const createAnchor = (color: string): THREE.Mesh => {
   if (!anchorGeometry) {
     anchorGeometry = new THREE.CircleGeometry(0.36, 20)
     anchorGeometry.userData = { shared: true }
@@ -112,4 +112,4 @@ export function createAnchor(color: string): THREE.Mesh {
   mesh.renderOrder = 11
   mesh.userData = { kind: 'spot', variant: 'anchor' }
   return mesh
-}
+};

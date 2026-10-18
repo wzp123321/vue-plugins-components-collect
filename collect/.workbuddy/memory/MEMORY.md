@@ -31,6 +31,10 @@
 - **真机验证坑**：可见区末行是被裁切的半行、其中心落在网格外，点它等于点网格外（gridActive=false）——要操作真末行必须先滚 `scrollTop=scrollHeight`；用例间切换行区间要显式滚回顶部（cellBox 对不可见行返回陈旧坐标）；**每次 Edit 后必须跑 vue-tsc**（曾因误删换行把 `const rect` 并进注释行，运行时才炸）。
 
 ## 3D 中国地图（threejs-china-3d-map）架构与踩坑
+- **编辑落盘不可信**：Edit 工具偶尔「返回成功但磁盘仍是旧内容」（疑似 IDE 侧保存覆盖）。改完必须 grep 复核关键字符串；源码改完还要重启 vite dev 再冒烟（HMR 可能仍给旧模块）。
+- **DataV `properties.center` 是主城区/驻点坐标**，不是几何中心：安庆、池州这类沿江城市主城区贴市域边界（距边界仅等效半径 2%~4%），柱体/飞线会看着长在板块边上。统一走 `utils/anchor.ts` 的 `anchorOf()`（贴边时朝 centroid 回拉到 0.2×等效半径，上限 0.6 步长 0.1），柱体/标牌/飞线共用同一锚点。
+- **左键默认 PAN**（`dragMode:'pan'`，上下拖＝屏幕空间远近），右键旋转；`clampTarget` 把视点夹在 ±130 内并让相机同步补偿，避免地图被拖出画面。控制台可切回 rotate。
+
 - **下钻 = 重建地图**（不是相机飞入 + pivot 拉伸）：`utils/projection.ts` 的 `fitProjection()` 把任意层级 GeoJSON 投影后最大边长归一到 `MAP_EXTENT=130` 世界单位，因此全国/省/市三级共用同一套相机距离、拉伸厚度、柱体尺寸与飞线弧度。层级栈 `history[]`，末尾为当前层；`返回上级` 即 pop 后重建。
 - **相机必须 `camera.up.set(0,0,1)`**：地图躺在 XY 平面（Z 朝上），OrbitControls 默认 Y-up 会让"拖拽旋转"变成翻面；改成 Z-up 后才是绕地图法线的转盘旋转，配合 `minPolarAngle/maxPolarAngle` 限幅永不翻面。
 - 取景距离用**几何角点投影迭代**（`computeFitDistance`：8 个包围盒角点 project 到 NDC，按 max|ndc| 反推距离），不要用 FOV 经验公式，斜视角/宽高比都会算偏。

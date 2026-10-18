@@ -11,7 +11,7 @@ import type { ProjectionFn } from './projection'
  * 当前层级的整体外轮廓（国界 / 省界）：实线 + 一层更宽更淡的光晕。
  * 轮廓先于板块出现，所以「先看到边境线、再长地图」的加载节奏靠它。
  */
-export function createOutline(geo: GeoJsonType, project: ProjectionFn): THREE.Group {
+export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Group => {
   const group = new THREE.Group()
   group.userData = { kind: 'outline' }
 
@@ -42,4 +42,4 @@ export function createOutline(geo: GeoJsonType, project: ProjectionFn): THREE.Gr
   }
 
   return group
-}
+};

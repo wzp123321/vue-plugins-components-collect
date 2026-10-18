@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import { createProjection } from '../utils/projection'
+import { anchorOf } from '../utils/anchor'
 import { buildTiers, readCount, syntheticCount, tierOf } from '../utils/data'
 import type { ProjectData, Tier } from '../utils/data'
 import { applySpotGrowth, applySpotVisibility, createSpotLayer } from '../components/spot/spotLayer'
@@ -27,14 +28,14 @@ const GROW_DURATION = 0.95
  * 数据标记：层级数据 → 分档 → 柱体 / 标牌 / 热区。
  * 点击城市后只展示该城市的标牌（数据柱模式下其余标牌保持收起，避免标签糊满屏）。
  */
-export function useSpotMarkers(options: Options) {
+export const useSpotMarkers = (options: Options) => {
   const legend = ref<LegendEntry[]>([])
   const selectedAdcode = ref<number | null>(null)
 
   let layer: SpotLayer | null = null
   let growTween: gsap.core.Tween | null = null
 
-  function collectItems(level: MapLevel): SpotItem[] {
+  const collectItems = (level: MapLevel): SpotItem[] => {
     const project = createProjection(level.fit.center, level.fit.scale)
     const items: SpotItem[] = []
     for (const feature of level.geo.features) {
@@ -43,8 +44,8 @@ export function useSpotMarkers(options: Options) {
       const value =
         readCount(options.projectData()?.[adcode]) || syntheticCount(adcode, feature.properties.level)
       if (value <= 0) continue
-      // 用行政区「中心点」而不是几何质心：狭长省份的质心会落到荒漠或边境
-      const center = (feature.properties.center || feature.properties.centroid) as [number, number] | undefined
+      // 锚点 = 主城区坐标，贴边时自动往几何内部收；柱体 / 标牌 / 飞线共用同一套
+      const center = anchorOf(feature)
       if (!center || center.length !== 2) continue
       const [x, y] = project(center)
       if (!Number.isFinite(x) || !Number.isFinite(y)) continue
@@ -58,9 +59,9 @@ export function useSpotMarkers(options: Options) {
       })
     }
     return items
-  }
+  };
 
-  function clear() {
+  const clear = () => {
     growTween?.kill()
     growTween = null
     if (layer) {
@@ -69,10 +70,10 @@ export function useSpotMarkers(options: Options) {
     }
     legend.value = []
     selectedAdcode.value = null
-  }
+  };
 
   /** 入场：柱体自地面逐根生长，卡片在柱顶长成后淡入 */
-  function playGrowth(target: SpotLayer) {
+  const playGrowth = (target: SpotLayer) => {
     const state = { t: 0 }
     applySpotGrowth(target, 0)
     growTween = gsap.to(state, {
@@ -84,10 +85,10 @@ export function useSpotMarkers(options: Options) {
         if (layer === target) applySpotGrowth(target, state.t)
       },
     })
-  }
+  };
 
   /** 重建当前层级的标记 */
-  function build(level: MapLevel, animate = true) {
+  const build = (level: MapLevel, animate = true) => {
     const root = options.getRoot()
     clear()
     if (!root) return
@@ -106,10 +107,10 @@ export function useSpotMarkers(options: Options) {
     // 标牌模式下柱体整体隐藏，不必浪费一次生长动画
     if (animate && options.showColumn()) playGrowth(layer)
     else applySpotGrowth(layer, 1)
-  }
+  };
 
   /** 选中某个城市：显示它的标牌并做一次弹出动画 */
-  function select(adcode: number | null) {
+  const select = (adcode: number | null) => {
     selectedAdcode.value = adcode
     if (!layer) return
     applySpotVisibility(layer, options.showColumn(), adcode)
@@ -120,12 +121,12 @@ export function useSpotMarkers(options: Options) {
     plate.scale.set(base * 0.72, base * 0.72, 1)
     gsap.killTweensOf(plate.scale)
     gsap.to(plate.scale, { x: base, y: base, duration: 0.34, ease: 'back.out(2.2)' })
-  }
+  };
 
   /** 数据柱开关变化：切换显隐规则 */
-  function applyMode() {
+  const applyMode = () => {
     if (layer) applySpotVisibility(layer, options.showColumn(), selectedAdcode.value)
-  }
+  };
 
   return {
     legend,
@@ -135,4 +136,4 @@ export function useSpotMarkers(options: Options) {
     select,
     applyMode,
   }
-}
+};

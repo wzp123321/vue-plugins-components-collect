@@ -7,7 +7,7 @@ export type Ring = [number, number][]
  * 取出 Feature 的全部环（MultiPolygon 会展平为环列表，孔洞环也在其中）。
  * 绘制板块与生成外轮廓都以此为基础，统一放在这里避免多处重复实现。
  */
-export function featureRings(feature: GeoJsonFeature): Ring[] {
+export const featureRings = (feature: GeoJsonFeature): Ring[] => {
   const geometry = feature.geometry
   if (!geometry?.coordinates) return []
   const out: Ring[] = []
@@ -23,7 +23,7 @@ export function featureRings(feature: GeoJsonFeature): Ring[] {
     for (const ring of geometry.coordinates as Ring[]) push(ring)
   }
   return out
-}
+};
 
 interface AreaEntry {
   area: number
@@ -34,7 +34,7 @@ interface AreaEntry {
  * 参与取景计算的环：按经纬包围盒面积降序累加，只保留累计 98.5% 的主体，
  * 忽略三沙、舟山外岛这类极小的离岛，否则取景范围会被撑大、主体缩得很小。
  */
-export function focusRings(geo: GeoJsonType, step = 2): Ring[] {
+export const focusRings = (geo: GeoJsonType, step = 2): Ring[] => {
   const entries: AreaEntry[] = []
   for (const feature of geo.features) {
     for (const ring of featureRings(feature)) {
@@ -65,7 +65,35 @@ export function focusRings(geo: GeoJsonType, step = 2): Ring[] {
     if (acc >= total * 0.985) break
   }
   return kept
+};
+
+/** 全国数据必须具备的要素：台湾省 + 九段线（DataV 的九段线 adcode 形如 `100000_JD`） */
+const REQUIRED_COUNTRY: Array<{ label: string; match: (adcode: string, name: string) => boolean }> = [
+  { label: '台湾省', match: (adcode) => adcode === '710000' },
+  { label: '九段线', match: (adcode) => adcode.endsWith('_JD') },
+]
+
+export interface ComplianceReport {
+  ok: boolean
+  missing: string[]
 }
+
+/**
+ * 中国地图合规校验：全国底图必须包含台湾省与九段线（南海诸岛界线）。
+ * 数据换成其它来源时这道检查能第一时间发现「地图画漏了」。
+ */
+export const checkCountryCompliance = (geo: GeoJsonType): ComplianceReport => {
+  const missing: string[] = []
+  for (const required of REQUIRED_COUNTRY) {
+    const hit = geo.features.some((feature) => {
+      const adcode = String(feature?.properties?.adcode ?? '')
+      const name = String(feature?.properties?.name ?? '')
+      return required.match(adcode, name)
+    })
+    if (!hit) missing.push(required.label)
+  }
+  return { ok: missing.length === 0, missing }
+};
 
 interface Edge {
   x1: number
@@ -78,7 +106,7 @@ interface Edge {
  * 用「边计数法」提取当前层级的整体外轮廓：只出现一次的边即为外边界，
  * 再用邻接索引把它们拼成连续环（比逐边扫描快一个量级）。
  */
-export function extractOuterRings(geo: GeoJsonType): Ring[] {
+export const extractOuterRings = (geo: GeoJsonType): Ring[] => {
   const counts = new Map<string, number>()
   const edges = new Map<string, Edge>()
   const keyOf = (x1: number, y1: number, x2: number, y2: number) =>
@@ -126,4 +154,4 @@ export function extractOuterRings(geo: GeoJsonType): Ring[] {
     if (ring.length > 2) rings.push(ring)
   }
   return rings
-}
+};
