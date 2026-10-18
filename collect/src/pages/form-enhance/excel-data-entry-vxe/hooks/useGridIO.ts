@@ -5,10 +5,23 @@ import * as XLSX from 'xlsx';
 import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 
+/**
+ * 数据进出：Excel/CSV 导入导出 + 剪贴板复制粘贴（TSV 矩阵）。
+ *
+ * 在整体架构中的角色：本层是"外部数据与内部行模型"的双向桥。复制/粘贴的取源与落点都优先读
+ * useCellSelection 的框选矩形，降级到 currentCell，与 useCopyMarquee 的蚂蚁线取源保持一致；
+ * 粘贴按矩阵写入并逐列做类型校验（数字拒 NaN、下拉拒非选项、日期归一化），非法值跳过并计数提示。
+ * 注意：导入/导出方向按需求仅做复用，不做新功能扩展。
+ *
+ * @param core 核心状态实例
+ * @param fileInputRef 隐藏的文件 input ref（触发系统文件选择框）
+ * @param sel 自研选区状态机（复制/粘贴的取源与锚点来源）
+ */
 export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | undefined>, sel: CellSelection) {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 导入 =====================
+  /** 触发系统文件选择框（点击隐藏的 file input），选中的文件交由 onFileChange 解析导入 */
   const importExcel = () => fileInputRef.value?.click();
   const onFileChange = async (e: Event) => {
     const input = e.target as HTMLInputElement;
@@ -43,6 +56,7 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
   };
 
   // ===================== 导出 =====================
+  /** 把内部行模型投影为"列标签→值"的对象数组（导出 Excel/CSV 用，按 visibleDefs 顺序） */
   const buildExportRows = (source: any[]) =>
     source.map((r) => {
       const o: Record<string, any> = {};
@@ -79,6 +93,7 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
   };
 
   // ===================== 复制 / 粘贴 =====================
+  /** 单元格值转字符串：null/undefined 视为空串（复制到剪贴板时不应出现 "null"/"undefined"） */
   const cellToStr = (v: any) => (v === null || v === undefined ? '' : String(v));
   /** 构建复制用的 TSV 文本：优先框选区域，无选区时降级当前单格（与 markCopied 取源一致） */
   const buildCopyTsv = (): string => {
@@ -133,9 +148,9 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     return { startIdx: 0, startCol: 0 };
   };
 
-  // 日期列粘贴值规范化：接受 2024-01-05 / 2024/1/5 / 2024年1月5日，统一为 YYYY-MM-DD
-  //（与 el-date-picker 的 value-format 一致）；含闰年/月份天数校验，无法解析返回 null。
-  // 手工编辑经 date-picker 天然合法，粘贴是唯一能写入非法日期的入口，故必须在此对齐约束
+  // ⚠️ 坑：日期列粘贴值规范化——手工编辑经 el-date-picker 天然合法，粘贴是唯一能写入非法日期的入口，
+  // 故必须在此对齐约束（与 date-picker 的 value-format 一致）。接受 2024-01-05 / 2024/1/5 / 2024年1月5日，
+  // 统一为 YYYY-MM-DD；含闰年/月份天数校验，无法解析返回 null（交由上层跳过并提示）。
   const normalizeDate = (raw: string): string | null => {
     const m = raw.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})日?$/);
     if (!m) return null;
@@ -212,7 +227,8 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
             val = n;
           }
         } else if (def?.type === 'select') {
-          // 下拉列：非选项值跳过（与数字列 NaN 同策略）。直接写入会让显示标签与编辑器双双异常
+          // ⚠️ 坑：下拉列非选项值必须跳过——直接写入会让显示标签与下拉编辑器双双异常
+          // （标签渲染不存在的选项、下拉编辑器显示空白），等于把脏数据偷渡进库。
           // （标签渲染不存在的选项、下拉编辑器显示空白），等于把脏数据偷渡进库
           if (val !== '' && !(def.options ?? []).includes(val)) {
             skippedSelect++;
@@ -270,4 +286,8 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
   };
 }
 
+/**
+ * useGridIO 的返回类型别名：导出 importExcel / onFileChange / onExportCommand / buildCopyTsv /
+ * copySelection / applyPasteText / pasteFromClipboard，供工具栏与右键菜单调用。
+ */
 export type GridIO = ReturnType<typeof useGridIO>;

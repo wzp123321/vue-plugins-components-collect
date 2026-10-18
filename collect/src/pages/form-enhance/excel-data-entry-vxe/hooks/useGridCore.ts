@@ -17,6 +17,23 @@ import {
   emptyValueFor,
 } from '../types';
 
+/**
+ * 录入台中枢状态容器：装配并共享整个 Excel 式录入台所需的全部核心状态与管道。
+ *
+ * 在整体架构中的角色：所有其它 hook（useGridKeys / useCellSelection / useGridOps /
+ * useGridMouse / useGridIO / useGridFindReplace / useGridColumns 等）都依赖本 hook
+ * 提供的 `core` 实例；它不感知 DOM 与事件，只负责：
+ *   1. 列元信息（columnDefs / visibleDefs）—— 校验规则、列宽、可见性都声明在此；
+ *   2. 行数据（allRows）+ 查询管道（搜索 / 筛选 / 排序 / 分页 → processedRows / pagedRows）；
+ *   3. 当前单元格（currentCell）—— 选区塌缩 / 编辑 / 填充手柄 / 状态栏统计的唯一基准；
+ *   4. 列汇总 / 条件格式 / 状态栏聚合等派生统计；
+ *   5. 装配两个子 hook（useCellValidation 校验、useHistory 历史）并共享它们的能力。
+ *
+ * 协作约定：数据写入一律走 makeRow 造行；任何会改数据的 mutating 操作前先
+ * `core.pushSnapshot(core.snapshotNow())` 入撤销栈；行/列结构变更后必须 `revalidateAll()`。
+ *
+ * @returns 一个聚合了列 / 行 / 查询 / 统计 / 校验 / 历史等能力的对象，类型见 {@link GridCore}
+ */
 export function useGridCore() {
   // ===================== 列元信息 =====================
   // 校验规则全部声明在列定义里（required / rules / cross），加列改列都不必改校验代码
@@ -48,6 +65,8 @@ export function useGridCore() {
    * 若被 init 覆盖就会产生两个相同 __id 的行（vxe 主键重复告警，且编辑/选区/校验会串行）
    */
   const makeRow = (init: Record<string, any> = {}): Row => {
+    // ⚠️ 坑：构造行必须剥离 init 里的 __id/__dirty——{ __id: uid(), ...init } 遇 makeRow({...row})
+    // （复制行）会被原主键覆盖 → 两行同 id → vxe 报主键重复，编辑/选区/校验全串行
     const { __id: _droppedId, __dirty: _droppedDirty, ...rest } = init;
     const row: Row = { __id: uid(), __dirty: false, ...rest };
     for (const d of columnDefs.value) {
@@ -56,7 +75,13 @@ export function useGridCore() {
     return row;
   };
 
-  // 真实感示例数据（数据中台：员工主数据）
+  /**
+   * 生成 n 行真实感示例数据（员工主数据）：姓名按姓氏表+名表拼接、年龄/部门/日期按索引错开，
+   * 离职员工才填离职日期以便为"入职≤离职"的跨列规则提供真实数据面。
+   * 注意：每行都经 makeRow 造行——自动剥离 init 里的 __id/__dirty，避免复制行主键冲突。
+   * @param n 目标行数
+   * @returns 新建的 Row 数组（不含任何 dirty 之外的状态污染）
+   */
   const genSampleRows = (n: number): Row[] => {
     const arr: Row[] = new Array(n);
     for (let i = 0; i < n; i++) {
@@ -114,7 +139,7 @@ export function useGridCore() {
 
   const searchFiltered = computed<Row[]>(() => {
     const kw = searchText.value.trim().toLowerCase();
-    // 无关键词也必须返回新数组：原地增删行（push/splice）不改变 allRows 引用，
+    // ⚠️ 坑：无关键词也必须返回新数组：原地增删行（push/splice）不改变 allRows 引用，
     // 若原样返回，pagedRows 引用不变 → vxe 的 :data prop 不触发更新 → 新行根本不渲染
     if (!kw) return allRows.value.slice();
     return allRows.value.filter((r) => visibleDefs.value.some((d) => String(r[d.field] ?? '').toLowerCase().includes(kw)));
@@ -163,6 +188,11 @@ export function useGridCore() {
     { immediate: true },
   );
 
+  /**
+   * 统一适配 vxe 的多种排序事件源：既处理 sort-config 的批量 sortList，也兼容单字段点击排序。
+   * 内部维护一个 `sortList`（多列排序顺序数组），供 processedRows 排序时消费。
+   * @param params vxe 排序事件参数（可能是 {sortList} 批量，也可能是 {field/property, order} 单字段）
+   */
   const onSortChange = (params: any) => {
     if (params?.sortList?.length) {
       sortList.value = params.sortList
@@ -187,6 +217,12 @@ export function useGridCore() {
     }
   };
 
+  /**
+   * 统一适配 vxe 的筛选事件：从事件参数里尽可能多地解析出 (field, values) 组合
+   * （兼容 column.field / params.field / property 以及 column.filteredValue / filters 勾选项）。
+   * 结果写入 reactive 的 columnFilters，供 filteredRows 消费。
+   * @param params vxe 筛选事件参数
+   */
   const onFilterChange = (params: any) => {
     const col = params?.column;
     const field = col?.field ?? params?.field ?? params?.property;
@@ -199,6 +235,7 @@ export function useGridCore() {
   // ===================== 当前单元格 =====================
   // 行选中（复选框）已移除；当前单元格是选区塌缩/编辑/填充手柄/状态栏统计的唯一基准
   const currentCell = ref<{ row: Row; field: string } | null>(null);
+  /** 单元格点击：把点击到的 (row, field) 记为当前单元格——它是选区塌缩 / 编辑 / 填充手柄 / 状态栏统计的唯一基准 */
   const onCellClick = (params: any) => {
     if (params?.row && params?.column?.field) currentCell.value = { row: params.row, field: params.column.field };
   };
@@ -221,6 +258,7 @@ export function useGridCore() {
 
   // ===================== 条件格式统计 =====================
   const conditionalOn = ref(false);
+  /** 条件格式统计：仅在 conditionalOn 开启时为各数值列算出 min/max，结果经 RT 桥（runtime）被渲染器读取做色阶 */
   const colStat = computed(() => {
     const stat: Record<string, { min: number; max: number }> = {};
     if (conditionalOn.value) {
@@ -253,6 +291,7 @@ export function useGridCore() {
   // ===================== 列汇总（footer） =====================
   // 列顺序恒为 [seq, ...visibleDefs]（复选框列已移除），故汇总行可直接由 visibleDefs 推导，无需读取列配置
   const showFooter = ref(false);
+  /** 列汇总（footer）：数值列求和（保留 2 位）、首列显示总行数；列顺序恒为 [合计, ...visibleDefs]，无需读列配置 */
   const footerData = computed<any[]>(() => {
     if (!showFooter.value) return [];
     const firstField = visibleDefs.value[0]?.field;
@@ -278,6 +317,11 @@ export function useGridCore() {
 
   // ===================== 状态栏聚合 =====================
   const activeColLabel = computed(() => (currentCell.value ? labelOf(currentCell.value.field) : ''));
+  /**
+   * 状态栏统计·当前列全量轨（activeStats）：以 currentCell 所在数值列为基准，
+   * 对当前查询结果的所有行做 count/sum/avg/min/max。
+   * 与 useGridOps 的 selectionStats（选区内数字格聚合）构成"双轨"统计。
+   */
   const activeStats = computed(() => {
     const f = currentCell.value?.field;
     if (!f) return null;
@@ -304,11 +348,13 @@ export function useGridCore() {
   let editOld: any = undefined;
   let editRowId = '';
   let editField = '';
+  /** 编辑开始：记录被编辑格的 rowId/field/旧值，供 onEditClosed 比对并接入撤销历史 */
   const onEditActived = (params: any) => {
     editRowId = params?.row?.__id ?? '';
     editField = params?.column?.field ?? '';
     editOld = params?.row?.[editField];
   };
+  /** 编辑结束：立即校验该格；若值与编辑前不同，则把这次单元格改动接入撤销栈（pushHistoryWithRevert） */
   const onEditClosed = (params: any) => {
     const row = params?.row;
     const field = params?.column?.field;
@@ -366,4 +412,8 @@ export function useGridCore() {
   };
 }
 
+/**
+ * useGridCore 的返回类型别名：所有依赖"核心状态"的 hook 都通过 {@link GridCore}
+ * 类型拿到统一的 core 实例签名（列 / 行 / 查询 / 统计 / 校验 / 历史 等字段）。
+ */
 export type GridCore = ReturnType<typeof useGridCore>;

@@ -5,8 +5,20 @@ import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
 import type { CellSelection } from './useCellSelection';
 
+/** 命中列表上限：避免超大表（万行 × 多列）一次性计算/渲染过多命中项导致卡顿；超出部分只在计数中体现 */
 const HIT_LIMIT = 500;
 
+/**
+ * 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表。
+ *
+ * 在整体架构中的角色：本层是"只读查询 + 定向写回"模块——查找结果（findMatchKeys）供单元格高亮，
+ * 跳转调用 useGridScroll.scrollToCell；替换则委托 core 写数据并校验。选区范围直接读 useCellSelection
+ * 的 selRect，当前列范围跟随 currentCell。
+ *
+ * @param core 核心状态实例
+ * @param scroll 滚动定位实例（跳转命中格）
+ * @param sel 自研选区状态机（range='sel' 时取框选矩形）
+ */
 export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: CellSelection) {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
@@ -144,7 +156,8 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
       return;
     }
     snap();
-    // 必须按"匹配对"逐项替换：早期用 Map 以 rowId 为键，同一行多列同时命中时互相覆盖，只替换一列
+    // ⚠️ 坑：必须按"匹配对"逐项替换——早期用 Map 以 rowId 为键，同一行多列同时命中时互相覆盖，只替换一列。
+    // 这里改为遍历 findMatches（每 (rowId,field) 一对），逐格写回，避免漏替换。
     const rowMap = new Map(core.allRows.value.map((r) => [r.__id, r]));
     let n = 0;
     for (const m of findMatches.value) {
@@ -179,4 +192,8 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
   };
 }
 
+/**
+ * useGridFindReplace 的返回类型别名：导出查找面板状态（findVisible/findText/.../findHits/findIdx）
+ * 与动作（findNext/jumpToHit/replaceOne/replaceAll），供查找条组件绑定。
+ */
 export type GridFindReplace = ReturnType<typeof useGridFindReplace>;

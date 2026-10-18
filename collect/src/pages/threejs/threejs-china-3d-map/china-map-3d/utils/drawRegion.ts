@@ -1,3 +1,25 @@
+/**
+ * drawRegion.ts —— 单个行政区 3D 板块绘制（顶面 + 侧壁 + 边界线）
+ *
+ * 本文件职责：
+ *   把一个 GeoJSON Feature 投影后拉伸成一块 3D 板块：
+ *   - 顶面：MeshPhongMaterial 受光，悬停 / 选中时改色（供拾取与高亮）
+ *   - 侧壁：共享 ShaderMaterial 竖直渐变（只编译一次）
+ *   - 边界线：Line2 内部界线，与外轮廓共用同一份投影，保证边界严丝合缝
+ *
+ * 在整体架构中的角色：地图「地块」的构建单元。外层遍历 features 逐个调用
+ *   createRegion，拼成当前层级地图。与 projection（投影）、lineMaterials
+ *   （界线材质）、geo（取环）协作。
+ *
+ * 协作模块：
+ *   - projection.ts（project 函数）
+ *   - lineMaterials.ts（getInnerLineMaterial）
+ *   - geo.ts（featureRings）
+ *
+ * ⚠️ 坑：线框层级 z 必须贴顶面（mapConfig.lineZ = depth + 0.06）。原来悬浮 1.5，
+ *   斜视角下北侧边境线会明显离开板块边缘；紧贴顶面后斜看不飘离。
+ */
+
 import * as THREE from 'three'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js'
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
@@ -19,7 +41,11 @@ export interface RegionNode {
 
 let sideMaterial: THREE.ShaderMaterial | null = null
 
-/** 侧壁：竖直渐变，所有区域共用一套材质（只需编译一次） */
+/**
+ * 侧壁：竖直渐变，所有区域共用一套材质（只需编译一次）。
+ * 顶点里直接传 position.z（0=底, depth=顶），片元按 vZ/depth 在底/顶色间 mix。
+ * 注意：侧壁不参与拾取，射线只在顶面命中（见 createRegion 中 mesh.userData）。
+ */
 const getSideMaterial = (): THREE.ShaderMaterial => {
   if (sideMaterial) return sideMaterial
   sideMaterial = new THREE.ShaderMaterial({
@@ -49,6 +75,11 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
   return sideMaterial
 };
 
+/**
+ * 把一个环投影成顶面用的三维点序列 [x, y, z, ...]（z = lineZ 贴顶面）。
+ * 坐标转换：世界 (x, -y, z)，即把投影的屏幕 y（向下）翻成世界 y（向上）。
+ * @returns 点序列；若合法点少于 3 个（构不成面）返回 null
+ */
 const ringPositions = (ring: Ring, project: ProjectionFn, z: number): number[] | null => {
   const positions: number[] = []
   for (const [lng, lat] of ring) {
@@ -64,6 +95,10 @@ const ringPositions = (ring: Ring, project: ProjectionFn, z: number): number[] |
 /**
  * 生成单个行政区的 3D 板块。
  * 顶面用 Phong 受光，与外轮廓线共用同一份投影，保证边界严丝合缝。
+ *
+ * @param feature GeoJSON Feature
+ * @param project 当前层级的投影函数
+ * @returns RegionNode；无环或全环非法时返回 null
  */
 export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): RegionNode | null => {
   const rings = featureRings(feature)
@@ -78,6 +113,7 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
   const topMaterials: THREE.MeshPhongMaterial[] = []
 
   for (const ring of rings) {
+    // ⚠️ lineZ 贴顶面（depth + 0.06）：线框紧贴板块顶面，斜看不飘离
     const positions = ringPositions(ring, project, mapConfig.lineZ)
     if (!positions) continue
 

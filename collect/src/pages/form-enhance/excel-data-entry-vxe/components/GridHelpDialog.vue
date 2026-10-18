@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // 快捷键与操作帮助面板（F1 唤出）：分组列出录入台已支持的键鼠操作。
 // 经 el-dialog teleport 到 body，根元素挂 .dt-dlg 类以继承主题变量（见 theme.css 说明）
+// 本组件只做静态内容展示（groups 是写死的帮助数据），通过 visible 受控显隐、close 事件回传父级。
 defineOptions({ name: 'GridHelpDialog' });
 
 defineProps<{ visible: boolean }>();
@@ -11,6 +12,7 @@ const onDialogUpdate = (v: boolean) => {
   if (!v) close();
 };
 
+// 帮助内容：按"导航/框选/编辑与填充/剪贴板/其他"分组的 [按键, 说明] 列表
 const groups: { title: string; items: [string, string][] }[] = [
   {
     title: '导航',

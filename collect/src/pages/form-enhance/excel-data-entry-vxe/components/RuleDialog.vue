@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // 列校验规则编辑弹窗：把 ColDef.rules / ColDef.cross 可视化配置出来。
 // 动机：校验规则声明化后，新增/修改列也应能直接配规则，而不是回去改代码。
+// 本组件是"纯表单"：打开时把当前 ColDef 的规则灌入内部 form，保存时产出 { rules, cross } 交给父级落库。
+// 协作：props.def(当前列) / allDefs(跨列规则可参照的列)；emit('save') 把规则交回 ColumnManagerDrawer。
 import { reactive, watch } from 'vue';
 import type { ColDef, CrossKind } from '../types';
 
@@ -14,6 +16,7 @@ interface CrossForm {
   msg: string;
 }
 
+// 内部表单：数字类字段用字符串表示，便于"留空=未设置"（空串在保存时被过滤）
 const form = reactive({
   min: '',
   max: '',
@@ -50,7 +53,9 @@ watch(
   { immediate: true },
 );
 
+// 空串 → undefined（不写入规则）；否则 Number 转换（注意：Number('') === 0，故先 trim 判空）
 const num = (s: string): number | undefined => (s.trim() === '' ? undefined : Number(s));
+// 新增一条跨列规则：默认参照列取"非当前列"的第一列，kind 默认 gte
 const addCross = () => {
   const other = props.allDefs.find((d) => d.field !== props.def?.field)?.field;
   if (other) form.cross.push({ kind: 'gte', other, msg: '' });
@@ -63,6 +68,7 @@ const save = () => {
   const max = num(form.max);
   const minLen = num(form.minLen);
   const maxLen = num(form.maxLen);
+  // 仅当转换成功且非 NaN 才写入上下界/长度规则
   if (min !== undefined && !isNaN(min)) rules.min = min;
   if (max !== undefined && !isNaN(max)) rules.max = max;
   if (minLen !== undefined && !isNaN(minLen)) rules.minLen = minLen;
@@ -70,6 +76,7 @@ const save = () => {
   if (form.pattern.trim()) rules.pattern = form.pattern.trim();
   if (form.patternMsg.trim()) rules.patternMsg = form.patternMsg.trim();
   if (form.unique) rules.unique = true;
+  // 跨列规则：过滤掉未选参照列的；msg 空则不输出 msg 字段
   const cross = form.cross
     .filter((c) => c.other)
     .map((c) => (c.msg.trim() ? { kind: c.kind, other: c.other, msg: c.msg.trim() } : { kind: c.kind, other: c.other }));
@@ -88,6 +95,7 @@ const save = () => {
     @update:model-value="(v: boolean) => !v && emit('close')"
   >
     <div class="rule-form">
+      <!-- 仅数字列展示数值区间；长度/正则/唯一对所有文本类列通用 -->
       <div class="rule-row" v-if="def?.type === 'number'">
         <span class="rule-label">数值区间</span>
         <el-input v-model="form.min" placeholder="最小值" style="width: 110px" />
@@ -123,6 +131,7 @@ const save = () => {
         <el-select v-model="c.kind" style="width: 132px">
           <el-option v-for="(label, k) in kindLabel" :key="k" :label="label" :value="k" />
         </el-select>
+        <!-- 参照列下拉：排除"自身列"，避免跨列规则指向自己 -->
         <el-select v-model="c.other" style="width: 120px" placeholder="参照列">
           <el-option
             v-for="d in allDefs.filter((x) => x.field !== def?.field)"

@@ -29,6 +29,18 @@ const reOf = (src: string): RegExp | null => {
 
 const NO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * 单元格校验：规则全部来自列定义（ColDef.required / rules / cross），本层只负责执行与汇总。
+ *
+ * 在整体架构中的角色：作为 useGridCore 装配的子 hook，被所有"写数据"的路径复用——
+ * 编辑结束、填充、粘贴、批量填充、新增/插入/复制行、提交前都要调本层的 validateCell / validateRow /
+ * revalidateAll。错误集中存放在 reactive 的 cellErrors（key=errKey），供校验面板与单元格红框读取。
+ *
+ * 关键性能约定：唯一性校验需全列计数，单格校验按需建一次该列索引，revalidateAll/validateRow 时
+ * 按列预建并复用，避免 1 万行 × 1 万格退化成 O(n²)。
+ *
+ * @param deps 依赖注入：getColumnDefs / getRows / labelOf / firstVisibleField，借此与 core 解耦
+ */
 export function useCellValidation(deps: {
   getColumnDefs: () => ColDef[];
   getRows: () => Row[];
@@ -123,14 +135,19 @@ export function useCellValidation(deps: {
   const revalidateAll = () => {
     for (const k of Object.keys(cellErrors)) delete cellErrors[k];
     const defs = getColumnDefs();
-    // 只为配了 unique 的列建索引：revalidateAll 是提交前/结构变更时调用，必须避免 O(n²)
+    // ⚠️ 坑：唯一性校验需要全列计数——若每格都 buildDupMap 会退化成 O(n²)。这里只为配了 unique 的列
+    // 预建一次索引并传入 ctx 复用（revalidateAll 是提交前/结构变更时调用，必须避免 O(n²)）。
     const dup = new Map<string, DupMap>();
     for (const d of defs) if (d.rules?.unique) dup.set(d.field, buildDupMap(d.field));
     const ctx = { dup };
     for (const r of getRows()) for (const d of defs) validateCell(r, d.field, ctx);
   };
 
-  // 单行全字段校验：新增/插入/复制行后立即标红必填缺失（与编辑态校验同一套规则）
+  /**
+   * 单行全字段校验：新增/插入/复制行后立即标红必填缺失与格式错误（与编辑态校验同一套规则）。
+   * 会为配了 unique 的列建一次索引并传入 ctx 复用，避免逐格重复建索引。
+   * @param row 要整行校验的行
+   */
   const validateRow = (row: Row) => {
     const defs = getColumnDefs();
     const dup = new Map<string, DupMap>();
@@ -161,4 +178,8 @@ export function useCellValidation(deps: {
   return { cellErrors, errKey, validateCell, validateRow, revalidateAll, setCellError, errorCount, errorList };
 }
 
+/**
+ * useCellValidation 的返回类型别名：导出 { cellErrors, errKey, validateCell, validateRow,
+ * revalidateAll, setCellError, errorCount, errorList }，供核心与各写数据路径调用与读取错误。
+ */
 export type CellValidation = ReturnType<typeof useCellValidation>;

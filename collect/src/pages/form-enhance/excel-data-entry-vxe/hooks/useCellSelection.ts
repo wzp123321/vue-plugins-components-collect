@@ -9,11 +9,29 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import type { Ref } from 'vue';
 import type { GridCore } from './useGridCore';
 
+/** 选区中的一个单元格坐标：rowId 对应 DOM tr 的 rowid（= keyField 编码值），field 对应列的 field（经 colid 换算） */
 export interface SelCell {
   rowId: string;
   field: string;
 }
 
+/**
+ * 自研单元格框选状态机：vxe OSS 版不含 cell-area（官方 pro 功能，npm 包仅有防御性空钩），
+ * 故在本层自研 Excel 式选区，是整个录入台"选区"能力的唯一真相来源。
+ *
+ * 在整体架构中的角色：被 useGridKeys（Shift+方向键扩展 / Ctrl+A）、useGridMouse（鼠标拖选 /
+ * 右键菜单）、useGridOps（批量操作作用域）、useGridIO（复制粘贴取源）、useGridFindReplace（查找范围）、
+ * useFillHandle（填充源）共同依赖。它只管"哪个矩形被选中"，不涉及任何数据写入。
+ *
+ * 关键约定：
+ *   - 只暴露 anchor / focus / selRect 三个语义；UI 通过 selEdge 画外框、isCellSelected 判选中。
+ *   - 序号列（column.type 非空）不参与拖选（点序号走 cell-click 选整行通道）。
+ *   - currentCell 与选区的同步在 watch 里做，需处理 keepSelection / suppressCollapseOnce 两类一次性标志。
+ *
+ * @param core  核心状态实例（读取 visibleDefs / processedRows / currentCell）
+ * @param tableRef vxe 实例（getColumnById 把 colid 换 field）
+ * @param gridWrapper 网格容器（mousedown 绑在此，避免空白区误触）
+ */
 export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper: Ref<HTMLElement | undefined>) {
   // anchor：选区基准格（鼠标按下格 / Shift 扩展时的固定端）；focus：选区的移动端
   const anchor = ref<SelCell | null>(null);
@@ -46,6 +64,7 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     return { rowIds, fields: fields.slice(Math.min(fi, ff), Math.max(fi, ff) + 1) };
   });
 
+  /** 判某格是否落在当前矩形选区内（行 id 命中 rowIds 且字段命中 fields）。供单元格高亮样式使用。 */
   const isCellSelected = (rowId: string, field: string) => {
     const rect = selRect.value;
     return !!rect && rect.rowIds.has(rowId) && rect.fields.includes(field);
@@ -54,6 +73,10 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   // 选区边缘判定（供单元格样式绘制"区域外框"）：返回该格位于矩形选区的上/下/左/右哪几条边。
   // rowIds 为 Set 但插入序即行序（selRect 按 lo→hi 灌入），首/末元素即选区的顶/底行
   const NO_EDGE = { t: false, b: false, l: false, r: false };
+  /**
+   * 选区边缘判定（供单元格绘制"区域外框"）：返回该格位于矩形选区的上/下/左/右哪几条边。
+   * rowIds 为 Set 但插入序即行序（selRect 按 lo→hi 灌入），首/末元素即选区的顶/底行。
+   */
   const selEdge = (rowId: string, field: string) => {
     const rect = selRect.value;
     if (!rect || !rect.rowIds.has(rowId) || !rect.fields.includes(field)) return NO_EDGE;
@@ -66,12 +89,19 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     };
   };
 
+  /** 清空选区（anchor/focus 同时置 null）：退出框选态时调用 */
   const clear = () => {
     anchor.value = null;
     focus.value = null;
   };
 
-  /** 普通按下 = 以该格开始新选区；Shift+按下 = 保留 anchor，只移动 focus */
+  /**
+   * 按下开始选择：普通按下 = 以该格为 anchor 开始新选区；Shift+按下 = 保留 anchor，只移动 focus 端。
+   * 同时置 dragging=true 进入拖拽态（之后 mousemove 才会更新 focus）。
+   * @param rowId 被按下格的行 id
+   * @param field 被按下格的字段
+   * @param shift 是否按住 Shift（决定是否沿用既有 anchor 做扩展）
+   */
   const beginSelect = (rowId: string, field: string, shift: boolean) => {
     if (shift && anchor.value) {
       focus.value = { rowId, field };
@@ -81,11 +111,21 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
     dragging = true;
   };
-  /** 拖拽过程中移动 focus 端（仅 dragging 态生效） */
+  /**
+   * 拖拽过程中移动 focus 端：仅在 dragging 态生效，把 focus 更新为当前指针所在格，
+   * 配合 anchor 由 selRect 实时算出矩形选区。
+   * @param rowId 指针所在行 id
+   * @param field 指针所在字段
+   */
   const moveSelect = (rowId: string, field: string) => {
     if (!dragging || !anchor.value) return;
     focus.value = { rowId, field };
   };
+  /**
+   * 拖拽结束：dragging 置 false；若 anchor≠focus（确实是框选而非单击），则进入"抑制一次塌缩"态，
+   * 等浏览器在焦点格触发的那次 click 过去（否则 click 改 currentCell 会把框选塌缩成单格）。
+   * 用 setTimeout(0) 自动过期，防止标志残留吞掉后续正常的同步。
+   */
   const endDrag = () => {
     if (!dragging) return;
     dragging = false;
@@ -101,16 +141,29 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
   };
 
-  /** 选区塌缩为单格（普通点击 / 无 Shift 方向键移动后由 currentCell watch 触发） */
+  /**
+   * 选区塌缩为单格（anchor=focus=该格）：普通点击 / 无 Shift 方向键移动后由 currentCell watch 触发。
+   * @param rowId 目标行 id
+   * @param field 目标字段
+   */
   const collapseTo = (rowId: string, field: string) => {
     anchor.value = { rowId, field };
     focus.value = { rowId, field };
   };
-  /** Shift 扩展：anchor 不动，focus 跟到新格 */
+  /**
+   * Shift 扩展：anchor 保持不变，focus 跟到新格，矩形选区随之扩大（Excel 中 Shift+方向键 / Shift+点击）。
+   * @param rowId 新 focus 行 id
+   * @param field 新 focus 字段
+   */
   const extendTo = (rowId: string, field: string) => {
     if (anchor.value) focus.value = { rowId, field };
   };
-  /** 程序化整表框选（Ctrl+A）：不进入拖拽态，避免后续 mousemove 误改 focus */
+  /**
+   * 程序化整表框选（Ctrl+A）：直接以 first/last 两端设置 anchor/focus，不进入拖拽态，
+   * 避免后续 mousemove 误改 focus。注意：不要顺手改 currentCell，否则选区 watch 会把全选塌缩成单格。
+   * @param first 选区起始格（左上）
+   * @param last  选区结束格（右下）
+   */
   const selectAll = (first: SelCell, last: SelCell) => {
     anchor.value = first;
     focus.value = last;
@@ -118,6 +171,11 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   // 点击序号列：选中整行（以首/末可见字段为两端）。同步 currentCell 到行首格供编辑/统计，
   // 但不允许选区 watch 把它塌缩掉——用一次性标志跳过（仅当选区格确实变化时置位，避免吞掉后续同步）
   let keepSelection = false;
+  /**
+   * 点击序号列选中整行（以首/末可见字段为 anchor/focus）：
+   * 同步 currentCell 到行首格供编辑/统计，但用 keepSelection 一次性标志跳过选区 watch 的塌缩。
+   * @param rowId 要选中的行 id
+   */
   const selectRow = (rowId: string) => {
     const fields = visFields.value;
     if (!fields.length) return;
@@ -131,7 +189,11 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
   };
 
-  // 点击列头：选中整列（Excel 语义），活动格落在该列首行；与 selectRow 一样用 keepSelection 跳过塌缩
+  /**
+   * 点击列头选中整列（Excel 语义）：anchor=首行该列、focus=末行该列，活动格落在该列首行；
+   * 与 selectRow 一样用 keepSelection 跳过选区 watch 的塌缩。
+   * @param field 要选中的字段
+   */
   const selectColumn = (field: string) => {
     const rows = core.processedRows.value;
     if (!rows.length) return;
@@ -144,8 +206,12 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
   };
 
-  // 同步 currentCell 但保留当前框选（右键菜单落在选区内时使用：Excel 中选区内右键不清选区）。
-  // 同样仅在值确实变化时置位 keepSelection，否则标志会残留、吞掉后续一次正常的塌缩同步
+  /**
+   * 同步 currentCell 但保留当前框选（右键菜单落在选区内时使用：Excel 中选区内右键不清选区）。
+   * 仅在值确实变化时置位 keepSelection，否则标志会残留、吞掉后续一次正常的塌缩同步。
+   * @param row 目标行
+   * @param field 目标字段
+   */
   const setCurrentKeepSel = (row: any, field: string) => {
     const cur = core.currentCell.value;
     if (!cur || cur.row.__id !== row.__id || cur.field !== field) {
@@ -154,7 +220,9 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     }
   };
 
-  // currentCell 变化同步选区：vxe 的方向键/Tab/点击都会改 currentCell，在此统一适配
+  // ⚠️ 坑：currentCell 变化同步选区——vxe 的方向键/Tab/点击都会改 currentCell，在此统一适配。
+  // 但 selectRow/selectColumn/setCurrentKeepSel 同步 currentCell 时不能塌缩选区（用 keepSelection 一次性标志），
+  // 拖选结束后的那次 click 也不能塌缩（用 suppressCollapseOnce 抑制一次），否则整行/整列选区会被冲掉。
   watch(core.currentCell, (c) => {
     if (!c) return;
     // selectRow 的同步：保留整行选区，不塌缩
@@ -172,7 +240,9 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   });
 
   // ===================== DOM 事件 =====================
-  // vxe v4：td 属性是 colid（列实例 id，需换 field），tr 属性是 rowid（keyField 值的 encodeURIComponent）
+  // ⚠️ 坑：DOM 约定——td 带 colid（列实例 id，需经 getColumnById(colid).field 换 field），tr 带 rowid
+  // （= row[row-config.keyField] 的 encodeURIComponent；注意不是 data-field / data-rowid）。
+  // 早期误用 data-field/data-rowid 会导致选区完全无法启动。序号列（column.type 非空）不参与拖选。
   const cellFromEvent = (e: MouseEvent): SelCell | null => {
     const el = (e.target as HTMLElement | null)?.closest('.vxe-body--column') as HTMLElement | null;
     const colid = el?.getAttribute('colid');
@@ -257,4 +327,9 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   };
 }
 
+/**
+ * useCellSelection 的返回类型别名：导出 anchor / focus / selRect / isCellSelected / selEdge /
+ * clear / beginSelect / moveSelect / endDrag / collapseTo / extendTo / selectAll / selectRow /
+ * selectColumn / setCurrentKeepSel，供键盘、鼠标、填充、复制粘贴、查找替换等模块共享选区状态。
+ */
 export type CellSelection = ReturnType<typeof useCellSelection>;

@@ -6,6 +6,15 @@ import { type ColDef, type Tpl, emptyValueFor } from '../types';
 
 const TPL_KEY = 'vxe_entry_templates';
 
+/**
+ * 列结构模板：localStorage 持久化（保存 / 加载 / 删除），加载时可选择保留或清空数据。
+ *
+ * 在整体架构中的角色：本层只改 core.columnDefs 与行数据，是"列结构"的导入/导出点——
+ * 套用模板会整体替换列结构（先 snap 入撤销栈），并按 keepData 决定保留现有数据还是清空。
+ * 与 useGridOps（加/删列）、useGridCore（revalidateAll）协作，套模板后必须全量重校。
+ *
+ * @param core 核心状态实例
+ */
 export function useGridTemplates(core: GridCore) {
   const templates = ref<Tpl[]>([]);
   const tplDialogVisible = ref(false);
@@ -20,6 +29,10 @@ export function useGridTemplates(core: GridCore) {
       templates.value = [];
     }
   };
+  /**
+   * 模板命令分发：save（打开保存对话框）/ load:<name>（加载模板）/ del:<name>（删除模板并写回 localStorage）。
+   * @param cmd 命令字符串（前缀区分动作，后接名称）
+   */
   const onTplCommand = (cmd: string) => {
     if (cmd === 'save') {
       tplName.value = '';
@@ -37,6 +50,10 @@ export function useGridTemplates(core: GridCore) {
       ElMessage.success('已删除模板');
     }
   };
+  /**
+   * 确认保存模板：把当前 columnDefs 深拷贝为模板（JSON），按名称去重后写入 localStorage；
+   * 仅存列结构（不含数据），加载时再决定数据走向。
+   */
   const confirmSaveTpl = () => {
     const name = tplName.value.trim();
     if (!name) {
@@ -50,6 +67,10 @@ export function useGridTemplates(core: GridCore) {
     tplDialogVisible.value = false;
     ElMessage.success(`已保存模板「${name}」`);
   };
+  /**
+   * 加载模板：先弹确认框让用户选择"保留数据"或"清空数据"，再委托 applyTpl 替换列结构。
+   * @param name 模板名称
+   */
   const loadTpl = (name: string) => {
     const t = templates.value.find((x) => x.name === name);
     if (!t) return;
@@ -63,6 +84,12 @@ export function useGridTemplates(core: GridCore) {
         if (e === 'cancel') applyTpl(t, false);
       });
   };
+  /**
+   * 应用模板：整体替换列结构（先 snap 入撤销栈）。keepData=true 时按新字段裁剪/补齐行数据；
+   * keepData=false 时新建空数据行（数字列填 null、其余空串）。最后清空错误标记并全量重校。
+   * @param t 模板对象（含 defs 列结构）
+   * @param keepData 是否保留现有数据
+   */
   const applyTpl = (t: Tpl, keepData: boolean) => {
     snap();
     const newDefs = JSON.parse(JSON.stringify(t.defs)) as ColDef[];
@@ -95,4 +122,8 @@ export function useGridTemplates(core: GridCore) {
   };
 }
 
+/**
+ * useGridTemplates 的返回类型别名：导出 { templates, tplDialogVisible, tplName,
+ * loadTemplates, onTplCommand, confirmSaveTpl }，供模板下拉/对话框绑定。
+ */
 export type GridTemplates = ReturnType<typeof useGridTemplates>;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // 顶部工具条：行操作 / 列与模板 / 撤销重做 / 搜索 / 导入导出 / 提交 / 压测数据 / 视图开关
-// 状态与动作全部来自页面装配的 hooks，本组件只做展示与事件转发
+// 状态与动作全部来自页面装配的 hooks，本组件只做展示与事件转发（纯 UI 层，不含业务判断）。
+// 协作：props.core(校验/历史/视图) / props.ops(行与列操作) / props.tpl(模板) / props.demo(压测) / props.io(导入导出) / props.find(查找)
 import { ArrowDown } from '@element-plus/icons-vue';
 import type { GridCore } from '../hooks/useGridCore';
 import type { GridOps } from '../hooks/useGridOps';
@@ -19,6 +20,7 @@ const props = defineProps<{
   find: GridFindReplace;
 }>();
 
+// 把各个 hook 暴露的"动作/状态"解构到模板可直接用的局部变量（均为响应式 ref 或函数）
 const { addRow, insertRow, deleteSelected, duplicateSelected, clearAll, selectionCount } = props.ops;
 const { removeEmptyRows, removeDuplicateRows } = props.ops;
 const { openAddCol, colDrawer, fillVisible, submit, submitting, errDrawer } = props.ops;
@@ -71,6 +73,7 @@ const { findVisible } = props.find;
     </div>
     <el-divider direction="vertical" />
     <div class="tb-group">
+      <!-- ⚠️ 不做导入导出方向的新功能扩展，仅保留既有导入与三档导出 -->
       <el-button @click="importExcel">⬆ 导入</el-button>
       <el-dropdown @command="onExportCommand" trigger="click">
         <el-button>⬇ 导出<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
@@ -94,6 +97,7 @@ const { findVisible } = props.find;
     <div class="tb-group gen">
       <el-button size="small" type="primary" @click="presetData(500)">预制数据</el-button>
       <span class="gen-label">压测：</span>
+      <!-- 压测数据量级参数（行数）直接透传给 useGridDemoData.genData -->
       <el-button size="small" @click="genData(1000)">1千</el-button>
       <el-button size="small" @click="genData(10000)">1万</el-button>
       <el-button size="small" @click="genData(50000)">5万</el-button>
@@ -105,6 +109,7 @@ const { findVisible } = props.find;
         <el-radio-button value="virtual">虚拟滚动</el-radio-button>
         <el-radio-button value="paged">分页</el-radio-button>
       </el-radio-group>
+      <!-- 列汇总开关 / 条件格式（数值列数据条）开关，直接绑定 core 状态 -->
       <el-switch v-model="showFooter" size="small" inline-prompt active-text="汇总" inactive-text="汇总" title="列汇总" />
       <el-switch v-model="conditionalOn" size="small" inline-prompt active-text="格式" inactive-text="格式" title="条件格式（数值列数据条）" />
       <el-button size="small" @click="errDrawer = true" :disabled="!errorCount">

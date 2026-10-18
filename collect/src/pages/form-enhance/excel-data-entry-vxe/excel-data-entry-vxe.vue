@@ -1,3 +1,34 @@
+<!--
+  录入台主组件（页面入口 · Excel 式数据录入台）
+  ============================================================================
+  本文件职责：
+    1. 组装页面布局与顶层 UI（标题/统计、工具栏、查找条、填充条、查询 chips、
+       表格本体、复制蚂蚁线、右键菜单、状态栏、分页、各弹窗/抽屉）。
+    2. 装配所有业务 hooks（core / columns / scroll / ops / tpl / demo / io / find / mouse / sel）
+       并把它们"接线"到 vxe-table 的事件与各类子组件上。
+    3. 承担少量"页面级协调"逻辑：表头点击选列/全选、查询 chips 清除、单元格样式计算、
+       单元格点击分发。
+
+  在整体架构中的角色：作为"装配层 / 协调层"，本身不实现数据校验、框选、填充、剪贴板、
+  键盘导航等复杂逻辑（这些下沉到 hooks 与各子状态机），只负责把 hooks 暴露的状态与动作
+  绑定到 vxe-table 与 UI 组件。
+
+  协作模块：
+    - hooks/*：全部业务逻辑（数据/校验/历史/查询/统计/列/滚动/操作/模板/压测/导入导出/查找/鼠标键盘/框选）。
+    - components/cells/*：vxe 渲染器（element-plus 编辑器 + 显示渲染器）。
+    - components/*.vue：各类 UI 组件（工具栏、抽屉、弹窗、状态条等）。
+
+  关键架构约定（详见各对应代码处 ⚠️ 注释）：
+    - cell-area 是 vxe pro 功能，OSS 版无实现 → 选区（框选/整行/整列/全选）全部自研（useCellSelection）。
+    - 编辑单元格必须用 element-plus 组件（见 theme.css / 下方 .dt-el-editor 样式），输入框无边框、
+      编辑不高亮整列。
+    - 列宽只认 px；% 宽会被 XEUtils.toInteger 截断成整数百分比（列宽换算在 useGridColumns）。
+    - vxe 表头事件名是 header-cell-click，列宽变更事件名是 column-resizable-change（不可拼错）。
+    - 状态栏统计为"双轨"：当前列全量统计（activeStats）+ 选区内数字格聚合（selectionStats）。
+    - 复制蚂蚁线：copiedRect 独立快照 + copyMarquee SVG overlay（stroke-dashoffset 循环动画）；
+      box-shadow 不支持 dashed，故用 SVG rect 而非 box-shadow。
+  ============================================================================
+-->
 <template>
   <div class="dt-page" ref="gridWrapper">
     <!-- 顶部标题 -->
@@ -89,6 +120,7 @@
       <span class="sb-item">改动 <b class="c-warn">{{ dirtyCount }}</b></span>
       <span class="sb-item">选中 <b class="c-ok">{{ selectionCount }}</b></span>
       <span class="sb-item">错误 <b class="c-danger">{{ errorCount }}</b></span>
+      <!-- 状态栏统计双轨之一：当前列全量统计（计数/求和/平均/最大/最小） -->
       <template v-if="activeStats">
         <span class="sb-sep" />
         <span class="sb-item">{{ activeColLabel }}：</span>
@@ -98,6 +130,7 @@
         <span class="sb-item">最大 <b>{{ activeStats.max }}</b></span>
         <span class="sb-item">最小 <b>{{ activeStats.min }}</b></span>
       </template>
+      <!-- 状态栏统计双轨之二：选区内数字格聚合（仅当选区存在且有数字格时显示） -->
       <template v-if="selectionStats">
         <span class="sb-sep" />
         <span class="sb-item">选区统计：</span>
@@ -128,6 +161,7 @@
     <ErrorDrawer :core="core" :ops="ops" />
     <TemplateDialog :tpl="tpl" />
 
+    <!-- 隐藏的文件选择 input：导入 Excel 时触发；始终留在 DOM 上以便随时调用 -->
     <input ref="fileInputRef" type="file" accept=".xlsx,.xls" style="display: none" @change="onFileChange" />
   </div>
 </template>
@@ -165,6 +199,7 @@ defineOptions({ name: 'ExcelDataEntryVxe' });
 registerAllRenderers();
 
 // ===================== 页面级引用 =====================
+// gridWrapper：整页根容器（copy/paste/contextmenu 等全局监听挂载点参考此元素范围）
 const tableRef = ref<any>(null);
 const gridWrapper = ref<HTMLElement>();
 const gridBox = ref<HTMLElement>();
@@ -215,6 +250,14 @@ const { gridHeight, fillHandle, startFill, helpVisible, copyMarquee } = mouse;
 const { selectionCount, selectionStats } = ops;
 
 // ---- 活动格坐标指示（Excel 名称框语义：第几行 / 第几列 + 列名） ----
+/**
+ * posLabel —— 当前活动单元格的"名称框"文字。
+ * 用途：在状态栏最左展示活动格处于第几行/第几列（1-based）及列名，对齐 Excel 名称框语义。
+ * 实现：用 sel.anchor（选区固定端，即 Excel 活动格）的 rowId/field 反查 processedRows 与
+ *       visibleDefs 的下标；找不到（如选区已失效）时回退"未选中"。
+ * 坑点：必须用 anchor 而非 currentCell——Shift 扩展选区时 currentCell 会跟到 focus 端，
+ *       而名称框应始终显示起始格。
+ */
 const posLabel = computed(() => {
   const a = sel.anchor.value;
   if (!a) return '未选中';
@@ -227,6 +270,13 @@ const posLabel = computed(() => {
 });
 
 // ---- 查询条件 chips 的清除动作：改数据状态的同时清掉 vxe 列头里的排序/筛选标记 ----
+/**
+ * clearFilterChip —— 清除某一列的某一个（或全部）筛选值，并同步 vxe 表头的筛选标记。
+ * @param field 列 field
+ * @param value 要移除的具体筛选值；省略表示清空该列全部筛选
+ * 坑点：tableRef.clearFilter 会触发 filter-change 把 columnFilters 整体写回空，
+ *       因此这里若还有剩余筛选值，需要在 clearFilter 之后把剩余值补写回 core.columnFilters。
+ */
 const clearFilterChip = (field: string, value?: string) => {
   const cur = core.columnFilters[field] ?? [];
   const next = value ? cur.filter((v) => v !== value) : [];
@@ -236,11 +286,18 @@ const clearFilterChip = (field: string, value?: string) => {
   // clearFilter 会触发 filter-change 把 columnFilters 写回空，这里补回剩余值（多选筛选逐项清除的场景）
   if (next.length) core.columnFilters[field] = next;
 };
+
+/**
+ * clearSortChip —— 清除排序标记（单列或全局），并同步 vxe 表头排序图标。
+ * @param field 要清除排序的列 field；省略表示清除全部排序
+ */
 const clearSortChip = (field?: string) => {
   core.sortList.value = field ? core.sortList.value.filter((s) => s.field !== field) : [];
   if (field) tableRef.value?.clearSort?.(field);
   else tableRef.value?.clearSort?.();
 };
+
+/** clearAllQuery —— 一键清空所有查询态：搜索词 + 全部列筛选 + 全部排序，并同步 vxe 表头标记。 */
 const clearAllQuery = () => {
   core.searchText.value = '';
   for (const k of Object.keys(core.columnFilters)) delete core.columnFilters[k];
@@ -252,6 +309,14 @@ const clearAllQuery = () => {
 // 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 选中整列。
 // 排序已改为 trigger:'default'（只在点列头排序图标时排序），故点表头不会再被排序动作抢走；
 // 仍用 vxe 给出的 triggerSort/triggerFilter/triggerResizable 兜底，避免点排序/筛选图标时误选整列
+/**
+ * onHeaderClick —— 表头单元格点击处理：根据列类型与点击区域决定"全选/选整列"。
+ * @param column vxe 列对象（含 type/field）
+ * @param triggerSort/triggerFilter/triggerResizable vxe 透出的点击落点标志，落在排序/筛选/拖拽手柄上时为 true
+ * 坑点：
+ *   1) vxe 表头事件名是 header-cell-click（@header-cell-click），不可拼错；
+ *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"选整列"。
+ */
 const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }: any) => {
   if (!column || triggerSort || triggerFilter || triggerResizable) return;
   const fields = core.visibleDefs.value.map((d) => d.field);
@@ -281,6 +346,18 @@ onMounted(() => {
 
 // ===================== 单元格样式 =====================
 // 错误标红 / 查找命中高亮 / 填充闪烁 / 框选高亮（分别来自 核心校验、查找替换、填充手柄、选区状态机）
+/**
+ * cellClassName —— 为单个单元格计算 class（错误/查找命中/闪烁/活动格/十字高亮/选区边框）。
+ * @param row vxe 行数据；@param column vxe 列数据
+ * @returns 空格分隔的 className 串（空串表示无特殊样式）
+ * 说明：本函数集中输出所有"单元格级视觉状态"，是渲染性能关键点（每次重绘都会调用），
+ *       只做轻量判定，不在此改数据。
+ * 坑点：
+ *   - 活动格取 anchor（选区固定端）而非 currentCell（见 posLabel 注释）；
+ *   - 十字高亮用 background-image 而非 background-color，以便与 cell-sel 的
+ *     background-color(!important) 叠加不打架；
+ *   - 复制态下与 copiedRect 重合的选区格不再画实线外框，让位给蚂蚁线（见下方 inCopied 判定）。
+ */
 const cellClassName = ({ row, column }: any) => {
   const field = column?.field;
   if (!field) return '';
@@ -323,9 +400,21 @@ const cellClassName = ({ row, column }: any) => {
   }
   return cls.join(' ');
 };
+
+/**
+ * rowClassName —— 整行级 class：仅需标脏时使用。
+ * @param row 行数据
+ * 说明：行标脏（__dirty）用于行首色条提示，与单元格级样式解耦。
+ */
 const rowClassName = ({ row }: any) => (row?.__dirty ? 'row-dirty' : '');
 
 // 序号列点击 = 选中整行（行头语义）；数据列点击 = 移动当前格（选区由 watcher 塌缩/Shift 扩展）
+/**
+ * onCellClick —— 单元格点击分发。
+ * @param params vxe cell-click 事件参数（含 column/row）
+ * 坑点：序号列（type==='seq'）按"行头"语义处理（选整行），必须在此拦截，
+ *       否则会走到 core.onCellClick 误当成普通数据格移动当前格。
+ */
 const onCellClick = (params: any) => {
   if (params?.column?.type === 'seq') {
     if (params?.row) sel.selectRow(params.row.__id);
@@ -427,6 +516,9 @@ html.dark .stat-pill.info { border-color: #2c3a66; }
   stroke-dasharray: 7 5;
   animation: dt-march .8s linear infinite;
 }
+// ⚠️ 坑：box-shadow 不支持 dashed（虚线）边框效果，复制蚂蚁线若用 box-shadow 只能得到实线。
+// 因此这里改用 SVG <rect> + stroke-dasharray + stroke-dashoffset 循环动画实现"行军虚线"，
+// copiedRect（mouse 状态机维护的独立快照）提供位置/尺寸，本 overlay 只负责绘制动画。
 @keyframes dt-march { to { stroke-dashoffset: -12; } }
 
 /* 表格视觉美化 */
@@ -462,7 +554,10 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 :deep(.vxe-table .fixed-left--wrapper) { box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.12); }
 :deep(.vxe-table .vxe-header--column.dt-col-req .vxe-cell::after) { content: '*'; color: var(--dt-danger); margin-left: 2px; }
 :deep(.vxe-table .vxe-footer--row) { background: var(--dt-header-bg); font-weight: 600; color: var(--dt-text); }
-/* ===== 单元格编辑器（element-plus）：融入单元格——无边框、透明底、撑满格高、文字随单元格主题 ===== */
+/* ===== 单元格编辑器（element-plus）：融入单元格——无边框、透明底、撑满格高、文字随单元格主题 =====
+   ⚠️ 坑：编辑单元格必须用 element-plus 组件（而非 vxe 自带编辑器）；输入框必须去除 box-shadow 边框
+   （box-shadow: none）、透明背景、无 padding，使编辑器"融"进单元格而不突兀；
+   且"编辑不高亮整列"——选区/活动格样式控制在单元格级，不借助 vxe 的列高亮。 */
 :deep(.dt-el-editor),
 :deep(.dt-el-editor .el-input__wrapper),
 :deep(.dt-el-editor .el-select__wrapper) { height: 100%; }

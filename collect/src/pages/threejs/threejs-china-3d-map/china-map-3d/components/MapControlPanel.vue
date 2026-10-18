@@ -1,3 +1,13 @@
+<!--
+ * MapControlPanel.vue — 右上角「可视化控制台」
+ * 职责：把地图的可视化参数以 v-model 双向绑定下发到 ChinaMap3D。
+ *   - 左键拖拽模式：pan（平移）/ rotate（旋转）
+ *   - 数据柱：开关 + 高值色（关闭即切换为地理标牌）
+ *   - 飞线：开关 + 颜色 + 速度
+ * 角色：纯 UI 面板，不含任何 Three.js 逻辑；通过 defineModel 与 ChinaMap3D
+ *   的对应 props 一一映射。collapsed 仅控制本面板自身的折叠展开。
+ * 协作：threejs-china-3d-map.vue（作为 v-model 数据来源）。
+ -->
 <template>
   <div class="map-ctrl" :class="{ 'map-ctrl--collapsed': collapsed }">
     <div class="map-ctrl__head" @click="collapsed = !collapsed">

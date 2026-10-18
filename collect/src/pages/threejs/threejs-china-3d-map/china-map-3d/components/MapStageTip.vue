@@ -1,3 +1,10 @@
+<!--
+ * MapStageTip.vue — 底部「构建进度条 / 一次性提示」
+ * 职责：展示下钻/加载过程中的进度（stage：文本 + 0~1 比率进度条），以及优先级
+ *   更高的一次性提示（notice：info 蓝 / error 红，用于错误、无数据等）。
+ * 角色：纯 UI；数据来自 ChinaMap3D 的 stage / notice。raised 为 true 时整体
+ *   上移，给底部"返回上级"按钮让位（下钻后才会出现该按钮）。
+ -->
 <template>
   <div class="stage-host" :class="{ 'stage-host--raised': raised }">
     <transition name="stage-fade">

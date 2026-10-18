@@ -9,7 +9,12 @@ import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 
-// 日期解析 / 加天数（setDate 自动处理跨月与闰年，输出 YYYY-MM-DD）
+/**
+ * 把 YYYY-MM-DD（或宽松日期）解析为 Date；非法/空返回 null。
+ * 仅接受四位年-两位月-两位日，避免把其它数字误当日期。
+ * @param v 原始值
+ * @returns 解析后的 Date，或 null
+ */
 const parseDate = (v: any): Date | null => {
   if (!v) return null;
   const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -17,6 +22,12 @@ const parseDate = (v: any): Date | null => {
   const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   return isNaN(d.getTime()) ? null : d;
 };
+/**
+ * 给日期加 N 天并以 YYYY-MM-DD 输出；setDate 自动处理跨月与闰年。
+ * 源为空时退化为"今天 + days"，保证序列至少能向下延续。
+ * @param v 基准日期（YYYY-MM-DD）
+ * @param days 要加的天数（可为负）
+ */
 const addDays = (v: any, days: number): string => {
   const d = parseDate(v) ?? new Date();
   d.setDate(d.getDate() + days);
@@ -26,6 +37,21 @@ const addDays = (v: any, days: number): string => {
   return `${y}-${mo}-${day}`;
 };
 
+/**
+ * 拖拽填充手柄（Excel 填充柄）：锚点定位 + 手柄显隐 + 纵向/横向序列填充 + 双击填至末行。
+ *
+ * 在整体架构中的角色：与快捷键填充（useGridKeys 的 Ctrl+D/Ctrl+R/Ctrl+Enter）互补，
+ * 本手柄负责"把选区边缘的值拖写到选区之外的新行/新列"。它读取 sel.selRect 取源、读取 core 写数据，
+ * 落点坐标一律走 document.elementFromPoint + colid/rowid 解析（不依赖 vxe 内部 API）。
+ *
+ * 关键算法：序列填充按"首两格差"推算——数字按等差、日期按天差、文本/下拉常量复制；
+ * 轴向按指针相对按下点的位移主轴（|dx|>|dy| 横向）判定，比"看落点在哪轴之外"更跟手。
+ *
+ * @param core  核心状态实例
+ * @param tableRef vxe 实例（getCellElement / getColumnByField 定位单元格）
+ * @param sel   自研选区状态机（selRect 提供源矩形）
+ * @param gridBox 网格容器（定位手柄 / 蚂蚁线的相对坐标基准）
+ */
 export function useFillHandle(
   core: GridCore,
   tableRef: Ref<any>,
@@ -37,7 +63,8 @@ export function useFillHandle(
   // ===================== 手柄定位 =====================
   // 锚点格 = 矩形选区的右下角（末行 × 末列），与 Excel 一致——早期锚在 focus 端，
   // 从左上往右下框选时手柄位置才对，反向框选（focus 落在左上）手柄会跑到左上角。
-  // 注意不能用 vxe 的 getActiveCell——mouse-config.selected 关闭后它只在编辑期有值。
+  // ⚠️ 坑：注意不能用 vxe 的 getActiveCell——它不是 OSS 表格实例方法（右键取格用它会拿到过期值），
+  // mouse-config.selected 关闭后它只在编辑期有值；这里一律用 selRect 右下角，无选区时退化 currentCell。
   const fillAnchor = (): { row: any; field: string } | null => {
     const rect = sel.selRect.value;
     if (rect) {
@@ -210,6 +237,7 @@ export function useFillHandle(
   };
 
   // ===================== 拖拽填充 =====================
+  // ⚠️ 坑：手柄元素用了 @pointerdown.prevent 就收不到 dblclick 事件——双击要自己按时间戳判定。
   // 双击检测：手柄上的 pointerdown 用了 .prevent，会吞掉兼容性鼠标事件（dblclick 收不到），
   // 故在此自测双击间隔；命中即执行"填充至末行"，不再进入拖拽。
   // 阈值取 420ms（Windows 默认双击间隔 500ms 留余量）；真拖拽结束后清零，避免"拖完立刻按下"被误判双击
@@ -350,4 +378,8 @@ export function useFillHandle(
   return { fillHandle, flashKeys, hideFillHandle, refreshFillHandle, startFill, fillToEnd };
 }
 
+/**
+ * useFillHandle 的返回类型别名：导出 { fillHandle, flashKeys, hideFillHandle, refreshFillHandle,
+ * startFill, fillToEnd }，供 useGridMouse 透出到模板渲染填充柄与预览闪烁。
+ */
 export type GridFillHandle = ReturnType<typeof useFillHandle>;

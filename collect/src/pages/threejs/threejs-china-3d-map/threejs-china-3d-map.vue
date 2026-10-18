@@ -1,3 +1,18 @@
+<!--
+ * threejs-china-3d-map.vue — Three.js 立体中国地图「页面级入口」
+ * ---------------------------------------------------------------
+ * 职责：演示页面容器。本身不持有任何 Three.js 逻辑，只负责：
+ *   1. 装配主组件 ChinaMap3D（真实 3D 场景所在）；
+ *   2. 装配可视化控制台 MapControlPanel，通过 v-model 双向下发控制参数；
+ *   3. 生成一份演示用的「项目数」数据 projectData，按省份 adcode 映射数值，
+ *      驱动数据柱高度与分级配色。
+ * 架构角色：位于本功能的最外层；所有交互/渲染细节都下沉到 ChinaMap3D 及其
+ *   composables。这里只做"参数下发 + 演示数据注入"，便于把地图当成一个
+ *   可复用的子组件嵌入其它页面。
+ * 协作模块：
+ *   - ChinaMap3D：3D 地图主组件（核心编排层）
+ *   - MapControlPanel：右上角可视化控制台（拖拽模式 / 数据柱 / 飞线）
+ -->
 <template>
   <div class="china3d-page">
     <ChinaMap3D
@@ -38,7 +53,8 @@ import ChinaMap3D from './china-map-3d/components/ChinaMap3D.vue'
 import MapControlPanel from './china-map-3d/components/MapControlPanel.vue'
 import chinaGeo from '@/assets/geojson/china.json'
 
-// 可视化控制参数（右上角控制台双向绑定）
+// 可视化控制参数（右上角控制台双向绑定）。这些 ref 即 ChinaMap3D 的 props，
+// 通过 v-model 下发；改任意一项都会触发 ChinaMap3D 内对应的 watch 即时生效。
 const showColumn = ref(true)
 const columnColor = ref('#5FC9EE')
 const showFlyline = ref(true)
@@ -46,13 +62,15 @@ const flylineColor = ref('#7FD4F5')
 const flylineSpeed = ref(0.2)
 const dragMode = ref<'pan' | 'rotate'>('pan')
 
-// 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色
+// 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色。
+// 真实业务中应替换为后端按 adcode 返回的统计值。
 const projectData = ref<Record<number, number>>({})
 onMounted(() => {
   const data: Record<number, number> = {}
   for (const feature of (chinaGeo as any).features) {
     const adcode = Number(feature.properties.adcode)
     if (!adcode) continue
+    // 4~83 之间的随机整数：作为数据柱高度的原始计数（base 4 避免零高柱）
     data[adcode] = 4 + Math.floor(Math.random() * 80)
   }
   projectData.value = data

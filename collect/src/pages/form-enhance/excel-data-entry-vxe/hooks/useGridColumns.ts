@@ -3,6 +3,11 @@ import { computed, nextTick, reactive, watch, ref, onBeforeUnmount } from 'vue';
 import type { Ref } from 'vue';
 import type { GridCore } from './useGridCore';
 
+/**
+ * 把列类型编译为 vxe 编辑渲染器名称：number→dt-el-number、select→dt-el-select（带 options）、
+ * date→dt-el-date、其余→dt-el-text。统一由 element-plus 组件实现（输入框无边框、编辑不高亮整列）。
+ * @param d 列类型与下拉选项
+ */
 const makeEditRender = (d: { type: string; options?: string[] }) =>
   d.type === 'number'
     ? { name: 'dt-el-number' }
@@ -16,10 +21,22 @@ const makeEditRender = (d: { type: string; options?: string[] }) =>
 const SEQ_WIDTH = 52;
 const DEFAULT_COL_WIDTH = 120;
 
+/**
+ * 列定义构建：把 ColDef 元信息编译为 vxe 列配置（显示渲染器 + element-plus 编辑渲染器 + 筛选器），
+ * 并负责列宽自适应与拖拽列宽写回。
+ *
+ * 在整体架构中的角色：useGridCore 只持有 ColDef 元信息，本层是"元信息 → vxe 列配置"的唯一编译点；
+ * 编辑渲染器统一走自研 dt-el-* 渲染器（element-plus 组件、输入框无边框、编辑不高亮整列）；
+ * keyboardConfig 在此显式关闭 vxe 自带的键盘导航（isArrow/isTab/isEnter/isEdit/isChecked），
+ * 改为由 useGridKeys 完全自管（避免与自研选区双轨冲突）。
+ *
+ * @param core 核心状态实例（读取 columnDefs / visibleDefs）
+ * @param tableRef vxe 实例（loadColumn / getCellElement 等）
+ */
 export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
   // ===================== 宽度自适应（表格盛满容器） =====================
-  // vxe 列宽只认 px：% 宽会被 XEUtils.toInteger（parseInt）截断成整数百分比，8 列累计最多差 7px 缝隙；
-  // 官方 fit 参数已标注"可能废弃"。故在此把基准宽度按 body 可视宽等比换算成 px：
+  // ⚠️ 坑：vxe 列宽只认 px——% 宽会被 XEUtils.toInteger（parseInt）截断成整数百分比，8 列累计最多差 7px 缝隙；
+  // 官方 fit 参数已标注"可能废弃，不要使用"。故在此把基准宽度按 body 可视宽等比换算成 px：
   // 末列吸收取整余量、整体再留 1px 冗余，保证列宽总和精确等于可视宽（不触发横向滚动条）。
   // bodyWidth 量的是 .vxe-table--body-wrapper.body--wrapper（overflow:hidden 的外层，
   // 与 vxe 内部 autoCellWidth 取 clientWidth 的是同一个元素），并用 ResizeObserver 跟随变化。
@@ -53,6 +70,11 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
     }
   };
 
+  /**
+   * 编译列配置：首列固定 seq 序号列（宽 SEQ_WIDTH），随后按 visibleDefs 生成数据列——
+   * 列宽取 allocWidths 的等比 px、resizable/sortable 开启、必填列加 dt-col-req 类名、
+   * 显示渲染器 dt-cell-display、select 列挂 filters（供表头筛选）。列重建后 wrapper 可能被替换，异步补量宽度。
+   */
   const buildColumns = (): any[] => {
     // 行选中（复选框列）已移除：批量操作统一以框选区域为作用域（Excel 语义）
     const cols: any[] = [{ type: 'seq', width: SEQ_WIDTH, fixed: 'left', title: '#', align: 'center' }];
@@ -83,6 +105,9 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
   const editConfig = reactive({ trigger: 'dblclick' as const, mode: 'cell' as const });
   // 键盘导航（方向键/Tab/Enter/空格/F2）全部由 useGridMouse 自管：
   // vxe OSS 方向键不感知 Shift，且其内部 selected 态与自研选区双轨运行会冲突，故显式关闭
+  // ⚠️ 坑：键盘导航（方向键/Tab/Enter/空格/F2/编辑/勾选）全部由 useGridKeys 自管，故在此显式关闭 vxe 的
+  // isArrow/isTab/isEnter/isDel/isBack/isEdit/isChecked——因为 vxe 全部键盘处理依赖 editStore.selected，
+  // 仅 mouse-config.selected:true 时才有值；本项目关闭了 selected，必须自管，否则键盘与选区双轨冲突。
   const keyboardConfig = reactive({
     isArrow: false,
     isTab: false,
@@ -103,7 +128,8 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
   watch(columns, () => nextTick(applyColumns));
 
   // ===================== 拖拽列宽写回 =====================
-  // vxe 的 resizable 只改 DOM 列宽，defs.width 不变 → 一旦列配置重建（加列/撤销/套模板）宽度就回弹。
+  // ⚠️ 坑：vxe 的 resizable 只改 DOM 列宽，defs.width 不变 → 一旦列配置重建（加列/撤销/套模板）宽度就回弹。
+  // 这里把"实际像素宽"按当前等比换算比例反算回基准宽，落盘后再由 columns 重建列。
   // 这里把"实际像素宽"按当前等比换算比例反算回基准宽，落盘后再由 columns 重建列。
   // 拖拽过程会连续触发，故防抖到停手后再写（重建列会打断拖拽手感）
   let widthTimer: number | null = null;

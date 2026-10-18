@@ -13,6 +13,19 @@ import { useFillHandle } from './useFillHandle';
 import { useCopyMarquee } from './useCopyMarquee';
 import { useGridKeys } from './useGridKeys';
 
+/**
+ * 鼠标 / 剪贴板交互协调层：右键上下文菜单 + 复制粘贴 + 网格高度自适应 + window 级事件生命周期。
+ *
+ * 在整体架构中的角色：本层是"装配中枢"——它实例化两个子状态机（useFillHandle 填充手柄、
+ * useCopyMarquee 复制蚂蚁线）与 useGridKeys 键盘层，并负责协调跨状态机动作
+ * （如 Esc 同时关菜单 + 消蚂蚁线）以及统一管理所有 window 级监听的挂载/卸载。
+ * 关键约定：copy/paste/contextmenu 等事件必须挂 window（派发在 activeElement / 顶层 fixed 菜单上，
+ * 挂在 gridWrapper 收不到），并用 gridActive 标志判作用域、输入框 target 豁免。
+ *
+ * @param core 核心状态实例
+ * @param tableRef vxe 实例
+ * @param deps 协调依赖：gridBox/gridWrapper 容器、io 剪贴板、find 查找、ops 数据操作、sel 选区
+ */
 export function useGridMouse(
   core: GridCore,
   tableRef: Ref<any>,
@@ -42,8 +55,9 @@ export function useGridMouse(
 
   // ===================== 右键上下文菜单 =====================
   const menu = reactive({ show: false, style: { top: '0px', left: '0px' }, rowId: '', field: '' });
-  // 取坐标下的单元格：菜单打开时会遮住其他单元格（fixed 定位、z-index 高于表格），
-  // 直接 elementFromPoint 会拿到菜单自身——故先将菜单临时隐身后再取点，保证"菜单开着也能右键别处"
+  // ⚠️ 坑：右键取格不能依赖 vxe 的 getActiveCell（非 OSS 方法、会拿到过期值），一律用坐标 →
+  // .vxe-body--row@rowid + .vxe-body--column@colid 降级解析。且菜单（fixed 定位）打开时会遮住其它单元格，
+  // 直接 elementFromPoint 会拿到菜单自身——故先将菜单临时隐身再取点，保证"菜单开着也能右键别处"。
   const cellFromPoint = (x: number, y: number): { rowId: string; field: string } | null => {
     const menuEl = document.querySelector('.dt-menu') as HTMLElement | null;
     const prevVis = menuEl?.style.visibility;
@@ -59,8 +73,8 @@ export function useGridMouse(
     if (!field) return null;
     return { rowId: rowid, field };
   };
-  // 监听挂 window：菜单（fixed 定位）打开时会成为 contextmenu 的 target，
-  // 挂在 gridWrapper 上收不到"被菜单遮住的单元格"的右键；网格外右键则关菜单并放行原生菜单
+  // ⚠️ 坑：contextmenu 监听必须挂 window——菜单（fixed 定位）打开时会成为事件的 target，
+  // 挂在 gridWrapper 上收不到"被菜单遮住的单元格"的右键；网格外右键则关菜单并放行原生菜单。
   const onContextMenu = (e: MouseEvent) => {
     const cell = cellFromPoint(e.clientX, e.clientY);
     if (!cell) {
@@ -85,9 +99,15 @@ export function useGridMouse(
     menu.style.left = `${e.clientX}px`;
     menu.show = true;
   };
+  /** 关闭右键菜单（点击空白 / 执行菜单项后调用） */
   const closeMenu = () => {
     menu.show = false;
   };
+  /**
+   * 执行右键菜单动作：copy（亮蚂蚁线）/ paste / insertUp / insertDown（插入行）/ clear（清格）/ deleteRow（删行）。
+   * 写数据前统一 snap() 入撤销栈；复制/粘贴分别委托 io + marquee 完成。
+   * @param act 菜单动作标识
+   */
   const menuAct = (act: string) => {
     menu.show = false;
     const row = core.allRows.value.find((r) => r.__id === menu.rowId);
@@ -147,8 +167,9 @@ export function useGridMouse(
   const onCopy = (e: ClipboardEvent) => {
     // 工具栏/查找条输入框内的复制放行原生行为，避免劫持用户复制文本
     if (isFieldTarget(e.target)) return;
-    // 监听必须挂 window：剪贴板事件派发在 document.activeElement 上（点击单元格后 vxe 不做 DOM 聚焦，
-    // activeElement 仍是 body），挂在 gridWrapper 上不在事件路径上、永远收不到——用网格激活标志判作用域
+    // ⚠️ 坑：copy/paste 监听必须挂 window——剪贴板事件派发在 document.activeElement 上（点击单元格后
+    // vxe 不做 DOM 聚焦，activeElement 仍是 body），挂在 gridWrapper 上不在事件路径上、永远收不到；
+    // 用 gridActive 标志判作用域（输入框 target 已在前方豁免）。
     if (!keys.gridActive.value) return;
     const tsv = io.buildCopyTsv();
     if (tsv) {
@@ -172,8 +193,8 @@ export function useGridMouse(
 
   // ===================== DOM 事件生命周期 =====================
   let bodyScrollEl: HTMLElement | null = null;
-  // 滚动时隐藏填充手柄（虚拟滚动下坐标会偏移）并重定位复制蚂蚁线（Excel 中蚂蚁线随区域一起滚动）。
-  // 注意：真正滚动的是 .vxe-table--body-inner-wrapper；外层 .vxe-table--body-wrapper 是 overflow:hidden 的定位壳
+  // ⚠️ 坑：真正滚动的是 .vxe-table--body-inner-wrapper；外层 .vxe-table--body-wrapper 是 overflow:hidden 的定位壳
+  // （绑滚动监听别绑错）。滚动时隐藏填充手柄（虚拟滚动下坐标会偏移）并重定位复制蚂蚁线（蚂蚁线随区域一起滚动）。
   const onBodyScroll = () => {
     fill.hideFillHandle();
     marquee.refreshCopyMarquee();
@@ -225,4 +246,8 @@ export function useGridMouse(
   };
 }
 
+/**
+ * useGridMouse 的返回类型别名：透出网格高度（gridHeight/syncGridHeight）、填充手柄、复制蚂蚁线、
+ * 快捷键帮助（helpVisible）、右键菜单（menu/closeMenu/onContextMenu/menuAct）等供模板与事件绑定。
+ */
 export type GridMouse = ReturnType<typeof useGridMouse>;

@@ -14,6 +14,25 @@ import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 import type { GridFindReplace } from './useGridFindReplace';
 
+/**
+ * 键盘交互层：网格激活判定 + Excel 式单元格导航 + 选中即键入覆盖编辑 + 各种快捷键。
+ *
+ * 在整体架构中的角色：本层是纯"键盘"状态机，挂在 window 的 keydown 上由 useGridMouse 装配；
+ * 它不拥有选区/数据，而是调用 `sel`（useCellSelection）与 `core`（useGridCore）的能力。
+ * 关键设计：
+ *   - 自维护 `gridActive` 激活标志（点在网格内 = 激活），因为 vxe 的 focus() 只置内部 isActivated、
+ *     不做 DOM 聚焦，点击单元格后 document.activeElement 仍是 body，不能靠 contains(activeElement) 判定。
+ *   - 键盘导航完全自管（keyboard-config 已在 useGridColumns 显式关闭 isArrow/isTab/isEdit/isChecked 等），
+ *     因为 vxe OSS 方向键不感知 Shift，且其内部 selected 态会与自研选区双轨冲突。
+ *   - Esc / F1 为全局键，必须放在 `inGrid` 守卫之前（右键落点被菜单遮住时 gridActive=false，放守卫后会整段失效）。
+ *
+ * @param core  核心状态实例
+ * @param tableRef vxe 表格实例 ref
+ * @param sel   自研选区状态机
+ * @param find  查找替换实例（Ctrl+F 打开面板）
+ * @param deps  协调依赖：gridBox/gridWrapper 用于激活判定；onEscape 由协调层关菜单+消蚂蚁线；
+ *              appendRow 在 Tab 到末行末尾时追加新行（避免键盘层直接依赖数据操作层）
+ */
 export function useGridKeys(
   core: GridCore,
   tableRef: Ref<any>,
@@ -42,14 +61,19 @@ export function useGridKeys(
   // ===================== 快捷键帮助（F1） =====================
   const helpVisible = ref(false);
 
-  // 把指定单元格滚入可视区（不激活编辑，区别于 useGridScroll.scrollToCell）
+  /** 把指定单元格滚入可视区（仅滚动、不激活编辑，区别于 useGridScroll.scrollToCell 会设活动格） */
   const scrollCellIntoView = (row: any, field: string) => {
     tableRef.value?.scrollToRow?.(row);
     tableRef.value?.scrollToColumn?.(field);
   };
 
-  // 编辑态 Enter/Tab：提交当前编辑并移动到下一格（Excel 语义：下移/右移，不自动续编）
-  // vxe 的 keyboardConfig.isEnter 已关闭，编辑内的 Enter/Tab 不会自动流转，须在此接管
+  /**
+   * 编辑态 Enter/Tab 收尾：提交当前编辑并移动到下一格（Excel 语义：下移/右移，不自动续编）。
+   * vxe 的 keyboardConfig.isEnter 已关闭，编辑内的 Enter/Tab 不会自动流转，故在此接管；
+   * 到末行末尾且为虚拟滚动模式时追加新行并落到新行首格（连续录入不中断）。
+   * @param direction 'down'（Enter）或 'right'（Tab）
+   * @param shift 是否反向（Shift+Enter/Shift+Tab）
+   */
   const commitAndMove = (direction: 'down' | 'right', shift: boolean) => {
     const cur = core.currentCell.value;
     if (!cur) return;
@@ -91,7 +115,13 @@ export function useGridKeys(
     scrollCellIntoView(nrow, nfield);
   };
 
-  // 选中格键入字符即覆盖进入编辑：text 直接用字符；number 仅数字/小数点/负号可覆盖；date/select 打开编辑器保留原值
+  /**
+   * 选中格键入字符即覆盖进入编辑（Excel 覆盖模式）：text 直接用字符；number 仅数字/小数点/负号可覆盖
+   * （负号作起始只打开编辑器不覆盖）；date/select 保留原值仅打开编辑器供选取/输入。
+   * @param row   目标行
+   * @param field 目标字段
+   * @param ch    keydown 的单个字符
+   */
   const startOverwriteEdit = (row: any, field: string, ch: string) => {
     const def = core.columnDefs.value.find((d) => d.field === field);
     const type = def?.type;
@@ -177,6 +207,8 @@ export function useGridKeys(
     const mod = e.ctrlKey || e.metaKey;
     const key = e.key.toLowerCase();
     const shift = e.shiftKey;
+    // ⚠️ 坑：vxe 的 focus() 只置内部 isActivated、不做 DOM 聚焦——点击单元格后 document.activeElement 仍是 body，
+    // 故"是否处于网格内"不能靠 contains(activeElement) 判定，只能自维护 gridActive 标志（见 onWinMouseDown）。
     // 输入框内：编辑态接管 Enter/Tab（提交并移动）；其余放行原生（含 Ctrl+Z 文本撤销 / Esc 取消编辑）
     if (inField) {
       const inGridEdit = !!(ae && (ae as HTMLElement).closest && (ae as HTMLElement).closest('.vxe-table'));
@@ -199,6 +231,8 @@ export function useGridKeys(
       return;
     }
 
+    // ⚠️ 坑：Esc/F1 等全局键必须放在下面的 inGrid 守卫之前——右键落点被菜单遮住时 mousedown target 是菜单，
+    // gridActive=false，若把 Esc/F1 也放进守卫之后，全局键会整段失效
     const inGrid = gridActive.value || (gridWrapper.value?.contains(ae as Node) ?? false);
     if (!inGrid) return;
 
@@ -444,4 +478,8 @@ export function useGridKeys(
   return { gridActive, onKeydown, onWinMouseDown, onWinBlur, scrollCellIntoView, helpVisible };
 }
 
+/**
+ * useGridKeys 的返回类型别名：导出 { gridActive, onKeydown, onWinMouseDown, onWinBlur,
+ * scrollCellIntoView, helpVisible }，供 useGridMouse 装配与事件生命周期管理。
+ */
 export type GridKeys = ReturnType<typeof useGridKeys>;

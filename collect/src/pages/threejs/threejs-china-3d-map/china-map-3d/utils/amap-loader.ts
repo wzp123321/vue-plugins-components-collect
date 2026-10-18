@@ -1,3 +1,26 @@
+/**
+ * amap-loader.ts —— GeoJSON 数据加载（全国内置 + 省市懒加载 + 区县级 CDN 兜底）
+ *
+ * 本文件职责：
+ *   - fetchChinaGeoJson：全国省级数据（随包内置 china.json）
+ *   - fetchDistrictGeoJson：按 adcode 加载下一级数据（本地优先，缺失走 DataV CDN）
+ *   - prefetchDistrictGeoJson：悬停时后台预取，下钻时通常已在本地
+ *   - isDistrictCached / clearGeoJsonCache：缓存查询与清理
+ *
+ * 在整体架构中的角色：数据来源层，介于「外部数据源」与「projection / 绘制」
+ *   之间。所有「下钻重建地图」的数据都从这里取。
+ *
+ * 协作模块：
+ *   - projection.ts / drawRegion / drawOutline / spotLayer（消费 GeoJsonType）
+ *   - geo.ts（checkCountryCompliance 校验全国底图）
+ *
+ * ⚠️ 坑：本地省级数据用 `import.meta.glob` 懒加载（Vite 为每个文件生成独立
+ *   chunk），dev / 生产构建均可用；而运行态 `import('@/...')` 在生产构建会退化
+ *   成 404，所以必须用 import.meta.glob 预声明，不能用动态 import 拼路径。
+ * ⚠️ 约定：空结果（无下级 / 加载失败）同样入缓存——否则每次下钻都会重复打
+ *   一次网络请求；并发去重：同一 adcode 的多个请求共用同一个 Promise（inflight）。
+ */
+
 import type { GeoJsonType } from '../types'
 import chinaJson from '@/assets/geojson/china.json'
 
@@ -25,6 +48,10 @@ export const fetchChinaGeoJson = async (): Promise<GeoJsonType> => {
   return chinaJson as unknown as GeoJsonType
 };
 
+/**
+ * 加载某 adcode 的下一级数据：先看 import.meta.glob 注册的本地加载器，失败 /
+ * 缺失再走 DataV CDN（{adcode}_full.json）。任何失败都返回 EMPTY 兜底。
+ */
 const loadDistrict = async (adcode: string): Promise<GeoJsonType> => {
   const loader = provinceLoaders[`/src/assets/geojson/province/${adcode}.json`]
   if (loader) {
@@ -50,6 +77,10 @@ const loadDistrict = async (adcode: string): Promise<GeoJsonType> => {
   return EMPTY
 };
 
+/**
+ * 取某 adcode 的下一级数据：优先命中缓存，其次复用并发中的 Promise，
+ * 都没有才发起加载并把 Promise 记入 inflight（并发去重）。
+ */
 export const fetchDistrictGeoJson = async (adcode: string): Promise<GeoJsonType> => {
   const cached = cache.get(adcode)
   if (cached) return cached
@@ -80,6 +111,7 @@ export const prefetchDistrictGeoJson = (adcode: string): void => {
   void fetchDistrictGeoJson(adcode).catch(() => undefined)
 };
 
+/** 清空数据缓存与并发记录（切换 / 重置地图时调用） */
 export const clearGeoJsonCache = (): void => {
   cache.clear()
   inflight.clear()

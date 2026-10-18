@@ -1,3 +1,11 @@
+<!--
+ * MapSearchBox.vue — 左上角「行政区搜索框」
+ * 职责：在当前层级内搜索行政区，提供候选下拉与键盘导航（↑↓ 选择、Enter 确认、
+ *   Esc 清空/收起）。命中后 emit('pick') 交给 ChinaMap3D 下钻/选中；无候选时
+ *   Enter 触发 emit('search') 走跨层级兜底定位。
+ * 角色：纯 UI；items 即 ChinaMap3D 的 searchItems（当前层级全部行政区）。
+ * 暴露 focus() 供父组件键盘 "/" 聚焦输入框。
+ -->
 <template>
   <div class="map-search">
     <div class="map-search__box" :class="{ 'map-search__box--open': open && suggestions.length > 0 }">
@@ -60,7 +68,11 @@ const open = ref(false)
 const activeIndex = ref(0)
 const inputEl = ref<HTMLInputElement | null>(null)
 
-/** 去掉行政单位后缀，「江苏」也能命中「江苏省」 */
+/**
+ * stripSuffix — 去掉行政区名称里的单位后缀，让「江苏」也能命中「江苏省」。
+ * 正则末尾 $ 锚定，逐一剥掉 省/市/自治区/特别行政区/自治州/地区/盟/县/区/旗/新区
+ * 等常见后缀（注意：只去结尾，避免误伤中间带"区"字的地名）。
+ */
 const stripSuffix = (name: string) =>
   String(name ?? '').replace(/(省|市|自治区|特别行政区|自治州|地区|盟|县|区|旗|新区)$/g, '')
 
@@ -71,12 +83,14 @@ const suggestions = computed<SearchItem[]>(() => {
   const scored = props.items
     .map((item) => {
       const name = String(item.name ?? '')
+      // 命中优先级（score 越小越靠前）：0=adcode 精确相等；1=名称精确或去后缀相等；2=名称包含关键词
       if (String(item.adcode) === key) return { item: { ...item }, score: 0 }
       if (name === key || stripSuffix(name) === norm) return { item, score: 1 }
       if (name.includes(key)) return { item, score: 2 }
       return null
     })
     .filter(Boolean) as Array<{ item: SearchItem; score: number }>
+  // 先按 score 升序，再按中文名排序；最多取前 8 条避免下拉过长。
   scored.sort((a, b) => a.score - b.score || a.item.name.localeCompare(b.item.name, 'zh-Hans-CN'))
   return scored.slice(0, 8).map((entry) => entry.item)
 })

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 // 查找替换条（Ctrl+F 或工具栏按钮唤出）：范围（全部列/当前列/当前选区）+ 大小写 + 整格 + 正则 + 命中列表
+// 本组件是纯 UI，所有查找/替换/跳转逻辑都在 useGridFindReplace 里；这里只绑定状态与按钮。
+// 协作：props.find(GridFindReplace) → 状态(findText/replaceText/scope/flags/匹配数/命中列表) + 动作(findNext/replaceOne/replaceAll/jumpToHit)
 import { ref } from 'vue';
 import type { GridFindReplace } from '../hooks/useGridFindReplace';
 
 defineOptions({ name: 'GridFindBar' });
 const props = defineProps<{ find: GridFindReplace }>();
 
+// 解构所有响应式状态与动作（均为 ref / 函数）
 const {
   findVisible,
   findText,
@@ -24,12 +27,14 @@ const {
   replaceAll,
 } = props.find;
 
+// 命中明细列表的折叠开关（默认收起，点击"命中列表"按钮展开）
 const showHits = ref(false);
 </script>
 
 <template>
   <div v-if="findVisible" class="dt-findbar">
     <span>查找</span>
+    <!-- 回车触发查找下一个 -->
     <el-input v-model="findText" style="width: 150px" placeholder="内容 / 正则…" @keyup.enter="findNext" />
     <span>替换</span>
     <el-input v-model="replaceText" style="width: 150px" placeholder="替换为…" />
@@ -48,6 +53,7 @@ const showHits = ref(false);
       命中列表 ({{ findHits.length }})
     </el-button>
     <span class="find-count">
+      <!-- 正则非法时优先展示错误；否则展示命中数与当前第几个 -->
       <template v-if="regexError">{{ regexError }}</template>
       <template v-else>命中 {{ findMatches.length }} 处 / 第 {{ findIdx >= 0 ? findIdx + 1 : '-' }} 个</template>
     </span>
@@ -67,6 +73,7 @@ const showHits = ref(false);
         <span class="fh-col">{{ h.colLabel }}</span>
         <span class="fh-val">{{ h.value }}</span>
       </div>
+      <!-- 命中过多时只展示前 N 条，避免一次性渲染卡顿 -->
       <div v-if="findMatches.length > findHits.length" class="find-hit more">
         仅显示前 {{ findHits.length }} 条，共 {{ findMatches.length }} 处
       </div>

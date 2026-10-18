@@ -9,6 +9,7 @@ import type { RegionNode } from '../utils/drawRegion'
 import { disposeObject3D } from '../utils/dispose'
 import type { GeoJsonType } from '../types'
 
+/** 单层地图的数据描述：GeoJSON + 投影信息 + 层级元信息 */
 export interface MapLevel {
   geo: GeoJsonType
   adcode: number | null
@@ -18,6 +19,7 @@ export interface MapLevel {
   fit: FitProjection
 }
 
+/** 加载进度回调：UI 层据此渲染进度条；传 null 表示结束 */
 export type Report = (stage: { text: string; ratio: number } | null) => void
 
 /** 每帧最多占用的构建时间：超出就让出主线程，保证加载动画不掉帧 */
@@ -30,10 +32,26 @@ const LIFT_FOCUS = 0.9
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 /**
- * 地图图层：负责「一层地图」的几何内容（外轮廓 + 各行政区板块）。
+ * useMapLayer ——「一层地图」的几何内容（外轮廓 + 各行政区立体板块）。
  *
- * 加载节奏刻意分两步：先把边境线画出来（一次成型、很快），
- * 再按时间切片逐块生成立体板块并让它们「升」起来。
+ * 文件职责：
+ *   把某个 MapLevel 的 GeoJSON 投影成 three.js 几何：先一笔画出边境轮廓线，
+ *   再按时间切片逐块生成立体板块并让它们"升"起来；同时管理悬停/选中的
+ *   抬升与配色、切层时的下沉动画与资源释放。
+ *
+ * 在整体架构中的角色：
+ *   是"地图主体"的建造者。它本身不决定"现在显示哪一层"——那由 useMapLevels
+ *   调度（下钻即重建）；本文件只负责"把给定的一层画出来 / 拆掉"。
+ *
+ * 与哪些模块协作：
+ *   - useMapLevels：onEnter 调 build() 建新层，onLeave 调 sink()/clear() 拆旧层
+ *   - useMapViewport：scene 挂载点来自其 getScene()
+ *   - utils/drawOutline、utils/drawRegion、utils/dispose：真实几何与释放逻辑
+ *
+ * ⚠️ 架构约定：每次切层都是"重建"，不是相机飞入 + pivot 拉伸。
+ *   每层经 fitProjection() 把投影后最大边长归一化到 MAP_EXTENT=130，
+ *   因此无论全国/省/市，build() 都按当前 fit 重新投影，板块尺寸、厚度、
+ *   拉伸比例天然一致，节点永不拉伸变形。
  */
 export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   let root: THREE.Object3D | null = null
@@ -52,6 +70,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     return 0
   };
 
+  /** 重新上色 + 补间抬升：根据 hovered/selected 状态刷新所有板块外观 */
   const paint = () => {
     for (const node of regions) {
       const adcode = adcodeOf(node)
@@ -89,15 +108,25 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     selectedAdcode = null
   };
 
+  /**
+   * 构建一层地图：先画边境线，再切片生成立体板块，最后逐块升起。
+   *
+   * @param level   要构建的层级数据（含 geo / fit）。fit 已把投影最大边归一化到
+   *                MAP_EXTENT，故不同层级共用同一世界尺度（见文件头架构约定）。
+   * @param options.rise   是否播放板块自地面"长出来"的入场动画
+   * @param options.report 加载进度回调
+   */
   const build = async (level: MapLevel, options: { rise: boolean; report: Report }) => {
     const scene = getScene()
     if (!scene) return
     clear()
     if (disposed) return
 
+    // 按当前层 fit 建投影器：把经纬度映射到"以地图中心为原点、最大边=MAP_EXTENT"的 XY 平面
     const project = createProjection(level.fit.center, level.fit.scale)
     const group = new THREE.Object3D()
     group.userData = { kind: 'mapRoot' }
+    // 把"地理中心"搬到世界原点：group 平移 -中心，使整张图居中于 (0,0)
     group.position.set(-level.fit.bounds.cx, -level.fit.bounds.cy, 0)
     scene.add(group)
     root = group
@@ -122,6 +151,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
         created.push(node.object)
       }
       const elapsed = performance.now() - sliceStart
+      // 预算耗尽或最后一块 → 让出一帧并刷新进度，避免长列表一次性卡死主线程
       if (elapsed >= SLICE_BUDGET_MS || index === total - 1) {
         options.report({ text: `正在生成立体板块 ${index + 1}/${total}`, ratio: 0.14 + 0.7 * ((index + 1) / total) })
         await nextFrame()
@@ -132,6 +162,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     // ③ 逐块升起：延迟按序递增，形成「由西向东长出来」的观感
     if (options.rise) {
       created.forEach((object, index) => {
+        // 先压扁到近乎 0（scale.z≈0.001），再补间到 1，营造"生长"而非"出现"
         object.scale.z = 0.001
         gsap.to(object.scale, { z: 1, duration: 0.5, ease: 'power2.out', delay: index * 0.012 })
       })
@@ -139,7 +170,11 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     options.report(null)
   };
 
-  /** 旧图下沉：板块竖向压扁到 0，再释放资源（切层过渡） */
+  /**
+   * 旧图下沉：板块竖向压扁到 0，再释放资源（切层过渡）。
+   * @param duration 下沉动画时长(秒)
+   * @returns 动画结束(资源已释放)后的 Promise
+   */
   const sink = (duration = 0.28): Promise<void> => {
     const current = root
     if (!current) return Promise.resolve()
@@ -152,6 +187,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
         resolve()
       }
       gsap.to(current.scale, { z: 0.001, duration, ease: 'power2.in', onComplete: finish })
+      // 兜底：保险丝，防止 onComplete 因异常未触发导致调用方永远 await 不下去
       setTimeout(finish, duration * 1000 + 260)
     })
   };

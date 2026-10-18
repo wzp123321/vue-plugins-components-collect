@@ -1,3 +1,10 @@
+<!--
+ * MapLegend.vue — 左下角「数据量分级图例」
+ * 职责：展示当前地图的数据量分级色板（颜色 → 区间标签）。
+ * 数据来源：items 由 ChinaMap3D 的 markers.legend 计算属性下发
+ *   （数据柱按 columnColor 高值锚点生成的分级配色）。
+ * 角色：纯展示组件，pointer-events: none 不拦截地图交互。
+ -->
 <template>
   <div v-if="items.length" class="map-legend">
     <div class="map-legend__title">{{ title }}</div>

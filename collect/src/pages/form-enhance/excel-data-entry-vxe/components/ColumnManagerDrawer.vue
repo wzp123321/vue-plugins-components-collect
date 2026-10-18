@@ -1,5 +1,8 @@
 <script setup lang="ts">
 // 列设置抽屉：排序 / 显隐 / 冻结 / 必填 / 校验规则 / 删除，改动即时生效
+// 本组件直接编辑 ColumnManagerDrawer 暴露的 ColumnDef 响应式对象（label/visible/frozen/required 实时反映到表格）；
+// 校验规则编辑交给嵌套的 RuleDialog，保存后调用 core.revalidateAll() 让错误标记立即同步。
+// 协作：props.core(GridCore)→columnDefs / revalidateAll；props.ops(GridOps)→colDrawer / moveCol / removeCol；./RuleDialog
 import { ref } from 'vue';
 import type { GridCore } from '../hooks/useGridCore';
 import type { GridOps } from '../hooks/useGridOps';
@@ -22,10 +25,13 @@ const openRule = (d: ColDef) => {
 const saveRule = (p: { rules: any; cross: any[] }) => {
   const d = ruleDef.value;
   if (!d) return;
+  // 规则对象为空时写 undefined（而非空对象），避免无意义字段占用 ColDef
   d.rules = Object.keys(p.rules).length ? p.rules : undefined;
   d.cross = p.cross.length ? p.cross : undefined;
+  // 规则变化后全量重校，使 cellErrors / errorList / 状态栏错误数立即更新
   props.core.revalidateAll();
 };
+// 判断某列是否配置了规则（用于在列设置行显示高亮齿轮）
 const hasRule = (d: ColDef) => !!d.rules || !!d.cross?.length;
 </script>
 
@@ -33,8 +39,10 @@ const hasRule = (d: ColDef) => !!d.rules || !!d.cross?.length;
   <el-drawer v-model="colDrawer" title="列设置" direction="rtl" size="480px" class="dt-dlg">
     <div class="col-set-tip">拖拽排序、显隐、冻结、必填、校验规则；改完即时生效。可删除多余列。</div>
     <div class="col-set-list">
+      <!-- 直接 v-model 绑定 ColDef 字段：label/visible/frozen/required 的改动会即时反映到表格（响应式） -->
       <div v-for="(d, i) in columnDefs" :key="d.field" class="col-set-item">
         <span class="col-order">
+          <!-- 上移：首行禁用；下移：末行禁用 -->
           <el-button text size="small" :disabled="i === 0" @click="moveCol(i, -1)">↑</el-button>
           <el-button text size="small" :disabled="i === columnDefs.length - 1" @click="moveCol(i, 1)">↓</el-button>
         </span>

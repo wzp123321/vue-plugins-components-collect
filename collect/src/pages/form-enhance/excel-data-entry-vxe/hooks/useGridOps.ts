@@ -8,6 +8,20 @@ import type { CellSelection } from './useCellSelection';
 import type { GridDraft } from './useGridDraft';
 import { type ColDef, type ColType, emptyValueFor } from '../types';
 
+/**
+ * 数据操作层：行增删复制 / 自定义列增删移序 / 批量填充 / 数据质量清理 / 提交 / 校验面板跳转。
+ *
+ * 在整体架构中的角色：行选中（复选框）移除后，所有"批量作用域"都收敛到 useCellSelection 的框选矩形，
+ * 本层是框选区域的消费方（selectionRows / selectionCount / selectionStats）。它写数据前统一
+ * `snap()` 入撤销栈，并负责把"列结构变更 / 数据变动"后的全量重校（revalidateAll）串起来。
+ * 与 useGridScroll（跳转）、useGridDraft（提交后清草稿）协作。
+ *
+ * @param core  核心状态实例
+ * @param tableRef vxe 实例（scrollToRow 定位）
+ * @param scroll 滚动定位实例（scrollToCell 供校验面板/查找跳转）
+ * @param sel   自研选区状态机（批量操作的作用域来源）
+ * @param draft 草稿实例（提交成功后清草稿；可选）
+ */
 export function useGridOps(
   core: GridCore,
   tableRef: Ref<any>,
@@ -18,17 +32,19 @@ export function useGridOps(
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 框选选区（行选中移除后的批量作用域） =====================
-  // 选区涉及的行（按当前查询结果序）；单元格数用于工具条禁用态与状态栏统计
+  /** 选区涉及的行（按当前查询结果序）：批量操作（删/复制/填充）的作用域；单元格数用于工具条禁用态 */
   const selectionRows = computed(() => {
     const rect = sel.selRect.value;
     if (!rect) return [];
     return core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
   });
+  /** 选区单元格总数（rowIds.size × fields.length）：工具条批量按钮禁用态判据 */
   const selectionCount = computed(() => {
     const rect = sel.selRect.value;
     return rect ? rect.rowIds.size * rect.fields.length : 0;
   });
-  // 选区内数字格的聚合统计（Excel 选中数值区即显示计数/求和/平均）：仅统计数字列，无数值格时返回 null
+  // ⚠️ 坑：状态栏统计双轨——本 selectionStats 是"选区内数字格聚合"（count/sum/avg/min/max），
+  // 与 useGridCore 的 activeStats（当前列全量统计）相互独立、分别呈现。仅统计数字列，无数值格时返回 null。
   const selectionStats = computed(() => {
     const rect = sel.selRect.value;
     if (!rect) return null;
@@ -55,7 +71,7 @@ export function useGridOps(
   });
 
   // ===================== 行操作 =====================
-  // 定位到指定行：scrollToRow 依赖 vxe 内部行高偏移（oTop），数据变更当轮该偏移尚未重算、拿到 0 会静默失败，
+  // ⚠️ 坑：定位到指定行——scrollToRow 依赖 vxe 内部行高偏移（oTop），数据变更当轮该偏移尚未重算、拿到 0 会静默失败，
   // 且其自带的 350ms 兜底重滚在 show-overflow（isAllOverflow）下会被跳过——故在此短周期重试直至生效
   // （行已可见后再调是无害的空操作；若行被查询条件过滤掉，重试自然全部落空）
   const locateRow = (row: any) => {
@@ -110,6 +126,7 @@ export function useGridOps(
     core.allRows.value.splice(idx + 1, 0, ...copies);
     ElMessage.success(`已复制 ${copies.length} 行`);
   };
+  /** 清空所有行数据（可撤销），并连带清除全部错误标记 */
   const clearAll = () => {
     snap();
     core.allRows.value = [];
@@ -184,6 +201,10 @@ export function useGridOps(
     colForm.required = false;
     colDialogVisible.value = true;
   };
+  /**
+   * 确认新增列：用 colForm 生成 ColDef 并 push 进 columnDefs；回填空值（不预选首项，避免掩盖"未填写"），
+   * 必填列立即逐行校验（否则新列空值不标红、必填形同虚设）。列重建后 columns 的 watch 会自动 applyColumns。
+   */
   const confirmAddCol = () => {
     const name = colForm.name.trim();
     if (!name) {
@@ -204,6 +225,10 @@ export function useGridOps(
     colDialogVisible.value = false;
     ElMessage.success(`已新增列「${name}」`);
   };
+  /**
+   * 删除一列：从 columnDefs 移除定义、从所有行删除该字段、清除相关错误标记与筛选状态。
+   * @param field 要删除的字段
+   */
   const removeCol = (field: string) => {
     snap();
     core.columnDefs.value = core.columnDefs.value.filter((c) => c.field !== field);
@@ -212,6 +237,11 @@ export function useGridOps(
     delete core.columnFilters[field];
     ElMessage.success('已删除该列');
   };
+  /**
+   * 移动列顺序（左/右）：交换 columnDefs 中相邻两列后整体重赋（触发 columns 重建），实现列重排。
+   * @param i   当前列索引
+   * @param dir -1 左移 / +1 右移
+   */
   const moveCol = (i: number, dir: number) => {
     const j = i + dir;
     if (j < 0 || j >= core.columnDefs.value.length) return;
@@ -264,6 +294,7 @@ export function useGridOps(
     }
     ElMessage.success(`已填充 ${targets.length} 行`);
   };
+  /** 批量清空指定列：按当前范围（选区/结果/全部）把该列重置为列类型的空值并标脏、校验 */
   const batchClearCol = () => {
     const def = fillDef.value;
     if (!def) return;
@@ -403,4 +434,9 @@ export function useGridOps(
   };
 }
 
+/**
+ * useGridOps 的返回类型别名：导出框选统计（selectionRows/selectionCount/selectionStats）、
+ * 行操作（addRow/insertRow/deleteSelected/duplicateSelected/clearAll）、数据质量清理、
+ * 列操作、批量填充、校验面板跳转、提交等全部数据操作 API，供工具栏与右键菜单调用。
+ */
 export type GridOps = ReturnType<typeof useGridOps>;

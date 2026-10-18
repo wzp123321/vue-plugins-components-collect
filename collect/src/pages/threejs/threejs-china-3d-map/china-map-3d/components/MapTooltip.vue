@@ -1,3 +1,9 @@
+<!--
+ * MapTooltip.vue — 跟随鼠标的「悬停数据卡片」
+ * 职责：鼠标悬停行政区/标记时，在光标右下方展示名称、级别与数据量。
+ * 角色：纯展示组件；所有字段由 ChinaMap3D 的 tooltip 计算属性下发
+ *   （x/y 为相对容器左上角的像素坐标，右侧 +16 偏移避免遮挡光标）。
+ -->
 <template>
   <transition name="tip-fade">
     <div v-if="visible" class="map-tip" :style="{ left: `${x}px`, top: `${y}px` }">

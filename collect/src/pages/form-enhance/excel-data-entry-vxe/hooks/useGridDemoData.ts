@@ -4,10 +4,20 @@ import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import { uid, DEPARTMENTS, STATUSES, emptyValueFor } from '../types';
 
+/**
+ * 预制 / 压测数据：示例数据与万级行生成，生成前统一重置查询状态（搜索/筛选/排序/错误标记）。
+ *
+ * 在整体架构中的角色：本层是"造数据"的工具 hook，复用 core.genSampleRows（真实感示例）与按索引
+ * 拼装的万级行生成器（压测用）。生成前先 resetQueryState 清掉可能影响"生成后可见性"的查询条件，
+ * 并统一 snap() 入撤销栈。
+ *
+ * @param core 核心状态实例
+ */
 export function useGridDemoData(core: GridCore) {
   const lastGen = ref('');
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
+  /** 重置查询状态：清空搜索词 / 列筛选 / 排序，并清掉错误标记，避免生成的新数据被旧查询条件挡住 */
   const resetQueryState = () => {
     core.searchText.value = '';
     Object.keys(core.columnFilters).forEach((k) => delete core.columnFilters[k]);
@@ -69,4 +79,7 @@ export function useGridDemoData(core: GridCore) {
   return { lastGen, presetData, genData };
 }
 
+/**
+ * useGridDemoData 的返回类型别名：导出 { lastGen, presetData, genData }，供工具栏切换示例/压测数据。
+ */
 export type GridDemoData = ReturnType<typeof useGridDemoData>;

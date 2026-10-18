@@ -1,3 +1,11 @@
+<!--
+ * MapNavBar.vue — 底部「返回上级 + 面包屑导航」
+ * 职责：提供"返回上一级"按钮与可点击的层级面包屑（crumbs）。
+ *   - 面包屑最后一项为当前层级，其余可点击跳级（@jump）。
+ *   - canGoBack 由 crumbs.length > 1 推导：只有下钻后才出现。
+ * 角色：纯 UI；点击通过 emit('back' / 'jump') 交给 ChinaMap3D 处理下钻栈。
+ * ⚠️ 架构约定：层级栈 history[] 末尾为当前层，breadcrumb 即其可读投影。
+ -->
 <template>
   <transition name="nav-pop">
     <div v-if="canGoBack" class="map-nav">

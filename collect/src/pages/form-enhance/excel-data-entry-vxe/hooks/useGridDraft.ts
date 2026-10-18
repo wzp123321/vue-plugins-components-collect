@@ -18,6 +18,15 @@ interface Draft {
   defs: ColDef[];
 }
 
+/**
+ * 草稿保护：自动把「行数据 + 列结构」快照到 localStorage，刷新/关闭前拦截提示。
+ *
+ * 在整体架构中的角色：本层只与 core 交互（读 allRows / columnDefs / dirtyCount，写回时恢复并 revalidateAll），
+ * 由 useGridOps 在提交成功后调用 clearDraft 清草稿。设计上用间隔轮询（而非 deep watch）做自动保存，
+ * 避免万行级全表 diff 的持续开销；超过 MAX_ROWS 主动停用自动草稿以防序列化卡顿。
+ *
+ * @param core 核心状态实例
+ */
 export function useGridDraft(core: GridCore) {
   const hasDraft = ref(false);
   const savedAt = ref(0);
@@ -25,6 +34,10 @@ export function useGridDraft(core: GridCore) {
   let timer: number | null = null;
   let tooLargeWarned = false;
 
+  /**
+   * 立即保存草稿：仅在 autoSave 开启且有未提交改动（dirtyCount>0）时写入 localStorage；
+   * 超过 MAX_ROWS 时停用并提示一次（JSON 序列化会明显卡顿）。配额超限静默降级，不打断录入。
+   */
   const saveNow = () => {
     if (!autoSave.value) return;
     if (!core.dirtyCount.value) return;
@@ -91,7 +104,8 @@ export function useGridDraft(core: GridCore) {
       });
   };
 
-  // 刷新/关闭拦截：有未提交改动时提示（浏览器只允许显示通用文案，无法自定义）
+  // ⚠️ 坑：刷新/关闭拦截——有未提交改动时提示；但浏览器只允许显示通用文案，无法自定义消息内容
+  // （returnValue='' 即可触发原生确认框）。
   const onBeforeUnload = (e: BeforeUnloadEvent) => {
     if (!core.dirtyCount.value) return;
     e.preventDefault();
@@ -112,4 +126,8 @@ export function useGridDraft(core: GridCore) {
   return { hasDraft, savedAt, autoSave, saveNow, clearDraft, readDraft, checkDraft };
 }
 
+/**
+ * useGridDraft 的返回类型别名：导出 { hasDraft, savedAt, autoSave, saveNow, clearDraft,
+ * readDraft, checkDraft }，供工具栏/启动恢复与提交后清草稿调用。
+ */
 export type GridDraft = ReturnType<typeof useGridDraft>;
