@@ -8,11 +8,25 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import type { Ref } from 'vue';
 import type { GridCore } from './useGridCore';
+import type { Row } from '../types';
 
 /** 选区中的一个单元格坐标：rowId 对应 DOM tr 的 rowid（= keyField 编码值），field 对应列的 field（经 colid 换算） */
 export interface SelCell {
   rowId: string;
   field: string;
+}
+
+/**
+ * 矩形选区（索引描述）：行列都是 processedRows / visibleDefs 的下标，闭区间。
+ * ⚠️ 设计要点：早期用 `{ rowIds: Set<string>, fields: string[] }` 表达选区，每次 mousemove 都要
+ * 重建 Set（O(行数)），而 cellClassName 每个单元格都要 `Array.from(rowIds)` 判边缘 → 5 万行框选退化成 O(n²)。
+ * 改为索引四元组后，判定变成 O(1)，行/列集合改为"按需 slice"。
+ */
+export interface SelRect {
+  topIdx: number;
+  bottomIdx: number;
+  leftIdx: number;
+  rightIdx: number;
 }
 
 /**
@@ -43,9 +57,15 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   let suppressCollapseOnce = false;
 
   const visFields = computed(() => core.visibleDefs.value.map((d) => d.field));
+  // rowId → processedRows 下标：拖选时只做 O(1) 查表；只有 processedRows 变化（增删行/查询）时才重建
+  const rowIndexMap = computed(() => {
+    const m = new Map<string, number>();
+    core.processedRows.value.forEach((r, i) => m.set(r.__id, i));
+    return m;
+  });
 
   // 归一化矩形选区（按当前可见列与当前查询结果行序）
-  const selRect = computed<{ rowIds: Set<string>; fields: string[] } | null>(() => {
+  const selRect = computed<SelRect | null>(() => {
     const a = anchor.value;
     const f = focus.value;
     if (!a || !f) return null;
@@ -53,39 +73,56 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     const fi = fields.indexOf(a.field);
     const ff = fields.indexOf(f.field);
     if (fi < 0 || ff < 0) return null;
-    const rows = core.processedRows.value;
-    const ai = rows.findIndex((r) => r.__id === a.rowId);
-    const afi = rows.findIndex((r) => r.__id === f.rowId);
-    if (ai < 0 || afi < 0) return null;
-    const rowIds = new Set<string>();
-    const lo = Math.min(ai, afi);
-    const hi = Math.max(ai, afi);
-    for (let i = lo; i <= hi; i++) rowIds.add(rows[i].__id);
-    return { rowIds, fields: fields.slice(Math.min(fi, ff), Math.max(fi, ff) + 1) };
+    const ai = rowIndexMap.value.get(a.rowId);
+    const af = rowIndexMap.value.get(f.rowId);
+    if (ai === undefined || af === undefined) return null;
+    return {
+      topIdx: Math.min(ai, af),
+      bottomIdx: Math.max(ai, af),
+      leftIdx: Math.min(fi, ff),
+      rightIdx: Math.max(fi, ff),
+    };
   });
 
-  /** 判某格是否落在当前矩形选区内（行 id 命中 rowIds 且字段命中 fields）。供单元格高亮样式使用。 */
+  /**
+   * 选区涉及的行（按 processedRows 顺序切片）。
+   * 只在真正需要行对象的场景调用（复制/填充/统计/批量操作），不要在 cellClassName 里调用。
+   */
+  const rectRows = (rect: SelRect | null): Row[] =>
+    rect ? core.processedRows.value.slice(rect.topIdx, rect.bottomIdx + 1) : [];
+
+  /** 选区涉及的字段（按 visibleDefs 顺序切片） */
+  const rectFields = (rect: SelRect | null): string[] =>
+    rect ? visFields.value.slice(rect.leftIdx, rect.rightIdx + 1) : [];
+
+  /** 判某格是否落在当前矩形选区内（行列索引都命中区间）。供单元格高亮样式使用，O(1)。 */
   const isCellSelected = (rowId: string, field: string) => {
     const rect = selRect.value;
-    return !!rect && rect.rowIds.has(rowId) && rect.fields.includes(field);
+    if (!rect) return false;
+    const ri = rowIndexMap.value.get(rowId);
+    if (ri === undefined || ri < rect.topIdx || ri > rect.bottomIdx) return false;
+    const ci = visFields.value.indexOf(field);
+    return ci >= rect.leftIdx && ci <= rect.rightIdx;
   };
 
   // 选区边缘判定（供单元格样式绘制"区域外框"）：返回该格位于矩形选区的上/下/左/右哪几条边。
-  // rowIds 为 Set 但插入序即行序（selRect 按 lo→hi 灌入），首/末元素即选区的顶/底行
   const NO_EDGE = { t: false, b: false, l: false, r: false };
   /**
    * 选区边缘判定（供单元格绘制"区域外框"）：返回该格位于矩形选区的上/下/左/右哪几条边。
-   * rowIds 为 Set 但插入序即行序（selRect 按 lo→hi 灌入），首/末元素即选区的顶/底行。
+   * 用行列索引直接比较，O(1)（此前每次调用都 Array.from(rowIds)，是框选卡顿的主因）。
    */
   const selEdge = (rowId: string, field: string) => {
     const rect = selRect.value;
-    if (!rect || !rect.rowIds.has(rowId) || !rect.fields.includes(field)) return NO_EDGE;
-    const rows = Array.from(rect.rowIds);
+    if (!rect) return NO_EDGE;
+    const ri = rowIndexMap.value.get(rowId);
+    if (ri === undefined || ri < rect.topIdx || ri > rect.bottomIdx) return NO_EDGE;
+    const ci = visFields.value.indexOf(field);
+    if (ci < rect.leftIdx || ci > rect.rightIdx) return NO_EDGE;
     return {
-      t: rows[0] === rowId,
-      b: rows[rows.length - 1] === rowId,
-      l: rect.fields[0] === field,
-      r: rect.fields[rect.fields.length - 1] === field,
+      t: ri === rect.topIdx,
+      b: ri === rect.bottomIdx,
+      l: ci === rect.leftIdx,
+      r: ci === rect.rightIdx,
     };
   };
 
@@ -312,6 +349,8 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     anchor,
     focus,
     selRect,
+    rectRows,
+    rectFields,
     isCellSelected,
     selEdge,
     clear,
@@ -328,8 +367,8 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
 }
 
 /**
- * useCellSelection 的返回类型别名：导出 anchor / focus / selRect / isCellSelected / selEdge /
- * clear / beginSelect / moveSelect / endDrag / collapseTo / extendTo / selectAll / selectRow /
- * selectColumn / setCurrentKeepSel，供键盘、鼠标、填充、复制粘贴、查找替换等模块共享选区状态。
+ * useCellSelection 的返回类型别名：导出 anchor / focus / selRect（索引四元组）/ rectRows / rectFields /
+ * isCellSelected / selEdge / clear / beginSelect / moveSelect / endDrag / collapseTo / extendTo /
+ * selectAll / selectRow / selectColumn / setCurrentKeepSel，供键盘、鼠标、填充、复制粘贴、查找替换等模块共享选区状态。
  */
 export type CellSelection = ReturnType<typeof useCellSelection>;

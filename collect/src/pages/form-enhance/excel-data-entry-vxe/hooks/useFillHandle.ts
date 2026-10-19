@@ -58,8 +58,6 @@ export function useFillHandle(
   sel: CellSelection,
   gridBox: Ref<HTMLElement | undefined>,
 ) {
-  const snap = () => core.pushSnapshot(core.snapshotNow());
-
   // ===================== 手柄定位 =====================
   // 锚点格 = 矩形选区的右下角（末行 × 末列），与 Excel 一致——早期锚在 focus 端，
   // 从左上往右下框选时手柄位置才对，反向框选（focus 落在左上）手柄会跑到左上角。
@@ -68,9 +66,9 @@ export function useFillHandle(
   const fillAnchor = (): { row: any; field: string } | null => {
     const rect = sel.selRect.value;
     if (rect) {
-      const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
-      const field = rect.fields[rect.fields.length - 1];
-      const row = rows[rows.length - 1];
+      // 选区是索引四元组：右下角 = bottomIdx 行 × rightIdx 列，直接取，不用再按行 id 过滤
+      const row = core.processedRows.value[rect.bottomIdx];
+      const field = core.visibleDefs.value[rect.rightIdx]?.field;
       if (row && field) return { row, field };
     }
     return core.currentCell.value;
@@ -134,14 +132,16 @@ export function useFillHandle(
       const ci = fields.indexOf(cur.field);
       if (ri < 0 || ci < 0) return null;
       // 单格无选区时也允许横向/纵向填充：行集合退化为该行本身
-      return { rows, fields, topIdx: ri, bottomIdx: ri, leftIdx: ci, rightIdx: ci, rowIds: new Set([cur.row.__id]) };
+      return { rows, fields, topIdx: ri, bottomIdx: ri, leftIdx: ci, rightIdx: ci };
     }
-    const ids = Array.from(rect.rowIds);
-    const topIdx = rows.findIndex((r) => r.__id === ids[0]);
-    const bottomIdx = rows.findIndex((r) => r.__id === ids[ids.length - 1]);
-    const cols = rect.fields.map((f) => fields.indexOf(f)).filter((i) => i >= 0);
-    if (topIdx < 0 || bottomIdx < 0 || !cols.length) return null;
-    return { rows, fields, topIdx, bottomIdx, leftIdx: Math.min(...cols), rightIdx: Math.max(...cols), rowIds: rect.rowIds };
+    return {
+      rows,
+      fields,
+      topIdx: rect.topIdx,
+      bottomIdx: rect.bottomIdx,
+      leftIdx: rect.leftIdx,
+      rightIdx: rect.rightIdx,
+    };
   };
 
   /** 纵向序列求值器：以选区首行为基准，数字按首两行差、日期按天差延续；文本复制 */
@@ -220,8 +220,8 @@ export function useFillHandle(
     const rg = rectRange();
     if (!rg) return 0;
     let n = 0;
-    for (const rowId of Array.from(rg.rowIds ?? [])) {
-      const r = rg.rows.find((x) => x.__id === rowId);
+    for (let i = rg.topIdx; i <= rg.bottomIdx; i++) {
+      const r = rg.rows[i];
       if (!r) continue;
       const series = horizontalSeries(r, rg.leftIdx, rg.rightIdx, rg.fields);
       for (let c = fromCol; c <= toCol; c++) {
@@ -294,10 +294,12 @@ export function useFillHandle(
       } else if (axis === 'h') {
         const c = hRange(colIdxFromPoint(x, y));
         if (!c) return keys;
-        for (const rowId of Array.from(rg.rowIds ?? [])) {
-          for (let i = c[0]; i <= c[1]; i++) {
-            const f = rg.fields[i];
-            if (f) keys.add(core.errKey(rowId, f));
+        for (let i = rg.topIdx; i <= rg.bottomIdx; i++) {
+          const row = rg.rows[i];
+          if (!row) continue;
+          for (let k = c[0]; k <= c[1]; k++) {
+            const f = rg.fields[k];
+            if (f) keys.add(core.errKey(row.__id, f));
           }
         }
       }
@@ -323,16 +325,20 @@ export function useFillHandle(
         const down = tIdx > rg.bottomIdx;
         // 方向感知的填充源（Excel 语义）：向下拖取选区末行、向上拖取首行；
         // 序列仍以选区首行为基准（verticalSeries 内部按 topIdx 推算），行号连续故自然衔接
-        snap();
-        const n = applyVertical(range[0], range[1], srcField);
+        let n = 0;
+        core.commitCells('拖拽填充', rg.rows.slice(range[0], range[1] + 1), () => {
+          n = applyVertical(range[0], range[1], srcField);
+        });
         ElMessage.success(n ? `已向${down ? '下' : '上'}填充 ${n} 格` : '没有可填充的行');
       } else {
         const tCol = colIdxFromPoint(e.clientX, e.clientY);
         const range = tCol >= 0 ? hRange(tCol) : null;
         if (!range) return;
         const right = tCol > rg.rightIdx;
-        snap();
-        const n = applyHorizontal(range[0], range[1]);
+        let n = 0;
+        core.commitCells('拖拽填充', rg.rows.slice(rg.topIdx, rg.bottomIdx + 1), () => {
+          n = applyHorizontal(range[0], range[1]);
+        });
         ElMessage.success(n ? `已向${right ? '右' : '左'}填充 ${n} 格` : '没有可填充的列');
       }
       lastDownAt = 0; // 真拖拽后清零双击计时
@@ -368,8 +374,10 @@ export function useFillHandle(
       ElMessage.info('参照列下方没有数据，无法自动填充');
       return;
     }
-    snap();
-    const n = applyVertical(rg.bottomIdx + 1, last, srcField);
+    let n = 0;
+    core.commitCells('填充至末行', rg.rows.slice(rg.bottomIdx + 1, last + 1), () => {
+      n = applyVertical(rg.bottomIdx + 1, last, srcField);
+    });
     ElMessage.success(n ? `已向下填充 ${n} 格（至参照列末行）` : '没有可填充的行');
     setTimeout(() => (flashKeys.value = new Set()), 600);
     refreshFillHandle();

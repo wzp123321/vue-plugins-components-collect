@@ -167,7 +167,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, onMounted, computed } from 'vue';
+import { ref, nextTick, onMounted, computed, watch } from 'vue';
 import { VxeTable } from 'vxe-table';
 import 'vxe-table/es/style.css';
 import './theme.css';
@@ -343,6 +343,13 @@ onMounted(() => {
   // 存在未提交草稿时询问是否恢复（恢复后自行重校）
   draft.checkDraft();
 });
+
+// 条件格式（数值列数据条）由渲染器读 RT 桥的统计快照渲染，vxe 不会因 RT 变化自动重绘，
+// 故开关切换后主动刷新一次，否则要等滚动/编辑才看得到效果
+watch(
+  () => core.conditionalOn.value,
+  () => nextTick(() => tableRef.value?.updateData?.()),
+);
 
 // ===================== 单元格样式 =====================
 // 错误标红 / 查找命中高亮 / 填充闪烁 / 框选高亮（分别来自 核心校验、查找替换、填充手柄、选区状态机）

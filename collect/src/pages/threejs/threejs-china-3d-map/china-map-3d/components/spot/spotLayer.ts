@@ -409,6 +409,8 @@ export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: numb
  * 应用到显隐规则：
  * - 数据柱模式：只显示被点选城市的标牌（其余收起，避免满屏标签）；被选中城市自身的数值卡片让位给标牌
  * - 标牌模式（关闭数据柱）：显示全部标牌
+ * - labelMode='css2d'：所有 Sprite 文本标签（卡片/标牌/锚点/引线）强制隐藏，由 CSS2D DOM 标签独占，
+ *   否则会出现"同一省既挂 Sprite 标牌又挂 DOM 标签"的双重显示（CSS2D 只取前 18 名，故仅部分省可见）
  *
  * ⚠️ 约定：数据柱模式下地理标牌默认全部收起，单击城市才显示该城市标牌；
  *   被选中城市的数值卡片同时隐藏（让位给更详细的标牌）。
@@ -416,20 +418,31 @@ export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: numb
  * @param layer          标记层
  * @param showColumns    true=数据柱模式（标牌仅在选中时可见）；false=标牌模式（全部标牌可见）
  * @param selectedAdcode 当前点选城市 adcode（null 表示无选中）
+ * @param labelMode      'sprite'=使用 Sprite 文本标签；'css2d'=改用 DOM 标签，强制隐藏 Sprite 文本标签
  */
-export const applySpotVisibility = (layer: SpotLayer, showColumns: boolean, selectedAdcode: number | null) => {
+export const applySpotVisibility = (
+  layer: SpotLayer,
+  showColumns: boolean,
+  selectedAdcode: number | null,
+  labelMode: 'sprite' | 'css2d' = 'sprite',
+) => {
+  // 数据柱（3D 柱体）始终跟随 showColumns；CSS2D 模式只替换"文字标签"，保留柱体
   layer.columns.visible = showColumns
+  // css2d 模式下所有 Sprite 文本标签让位给 DOM 标签，避免双重显示
+  const hideSpriteLabels = labelMode === 'css2d'
   for (const [adcode, plate] of layer.plateByAdcode) {
-    plate.visible = showColumns ? adcode === selectedAdcode : true
+    plate.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
   }
   for (const [adcode, anchor] of layer.anchorByAdcode) {
-    anchor.visible = showColumns ? adcode === selectedAdcode : true
+    anchor.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
   }
   for (const [adcode, leader] of layer.leaderByAdcode) {
-    leader.visible = showColumns ? adcode === selectedAdcode : true
+    leader.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
   }
   for (const [adcode, card] of layer.cardByAdcode) {
-    // 选中城市的数值卡片让位给标牌
-    card.visible = adcode !== selectedAdcode
+    // css2d 模式全部隐藏（DOM 标签替代）；标牌模式(showColumns=false)隐藏全部卡片，
+    // 避免"地理标牌 + 数值卡片"同时显示造成同一省双标签；数据柱模式下仅选中城市
+    // 隐藏其卡片（让位给更详细的标牌）
+    card.visible = hideSpriteLabels ? false : showColumns && adcode !== selectedAdcode
   }
 };

@@ -44,6 +44,14 @@ import { createStarfield } from './starfield'
 // ── 相机 / 取景相关常量 ──────────────────────────────────────────
 /** 相机视线相对「地图法线(Z 轴)」的倾角(度)：30° 俯视倾斜，越平越像桌面俯瞰，全局统一 */
 const VIEW_TILT_DEG = 30
+/**
+ * 相机方位角(度)：绕 Z 轴量起，决定相机落在地图的哪一侧（世界系 +Y=北、+X=东）。
+ *   0    → +X(东) 斜俯视，朝西看（旧默认，地图上「北在右」，呈旋转 90° 视角）。
+ *   270°(=-90°) → -Y(南) 斜俯视，朝北(+Y)看，即「从南向北看」，北在上、南在下，
+ *                 与常规地图朝向一致。
+ * 全局统一该方位角，保证 初始视角 / focus 下钻取景 / 视角预设 三者方位一致、可逆。
+ */
+const VIEW_AZIM_DEG = -90
 /** 透视相机视场角(度)。偏小 → 透视畸变弱、更像正交俯视图 */
 const FOV = 32
 /** 极角下限：>0 避免相机俯到正上方(天顶)导致万向锁/翻转 */
@@ -109,11 +117,13 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
 
   /**
    * 通用视线方向：给定倾角(度)与方位角(度)返回单位向量。
-   * ⚠️ 相机 up=+Z，故方位角 azim 绕 Z 轴量起：
-   *   azim=0 → 相机落在 +X 方向斜上方；azim=90° → +Y 方向；
+   * ⚠️ 相机 up=+Z，故方位角 azim 绕 Z 轴量起（世界系 +Y=北、+X=东）：
+   *   azim=0   → 相机落在 +X(东) 方向斜上方；azim=90° → +Y(北)；
+   *   azim=270°(=-90°) → -Y(南) 斜上方，朝北(+Y)看，即「从南向北看」。
    *   倾角 tilt=0 → 正俯视，tilt=90° → 贴边正前视。
-   * 全局统一 azim=0，保证「初始视角 / focus 下钻取景 / 视角预设」方位一致，
-   * 否则不同方位角会让预设之间切换时方位跳变、且「斜视」无法还原初始角度。
+   * 全局统一 azim=VIEW_AZIM_DEG(-90°, 即 -Y/南 方向)，保证「初始视角 /
+   *   focus 下钻取景 / 视角预设」方位一致，否则预设之间切换会方位跳变、
+   *   且「斜视」无法还原初始角度。
    */
   const viewDir = (tiltDeg: number, azimDeg: number): THREE.Vector3 => {
     const t = (tiltDeg * Math.PI) / 180
@@ -124,8 +134,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       Math.cos(t),
     )
   }
-  /** 默认取景方向：倾角 VIEW_TILT_DEG、方位角 0（沿 +X 轴斜俯视），start/focus/oblique 共用 */
-  const viewDirection = () => viewDir(VIEW_TILT_DEG, 0)
+  /** 默认取景方向：倾角 VIEW_TILT_DEG、方位角 VIEW_AZIM_DEG（沿 -Y/南 轴斜俯视，朝北看），start/focus/oblique 共用 */
+  const viewDirection = () => viewDir(VIEW_TILT_DEG, VIEW_AZIM_DEG)
 
   /**
    * 精确取景距离：把地图包围盒 8 个角点投影到 NDC，
@@ -189,15 +199,16 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   };
 
   /**
-   * 把相机平滑推到一个能完整看下当前层级的位置。
+   * 把相机平滑推到一个能完整看下当前层级（或指定包围盒）的位置。
    * @param fit 当前层级投影信息；为 null 时退回默认距离
    * @param duration 动画时长(秒)；<=0 表示瞬移（无需过渡）
+   * @param target 取景中心点；默认地图顶面中心 (0,0,depth)，画框缩放时传选区世界中心
    */
-  const focus = (fit: FitProjection | null, duration = 0.55) => {
+  const focus = (fit: FitProjection | null, duration = 0.55, target?: THREE.Vector3) => {
     if (!camera || !controls) return
-    const target = new THREE.Vector3(0, 0, mapConfig.depth)
+    const lookAt = target ? target.clone() : new THREE.Vector3(0, 0, mapConfig.depth)
     const distance = fit ? fitDistance(fit) : MAP_EXTENT * 2
-    const position = viewDirection().multiplyScalar(distance).add(target)
+    const position = viewDirection().multiplyScalar(distance).add(lookAt)
 
     // 过渡前先禁掉控制器，避免用户拖拽与补间互相打架
     controls.enabled = false
@@ -211,13 +222,13 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       controls.enabled = true
     }
     if (duration <= 0) {
-      controls.target.copy(target)
+      controls.target.copy(lookAt)
       camera.position.copy(position)
       controls.update()
       finish()
       return
     }
-    gsap.to(controls.target, { x: target.x, y: target.y, z: target.z, duration, ease: 'power2.out' })
+    gsap.to(controls.target, { x: lookAt.x, y: lookAt.y, z: lookAt.z, duration, ease: 'power2.out' })
     gsap.to(camera.position, { x: position.x, y: position.y, z: position.z, duration, ease: 'power2.out', onComplete: finish })
     // 动画期间放开限制，否则 min/maxDistance 会把补间位置"夹断"
     controls.minDistance = 1
@@ -271,10 +282,11 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
    * 视角预设：把相机平滑推到三种取景之一，全部走 viewDir() 同一套倾角/方位公式。
    * ⚠️ 关键修复：之前 oblique 用 azim=20°、而初始相机是 azim=270°(-Y 方向)，
    *   三者方位根本不同 —— 点预设后无法回到「进页面那个角度」。
-   *   现在全局统一 azim=0，且 oblique 精确还原初始（倾角 30° + 默认距离 2.2×EXTENT），
-   *   故「斜视」按钮 == 初始化视角，可来回切换、彻底可逆。
+   *   现在全局统一 azim=VIEW_AZIM_DEG(-90°，即 -Y/南 方向、朝北看)，且 oblique
+   *   精确还原初始（倾角 30° + 默认距离 2.2×EXTENT），故「斜视」按钮 ==
+   *   初始化视角（从南向北看），可来回切换、彻底可逆。
    * ⚠️ front 倾角 56° 必须 < MAX_POLAR(58.4°)，否则会被极角限幅钳断、看似「切不回去」。
-   * @param name 'top'=俯视(2°) · 'oblique'=默认斜视(30°，==初始) · 'front'=近正前(56°)
+   * @param name 'top'=俯视(2°) · 'oblique'=默认斜视(30°，从南向北看 ==初始) · 'front'=近正前(56°)
    */
   const viewPreset = (name: 'top' | 'oblique' | 'front') => {
     if (!camera || !controls) return
@@ -284,7 +296,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     const radius = name === 'oblique'
       ? MAP_EXTENT * 2.2
       : camera.position.distanceTo(target) || MAP_EXTENT * 1.6
-    const dir = viewDir(tiltDeg, 0)
+    const dir = viewDir(tiltDeg, VIEW_AZIM_DEG)
     const position = target.clone().addScaledVector(dir, radius)
     controls.enabled = false
     gsap.killTweensOf(controls.target)
@@ -308,6 +320,46 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     controls.minDistance = 1
     controls.maxDistance = 4000
   };
+
+  /**
+   * 飞向任意机位：把相机位置与视点平滑补间到给定坐标（视角书签恢复用）。
+   * 与 focus() 的区别：focus 按层级包围盒重算距离，这里直接用存下来的绝对坐标，
+   * 因此书签能还原"缩放程度 + 旋转角度 + 平移位置"的完整状态。
+   * @param position 目标相机位置（世界坐标）
+   * @param target 目标视点（OrbitControls.target）
+   * @param duration 动画时长(秒)，<=0 瞬移
+   */
+  const flyTo = (
+    position: THREE.Vector3 | [number, number, number],
+    target: THREE.Vector3 | [number, number, number],
+    duration = 0.8,
+  ) => {
+    if (!camera || !controls) return
+    const p = Array.isArray(position) ? new THREE.Vector3(position[0], position[1], position[2]) : position.clone()
+    const t = Array.isArray(target) ? new THREE.Vector3(target[0], target[1], target[2]) : target.clone()
+    // 与 focus 一致的收尾：按新距离重设缩放上下限，避免书签把镜头锁死在旧范围
+    const finish = () => {
+      if (disposed || !controls || !camera) return
+      const distance = Math.max(camera.position.distanceTo(controls.target), 1)
+      controls.minDistance = distance * 0.42
+      controls.maxDistance = distance * 2.1
+      controls.enabled = true
+      controls.update()
+    }
+    controls.enabled = false
+    gsap.killTweensOf(controls.target)
+    gsap.killTweensOf(camera.position)
+    if (duration <= 0) {
+      controls.target.copy(t)
+      camera.position.copy(p)
+      finish()
+      return
+    }
+    gsap.to(controls.target, { x: t.x, y: t.y, z: t.z, duration, ease: 'power2.out' })
+    gsap.to(camera.position, { x: p.x, y: p.y, z: p.z, duration, ease: 'power2.out', onComplete: finish })
+    controls.minDistance = 1
+    controls.maxDistance = 4000
+  }
 
   /**
    * 自动巡游：开关 OrbitControls.autoRotate（绕地图法线缓慢自转）。
@@ -566,6 +618,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     start,
     stop,
     focus,
+    flyTo,
     viewPreset,
     setAutoRotate,
     screenshot,

@@ -115,6 +115,11 @@ export function useCellValidation(deps: {
       }
       if (def.type === 'date' && !NO_DATE.test(String(value))) return `${def.label}格式应为 YYYY-MM-DD`;
       const s = String(value);
+      // 下拉列必须落在 options 内：手工编辑走 el-select 天然合法，但导入/粘贴是能写入任意文本的入口，
+      // 不拦会让标签渲染与下拉编辑器同时异常，等于把脏数据放行到提交
+      if (def.type === 'select' && def.options?.length && !def.options.includes(s)) {
+        return `${def.label}「${s}」不在可选项中`;
+      }
       if (rules?.minLen !== undefined && s.length < rules.minLen) return `${def.label}至少 ${rules.minLen} 个字符`;
       if (rules?.maxLen !== undefined && s.length > rules.maxLen) return `${def.label}最多 ${rules.maxLen} 个字符`;
       if (rules?.pattern) {

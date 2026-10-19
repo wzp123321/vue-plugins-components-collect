@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import gsap from 'gsap'
-import { mapConfig } from '../utils/mapConfig'
+import { mapConfig, applyTheme, type ThemeName } from '../utils/mapConfig'
 import { createProjection } from '../utils/projection'
 import type { FitProjection } from '../utils/projection'
 import { createOutline } from '../utils/drawOutline'
@@ -58,7 +58,8 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   let outline: THREE.Object3D | null = null
   let regions: RegionNode[] = []
   let hoveredAdcode: number | null = null
-  let selectedAdcode: number | null = null
+  /** 选中集合：支持框选 / 多选（P0 交互），单值选中只是容量为 1 的特例 */
+  let selectedSet: Set<number> = new Set()
   let disposed = false
 
   const adcodeOf = (node: RegionNode) => Number(node.properties.adcode) || 0
@@ -66,7 +67,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   /** 悬停抬得最高，选中次之，其余贴回原位 */
   const liftOf = (adcode: number): number => {
     if (adcode && adcode === hoveredAdcode) return LIFT_HOVER
-    if (adcode && adcode === selectedAdcode) return LIFT_FOCUS
+    if (adcode && selectedSet.has(adcode)) return LIFT_FOCUS
     return 0
   };
 
@@ -74,7 +75,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   const paint = () => {
     for (const node of regions) {
       const adcode = adcodeOf(node)
-      const active = adcode === selectedAdcode ? 'focus' : adcode === hoveredAdcode ? 'hover' : 'base'
+      const active = selectedSet.has(adcode) ? 'focus' : adcode === hoveredAdcode ? 'hover' : 'base'
       for (const material of node.topMaterials) {
         material.color.set(
           active === 'focus' ? mapConfig.focusColor : active === 'hover' ? mapConfig.hoverColor : mapConfig.color,
@@ -105,7 +106,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     outline = null
     regions = []
     hoveredAdcode = null
-    selectedAdcode = null
+    selectedSet.clear()
   };
 
   /**
@@ -192,6 +193,13 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     })
   };
 
+  /** 应用新的选中集合：内容相同则跳过，避免重复 paint / 起重 tween */
+  const applySelection = (next: Set<number>) => {
+    const same = next.size === selectedSet.size && [...next].every((a) => selectedSet.has(a))
+    selectedSet = next
+    if (!same) paint()
+  }
+
   return {
     build,
     clear,
@@ -202,12 +210,34 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
       hoveredAdcode = adcode
       paint()
     },
+    /** 单值选中（容量为 1 的集合），保留兼容旧调用方 */
     setSelected(adcode: number | null) {
-      if (selectedAdcode === adcode) return
-      selectedAdcode = adcode
-      paint()
+      applySelection(adcode != null ? new Set([adcode]) : new Set<number>())
     },
-    selectedAdcode: () => selectedAdcode,
+    /** 多选：直接套用整个集合（框选 / 累加选择用） */
+    setSelectedSet(set: Set<number>) {
+      applySelection(new Set(set))
+    },
+    /** 切换某个 adcode 的选中态（Shift 累加点选用），返回切换后的集合 */
+    toggleSelection(adcode: number): Set<number> {
+      const next = new Set(selectedSet)
+      if (next.has(adcode)) next.delete(adcode)
+      else next.add(adcode)
+      applySelection(next)
+      return next
+    },
+    /** 当前选中集合（只读副本） */
+    selectedSet: () => new Set(selectedSet),
+    /**
+     * 暴露当前层所有行政区的世界坐标（含 group 平移后的绝对坐标），
+     * 供框选投影 / 批量统计 / 画框缩放计算包围盒。框选不逐帧调用，性能无忧。
+     */
+    regions: () =>
+      regions.map((r) => {
+        const v = new THREE.Vector3()
+        r.object.getWorldPosition(v)
+        return { adcode: Number(r.properties.adcode) || 0, world: v }
+      }),
     root: () => root,
     /** 入场动画（deferEntrance 时由外部触发） */
     playEntrance() {
@@ -216,6 +246,14 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
         node.object.scale.z = 0.001
         gsap.to(node.object.scale, { z: 1, duration: 0.5, ease: 'power2.out', delay: index * 0.012 })
       })
+    },
+    /**
+     * 切换主题（暗 / 亮）：覆写 mapConfig 配色后重新 paint 现有层；
+     * 新层级（下钻 / 返回）重建时自动沿用新主题，无需额外处理。
+     */
+    setTheme(name: ThemeName) {
+      applyTheme(name)
+      paint()
     },
     dispose() {
       disposed = true

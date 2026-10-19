@@ -29,6 +29,7 @@ export function useGridDemoData(core: GridCore) {
     snap();
     core.allRows.value = core.genSampleRows(n);
     resetQueryState();
+    core.bumpData();
     lastGen.value = `预制 ${n.toLocaleString()} 行示例数据`;
     ElMessage.success(lastGen.value);
   };
@@ -71,6 +72,7 @@ export function useGridDemoData(core: GridCore) {
     }
     core.allRows.value = arr;
     resetQueryState();
+    core.bumpData();
     const dt = (performance.now() - t0).toFixed(0);
     lastGen.value = `生成 ${n.toLocaleString()} 行 · ${dt}ms`;
     ElMessage.success(lastGen.value);

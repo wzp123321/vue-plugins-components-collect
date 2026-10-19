@@ -143,10 +143,10 @@ defineExpose({
 <style scoped>
 .map-search {
   position: absolute;
-  top: 62px;
-  left: 24px;
+  top: 16px; /* 紧贴页面左上角：搜索是高频入口，放在主标题上方 */
+  left: 16px;
   z-index: 32;
-  width: 208px;
+  width: 236px;
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 .map-search__box {

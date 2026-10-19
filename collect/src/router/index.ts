@@ -13,11 +13,19 @@ import storeAdvanceRoutes from './modules/store-advance';
 import performanceRoutes from './modules/performance';
 import vue3AdvancedRoutes from './modules/vue3-advanced';
 import utilsAdvanceRoutes from './modules/utils-advance';
+import dataPlatformRoutes from './modules/data-platform';
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/demo',
+    redirect: '/home',
+  },
+  {
+    path: '/home',
+    meta: {
+      name: '总览',
+    },
+    component: () => import('../pages/home/home.vue'),
   },
   {
     path: '/demo',
@@ -36,7 +44,8 @@ const routes: RouteRecordRaw[] = [
   ...performanceRoutes,
   ...vue3AdvancedRoutes,
   ...utilsAdvanceRoutes,
-  { path: '/:pathMatch(.*)*', name: 'Other', component: () => import('../demo/demo.vue') },
+  ...dataPlatformRoutes,
+  { path: '/:pathMatch(.*)*', name: 'Other', redirect: '/home' },
 ];
 
 const router = createRouter({

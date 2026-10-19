@@ -95,6 +95,7 @@ export function useGridDraft(core: GridCore) {
         core.allRows.value = d.rows;
         if (d.defs?.length) core.columnDefs.value = d.defs;
         core.revalidateAll();
+        core.bumpData();
         hasDraft.value = true;
         savedAt.value = d.ts;
         ElMessage.success('草稿已恢复');

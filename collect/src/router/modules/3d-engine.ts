@@ -79,13 +79,6 @@ const threejsRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/babylon/babylon-pbr/babylon-pbr.vue'),
   },
   {
-    path: '/threejs-map',
-    meta: {
-      name: 'Threejs 地图',
-    },
-    component: () => import('../../pages/threejs/threejs-map/index.vue'),
-  },
-  {
     path: '/threejs-china-3d-map',
     meta: {
       name: 'Threejs 中国3D地图(mega)',

@@ -4,9 +4,9 @@ import { ref, watch } from 'vue';
 export type ThemeMode = 'light' | 'dark';
 
 export const useThemeStore = defineStore('theme', () => {
-  // 从本地存储读取主题
+  // 从本地存储读取主题，默认深色（AI 控制台基调）
   const storedTheme = localStorage.getItem('theme') as ThemeMode | null;
-  const isDark = ref<boolean>(storedTheme ? storedTheme === 'dark' : false);
+  const isDark = ref<boolean>(storedTheme ? storedTheme === 'dark' : true);
 
   // 切换主题
   const toggleTheme = () => {

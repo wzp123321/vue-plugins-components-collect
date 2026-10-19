@@ -18,6 +18,7 @@ import TextEditor from './TextEditor.vue';
 import NumberEditor from './NumberEditor.vue';
 import SelectEditor from './SelectEditor.vue';
 import DateEditor from './DateEditor.vue';
+import FilterPanel from './FilterPanel.vue';
 import { renderCellDisplay } from './display';
 
 // 通用编辑渲染器：把 modelValue 绑定到 row[field]，变更时写回并标记脏数据
@@ -54,10 +55,17 @@ export const registerElRenderers = () => {
   registered = true;
 };
 
-// 页面启动时统一注册：element-plus 编辑渲染器 + 单元格显示渲染器
+// 页面启动时统一注册：element-plus 编辑渲染器 + 单元格显示渲染器 + 列筛选面板
 export const registerAllRenderers = () => {
   const r = vxeRenderer as any;
-  // 显示渲染器只注册一次（用 r.get 判重）
-  if (r?.add && !r.get?.('dt-cell-display')) r.add('dt-cell-display', { renderCell: renderCellDisplay });
+  if (!r?.add) return;
+  // ⚠️ 坑：vxe 4 的"显示渲染器"字段是 renderTableDefault / renderDefault，
+  // 不是 renderCell（cell.js:464 取 renderer.get(name).renderTableDefault）。写成 renderCell 会静默不生效：
+  // 单元格退化成纯文本 —— 下拉变彩色 tag、数字右对齐、条件格式数据条全部消失。
+  if (!r.get?.('dt-cell-display')) r.add('dt-cell-display', { renderTableDefault: renderCellDisplay });
+  // 筛选面板独立判重：不放进 registerElRenderers，避免那里"已注册就整体 return"把它漏掉（HMR 场景）
+  if (!r.get?.('dt-filter')) {
+    r.add('dt-filter', { renderFilter: (_opts: any, params: any) => h(FilterPanel, { column: params.column }) });
+  }
   registerElRenderers();
 };

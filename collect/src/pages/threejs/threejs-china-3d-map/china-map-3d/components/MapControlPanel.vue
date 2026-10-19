@@ -43,6 +43,31 @@
           {{ dragMode === 'pan' ? '左键拖着地图走（上下拖＝远近）· 右键旋转 · 滚轮缩放' : '左键旋转 · 右键拖着地图走 · 滚轮缩放' }}
         </div>
       </div>
+      <!-- 主题 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">主题</span>
+        </div>
+        <div class="map-ctrl__seg">
+          <button
+            type="button"
+            class="map-ctrl__segBtn"
+            :class="{ 'map-ctrl__segBtn--on': theme === 'dark' }"
+            @click="theme = 'dark'"
+          >
+            暗色
+          </button>
+          <button
+            type="button"
+            class="map-ctrl__segBtn"
+            :class="{ 'map-ctrl__segBtn--on': theme === 'light' }"
+            @click="theme = 'light'"
+          >
+            亮色
+          </button>
+        </div>
+        <div class="map-ctrl__note">切换板块底色/侧壁/描边配色，可随时切回</div>
+      </div>
       <!-- 数据柱 -->
       <div class="map-ctrl__group">
         <div class="map-ctrl__groupHead">
@@ -112,6 +137,18 @@
           </div>
         </div>
       </div>
+      <!-- 数据聚焦 -->
+      <div class="map-ctrl__group">
+        <div class="map-ctrl__groupHead">
+          <span class="map-ctrl__groupTitle">数据聚焦</span>
+        </div>
+        <div class="map-ctrl__field map-ctrl__field--slider">
+          <span class="map-ctrl__label">阈值</span>
+          <input class="map-ctrl__range" type="range" v-model.number="filterThreshold" min="0" max="1" step="0.01" />
+          <span class="map-ctrl__num">{{ Math.round(filterThreshold * 100) }}%</span>
+        </div>
+        <div class="map-ctrl__note">低于阈值的柱体淡出，聚焦重点区域</div>
+      </div>
     </div>
   </div>
 </template>
@@ -133,8 +170,12 @@ const showHeatmap = defineModel<boolean>('showHeatmap', { default: false })
 const showPie = defineModel<boolean>('showPie', { default: true })
 const showWallScan = defineModel<boolean>('showWallScan', { default: false })
 const labelMode = defineModel<'sprite' | 'css2d'>('labelMode', { default: 'sprite' })
+const filterThreshold = defineModel<number>('filterThreshold', { default: 0 })
+// 主题：暗 / 亮（覆写 mapConfig 配色并重绘板块）
+const theme = defineModel<'dark' | 'light'>('theme', { default: 'dark' })
 
-const collapsed = ref(false)
+// 默认收缩：仅以浮动小卡形式悬在右上角，避免遮挡大屏地图；点击标题栏展开/收起。
+const collapsed = ref(true)
 </script>
 
 <style scoped>

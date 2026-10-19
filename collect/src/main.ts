@@ -10,8 +10,11 @@ import VxeUITable from 'vxe-table';
 import 'vxe-table/es/style.css';
 
 import 'element-plus/dist/index.css';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 import './assets/css/common.less';
 import './assets/style/global.less';
+import './assets/style/dark-theme.css';
+import './assets/style/ai-theme.less';
 import './assets/test-color.js';
 
 import { registerDirectives } from './directives';

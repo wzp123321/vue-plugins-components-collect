@@ -109,6 +109,7 @@ export function useGridTemplates(core: GridCore) {
     core.columnDefs.value = newDefs;
     for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
     core.revalidateAll();
+    core.bumpData();
     ElMessage.success(`已加载模板「${t.name}」`);
   };
 

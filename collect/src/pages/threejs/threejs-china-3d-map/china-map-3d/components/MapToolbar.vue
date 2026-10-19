@@ -33,7 +33,25 @@
 
     <span class="map-toolbar__divider"></span>
 
-    <!-- 工具按钮：全屏 / 截图 / 帮助 -->
+    <!-- 工具按钮：测量 / 书签 / 全屏 / 截图 / 帮助 -->
+    <button
+      type="button"
+      class="map-toolbar__btn"
+      :class="{ 'map-toolbar__btn--on': measure }"
+      :title="measure ? '退出测量' : '测距 / 测面积（点击地面落点）'"
+      @click="emit('update:measure', !measure)"
+    >
+      📐
+    </button>
+    <button
+      type="button"
+      class="map-toolbar__btn"
+      :class="{ 'map-toolbar__btn--on': bookmarks }"
+      title="视角书签"
+      @click="emit('bookmarks')"
+    >
+      🔖
+    </button>
     <button type="button" class="map-toolbar__btn" title="全屏切换" @click="emit('fullscreen')">⛶</button>
     <button type="button" class="map-toolbar__btn" title="截图保存 PNG" @click="emit('screenshot')">📷</button>
     <button type="button" class="map-toolbar__btn" title="快捷键帮助 (F1)" @click="emit('help')">?</button>
@@ -49,13 +67,19 @@ const props = withDefaults(
     roam?: boolean
     /** 当前视角预设（高亮用，由外部回写） */
     current?: 'top' | 'oblique' | 'front'
+    /** 测量模式开关（v-model:measure 双向绑定） */
+    measure?: boolean
+    /** 书签面板是否展开（仅高亮按钮） */
+    bookmarks?: boolean
   }>(),
-  { roam: false, current: 'oblique' },
+  { roam: false, current: 'oblique', measure: false, bookmarks: false },
 )
 
 const emit = defineEmits<{
   (e: 'view', name: 'top' | 'oblique' | 'front'): void
   (e: 'update:roam', value: boolean): void
+  (e: 'update:measure', value: boolean): void
+  (e: 'bookmarks'): void
   (e: 'fullscreen'): void
   (e: 'screenshot'): void
   (e: 'help'): void
@@ -174,5 +198,11 @@ const onRoam = (event: Event) => {
 .map-toolbar__btn:hover {
   background: rgba(47, 192, 255, 0.22);
   box-shadow: 0 0 12px rgba(47, 192, 255, 0.3);
+}
+/* 激活态（测量模式 / 书签面板展开）：常亮青光，与临时 hover 区分 */
+.map-toolbar__btn--on {
+  background: rgba(47, 192, 255, 0.34);
+  border-color: rgba(95, 216, 255, 0.7);
+  box-shadow: 0 0 12px rgba(47, 192, 255, 0.45);
 }
 </style>

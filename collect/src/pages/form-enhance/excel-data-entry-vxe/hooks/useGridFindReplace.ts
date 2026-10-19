@@ -1,5 +1,5 @@
 // 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表
-import { ref, watch } from 'vue';
+import { ref, watch, onBeforeUnmount } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
@@ -7,6 +7,9 @@ import type { CellSelection } from './useCellSelection';
 
 /** 命中列表上限：避免超大表（万行 × 多列）一次性计算/渲染过多命中项导致卡顿；超出部分只在计数中体现 */
 const HIT_LIMIT = 500;
+
+/** 查找重算防抖（ms）：大表每键全表扫描会卡输入，拖选时每帧重算更糟 */
+const FIND_DEBOUNCE_MS = 200;
 
 /**
  * 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表。
@@ -20,8 +23,6 @@ const HIT_LIMIT = 500;
  * @param sel 自研选区状态机（range='sel' 时取框选矩形）
  */
 export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: CellSelection) {
-  const snap = () => core.pushSnapshot(core.snapshotNow());
-
   const findVisible = ref(false);
   const findText = ref('');
   const replaceText = ref('');
@@ -42,7 +43,7 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     const allFields = core.visibleDefs.value.map((d) => d.field);
     const rect = sel.selRect.value;
     if (findScope.value === 'sel' && rect) {
-      return { fields: rect.fields, rows: core.processedRows.value.filter((r) => rect.rowIds.has(r.__id)) };
+      return { fields: sel.rectFields(rect), rows: sel.rectRows(rect) };
     }
     if (findScope.value === 'col' && core.currentCell.value) {
       return { fields: [core.currentCell.value.field], rows: core.processedRows.value };
@@ -50,13 +51,20 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     return { fields: allFields, rows: core.processedRows.value };
   };
 
-  const computeFindMatches = () => {
+  /**
+   * 计算命中列表。
+   * @param resetIdx 是否把"当前第几个命中"重置为 -1。
+   *   ⚠️ 坑：跳转本身会改 currentCell → 触发重算；若这里无条件重置，点"查找下一个"后序号会被立刻打回 -1，
+   *   用户永远看不到"第 N 个"。故只在关键词/范围/勾选项变化时重置，跳转引起的重算保留序号。
+   */
+  const computeFindMatches = (resetIdx = true) => {
     regexError.value = '';
     const q = findText.value;
     if (!q) {
       findMatches.value = [];
       findMatchKeys.value = new Set();
       findHits.value = [];
+      findIdx.value = -1;
       return;
     }
     let re: RegExp | null = null;
@@ -68,6 +76,7 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
         findMatches.value = [];
         findMatchKeys.value = new Set();
         findHits.value = [];
+        findIdx.value = -1;
         return;
       }
     }
@@ -101,15 +110,37 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     findMatches.value = list;
     findMatchKeys.value = new Set(list.map((m) => core.errKey(m.rowId, m.field)));
     findHits.value = hits;
-    // -1 = 尚未定位任何匹配：此时点"查找下一个"应落在第一项（早期初始为 0 又先自增，首击永远跳过第一项）
-    findIdx.value = -1;
+    if (resetIdx) {
+      // -1 = 尚未定位任何匹配：此时点"查找下一个"应落在第一项（早期初始为 0 又先自增，首击永远跳过第一项）
+      findIdx.value = -1;
+    } else if (findIdx.value >= list.length) {
+      // 跳转引起的重算：命中数变少时把序号夹到有效范围
+      findIdx.value = list.length ? list.length - 1 : -1;
+    }
   };
-  // 选区/当前格变化也要重算（range=选区时框选范围即匹配范围；range=当前列时列随当前格走）
-  watch(
-    [findText, findScope, findCase, findWhole, findRegex, () => sel.selRect.value, () => core.currentCell.value],
-    computeFindMatches,
-    { immediate: true },
-  );
+  // ===================== 触发重算（防抖） =====================
+  let findTimer: number | null = null;
+  /** 延迟重算：用于高频变化源（输入、拖选）；resetIdx=false 用于跳转引起的重算（保留"第 N 个"） */
+  const scheduleCompute = (resetIdx = true) => {
+    if (findTimer) window.clearTimeout(findTimer);
+    findTimer = window.setTimeout(() => {
+      findTimer = null;
+      computeFindMatches(resetIdx);
+    }, FIND_DEBOUNCE_MS);
+  };
+  // 关键词：清空立即生效（点清空按钮不该等 200ms），有词则防抖
+  watch(findText, () => {
+    if (!findText.value) computeFindMatches();
+    else scheduleCompute();
+  });
+  // 勾选项/范围是低频操作，立即重算并重置序号
+  watch([findScope, findCase, findWhole, findRegex], () => computeFindMatches(true));
+  // 选区/当前格在拖选时每帧都变，走防抖；跳转本身也会改 currentCell，故不重置"第 N 个"
+  watch([() => sel.selRect.value, () => core.currentCell.value], () => scheduleCompute(false));
+  onBeforeUnmount(() => {
+    if (findTimer) window.clearTimeout(findTimer);
+  });
+  computeFindMatches();
 
   const jumpToMatch = (m: { rowId: string; field: string }) => {
     const row = core.allRows.value.find((r) => r.__id === m.rowId);
@@ -140,10 +171,11 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     const m = findMatches.value[target];
     const row = core.allRows.value.find((r) => r.__id === m.rowId);
     if (!row) return;
-    snap();
-    row[m.field] = replaceText.value;
-    row.__dirty = true;
-    core.validateCell(row, m.field);
+    core.commitCells('替换', [row], () => {
+      row[m.field] = replaceText.value;
+      row.__dirty = true;
+      core.validateCell(row, m.field);
+    });
     computeFindMatches();
     // 停在同一序号（替换后若该项仍命中可继续替换），并保持滚动定位，避免"替完找不到人"
     findIdx.value = Math.min(target, findMatches.value.length - 1);
@@ -155,19 +187,22 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
       ElMessage.info('未找到匹配项');
       return;
     }
-    snap();
     // ⚠️ 坑：必须按"匹配对"逐项替换——早期用 Map 以 rowId 为键，同一行多列同时命中时互相覆盖，只替换一列。
     // 这里改为遍历 findMatches（每 (rowId,field) 一对），逐格写回，避免漏替换。
     const rowMap = new Map(core.allRows.value.map((r) => [r.__id, r]));
+    // 受影响行按 rowId 去重后交给增量事务（一行可能命中多列）
+    const touched = [...new Set(findMatches.value.map((m) => rowMap.get(m.rowId)).filter((r): r is any => !!r))];
     let n = 0;
-    for (const m of findMatches.value) {
-      const row = rowMap.get(m.rowId);
-      if (!row) continue;
-      row[m.field] = replaceText.value;
-      row.__dirty = true;
-      core.validateCell(row, m.field);
-      n++;
-    }
+    core.commitCells('全部替换', touched, () => {
+      for (const m of findMatches.value) {
+        const row = rowMap.get(m.rowId);
+        if (!row) continue;
+        row[m.field] = replaceText.value;
+        row.__dirty = true;
+        core.validateCell(row, m.field);
+        n++;
+      }
+    });
     computeFindMatches();
     ElMessage.success(`已替换 ${n} 处`);
   };

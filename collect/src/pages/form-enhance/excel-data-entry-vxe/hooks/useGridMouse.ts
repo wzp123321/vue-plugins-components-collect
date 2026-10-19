@@ -130,18 +130,21 @@ export function useGridMouse(
       core.validateRow(nr);
       const idx = core.allRows.value.findIndex((r) => r.__id === row.__id);
       core.allRows.value.splice(act === 'insertUp' ? idx : idx + 1, 0, nr);
+      core.bumpData();
       ops.locateRow(nr);
       ElMessage.success('已插入行');
     } else if (act === 'clear') {
-      snap();
-      row[menu.field] = core.columnDefs.value.find((d) => d.field === menu.field)?.type === 'number' ? null : '';
-      row.__dirty = true;
-      core.validateCell(row, menu.field);
+      core.commitCells('清空单元格', [row], () => {
+        row[menu.field] = core.columnDefs.value.find((d) => d.field === menu.field)?.type === 'number' ? null : '';
+        row.__dirty = true;
+        core.validateCell(row, menu.field);
+      });
       ElMessage.success('已清空');
     } else if (act === 'deleteRow') {
       snap();
       core.allRows.value = core.allRows.value.filter((r) => r.__id !== row.__id);
       for (const k of Object.keys(core.cellErrors)) if (k.startsWith(row.__id + '__')) delete core.cellErrors[k];
+      core.bumpData();
       ElMessage.success('已删除本行');
     }
   };

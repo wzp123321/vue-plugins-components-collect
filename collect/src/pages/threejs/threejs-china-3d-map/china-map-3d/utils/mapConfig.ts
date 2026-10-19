@@ -106,3 +106,63 @@ export const mapConfig = {
   /** 选择性泛光：只有该图层参与 bloom */
   bloomLayer: 1,
 } as const
+
+/**
+ * 主题（暗 / 亮）调色板：仅在切换主题时整体覆写到 mapConfig 对应字段。
+ * 板块上色（useMapLayer.paint）与几何创建（drawRegion / drawOutline）都实时读取
+ * mapConfig，故换主题 = 覆写配色 + 重新 paint 现有层；新层级重建时自动沿用新主题。
+ */
+export type ThemeName = 'dark' | 'light'
+
+export interface ThemePalette {
+  color: string
+  hoverColor: string
+  focusColor: string
+  opacity: number
+  sideColorTop: string
+  sideColorBottom: string
+  innerLineColor: number
+  outlineColor: number
+}
+
+export const themePalettes: Record<ThemeName, ThemePalette> = {
+  dark: {
+    color: '#0A1730',
+    hoverColor: '#2C6B8C',
+    focusColor: '#2A6E92',
+    opacity: 0.94,
+    sideColorTop: '#0A1E42',
+    sideColorBottom: '#040E24',
+    innerLineColor: 0x2a6c90,
+    outlineColor: 0x54b4e4,
+  },
+  light: {
+    color: '#C9DCEC',
+    hoverColor: '#5BA8D0',
+    focusColor: '#3E92C0',
+    opacity: 0.96,
+    sideColorTop: '#AEC6DA',
+    sideColorBottom: '#8FB0CC',
+    innerLineColor: 0x6fa8c8,
+    outlineColor: 0x2a6c90,
+  },
+}
+
+let activeThemeName: ThemeName = 'dark'
+export const getThemeName = (): ThemeName => activeThemeName
+
+/** 应用主题：把调色板覆写到 mapConfig（运行时可写），并记忆当前主题名 */
+export function applyTheme(name: ThemeName): void {
+  const p = themePalettes[name]
+  if (!p) return
+  activeThemeName = name
+  const anyMap = mapConfig as Record<string, unknown>
+  anyMap.color = p.color
+  anyMap.hoverColor = p.hoverColor
+  anyMap.focusColor = p.focusColor
+  anyMap.opacity = p.opacity
+  anyMap.sideColorTop = p.sideColorTop
+  anyMap.sideColorBottom = p.sideColorBottom
+  anyMap.innerLineColor = p.innerLineColor
+  anyMap.outlineColor = p.outlineColor
+}

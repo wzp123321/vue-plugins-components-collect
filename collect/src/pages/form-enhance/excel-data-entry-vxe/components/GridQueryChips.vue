@@ -14,8 +14,8 @@ const props = defineProps<{
   onClearAll: () => void;
 }>();
 
-// 读 core 暴露的查询状态（均为响应式）
-const { searchText, sortList, columnFilters } = props.core;
+// 读 core 暴露的查询状态（均为响应式）；searchText 是输入值，searchTerm 是防抖后实际生效的词
+const { searchText, searchTerm, sortList, columnFilters } = props.core;
 
 // 'asc'/'desc' 转中文：排序 chip 展示用
 const orderText = (o: string) => (o === 'asc' ? '升序' : '降序');
@@ -26,16 +26,16 @@ const filterChips = computed(() =>
 );
 // 排序 chip 直接取 sortList 快照（slice 避免直接引用响应式数组）
 const sortChips = computed(() => sortList.value.slice());
-// 是否存在任何查询态：决定整个 chips 条是否渲染
-const hasAny = computed(() => !!searchText.value || filterChips.value.length > 0 || sortChips.value.length > 0);
+// 是否存在任何查询态：决定整个 chips 条是否渲染（关键词用生效值，避免输入中就先冒出 chip）
+const hasAny = computed(() => !!searchTerm.value || filterChips.value.length > 0 || sortChips.value.length > 0);
 </script>
 
 <template>
   <!-- 仅在存在查询态时显示，把"隐式"查询条件显式化 -->
   <div v-if="hasAny" class="dt-chips">
     <span class="chips-label">查询条件</span>
-    <el-tag v-if="searchText" closable type="primary" effect="light" size="small" @close="searchText = ''">
-      关键词：{{ searchText }}
+    <el-tag v-if="searchTerm" closable type="primary" effect="light" size="small" @close="searchText = ''">
+      关键词：{{ searchTerm }}
     </el-tag>
     <el-tag
       v-for="c in sortChips"
@@ -57,7 +57,7 @@ const hasAny = computed(() => !!searchText.value || filterChips.value.length > 0
       size="small"
       @close="onClearFilter(c.field, c.value)"
     >
-      {{ core.labelOf(c.field) }} = {{ c.value }}
+      {{ core.labelOf(c.field) }}：{{ c.value }}
     </el-tag>
     <el-button size="small" text type="danger" @click="onClearAll">清除全部</el-button>
   </div>

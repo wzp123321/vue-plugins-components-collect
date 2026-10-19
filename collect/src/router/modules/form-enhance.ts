@@ -23,13 +23,6 @@ const formEnhanceRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/form-enhance/signature/signature.vue'),
   },
   {
-    path: '/form-table-export-excel',
-    meta: {
-      name: '表格导出Excel',
-    },
-    component: () => import('../../pages/plugins/plugin-table-export-excel/plugin-table-export-excel.vue'),
-  },
-  {
     path: '/form-export-to-excel',
     meta: {
       name: 'Excel导出',

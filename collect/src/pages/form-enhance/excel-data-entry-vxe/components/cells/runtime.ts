@@ -14,7 +14,13 @@ export interface ColStat {
   max: number;
 }
 
-export const RT: { colStat: Record<string, ColStat>; conditionalOn: boolean } = {
+export const RT: {
+  colStat: Record<string, ColStat>;
+  conditionalOn: boolean;
+  /** 当前生效的列筛选（core.columnFilters 的引用），供筛选面板回显——面板在 vxe 弹层里，拿不到 core */
+  filters: Record<string, string[]>;
+} = {
   colStat: {},
   conditionalOn: false,
+  filters: {},
 };

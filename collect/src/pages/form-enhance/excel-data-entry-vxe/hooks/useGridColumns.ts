@@ -89,11 +89,18 @@ export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
         resizable: true,
         sortable: true,
         fixed: d.frozen ? 'left' : undefined,
-        className: d.required ? 'dt-col-req' : '',
+        // ⚠️ 必填星号挂在表头上：vxe 的 className 只作用于 body 单元格，表头专属 headerClassName
+        // （见 vxe-pc-ui/types/components/column.d.ts: className=给单元格、headerClassName=给表头）
+        headerClassName: d.required ? 'dt-col-req' : '',
         cellRender: { name: 'dt-cell-display', ctype: d.type, options: d.options ?? [], field: d.field },
+        // 自定义筛选面板：vxe 默认只支持"候选值复选"，文本/数字/日期列没有筛选入口。
+        // 统一挂 dt-filter 渲染器（见 components/cells/FilterPanel.vue），普通列给空 filters 让表头出现筛选按钮
+        filterRender: { name: 'dt-filter' },
       };
       if (d.type === 'select' && d.options?.length) {
         col.filters = d.options.map((o) => ({ label: o, value: o, checked: false }));
+      } else {
+        col.filters = [];
       }
       col.editRender = makeEditRender(d);
       cols.push(col);

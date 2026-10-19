@@ -1,0 +1,135 @@
+/*
+ * AI Console Theme
+ * 深色优先的设计令牌层：画布、玻璃表面、渐变品牌色、描边与文本层级。
+ * 浅色通过 html:not(.dark) 覆盖，主题开关由 useThemeStore 控制 html.dark。
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* 画布 */
+  --ai-bg: #07080d;
+  --ai-glow-violet: rgba(124, 58, 237, 0.22);
+  --ai-glow-cyan: rgba(34, 211, 238, 0.12);
+  --ai-glow-blue: rgba(56, 130, 246, 0.1);
+  --ai-grid-line: rgba(255, 255, 255, 0.028);
+
+  /* 表面 */
+  --ai-surface: rgba(15, 17, 24, 0.66);
+  --ai-surface-solid: #0e1017;
+  --ai-surface-raised: rgba(255, 255, 255, 0.04);
+  --ai-surface-hover: rgba(255, 255, 255, 0.06);
+  --ai-surface-active: rgba(124, 92, 255, 0.16);
+
+  /* 描边 */
+  --ai-border: rgba(255, 255, 255, 0.08);
+  --ai-border-strong: rgba(255, 255, 255, 0.16);
+  --ai-hairline: rgba(255, 255, 255, 0.06);
+
+  /* 文本 */
+  --ai-text: #edf0f7;
+  --ai-text-dim: #99a2b4;
+  --ai-text-mute: #616a7d;
+
+  /* 品牌 */
+  --ai-accent: #7c5cff;
+  --ai-accent-2: #22d3ee;
+  --ai-accent-soft: rgba(124, 92, 255, 0.16);
+  --ai-gradient: linear-gradient(135deg, #a78bfa 0%, #7c5cff 42%, #22d3ee 100%);
+  --ai-gradient-soft: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(34, 211, 238, 0.1));
+
+  /* 形状 */
+  --ai-radius-lg: 18px;
+  --ai-radius-md: 12px;
+  --ai-radius-sm: 9px;
+  --ai-shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.5);
+  --ai-shadow-md: 0 14px 40px rgba(0, 0, 0, 0.32);
+
+  /* 字体 */
+  --ai-font-sans: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'HarmonyOS Sans SC',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --ai-font-mono: 'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+
+  /* 尺寸 */
+  --ai-header-h: 60px;
+  --ai-aside-w: 256px;
+  --ai-aside-w-collapsed: 72px;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+
+  --ai-bg: #f4f5fa;
+  --ai-glow-violet: rgba(124, 92, 255, 0.14);
+  --ai-glow-cyan: rgba(14, 165, 233, 0.1);
+  --ai-glow-blue: rgba(56, 130, 246, 0.08);
+  --ai-grid-line: rgba(15, 23, 42, 0.035);
+
+  --ai-surface: rgba(255, 255, 255, 0.72);
+  --ai-surface-solid: #ffffff;
+  --ai-surface-raised: rgba(15, 23, 42, 0.03);
+  --ai-surface-hover: rgba(15, 23, 42, 0.05);
+  --ai-surface-active: rgba(124, 92, 255, 0.1);
+
+  --ai-border: rgba(15, 23, 42, 0.08);
+  --ai-border-strong: rgba(15, 23, 42, 0.16);
+  --ai-hairline: rgba(15, 23, 42, 0.06);
+
+  --ai-text: #101425;
+  --ai-text-dim: #5a6478;
+  --ai-text-mute: #8b93a5;
+
+  --ai-accent: #6d4bff;
+  --ai-accent-2: #0891b2;
+  --ai-accent-soft: rgba(109, 75, 255, 0.1);
+  --ai-gradient: linear-gradient(135deg, #7c5cff 0%, #6366f1 45%, #0891b2 100%);
+
+  --ai-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --ai-shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+html,
+body {
+  font-family: var(--ai-font-sans);
+  color: var(--ai-text);
+  background: var(--ai-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(124, 92, 255, 0.35);
+  color: #fff;
+}
+
+html:not(.dark) ::selection {
+  background: rgba(124, 92, 255, 0.2);
+  color: inherit;
+}
+
+/* 通用微元素：kbd 键帽 */
+.ai-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--ai-border);
+  border-radius: 5px;
+  background: var(--ai-surface-raised);
+  color: var(--ai-text-mute);
+  font-family: var(--ai-font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* 滚动条：暗色下更轻 */
+html.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+html.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.24);
+}

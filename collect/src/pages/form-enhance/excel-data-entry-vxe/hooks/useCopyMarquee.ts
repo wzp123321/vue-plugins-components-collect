@@ -64,8 +64,10 @@ export function useCopyMarquee(
   /** 快照当前复制源：优先框选区域，无选区时降级当前单格（与 io.buildCopyTsv 的取源一致） */
   const markCopied = () => {
     const rect = sel.selRect.value;
-    if (rect && rect.fields.length) {
-      copiedRect.value = { rowIds: new Set(rect.rowIds), fields: [...rect.fields] };
+    if (rect) {
+      const fields = sel.rectFields(rect);
+      // 快照用行 id（而非索引）：复制后行可能被过滤/删除，索引会失效，行 id 更稳
+      copiedRect.value = { rowIds: new Set(sel.rectRows(rect).map((r) => r.__id)), fields };
     } else if (core.currentCell.value) {
       copiedRect.value = { rowIds: new Set([core.currentCell.value.row.__id]), fields: [core.currentCell.value.field] };
     } else {

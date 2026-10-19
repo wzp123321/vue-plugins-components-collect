@@ -1,9 +1,11 @@
 // 录入台核心脊梁：列元信息 / 行数据 / 查询管道（搜索·筛选·排序·分页）/ 列统计 / 编辑事件
 // 校验与历史已内聚为子 hook（useCellValidation / useHistory），本 hook 负责装配与共享状态。
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue';
 import { RT } from '../components/cells/runtime';
 import { useCellValidation } from './useCellValidation';
 import { useHistory } from './useHistory';
+import type { CellChange } from './useHistory';
+import { aggregateByField, aggregateColumn, type NumAgg } from './aggregate';
 import {
   type ColDef,
   type Row,
@@ -16,6 +18,40 @@ import {
   CITIES,
   emptyValueFor,
 } from '../types';
+
+/** 搜索输入防抖（ms）：大表下每个按键全表扫描会卡输入，停手后再算 */
+const SEARCH_DEBOUNCE_MS = 200;
+
+/**
+ * 单列筛选条件匹配（供 filteredRows 消费）。支持三种写法：
+ *   - 比较：`>=30`、`<=2024-12-31`、`>0`、`<0`、`!=xx`（数字按数值比，其余按字符串比；空值不参与比较）；
+ *   - 区间：`2024-01..2024-06`（闭区间）；
+ *   - 普通值：数字列精确匹配，下拉列精确匹配，文本/日期列按"包含"匹配（不区分大小写）。
+ * @param def  该列定义（决定普通值的匹配语义）
+ * @param raw  单元格原始值
+ * @param expr 筛选表达式（来自列筛选面板 / 查询 chips）
+ */
+const matchFilter = (def: ColDef | undefined, raw: any, expr: string): boolean => {
+  const e = String(expr ?? '').trim();
+  if (!e) return true;
+  const s = String(raw ?? '');
+  const cmp = (x: string, y: string) => {
+    const nx = Number(x);
+    const ny = Number(y);
+    const numeric = x.trim() !== '' && y.trim() !== '' && !isNaN(nx) && !isNaN(ny);
+    return numeric ? nx - ny : x.localeCompare(y, 'zh-CN');
+  };
+  if (e.startsWith('>=')) return s !== '' && cmp(s, e.slice(2)) >= 0;
+  if (e.startsWith('<=')) return s !== '' && cmp(s, e.slice(2)) <= 0;
+  if (e.startsWith('!=')) return s !== e.slice(2).trim();
+  if (e.startsWith('>')) return s !== '' && cmp(s, e.slice(1)) > 0;
+  if (e.startsWith('<')) return s !== '' && cmp(s, e.slice(1)) < 0;
+  const range = e.match(/^(.+?)\.\.(.+)$/);
+  if (range) return s !== '' && cmp(s, range[1].trim()) >= 0 && cmp(s, range[2].trim()) <= 0;
+  if (def?.type === 'number') return s !== '' && Number(s) === Number(e);
+  if (def?.type === 'select') return s === e;
+  return s.toLowerCase().includes(e.toLowerCase());
+};
 
 /**
  * 录入台中枢状态容器：装配并共享整个 Excel 式录入台所需的全部核心状态与管道。
@@ -35,6 +71,16 @@ import {
  * @returns 一个聚合了列 / 行 / 查询 / 统计 / 校验 / 历史等能力的对象，类型见 {@link GridCore}
  */
 export function useGridCore() {
+  /**
+   * 数据版本号：任何"行值 / 行集合"变化后自增。
+   * ⚠️ 为什么需要：行值是原地改的（编辑、填充、粘贴都不换行对象、也不换 allRows 引用），
+   * computed 无法靠引用变化感知，故用版本号显式触发统计/色阶重算，同时让统计缓存能安全失效。
+   */
+  const dataRev = ref(0);
+  const bumpData = () => {
+    dataRev.value++;
+  };
+
   // ===================== 列元信息 =====================
   // 校验规则全部声明在列定义里（required / rules / cross），加列改列都不必改校验代码
   const columnDefs = ref<ColDef[]>([
@@ -127,28 +173,107 @@ export function useGridCore() {
       allRows.value = snap.rows.map((r) => ({ ...r }));
       columnDefs.value = snap.defs;
       validation.revalidateAll();
+      bumpData();
     },
+    // 增量命令按 rowId 定位行、应用后重校
+    getRows: () => allRows.value,
+    revalidateAll: () => validation.revalidateAll(),
+    bumpData: () => bumpData(),
   });
 
+  /**
+   * 单元格增量事务：执行 fn 前对"受影响行"做浅拷贝，执行后按字段 diff，生成字段级撤销记录。
+   *
+   * 适用：只改已有行若干字段的操作（编辑 / 各类填充 / 批量填充 / 替换 / 清空内容）。
+   * 不适用：增删行、加删列、整表替换——那些走 pushSnapshot 全量快照（见各调用点）。
+   *
+   * 相比"每步拷贝整表"的快照，代价降到 O(受影响行数 × 字段数)，10 万行下编辑一格不再复制十万行。
+   * @param label 操作名（撤销提示用）
+   * @param rows  本次操作可能修改到的行（宁可多传，diff 会过滤掉没变的字段）
+   * @param fn    实际写数据的函数（同步执行）
+   */
+  const commitCells = (label: string, rows: Row[], fn: () => void) => {
+    const before = rows.map((r) => ({ row: r, snap: { ...r } }));
+    fn();
+    const changes: CellChange[] = [];
+    for (const { row, snap } of before) {
+      // 取并集：fn 里可能给行补了新字段（如粘贴新增列后回填空串）
+      const keys = new Set([...Object.keys(snap), ...Object.keys(row)]);
+      for (const k of keys) {
+        if (k === '__id') continue;
+        if (row[k] !== snap[k]) {
+          changes.push({ rowId: row.__id, field: k, before: snap[k], after: row[k] });
+        }
+      }
+    }
+    if (changes.length) {
+      history.pushCells(label, changes);
+      bumpData();
+    }
+  };
+
   // ===================== 搜索 / 筛选 / 排序 / 视图 =====================
+  /** 工具栏搜索框的输入值（即时回显，绑 v-model） */
   const searchText = ref('');
+  /**
+   * 实际参与过滤的搜索词：输入后防抖 200ms 再同步。
+   * ⚠️ 性能要点：大表下每个按键都全表扫描（行 × 可见列）会明显卡输入，防抖后只在停手时算一次；
+   * 清空是同步生效的（点 clearable 不该等 200ms）。
+   */
+  const searchTerm = ref('');
+  let searchTimer: number | null = null;
+  watch(searchText, (v) => {
+    if (searchTimer) {
+      window.clearTimeout(searchTimer);
+      searchTimer = null;
+    }
+    if (!v.trim()) {
+      searchTerm.value = '';
+      return;
+    }
+    searchTimer = window.setTimeout(() => {
+      searchTerm.value = v;
+      searchTimer = null;
+    }, SEARCH_DEBOUNCE_MS);
+  });
+  onBeforeUnmount(() => {
+    if (searchTimer) window.clearTimeout(searchTimer);
+  });
   const columnFilters = reactive<Record<string, string[]>>({});
+  // 筛选面板（vxe 弹层里）拿不到 core，经 runtime 桥读取当前筛选值做回显
+  RT.filters = columnFilters;
   const sortList = ref<{ field: string; order: 'asc' | 'desc' }[]>([]);
   const viewMode = ref<'virtual' | 'paged'>('virtual');
   const pager = reactive({ currentPage: 1, pageSize: 100 });
 
   const searchFiltered = computed<Row[]>(() => {
-    const kw = searchText.value.trim().toLowerCase();
+    const kw = searchTerm.value.trim().toLowerCase();
     // ⚠️ 坑：无关键词也必须返回新数组：原地增删行（push/splice）不改变 allRows 引用，
     // 若原样返回，pagedRows 引用不变 → vxe 的 :data prop 不触发更新 → 新行根本不渲染
     if (!kw) return allRows.value.slice();
-    return allRows.value.filter((r) => visibleDefs.value.some((d) => String(r[d.field] ?? '').toLowerCase().includes(kw)));
+    // 预取字段名 + for 循环：比每行 some() 建闭包快，且省掉重复的 visibleDefs 读取
+    const fields = visibleDefs.value.map((d) => d.field);
+    return allRows.value.filter((r) => {
+      for (const f of fields) {
+        if (String(r[f] ?? '').toLowerCase().includes(kw)) return true;
+      }
+      return false;
+    });
   });
 
   const filteredRows = computed<Row[]>(() => {
     const keys = Object.keys(columnFilters).filter((k) => columnFilters[k]?.length);
     if (!keys.length) return searchFiltered.value;
-    return searchFiltered.value.filter((r) => keys.every((k) => columnFilters[k].includes(String(r[k] ?? ''))));
+    // 列定义建一次索引：逐行逐条件 find 会在万行表上放大成 O(rows × keys × defs)
+    const defMap = new Map(columnDefs.value.map((d) => [d.field, d]));
+    return searchFiltered.value.filter((r) =>
+      keys.every((k) => {
+        const def = defMap.get(k);
+        // 列已被删除但筛选状态残留时忽略该条件，避免"数据莫名消失"
+        if (!def) return true;
+        return columnFilters[k].some((v) => matchFilter(def, r[k], v));
+      }),
+    );
   });
 
   const processedRows = computed<Row[]>(() => {
@@ -258,23 +383,19 @@ export function useGridCore() {
 
   // ===================== 条件格式统计 =====================
   const conditionalOn = ref(false);
-  /** 条件格式统计：仅在 conditionalOn 开启时为各数值列算出 min/max，结果经 RT 桥（runtime）被渲染器读取做色阶 */
+  /**
+   * 条件格式统计：仅在 conditionalOn 开启时为各数值列算出 min/max，结果经 RT 桥（runtime）被渲染器读取做色阶。
+   * 依赖 dataRev：行值是原地改的，没有版本号时编辑后色阶不会重算。
+   */
   const colStat = computed(() => {
+    dataRev.value; // 显式依赖数据版本
     const stat: Record<string, { min: number; max: number }> = {};
     if (conditionalOn.value) {
-      for (const d of columnDefs.value) {
-        if (d.type !== 'number') continue;
-        let min = Infinity,
-          max = -Infinity;
-        for (const r of processedRows.value) {
-          const v = r[d.field];
-          if (v !== null && v !== '' && !isNaN(Number(v))) {
-            const n = Number(v);
-            if (n < min) min = n;
-            if (n > max) max = n;
-          }
-        }
-        if (min <= max) stat[d.field] = { min, max };
+      const fields = columnDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
+      const agg = aggregateByField(processedRows.value, fields);
+      for (const f of fields) {
+        const a = agg[f];
+        if (a) stat[f] = { min: a.min, max: a.max };
       }
     }
     RT.colStat = stat;
@@ -282,11 +403,13 @@ export function useGridCore() {
   });
   watch(conditionalOn, (v) => {
     RT.conditionalOn = v;
+    // 主动求值一次，把 RT.colStat 写出去（computed 是惰性的，没人读就不会更新桥）
+    if (v) colStat.value;
   });
-  // colStat 的结果只经 RT 桥被渲染器读取，需显式 touch 以保持随数据/列/开关更新
-  watch([processedRows, conditionalOn, columnDefs], () => {
-    colStat.value;
-  }, { deep: true });
+  // 数据变化时刷新色阶统计（只在开启时才算，避免无谓的全表扫描）
+  watch(dataRev, () => {
+    if (conditionalOn.value) colStat.value;
+  });
 
   // ===================== 列汇总（footer） =====================
   // 列顺序恒为 [seq, ...visibleDefs]（复选框列已移除），故汇总行可直接由 visibleDefs 推导，无需读取列配置
@@ -294,29 +417,28 @@ export function useGridCore() {
   /** 列汇总（footer）：数值列求和（保留 2 位）、首列显示总行数；列顺序恒为 [合计, ...visibleDefs]，无需读列配置 */
   const footerData = computed<any[]>(() => {
     if (!showFooter.value) return [];
+    dataRev.value;
+    const rows = processedRows.value;
+    // 一次扫描算完所有数值列（原来每列各扫一遍全表）
+    const fields = visibleDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
+    const agg = aggregateByField(rows, fields);
     const firstField = visibleDefs.value[0]?.field;
     const row: any[] = ['合计'];
     for (const d of visibleDefs.value) {
-      if (d.type === 'number') {
-        let sum = 0,
-          cnt = 0;
-        for (const r of processedRows.value) {
-          const v = r[d.field];
-          if (v !== null && v !== '' && !isNaN(Number(v))) {
-            sum += Number(v);
-            cnt++;
-          }
-        }
-        row.push(cnt ? Number(sum.toFixed(2)) : '');
-      } else if (d.field === firstField) {
-        row.push(`共 ${processedRows.value.length} 行`);
-      } else row.push('');
+      if (d.type === 'number') row.push(agg[d.field] ? agg[d.field].sum : '');
+      else if (d.field === firstField) row.push(`共 ${rows.length} 行`);
+      else row.push('');
     }
     return [row];
   });
 
   // ===================== 状态栏聚合 =====================
   const activeColLabel = computed(() => (currentCell.value ? labelOf(currentCell.value.field) : ''));
+  /**
+   * 当前列统计缓存：键 = 字段 + 结果集引用 + 数据版本。
+   * 移动当前格（上/下/左/右）时通常命中缓存，5 万行表不再每按一次方向键就全表扫一遍。
+   */
+  let statCache: { field: string; rows: Row[]; rev: number; value: NumAgg | null } | null = null;
   /**
    * 状态栏统计·当前列全量轨（activeStats）：以 currentCell 所在数值列为基准，
    * 对当前查询结果的所有行做 count/sum/avg/min/max。
@@ -327,21 +449,14 @@ export function useGridCore() {
     if (!f) return null;
     const def = columnDefs.value.find((d) => d.field === f);
     if (def?.type !== 'number') return null;
-    let sum = 0,
-      min = Infinity,
-      max = -Infinity,
-      cnt = 0;
-    for (const r of processedRows.value) {
-      const v = r[f];
-      if (v !== null && v !== '' && !isNaN(Number(v))) {
-        const n = Number(v);
-        sum += n;
-        if (n < min) min = n;
-        if (n > max) max = n;
-        cnt++;
-      }
+    const rows = processedRows.value;
+    const rev = dataRev.value;
+    if (statCache && statCache.field === f && statCache.rows === rows && statCache.rev === rev) {
+      return statCache.value;
     }
-    return cnt ? { count: cnt, sum: Number(sum.toFixed(2)), avg: Number((sum / cnt).toFixed(2)), min, max } : null;
+    const value = aggregateColumn(rows, f);
+    statCache = { field: f, rows, rev, value };
+    return value;
   });
 
   // 编辑开始记录旧值，结束时校验并把本次单元格改动接入撤销历史
@@ -354,14 +469,16 @@ export function useGridCore() {
     editField = params?.column?.field ?? '';
     editOld = params?.row?.[editField];
   };
-  /** 编辑结束：立即校验该格；若值与编辑前不同，则把这次单元格改动接入撤销栈（pushHistoryWithRevert） */
+  /** 编辑结束：立即校验该格；若值与编辑前不同，则以字段级增量记入撤销栈（不再拷贝整表） */
   const onEditClosed = (params: any) => {
     const row = params?.row;
     const field = params?.column?.field;
     if (row && field) {
       validation.validateCell(row, field);
       if (editRowId === row.__id && editField === field && editOld !== row[field]) {
-        history.pushHistoryWithRevert(row.__id, field, editOld);
+        history.pushCells('编辑单元格', [{ rowId: row.__id, field, before: editOld, after: row[field] }]);
+        // ⚠️ 编辑是直接 pushCells（不经 commitCells），必须自己 bump，否则统计缓存会命中旧值
+        bumpData();
       }
     }
     editOld = undefined;
@@ -379,13 +496,19 @@ export function useGridCore() {
     makeRow,
     genSampleRows,
     dirtyCount,
+    // 数据版本（统计缓存失效 / 色阶重算）
+    dataRev,
+    bumpData,
     // 校验（子 hook 透出）
     ...validation,
     // 历史（子 hook 透出）
     snapshotNow,
     ...history,
+    // 字段级增量事务（高频写数据入口统一走它）
+    commitCells,
     // 查询管道
     searchText,
+    searchTerm,
     columnFilters,
     sortList,
     viewMode,

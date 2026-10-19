@@ -137,9 +137,11 @@ export function useGridKeys(
       startVal = row[field]; // date/select：保留原值，仅打开编辑器供选取/输入
     }
     if (startVal !== row[field]) {
-      core.pushSnapshot(core.snapshotNow());
-      row[field] = startVal;
-      row.__dirty = true;
+      // 覆盖首字符也是一次数据变更：走字段级增量，别为一次键入拷整表
+      core.commitCells('编辑单元格', [row], () => {
+        row[field] = startVal;
+        row.__dirty = true;
+      });
     }
     core.currentCell.value = { row, field };
     sel.collapseTo(row.__id, field);
@@ -237,7 +239,9 @@ export function useGridKeys(
     if (!inGrid) return;
 
     // 选中格直接键入即进入编辑（覆盖模式，Excel 语义）：字母/数字/符号落到当前格并打开编辑器
-    if (!mod && !e.altKey && key.length === 1) {
+    // ⚠️ 坑：必须排除 Shift——否则 Shift+Space 会在这里被当成"键入空格"吞掉（写入空格、标脏、入撤销栈），
+    // 下面的 Shift+Space 选整行分支永远不可达
+    if (!mod && !e.altKey && !shift && key.length === 1) {
       const cur = moveBase();
       if (cur) {
         e.preventDefault();
@@ -260,46 +264,50 @@ export function useGridKeys(
       // 注意：早期此键绑的是 duplicateSelected（复制整行），与 Excel 同名不同义；复制整行请用工具栏按钮
       e.preventDefault();
       const rect = sel.selRect.value;
-      if (!rect || rect.rowIds.size < 2) {
+      if (!rect || rect.bottomIdx - rect.topIdx + 1 < 2) {
         ElMessage.info('请先框选至少两行（首行作为数据源）再向下填充');
         return;
       }
-      const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
+      const rows = sel.rectRows(rect);
+      const fields = sel.rectFields(rect);
       const top = rows[0];
       if (!top) return;
-      core.pushSnapshot(core.snapshotNow());
       let n = 0;
-      for (let i = 1; i < rows.length; i++) {
-        for (const f of rect.fields) {
-          rows[i][f] = top[f];
-          rows[i].__dirty = true;
-          core.validateCell(rows[i], f);
-          n++;
+      core.commitCells('向下填充', rows, () => {
+        for (let i = 1; i < rows.length; i++) {
+          for (const f of fields) {
+            rows[i][f] = top[f];
+            rows[i].__dirty = true;
+            core.validateCell(rows[i], f);
+            n++;
+          }
         }
-      }
+      });
       ElMessage.success(n ? `已向下填充 ${n} 个单元格` : '选区内没有可填充的单元格');
     } else if (mod && key === 'r') {
       // Ctrl+R：向右填充——选区最左列逐行复制到右侧各列（与 Ctrl+D 对称，Excel 语义）
       e.preventDefault();
       const rect = sel.selRect.value;
-      if (!rect || rect.fields.length < 2) {
+      if (!rect || rect.rightIdx - rect.leftIdx + 1 < 2) {
         ElMessage.info('请先框选至少两列（最左列作为数据源）再向右填充');
         return;
       }
-      const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
+      const rows = sel.rectRows(rect);
+      const fields = sel.rectFields(rect);
       if (!rows.length) return;
-      core.pushSnapshot(core.snapshotNow());
-      const srcField = rect.fields[0];
+      const srcField = fields[0];
       let n = 0;
-      for (const r of rows) {
-        for (let i = 1; i < rect.fields.length; i++) {
-          const f = rect.fields[i];
-          r[f] = r[srcField];
-          r.__dirty = true;
-          core.validateCell(r, f);
-          n++;
+      core.commitCells('向右填充', rows, () => {
+        for (const r of rows) {
+          for (let i = 1; i < fields.length; i++) {
+            const f = fields[i];
+            r[f] = r[srcField];
+            r.__dirty = true;
+            core.validateCell(r, f);
+            n++;
+          }
         }
-      }
+      });
       ElMessage.success(n ? `已向右填充 ${n} 个单元格` : '选区内没有可填充的单元格');
     } else if (key === ' ' && (mod || shift)) {
       // Ctrl+Space 选整列 / Shift+Space 选整行（Excel 标准快捷键，与"点列头选列"互为补充）
@@ -326,19 +334,21 @@ export function useGridKeys(
       const cur = moveBase();
       if (rect && cur) {
         e.preventDefault();
-        core.pushSnapshot(core.snapshotNow());
         const val = cur.row[cur.field];
+        const fields = sel.rectFields(rect);
+        const rows = sel.rectRows(rect);
         let n = 0;
-        for (const r of core.processedRows.value) {
-          if (!rect.rowIds.has(r.__id)) continue;
-          for (const f of rect.fields) {
-            if (r.__id === cur.row.__id && f === cur.field) continue;
-            r[f] = val;
-            r.__dirty = true;
-            core.validateCell(r, f);
-            n++;
+        core.commitCells('填充选区', rows, () => {
+          for (const r of rows) {
+            for (const f of fields) {
+              if (r.__id === cur.row.__id && f === cur.field) continue;
+              r[f] = val;
+              r.__dirty = true;
+              core.validateCell(r, f);
+              n++;
+            }
           }
-        }
+        });
         ElMessage.success(n ? `已填充 ${n} 个单元格` : '选区内没有其他单元格');
       }
     } else if (
@@ -453,9 +463,9 @@ export function useGridKeys(
       const rect = sel.selRect.value;
       const targets: { row: any; field: string }[] = [];
       if (rect) {
-        for (const r of core.processedRows.value) {
-          if (!rect.rowIds.has(r.__id)) continue;
-          for (const f of rect.fields) targets.push({ row: r, field: f });
+        const fields = sel.rectFields(rect);
+        for (const r of sel.rectRows(rect)) {
+          for (const f of fields) targets.push({ row: r, field: f });
         }
       } else if (core.currentCell.value) {
         targets.push(core.currentCell.value);
@@ -463,13 +473,16 @@ export function useGridKeys(
       const dirtyTargets = targets.filter((t) => t.row[t.field] !== '' && t.row[t.field] != null);
       if (dirtyTargets.length) {
         e.preventDefault();
-        core.pushSnapshot(core.snapshotNow());
-        for (const t of dirtyTargets) {
-          const def = core.columnDefs.value.find((d) => d.field === t.field);
-          t.row[t.field] = def?.type === 'number' ? null : '';
-          t.row.__dirty = true;
-          core.validateCell(t.row, t.field);
-        }
+        // 同一行可能被多个格命中，按行去重后再做一次 diff 事务
+        const touchedRows = [...new Set(dirtyTargets.map((t) => t.row))];
+        core.commitCells('清空单元格', touchedRows, () => {
+          for (const t of dirtyTargets) {
+            const def = core.columnDefs.value.find((d) => d.field === t.field);
+            t.row[t.field] = def?.type === 'number' ? null : '';
+            t.row.__dirty = true;
+            core.validateCell(t.row, t.field);
+          }
+        });
         ElMessage.success(dirtyTargets.length > 1 ? `已清空 ${dirtyTargets.length} 个单元格` : '已清空');
       }
     }

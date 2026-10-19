@@ -5,6 +5,8 @@
  *   - readCount：兼容 number 与 { count } 两种数据形态
  *   - syntheticCount：无外部数据时按 adcode 生成确定性伪随机值（下钻仍有内容）
  *   - buildTiers / tierOf：按分位点把数值分 4 档并上色，供数据柱分色
+ *   - monthlySeries / recentMonthLabels：按 adcode 生成确定性「近 12 月」演示
+ *     序列与月份标签，供数据看板的趋势图使用
  *   - LEVEL_TEXT：层级中文名
  *
  * 在整体架构中的角色：数据 → 视觉映射层。柱体颜色（spotLayer）与图例都依赖
@@ -51,6 +53,38 @@ export const syntheticCount = (adcode: number, level: GeoLevel | string): number
   // 层级越细，基准量级越小（区/县 < 市 < 省）
   const base = level === 'district' ? 6 : level === 'city' ? 20 : 50
   return base + (hash % (base * 2))
+};
+
+/**
+ * 近 count 个月的月份标签（以当前月收尾，形如「10月」），供趋势图横轴使用。
+ * 用 new Date 逐月倒推，跨年（如 12月 → 1月）自然正确。
+ */
+export const recentMonthLabels = (count = 12): string[] => {
+  const now = new Date();
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+    return `${d.getMonth() + 1}月`;
+  });
+};
+
+/**
+ * monthlySeries — 按 adcode 生成确定性的「近 12 月项目增量」演示序列。
+ * 月度值 = 基准值 × 季节因子 × 确定性噪声：春节前后淡季、金九银十冲量、
+ * 年末回落；噪声用 adcode + 月份做种子（与 syntheticCount 同款整数哈希），
+ * 同一行政区每次悬浮/下钻来回切换结果一致，曲线不抖动、可核对。
+ * @param adcode 行政区编码（作为噪声种子，保证确定性）
+ * @param base   基准值（通常取该行政区的项目数，月度值围绕它波动）
+ * @param months 序列长度（默认 12）
+ */
+export const monthlySeries = (adcode: number, base: number, months = 12): number[] => {
+  // 季节因子：1~12 月，年初淡季 → 年中平稳 → Q4 冲量后年末回落
+  const season = [0.72, 0.8, 0.95, 1.04, 1.08, 0.9, 0.86, 0.96, 1.14, 1.26, 1.18, 1.0];
+  return Array.from({ length: months }, (_, m) => {
+    // 确定性噪声：sin 哈希（无位运算，风格上规避 no-bitwise）→ 0.85 ~ 1.15
+    const rand = Math.abs(Math.sin((adcode || 1) * 12.9898 + m * 78.233)) * 43758.5453;
+    const noise = 0.85 + (rand % 1) * 0.3;
+    return Math.max(0, Math.round(base * season[m % 12] * noise));
+  });
 };
 
 export const LEVEL_TEXT: Record<string, string> = {

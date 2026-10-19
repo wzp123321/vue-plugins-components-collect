@@ -36,6 +36,24 @@
   <div class="china-map-3d-wrapper">
     <div ref="canvasHost" class="china-map-3d-canvas"></div>
 
+    <!-- 框选矩形（Shift + 拖拽实时绘制） -->
+    <div v-if="boxRect" class="map-box-select" :style="boxStyle"></div>
+    <!-- 批量统计浮层：框选 / 多选后展示合计与占比 -->
+    <div v-if="selectionStats" class="map-sel-stats">
+      <span class="map-sel-stats__item">已选 <b>{{ selectionStats.count }}</b> 区</span>
+      <span class="map-sel-stats__item">合计 <b>{{ selectionStats.sum }}</b></span>
+      <span class="map-sel-stats__item">占比 <b>{{ (selectionStats.ratio * 100).toFixed(1) }}%</b></span>
+      <button type="button" class="map-sel-stats__clear" @click="selectAdcode(null)">清空</button>
+    </div>
+
+    <!-- 测量提示条：进入测量模式或存在测点时出现 -->
+    <div v-if="measureOn || measurePoints > 0" class="map-measure">
+      <span class="map-measure__title">测量</span>
+      <span class="map-measure__num">{{ measurePoints }} 点</span>
+      <button type="button" class="map-measure__btn" :disabled="!measurePoints" @click="clearMeasure">清空</button>
+      <button v-if="measureOn" type="button" class="map-measure__btn" @click="measureOn = false">退出</button>
+    </div>
+
     <MapSearchBox
       v-if="showSearch"
       ref="searchRef"
@@ -49,10 +67,21 @@
     <MapPieChart v-if="showPie" :segments="pie" title="数据分档" />
     <MapNavBar :crumbs="crumbs" @back="handleBack" @jump="handleJump" />
     <MapStageTip :stage="stage" :notice="notice" :raised="canGoBack" />
+    <MapBookmarkPanel
+      v-if="showBookmarks"
+      :items="bookmarks"
+      @save="saveBookmark"
+      @apply="applyBookmark"
+      @remove="deleteBookmark"
+      @close="showBookmarks = false"
+    />
     <MapToolbar
       v-model:roam="roamOn"
+      v-model:measure="measureOn"
+      :bookmarks="showBookmarks"
       :current="currentView"
       @view="handleViewPreset"
+      @bookmarks="showBookmarks = !showBookmarks"
       @fullscreen="toggleFullscreen"
       @screenshot="doScreenshot"
       @help="showHelp = true"
@@ -63,6 +92,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import * as THREE from 'three';
 import MapTooltip from './MapTooltip.vue';
 import MapLegend from './MapLegend.vue';
 import MapNavBar from './MapNavBar.vue';
@@ -86,12 +116,16 @@ import type { GeoJsonFeature } from '../types';
 import MapPieChart from './MapPieChart.vue';
 import MapToolbar from './MapToolbar.vue';
 import MapHelpDialog from './MapHelpDialog.vue';
+import MapBookmarkPanel from './MapBookmarkPanel.vue';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { updateRegionScan, setRegionScan } from '../utils/drawRegion';
 import { usePyramidMarkers } from '../composables/usePyramidMarkers';
 import { useOrbitRoutes } from '../composables/useOrbitRoutes';
 import { useHeatmap } from '../composables/useHeatmap';
 import { useCss2dLabels } from '../composables/useCss2dLabels';
+import { useMeasure } from '../composables/useMeasure';
+import { addBookmark, loadBookmarks, removeBookmark } from '../utils/viewBookmarks';
+import type { ViewBookmark } from '../utils/viewBookmarks';
 
 const props = withDefaults(
   defineProps<{
@@ -124,6 +158,16 @@ const props = withDefaults(
     showPie?: boolean;
     /** 展示型装饰：侧壁扫描流光 */
     showWallScan?: boolean;
+    /** 阈值聚焦比例（0~1，相对当前层最大值）：低于该值的柱体淡出，0 = 不过滤 */
+    filterThreshold?: number;
+    /** 时间轴：是否自动播放（页面层播放/暂停按钮下发） */
+    timelinePlaying?: boolean;
+    /** 时间轴：当前月份下标 0~11（页面层滑块下发；自动播放时由组件回传） */
+    timelineMonth?: number;
+    /** 时间轴：播放速度（月/秒），默认 1 */
+    timelineSpeed?: number;
+    /** 主题（暗/亮），切换时覆写地图配色并重新上色 */
+    theme?: 'dark' | 'light';
   }>(),
   {
     maxDrillLevel: 'district',
@@ -143,6 +187,11 @@ const props = withDefaults(
     labelMode: 'sprite',
     showPie: true,
     showWallScan: false,
+    filterThreshold: 0,
+    timelinePlaying: false,
+    timelineMonth: 11,
+    timelineSpeed: 1,
+    theme: 'dark',
   },
 );
 
@@ -155,11 +204,23 @@ const emit = defineEmits<{
   (e: 'hover-change', properties: GeoJsonFeature['properties'] | null): void;
   (e: 'select-change', adcode: number | null): void;
   (e: 'error', error: unknown): void;
+  /** 时间轴：自动播放时组件把当前月份回传给页面（驱动滑块/看板高亮） */
+  (e: 'timeline-month-change', month: number): void;
+  /** 时间轴：播放到末尾自动停止时，把 playing 回传 false 让页面同步按钮态 */
+  (e: 'update:timelinePlaying', playing: boolean): void;
 }>();
 
 // 画布容器 host：渲染器创建的 <canvas> 会 appendChild 进这里（不在模板里），
 // ⚠️ 坑④：HMR 残留画布就发生在这个容器上，需在 viewport 内做 mount 清空。
 const canvasHost = ref<HTMLDivElement | null>(null);
+
+// ── 框选 / 多选 / 批量统计 / 画框缩放（P0 交互）──
+/** Shift 修饰键：按住时左键拖拽进入框选模式，并临时禁用轨道控制器 */
+const shiftDown = ref(false);
+/** 框选矩形（相对容器像素），null = 无 */
+const boxRect = ref<{ x: number; y: number; w: number; h: number } | null>(null);
+/** 当前选中集合（与 layer.selectedSet 同步，供统计浮层渲染） */
+const selectedAdcodes = ref<number[]>([]);
 /** CSS2D 标签渲染器：与 WebGL 共用 canvas 宿主，把 CSS2DObject 投影成 DOM 标签 */
 let css2dRenderer: CSS2DRenderer | null = null;
 // 搜索框实例引用，供键盘 "/" 聚焦使用。
@@ -203,6 +264,7 @@ const markers = useSpotMarkers({
   projectData: () => props.projectData,
   columnColor: () => props.columnColor,
   showColumn: () => props.showColumn,
+  labelMode: () => props.labelMode,
 });
 
 /**
@@ -244,13 +306,147 @@ const c2d = useCss2dLabels({
   visible: () => props.labelMode === 'css2d',
 });
 
-/** 标签模式同步：css2d 开 → 显示 DOM 标签并隐藏 Sprite 卡片；否则反之（并恢复选中态） */
+/**
+ * 标签模式同步：css2d 开 → 显示 DOM 标签；sprite 开 → 显示 Sprite 文本标签。
+ * 二者互斥由 markers.applyMode() 统一处理（css2d 时强制隐藏全部 Sprite 文本标签，
+ * 否则会像此前那样同一省既挂 Sprite 标牌又挂 DOM 标签）。
+ */
 const syncLabels = () => {
   const css2dOn = props.labelMode === 'css2d';
   c2d.setVisible(css2dOn);
-  markers.setCardsVisible(!css2dOn && props.showColumn);
-  if (!css2dOn) markers.applyMode();
+  // 重新套用一次显隐规则：css2d 模式据此隐藏 Sprite 标牌/卡片，sprite 模式据此恢复
+  markers.applyMode();
 };
+
+// ── 测量（P1 交互）：单击地面落点，折线累计长度 + ≥3 点自动算面积 ──
+/** 测量模式开关（由工具栏 v-model:measure 驱动） */
+const measureOn = ref(false);
+/** 已落测点数（useMeasure 内部数组不是响应式的，这里同步一份给模板） */
+const measurePoints = ref(0);
+const measure = useMeasure({
+  getRoot: () => layer.root(),
+  // d3 墨卡托 scale 是「每弧度经度对应的世界单位数」→ 反推每个世界单位多少 km，
+  // 并按当前层中心纬度做墨卡托校正，这样三级的测量值都是真实量级
+  kmPerUnit: () => {
+    const fit = current.value?.fit;
+    const scale = Number(fit?.scale) || 0;
+    if (!scale) return 1;
+    const lat = Number(fit?.center?.[1] ?? 35);
+    return (6371 * Math.cos((lat * Math.PI) / 180)) / scale;
+  },
+});
+
+/** 清空全部测点并复位计数 */
+const clearMeasure = () => {
+  measure.clear();
+  measurePoints.value = 0;
+};
+
+// 进入测量模式：收起巡游（视角飘着没法落点），光标改十字准星
+watch(measureOn, (on) => {
+  if (on && roamOn.value) roamOn.value = false;
+  picker.refreshCursor();
+});
+
+// ── 视角书签（P1 交互）：相机位置 + 视点存 localStorage，一键还原 ──
+const showBookmarks = ref(false);
+const bookmarks = ref<ViewBookmark[]>(loadBookmarks());
+
+/** 保存当前机位（同名不覆盖，允许重复名，靠 id 区分） */
+const saveBookmark = (name?: string) => {
+  const camera = viewport.camera();
+  const controls = viewport.controls();
+  if (!camera || !controls) return;
+  bookmarks.value = addBookmark(
+    name ?? '',
+    [camera.position.x, camera.position.y, camera.position.z],
+    [controls.target.x, controls.target.y, controls.target.z],
+  );
+  pushNotice('已保存当前视角', 'info');
+};
+
+/** 切回某个书签机位（平滑飞过去，保留缩放/旋转/平移的完整状态） */
+const applyBookmark = (id: string) => {
+  const item = bookmarks.value.find((b) => b.id === id);
+  if (!item) return;
+  viewport.flyTo(item.position, item.target, 0.8);
+  showBookmarks.value = false;
+  pushNotice(`已切换到「${item.name}」`, 'info');
+};
+
+/** 删除书签（localStorage 同步） */
+const deleteBookmark = (id: string) => {
+  bookmarks.value = removeBookmark(id);
+};
+
+// ── 时间轴（Play）：柱高随月份补间演化 ──
+const tlProgress = ref(11); // 浮点月份进度（月）
+const tlLastMonth = ref(11); // 上一次已应用的整数月份
+let tlRaf = 0;
+let tlLastTs = 0;
+
+/** 时间轴单帧推进：仅在 playing 时由 rAF 驱动；推进到末月自动停止并回传状态 */
+const tlTick = (ts: number) => {
+  if (!props.timelinePlaying) return;
+  const dt = tlLastTs ? (ts - tlLastTs) / 1000 : 0;
+  tlLastTs = ts;
+  const months = markers.monthCount ?? 12;
+  tlProgress.value += dt * (props.timelineSpeed || 1);
+  if (tlProgress.value >= months - 1) {
+    tlProgress.value = months - 1;
+    markers.setMonth(months - 1, true);
+    tlLastMonth.value = months - 1;
+    emit('timeline-month-change', months - 1);
+    emit('update:timelinePlaying', false);
+    tlRaf = 0;
+    return;
+  }
+  const mi = Math.floor(tlProgress.value);
+  if (mi !== tlLastMonth.value) {
+    tlLastMonth.value = mi;
+    markers.setMonth(mi, true);
+    emit('timeline-month-change', mi);
+  }
+  tlRaf = requestAnimationFrame(tlTick);
+};
+
+const startTimeline = () => {
+  if (tlRaf) return;
+  // 从头播放：若已停在末月则回到 0
+  if (tlProgress.value >= (markers.monthCount ?? 12) - 1) tlProgress.value = 0;
+  tlLastMonth.value = Math.floor(tlProgress.value);
+  tlLastTs = 0;
+  tlRaf = requestAnimationFrame(tlTick);
+};
+
+const stopTimeline = () => {
+  if (tlRaf) {
+    cancelAnimationFrame(tlRaf);
+    tlRaf = 0;
+  }
+};
+
+// 播放/暂停切换 → 启停 rAF
+watch(
+  () => props.timelinePlaying,
+  (p) => {
+    if (p) startTimeline();
+    else stopTimeline();
+  },
+);
+
+// 滑块改动月份 → 直接定位（平滑补间，不打断 playing 状态）
+watch(
+  () => props.timelineMonth,
+  (m) => {
+    if (m == null) return;
+    tlProgress.value = m;
+    tlLastMonth.value = m;
+    markers.setMonth(m, true);
+  },
+);
+
+onUnmounted(() => stopTimeline());
 
 /** 一次性提示：错误 / 无数据，优先于进度条展示 */
 const notice = ref<{ text: string; tone: 'info' | 'error' } | null>(null);
@@ -334,6 +530,8 @@ const {
   // 切层时先清掉悬停态（picker 在下方创建，回调可安全引用：切层发生在挂载之后）
   onLeave: async () => {
     picker.clearHover();
+    // 测量几何挂在旧层 root 上，切层必须清掉，否则会悬在重建后的新地图上空
+    clearMeasure();
     flies.clear();
     pyramids.clear();
     orbits.clear();
@@ -349,6 +547,41 @@ const {
   },
   onNoChild: (name) => pushNotice(`${name} 暂无下级行政区数据`),
 });
+
+// 主题切换 → 覆写 mapConfig 配色并重新上色（immediate 让首帧即落主题）
+// ⚠️ 必须放在 useMapLevels 之后：下面要用 current（层级栈末尾）。immediate 的
+//    watcher 回调在 setup 期间同步执行，若写在 current 声明之前会命中 TDZ
+//    （ReferenceError: Cannot access 'current' before initialization）。
+// ⚠️ paint() 只改顶面材质；侧壁渐变与描边线是建模时烘焙进材质的，换肤必须重建当前层。
+//    主题切换是低频用户操作，重建一次（rise=false 不播入场）比逐材质改色更可靠。
+// ⚠️ 重建必须把「挂在 root 上的所有装饰层」一起重建（markers/pyramids/heat/c2d）：
+//    只重建 layer 会把它们的旧对象留在已销毁的 root 上。CSS2D 尤其致命 ——
+//    CSS2DObject 的 DOM 只有在「对象自身被 remove」时才摘除，祖先 root 被移除时
+//    事件不会冒泡到它，标签会以最后的位置冻结在屏幕上；等切回 sprite 模式后
+//    这些残留 DOM 与 Sprite 卡片同显，看起来就是「有的省份多出一个标牌」
+//    （CSS2D 只给前 18 名画标签，所以只有部分省份有）。
+watch(
+  () => props.theme,
+  async (t) => {
+    if (!t) return;
+    layer.setTheme(t);
+    const level = current.value;
+    if (level && layer.root()) {
+      // 重建会清掉旧 root，测量几何挂在旧 root 上 → 必须先清掉，否则残留失效引用
+      clearMeasure();
+      await layer.build(level, { rise: false, report: () => {} });
+      markers.build(level, false);
+      // 与下面 projectData watcher 保持同一套重建清单，避免装饰层停留在旧 root
+      pyramids.build(level);
+      heat.build(level);
+      c2d.build(level);
+      // build 内部按"无选中"重置显隐，这里补回落：选中态 / 标签模式 / 当前月份
+      markers.applyMode();
+      if (!props.timelinePlaying) markers.setMonth(props.timelineMonth, false);
+    }
+  },
+  { immediate: true },
+);
 
 /**
  * zoom — 滚轮缩放下钻（useZoomDrill），默认关闭，仅当 zoomDrillEnabled=true 生效。
@@ -396,6 +629,7 @@ const zoom = useZoomDrill({
 const selectAdcode = (adcode: number | null) => {
   markers.select(adcode);
   layer.setSelected(adcode);
+  selectedAdcodes.value = adcode != null ? [adcode] : [];
   emit('select-change', adcode);
 };
 
@@ -440,6 +674,64 @@ let lastHoverAdcode: number | null = null;
  *   - onDrill：双击下钻（走 handleDrill）。
  * 注意：canvas 不在模板里，故需 onMounted 时 picker.attach(canvas)。
  */
+
+/**
+ * 框选结束：把屏幕矩形内的行政区批量拾取为高亮选中。
+ * - 非 Shift：直接替换为新集合，并聚焦到选区包围盒（画框缩放）。
+ * - Shift：与现有集合做 toggle 累加（可正选 / 反选）。
+ * 投影法取每个区域世界坐标投影到屏幕像素判断落框，框选只在 mouseup 执行一次，开销极低。
+ */
+const onBoxEnd = (rect: { x: number; y: number; w: number; h: number } | null, shift: boolean) => {
+  boxRect.value = null
+  const camera = viewport.camera()
+  const root = layer.root()
+  const hostEl = canvasHost.value
+  if (!camera || !root || !rect || !hostEl) return
+  const w = hostEl.clientWidth
+  const h = hostEl.clientHeight
+  const regions = layer.regions()
+  const hits: number[] = []
+  const v = new THREE.Vector3()
+  for (const r of regions) {
+    v.copy(r.world).project(camera)
+    const sx = (v.x * 0.5 + 0.5) * w
+    const sy = (-v.y * 0.5 + 0.5) * h
+    if (sx >= rect.x && sx <= rect.x + rect.w && sy >= rect.y && sy <= rect.y + rect.h) hits.push(r.adcode)
+  }
+  if (!hits.length) return
+  let next: Set<number>
+  if (shift) {
+    next = layer.selectedSet()
+    for (const a of hits) { if (next.has(a)) next.delete(a); else next.add(a) }
+  } else {
+    next = new Set(hits)
+  }
+  layer.setSelectedSet(next)
+  selectedAdcodes.value = [...next]
+  if (!shift && next.size > 0) zoomToSelection(next)
+};
+
+/** 画框缩放：把相机平滑聚焦到选中区域的屏幕包围盒（复用 viewport.focus 的取景算法） */
+const zoomToSelection = (set: Set<number>) => {
+  const regs = layer.regions().filter((r) => set.has(r.adcode))
+  if (regs.length < 1) return
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const r of regs) {
+    minX = Math.min(minX, r.world.x); maxX = Math.max(maxX, r.world.x)
+    minY = Math.min(minY, r.world.y); maxY = Math.max(maxY, r.world.y)
+  }
+  const cx = (minX + maxX) / 2
+  const cy = (minY + maxY) / 2
+  const hw = Math.max((maxX - minX) / 2, 6)
+  const hh = Math.max((maxY - minY) / 2, 6)
+  const fit = {
+    center: [0, 0] as [number, number],
+    scale: 1,
+    bounds: { minX: -hw, minY: -hh, maxX: hw, maxY: hh, width: 2 * hw, height: 2 * hh, cx: 0, cy: 0 },
+  }
+  viewport.focus(fit, 0.6, new THREE.Vector3(cx, cy, mapConfig.depth))
+};
+
 const picker = usePointerPick({
   camera: () => viewport.camera(),
   getRoot: () => layer.root(),
@@ -464,6 +756,28 @@ const picker = usePointerPick({
   onMiss: () => {
     if (markers.selectedAdcode.value != null) selectAdcode(null)
   },
+  // ── 框选（Shift + 拖拽）：交给 usePointerPick 处理矩形，结果回传 onBoxEnd ──
+  boxMode: () => shiftDown.value,
+  setControlsEnabled: (enabled) => {
+    const c = viewport.controls()
+    if (!c) return
+    // 仍按住 Shift 时不恢复轨道，否则 Shift 下再次拖拽会触发 pan
+    if (enabled && shiftDown.value) return
+    c.enabled = enabled
+  },
+  onBoxStart: () => {
+    boxRect.value = { x: 0, y: 0, w: 0, h: 0 }
+  },
+  onBoxUpdate: (rect) => {
+    boxRect.value = rect
+  },
+  onBoxEnd,
+  // ── 测量：开启后单击改为在地面落点（不选中、不下钻）──
+  measureMode: () => measureOn.value,
+  onMeasure: (world) => {
+    measure.addPoint(world);
+    measurePoints.value = measure.count();
+  },
 });
 
 const tooltip = computed(() => {
@@ -483,6 +797,25 @@ const tooltip = computed(() => {
 });
 
 const legend = computed(() => markers.legend.value);
+
+/** 批量统计：选中集合的合计值 + 占全部比例（供统计浮层） */
+const selectionStats = computed(() => {
+  const list = selectedAdcodes.value
+  if (!list.length) return null
+  const data = props.projectData as Record<number, any> | undefined
+  let sum = 0
+  for (const a of list) sum += readCount(data?.[a])
+  let total = 0
+  if (data) for (const k of Object.keys(data)) total += readCount((data as any)[k])
+  return { count: list.length, sum, ratio: total > 0 ? sum / total : 0 }
+});
+
+/** 框选矩形样式 */
+const boxStyle = computed(() => {
+  const r = boxRect.value
+  if (!r) return {}
+  return { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` }
+});
 
 /** 饼图分段：分档颜色 + 标签 + 各档城市数量（来自 markers 的统计） */
 const pie = computed(() =>
@@ -608,7 +941,13 @@ const playEntrance = () => {
 //   jumpTo         面包屑跳级（复用 handleJump）
 //   resetToCountry 回到全国
 //   playEntrance   触发入场增长动画（deferEntrance 模式）
+//   selectByAdcode 按 adcode 高亮选中（面板悬浮联动用；null 取消选中）
 //   currentLevel   读取当前层级对象
+//   setMeasure     开关测量模式（true=单击地面落点）
+//   clearMeasure   清空全部测点
+//   saveBookmark   保存当前视角书签（可选名称）
+//   applyBookmark  切换到指定 id 的书签机位
+//   deleteBookmark 删除指定书签
 defineExpose({
   drillByAdcode,
   locateByAdcode: locateByCode,
@@ -616,23 +955,34 @@ defineExpose({
   jumpTo: handleJump,
   resetToCountry: resetToRoot,
   playEntrance,
+  selectByAdcode: (adcode: number | null) => selectAdcode(adcode),
   currentLevel: () => current.value as MapLevel | null,
+  setMeasure: (on: boolean) => {
+    measureOn.value = on;
+  },
+  clearMeasure,
+  saveBookmark,
+  applyBookmark,
+  deleteBookmark,
 });
 
+// 数据 / 配色变化 → 重建标记层与依赖数据的装饰层。
+// 合成一个 watcher 的原因：projectData 与 columnColor 都只影响"标记 + 装饰层重建"这一件事，
+// 分成两个 watcher 时若同一 tick 内两者都变，Vue 不会跨 watcher 去重 → 整套几何会被建两遍。
+// ⚠️ 不要加 deep：页面侧始终整体替换 projectData（`{...old, ...patch}`），深监听只会
+//    多付一次全量递归遍历，并把"原地改嵌套字段"变成隐性依赖。
 watch(
-  () => props.projectData,
+  () => [props.projectData, props.columnColor],
   () => {
     const level = current.value;
     // 数据 / 配色变更即时生效，重播入场动画会显得整屏在抖
-    if (level && layer.root()) {
-      markers.build(level, false);
-      // 依赖数据的装饰层同步重建：棱锥 / 热力 / CSS2D 标签
-      pyramids.build(level);
-      heat.build(level);
-      c2d.build(level);
-    }
+    if (!level || !layer.root()) return;
+    markers.build(level, false);
+    // 依赖数据的装饰层同步重建：棱锥 / 热力 / CSS2D 标签
+    pyramids.build(level);
+    heat.build(level);
+    c2d.build(level);
   },
-  { deep: true },
 );
 
 // showColumn 切换数据柱 ↔ 地理标牌：applyMode() 不重建，仅切换呈现模式。
@@ -640,15 +990,6 @@ watch(
 watch(
   () => props.showColumn,
   () => markers.applyMode(),
-);
-
-watch(
-  () => props.columnColor,
-  () => {
-    const level = current.value;
-    // 数据 / 配色变更即时生效，重播入场动画会显得整屏在抖
-    if (level && layer.root()) markers.build(level, false);
-  },
 );
 
 watch(
@@ -704,6 +1045,13 @@ watch(
   { immediate: true },
 );
 
+// 阈值聚焦：比例变化即时应用到标记层（只切柱体 visible，不重建几何）
+watch(
+  () => props.filterThreshold,
+  (v) => markers.setThreshold(v ?? 0),
+  { immediate: true },
+);
+
 // 层级变化对外广播（外部可据此同步标题 / 列表）
 watch(
   () => current.value?.adcode,
@@ -741,7 +1089,15 @@ const handleKeydown = (event: KeyboardEvent) => {
   } else if (event.key === '/' && props.showSearch) {
     event.preventDefault();
     searchRef.value?.focus();
+  } else if (event.key === 'Shift') {
+    // 按住 Shift 进入框选模式（仅修饰键，不拦截其它逻辑）
+    shiftDown.value = true;
   }
+};
+
+/** Shift 松开：退出框选模式（恢复轨道控制器交由 setControlsEnabled 判定） */
+const handleKeyUp = (event: KeyboardEvent) => {
+  if (event.key === 'Shift') shiftDown.value = false;
 };
 
 /** 视角预设：转交 viewport 平滑切换，并回写 currentView 高亮 */
@@ -805,14 +1161,17 @@ onMounted(async () => {
     orbits.tick(dt);
     // 侧壁扫描流光：推进共享材质的时间戳
     updateRegionScan(elapsed);
-    // CSS2D 标签：与 WebGL 同帧投影 DOM 标签
+    // CSS2D 标签：与 WebGL 同帧投影 DOM 标签。
+    // 仅 css2d 模式才渲染 —— CSS2DRenderer 内部是 scene.traverse，sprite 模式下
+    // DOM 元素已逐个 display:none，再每帧遍历整个场景纯属浪费。
     const cam = viewport.camera();
     const scn = viewport.scene();
-    if (cam && scn && css2dRenderer) css2dRenderer.render(scn, cam);
+    if (cam && scn && css2dRenderer && props.labelMode === 'css2d') css2dRenderer.render(scn, cam);
     zoom.update(viewport.camera()!, viewport.controls());
   });
 
   window.addEventListener('keydown', handleKeydown, false);
+  window.addEventListener('keyup', handleKeyUp, false);
 
   await loadCountry(!props.deferEntrance);
   zoom.reset(viewport.camera(), viewport.controls());
@@ -825,9 +1184,11 @@ onUnmounted(() => {
   tickOff?.();
   tickOff = null;
   window.removeEventListener('keydown', handleKeydown, false);
+  window.removeEventListener('keyup', handleKeyUp, false);
   window.removeEventListener('resize', onCss2dResize, false);
   if (noticeTimer) clearTimeout(noticeTimer);
   picker.detach();
+  measure.clear();
   pyramids.clear();
   orbits.clear();
   heat.clear();
@@ -862,6 +1223,91 @@ onUnmounted(() => {
   display: block;
   width: 100% !important;
   height: 100% !important;
+  /* 触屏：禁掉浏览器默认的滚动/双击缩放，手势全部交给 OrbitControls */
+  touch-action: none;
+}
+/* 框选矩形：青色描边 + 半透明填充，不拦截鼠标避免拖拽中断 */
+.map-box-select {
+  position: absolute;
+  border: 1px solid #5fc9ee;
+  background: rgba(95, 201, 238, 0.14);
+  pointer-events: none;
+  z-index: 5;
+}
+/* 批量统计浮层（左下角，玻璃拟态 + 青光） */
+.map-sel-stats {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background: rgba(6, 16, 30, 0.82);
+  border: 1px solid rgba(95, 201, 238, 0.5);
+  border-radius: 8px;
+  color: #cfeaff;
+  font: 600 13px/1 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  backdrop-filter: blur(4px);
+}
+.map-sel-stats__item b {
+  color: #fff;
+  margin: 0 2px;
+}
+.map-sel-stats__clear {
+  margin-left: 4px;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(95, 201, 238, 0.6);
+  border-radius: 5px;
+  color: #9fd6ef;
+  cursor: pointer;
+  font: 600 12px/1 inherit;
+}
+.map-sel-stats__clear:hover {
+  background: rgba(95, 201, 238, 0.16);
+}
+/* 测量提示条（左下角，位于批量统计浮层上方，两者可同时出现） */
+.map-measure {
+  position: absolute;
+  left: 16px;
+  bottom: 62px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  background: rgba(6, 16, 30, 0.82);
+  border: 1px solid rgba(95, 216, 255, 0.5);
+  border-radius: 8px;
+  color: #cfeaff;
+  font: 600 12px/1 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  backdrop-filter: blur(4px);
+}
+.map-measure__title {
+  color: #5fd8ff;
+  letter-spacing: 1px;
+}
+.map-measure__num {
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.map-measure__btn {
+  padding: 3px 9px;
+  background: transparent;
+  border: 1px solid rgba(95, 216, 255, 0.55);
+  border-radius: 5px;
+  color: #9fd6ef;
+  cursor: pointer;
+  font: 600 12px/1 inherit;
+}
+.map-measure__btn:hover:not(:disabled) {
+  background: rgba(95, 216, 255, 0.16);
+}
+.map-measure__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 /* CSS2D 城市标签样式见文件末尾非 scoped <style> 块：
    标签 DOM 由 useCss2dLabels 用 document.createElement 动态注入到

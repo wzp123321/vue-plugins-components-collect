@@ -64,14 +64,25 @@ export default ({ mode }) => {
       outDir: 'dist/pluginComponent-web',
       rollupOptions: {
         output: {
-          // 最小化拆分包
-          manualChunks: {
-            'element-plus': ['element-plus'],
-            axios: ['axios'],
-            vue: ['vue'],
-            'vue3-slide-verify': ['vue3-slide-verify'],
-            echarts: ['echarts'],
-          }, // 用于从入口点创建的块的打包输出格式[name]表示文件名,[hash]表示该文件内容hash值
+          // ⚠️ 坑：不能用对象形式把 element-plus 和 vue 拆成两个 chunk——二者共享 @vue/shared 等依赖，
+          // 拆分后会出现 vue.*.js import element-plus.*.js、后者又 import 前者的循环，
+          // 生产包启动即报 "Cannot access 'tc' before initialization"（dev 模式不复现）。
+          // 故 vue 生态 + element-plus 统一进 vue-vendor，其余大依赖单独分组。
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return;
+            if (
+              id.includes('element-plus') ||
+              id.includes('@element-plus') ||
+              id.includes('@vueuse') ||
+              /[\\/]node_modules[\\/](vue|@vue)[\\/]/.test(id)
+            ) {
+              return 'vue-vendor';
+            }
+            if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
+            if (id.includes('axios')) return 'axios';
+            if (id.includes('vue3-slide-verify')) return 'vue3-slide-verify';
+            return;
+          },
           entryFileNames: 'js/[name].[hash].js', // 用于命名代码拆分时创建的共享块的输出命名
           chunkFileNames: 'js/[name].[hash].js', // 用于输出静态资源的命名，[ext]表示文件扩展名
           assetFileNames: '[ext]/[name].[hash].[ext]', // 拆分js到模块文件夹 // chunkFileNames: (chunkInfo) => { //     const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/') : []; //     const fileName = facadeModuleId[facadeModuleId.length - 2] || '[name]'; //     return `js/${fileName}/[name].[hash].js`; // },

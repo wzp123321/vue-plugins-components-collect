@@ -7,6 +7,7 @@ import type { GridScroll } from './useGridScroll';
 import type { CellSelection } from './useCellSelection';
 import type { GridDraft } from './useGridDraft';
 import { type ColDef, type ColType, emptyValueFor } from '../types';
+import { aggregateCells } from './aggregate';
 
 /**
  * 数据操作层：行增删复制 / 自定义列增删移序 / 批量填充 / 数据质量清理 / 提交 / 校验面板跳转。
@@ -33,41 +34,22 @@ export function useGridOps(
 
   // ===================== 框选选区（行选中移除后的批量作用域） =====================
   /** 选区涉及的行（按当前查询结果序）：批量操作（删/复制/填充）的作用域；单元格数用于工具条禁用态 */
-  const selectionRows = computed(() => {
-    const rect = sel.selRect.value;
-    if (!rect) return [];
-    return core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
-  });
-  /** 选区单元格总数（rowIds.size × fields.length）：工具条批量按钮禁用态判据 */
+  const selectionRows = computed(() => sel.rectRows(sel.selRect.value));
+  /** 选区单元格总数（行跨度 × 列跨度）：工具条批量按钮禁用态判据 */
   const selectionCount = computed(() => {
     const rect = sel.selRect.value;
-    return rect ? rect.rowIds.size * rect.fields.length : 0;
+    return rect ? (rect.bottomIdx - rect.topIdx + 1) * (rect.rightIdx - rect.leftIdx + 1) : 0;
   });
   // ⚠️ 坑：状态栏统计双轨——本 selectionStats 是"选区内数字格聚合"（count/sum/avg/min/max），
   // 与 useGridCore 的 activeStats（当前列全量统计）相互独立、分别呈现。仅统计数字列，无数值格时返回 null。
   const selectionStats = computed(() => {
     const rect = sel.selRect.value;
     if (!rect) return null;
-    const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
-    let sum = 0,
-      min = Infinity,
-      max = -Infinity,
-      cnt = 0;
-    for (const r of rows) {
-      for (const f of rect.fields) {
-        const def = core.columnDefs.value.find((d) => d.field === f);
-        if (def?.type !== 'number') continue;
-        const v = r[f];
-        if (v !== null && v !== '' && !isNaN(Number(v))) {
-          const n = Number(v);
-          sum += n;
-          cnt++;
-          if (n < min) min = n;
-          if (n > max) max = n;
-        }
-      }
-    }
-    return cnt ? { count: cnt, sum: Number(sum.toFixed(2)), avg: Number((sum / cnt).toFixed(2)), min, max } : null;
+    // 数值列集合先算一次，避免逐格 columnDefs.find；非数值列直接不参与
+    const numFields = new Set(core.columnDefs.value.filter((d) => d.type === 'number').map((d) => d.field));
+    const fields = sel.rectFields(rect).filter((f) => numFields.has(f));
+    if (!fields.length) return null;
+    return aggregateCells(sel.rectRows(rect), fields);
   });
 
   // ===================== 行操作 =====================
@@ -88,6 +70,7 @@ export function useGridOps(
     row.__dirty = true;
     core.validateRow(row);
     core.allRows.value.push(row);
+    core.bumpData();
     locateRow(row);
     return row;
   };
@@ -100,6 +83,7 @@ export function useGridOps(
     const idx = core.currentCell.value ? core.allRows.value.findIndex((r) => r.__id === core.currentCell.value!.row.__id) : -1;
     if (idx >= 0) core.allRows.value.splice(idx + 1, 0, row);
     else core.allRows.value.push(row);
+    core.bumpData();
   };
   /** 删除框选区域涉及的全部行（连带清除其错误标记） */
   const deleteSelected = () => {
@@ -109,6 +93,7 @@ export function useGridOps(
     const ids = new Set(rows.map((r: any) => r.__id));
     core.allRows.value = core.allRows.value.filter((r) => !ids.has(r.__id));
     for (const k of Object.keys(core.cellErrors)) if (ids.has(k.split('__')[0])) delete core.cellErrors[k];
+    core.bumpData();
     ElMessage.success(`已删除 ${rows.length} 行`);
   };
   /** 复制框选区域涉及的行，插在选区末行之后 */
@@ -124,6 +109,7 @@ export function useGridOps(
     });
     const idx = core.allRows.value.findIndex((r) => r.__id === rows[rows.length - 1].__id);
     core.allRows.value.splice(idx + 1, 0, ...copies);
+    core.bumpData();
     ElMessage.success(`已复制 ${copies.length} 行`);
   };
   /** 清空所有行数据（可撤销），并连带清除全部错误标记 */
@@ -131,6 +117,7 @@ export function useGridOps(
     snap();
     core.allRows.value = [];
     for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
+    core.bumpData();
   };
 
   // ===================== 数据质量：空行 / 重复行 =====================
@@ -161,6 +148,7 @@ export function useGridOps(
     snap();
     core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
     core.revalidateAll();
+    core.bumpData();
     ElMessage.success(`已删除 ${n} 个空行`);
   };
 
@@ -183,6 +171,7 @@ export function useGridOps(
         for (const g of groups) for (let i = 1; i < g.length; i++) drop.add(g[i]);
         core.allRows.value = core.allRows.value.filter((r) => !drop.has(r.__id));
         core.revalidateAll();
+        core.bumpData();
         ElMessage.success(`已删除 ${drop.size} 个重复行`);
       })
       .catch(() => {});
@@ -223,6 +212,7 @@ export function useGridOps(
       if (def.required) core.validateCell(r, field);
     }
     colDialogVisible.value = false;
+    core.bumpData();
     ElMessage.success(`已新增列「${name}」`);
   };
   /**
@@ -235,6 +225,7 @@ export function useGridOps(
     for (const r of core.allRows.value) delete r[field];
     for (const k of Object.keys(core.cellErrors)) if (k.endsWith(`__${field}`)) delete core.cellErrors[k];
     delete core.columnFilters[field];
+    core.bumpData();
     ElMessage.success('已删除该列');
   };
   /**
@@ -269,7 +260,6 @@ export function useGridOps(
       ElMessage.warning('请选择列');
       return;
     }
-    snap();
     const targets = resolveFillTargets();
     if (!targets.length) {
       ElMessage.warning('没有可填充的数据');
@@ -287,24 +277,27 @@ export function useGridOps(
         }
       }
     }
-    for (const r of targets) {
-      r[def.field] = v;
-      r.__dirty = true;
-      core.validateCell(r, def.field);
-    }
+    core.commitCells('批量填充', targets, () => {
+      for (const r of targets) {
+        r[def.field] = v;
+        r.__dirty = true;
+        core.validateCell(r, def.field);
+      }
+    });
     ElMessage.success(`已填充 ${targets.length} 行`);
   };
   /** 批量清空指定列：按当前范围（选区/结果/全部）把该列重置为列类型的空值并标脏、校验 */
   const batchClearCol = () => {
     const def = fillDef.value;
     if (!def) return;
-    snap();
     const targets = resolveFillTargets();
-    for (const r of targets) {
-      r[def.field] = emptyValueFor(def);
-      r.__dirty = true;
-      core.validateCell(r, def.field);
-    }
+    core.commitCells('批量清空列', targets, () => {
+      for (const r of targets) {
+        r[def.field] = emptyValueFor(def);
+        r.__dirty = true;
+        core.validateCell(r, def.field);
+      }
+    });
     ElMessage.success('已清空该列');
   };
 
@@ -347,6 +340,7 @@ export function useGridOps(
     if (emptyN) {
       snap();
       core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
+      core.bumpData();
       ElMessage.info(`已移除并忽略 ${emptyN} 个空行`);
     }
     core.revalidateAll();

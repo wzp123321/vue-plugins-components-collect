@@ -18,7 +18,12 @@
  * ⚠️ 坑：标签落点必须走 anchorOf() 取 properties.center（与柱体/标牌一致）。
  * ⚠️ 约定：CSS2D 标签不参与 WebGL 深度测试，会从 3D 物体"背后"穿透显示；
  *   仅保留数值最大的前若干城市（与 Sprite 卡片同口径），避免城市密集时标签糊成一团。
- * ⚠️ 性能：DOM 标签数量过多会拖慢布局，故限制为 C2D_MAX 个。
+ * ⚠️ 坑（关键）：CSS2DRenderer 判断显隐时只看 **CSS2DObject 自身**的 visible
+ *   （源码 `visible = object.visible === true && ...`），而遍历用的是 `scene.traverse`
+ *   —— 不看祖先的 visible。因此把父 Group 设成 `visible=false` 对 DOM 标签毫无作用，
+ *   标签照样显示。要隐藏必须逐个对象设 visible（本文件的 applyVisibility），
+ *   否则"sprite 模式下 DOM 标签仍在"→ 同一省份既有 DOM 标签又有 Sprite 卡片，
+ *   看起来就是"有的省份出现两个标牌"（CSS2D 只取前 18 名，故只有部分省有）。
  */
 
 import * as THREE from 'three'
@@ -55,6 +60,22 @@ const readValue = (raw: unknown): number => {
  */
 export const useCss2dLabels = (options: Options) => {
   let group: THREE.Group | null = null
+
+  /**
+   * 按开关逐个设置标签显隐。
+   * ⚠️ 必须逐个对象设置，不能只设 group.visible：CSS2DRenderer 遍历时不看祖先
+   *   visible（见文件头说明）。element.style.display 也一并写，保证即使某一帧
+   *   没有 render 也不会残留上一帧的显示状态。
+   */
+  const applyVisibility = (visible: boolean) => {
+    if (!group) return
+    group.visible = visible
+    group.children.forEach((child) => {
+      child.visible = visible
+      const el = (child as CSS2DObject).element
+      if (el) el.style.display = visible ? '' : 'none'
+    })
+  }
 
   /** 释放：摘除所有 CSS2DObject（其 DOM 元素会随对象移除自动脱离文档） */
   const clear = () => {
@@ -111,13 +132,15 @@ export const useCss2dLabels = (options: Options) => {
     }
     group.visible = options.visible()
     root.add(group)
+    // 逐个对象同步显隐：只在 sprite 模式下把每个标签也置为不可见，否则 DOM 标签会漏显
+    applyVisibility(options.visible())
   }
 
   return {
     build,
     clear,
     setVisible(visible: boolean) {
-      if (group) group.visible = visible
+      applyVisibility(visible)
     },
   }
 }

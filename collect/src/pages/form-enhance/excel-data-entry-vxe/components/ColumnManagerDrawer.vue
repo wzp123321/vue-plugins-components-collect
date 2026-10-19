@@ -33,6 +33,32 @@ const saveRule = (p: { rules: any; cross: any[] }) => {
 };
 // 判断某列是否配置了规则（用于在列设置行显示高亮齿轮）
 const hasRule = (d: ColDef) => !!d.rules || !!d.cross?.length;
+
+// ===================== 开关类改动（必填/显隐/冻结） =====================
+// ⚠️ 坑：直接用 v-model 改 ColDef 的话，既不入撤销栈也不重校验——勾上"必填"后表格不标红、错误数不变。
+// 这里统一走"先快照旧值 → 再赋值 → 需要时全量重校"，保证撤销能回退、校验立即同步。
+const commitFlag = (apply: () => void) => {
+  props.core.pushSnapshot(props.core.snapshotNow());
+  apply();
+};
+const setRequired = (d: ColDef, v: boolean) => {
+  commitFlag(() => (d.required = v));
+  props.core.revalidateAll();
+};
+const setVisible = (d: ColDef, v: boolean) => {
+  commitFlag(() => (d.visible = v));
+  if (!v) {
+    // 隐藏列后若还留着它的筛选/排序，数据会被"看不见的条件"过滤或重排，用户容易误判成数据丢了
+    delete props.core.columnFilters[d.field];
+    if (props.core.sortList.value.some((s) => s.field === d.field)) {
+      props.core.sortList.value = props.core.sortList.value.filter((s) => s.field !== d.field);
+    }
+  }
+  props.core.revalidateAll();
+};
+const setFrozen = (d: ColDef, v: boolean) => {
+  commitFlag(() => (d.frozen = v));
+};
 </script>
 
 <template>
@@ -48,9 +74,30 @@ const hasRule = (d: ColDef) => !!d.rules || !!d.cross?.length;
         </span>
         <el-input v-model="d.label" size="small" class="col-label" />
         <el-tag size="small" effect="plain">{{ typeLabel[d.type] }}</el-tag>
-        <el-switch v-model="d.visible" size="small" inline-prompt active-text="显" inactive-text="隐" />
-        <el-switch v-model="d.frozen" size="small" inline-prompt active-text="冻" inactive-text="松" />
-        <el-switch v-model="d.required" size="small" inline-prompt active-text="必" inactive-text="选" />
+        <el-switch
+          :model-value="d.visible"
+          size="small"
+          inline-prompt
+          active-text="显"
+          inactive-text="隐"
+          @change="(v) => setVisible(d, !!v)"
+        />
+        <el-switch
+          :model-value="d.frozen"
+          size="small"
+          inline-prompt
+          active-text="冻"
+          inactive-text="松"
+          @change="(v) => setFrozen(d, !!v)"
+        />
+        <el-switch
+          :model-value="d.required"
+          size="small"
+          inline-prompt
+          active-text="必"
+          inactive-text="选"
+          @change="(v) => setRequired(d, !!v)"
+        />
         <el-button
           text
           size="small"

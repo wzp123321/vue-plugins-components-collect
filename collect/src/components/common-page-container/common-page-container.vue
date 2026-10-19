@@ -25,25 +25,33 @@ const mapComponentClass = () => {
 .common-page-container {
   width: 100%;
   height: 100%;
-  background: #f0f2f5;
+  min-height: 0;
+  background: transparent;
   overflow: hidden;
-  padding: 16px;
+  padding: 0;
 
   .pcv-wrap {
-    background: #fff;
+    position: relative;
     height: 100%;
-    // padding: 20px;
+    // padding: 18px;
     overflow: auto;
-    box-sizing: border-box;
     overflow-x: hidden;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.3s ease;
+    border: 1px solid var(--ai-border);
+    border-radius: var(--ai-radius-lg);
+    background: var(--ai-surface);
+    backdrop-filter: blur(20px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      var(--ai-shadow-md);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
 
     &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-color: var(--ai-border-strong);
     }
   }
 }
