@@ -41,6 +41,33 @@ export const getGlowTexture = (): THREE.Texture => {
   return glowTexture
 };
 
+let ringTexture: THREE.Texture | null = null
+
+/**
+ * 环形涟漪贴图（飞线端点扩散圆环用）：软边圆环，中心与外缘全透明。
+ * 首次调用后缓存并标记 shared —— disposeObject3D 会跳过 shared 纹理，
+ * 下钻重建飞线层时不会误释放这条跨层级复用的贴图。
+ */
+export const getRingTexture = (): THREE.Texture => {
+  if (ringTexture) return ringTexture
+  const size = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const r = size / 2
+  // 用径向渐变画软边圆环：0.62 内全透明 → 0.78 环脊最亮 → 1 外缘淡出
+  const gradient = ctx.createRadialGradient(r, r, 0, r, r, r)
+  gradient.addColorStop(0.62, 'rgba(255,255,255,0)')
+  gradient.addColorStop(0.78, 'rgba(255,255,255,0.9)')
+  gradient.addColorStop(0.88, 'rgba(255,255,255,0.35)')
+  gradient.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, size, size)
+  ringTexture = new THREE.CanvasTexture(canvas)
+  ringTexture.userData = { shared: true }
+  return ringTexture
+}
+
 /** 统一的 Canvas 文本测量上下文（避免 DOM 测量触发强制重排） */
 let measureCtx: CanvasRenderingContext2D | null = null
 

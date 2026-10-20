@@ -1,4 +1,6 @@
 import type { FlatNavItem } from '@/views/layout/aside-box/constant';
+import { capabilityProfiles } from '@/config/capability-profiles';
+import type { CapabilityProfile } from '@/config/capability-profiles';
 
 /**
  * 命令面板语义检索（Phase 0：本地、零后端、零 API key）
@@ -7,7 +9,7 @@ import type { FlatNavItem } from '@/views/layout/aside-box/constant';
  * 例如用户输入「可拖拽排序的看板」，即使没有 demo 标题叫这个名字，也能命中 te-drag-design。
  *
  * 设计约束：
- * - 不修改 navGroups 里那 80 条目录定义（避免大改），所有「语义知识」集中在本文件。
+ * - 不修改 navGroups 目录定义（避免大改），所有「语义知识」集中在本文件。
  * - 纯函数：由 constant.ts 把 allNavItems 传进来，避免循环依赖。
  */
 
@@ -134,6 +136,49 @@ const INTENT_ALIASES: Record<string, string[]> = {
   '/utils-advance': ['工具函数', '高级工具'],
 };
 
+/** 画像全文：定位 + 需求结论 + 落地要点，检索权重最高的自然语言面 */
+function profileText(profile: CapabilityProfile): string {
+  return [
+    profile.positioning,
+    ...profile.needs.map((need) => `${need.text} ${need.comment ?? ''}`),
+    ...(profile.notes ?? []),
+  ]
+    .join(' ')
+    .toLowerCase();
+}
+
+export interface ProfileHit {
+  profile: CapabilityProfile;
+  score: number;
+}
+
+/**
+ * 画像检索：输入工作需求句，返回命中的能力条目。
+ * 空查询返回全量（按配置顺序），供能力地图默认分组展示。
+ */
+export function searchProfiles(keyword: string): ProfileHit[] {
+  const query = keyword.trim();
+  if (!query) return capabilityProfiles.map((profile) => ({ profile, score: 0 }));
+
+  const terms = expandTerms(query);
+  const hits = capabilityProfiles
+    .map((profile) => {
+      const text = profileText(profile);
+      let score = 0;
+      for (const term of terms) {
+        if (term && text.includes(term)) score += 4;
+      }
+      return { profile, score };
+    })
+    .filter((hit) => hit.score > 0);
+
+  hits.sort((a, b) => b.score - a.score);
+  return hits;
+}
+
+/** path → 画像全文 的预编译索引（能力地图与检索共用） */
+const profileByText = new Map(capabilityProfiles.map((profile) => [profile.path, profile]));
+
 /** 把查询词扩展成一组相关词（同义词 + 分词） */
 function expandTerms(query: string): string[] {
   const lower = query.toLowerCase();
@@ -165,12 +210,15 @@ export function semanticSearch(keyword: string, items: FlatNavItem[]): FlatNavIt
     const groupT = item.groupLabel.toLowerCase();
     const pathT = item.path.toLowerCase();
     const aliasT = (INTENT_ALIASES[item.path] ?? []).join(' ').toLowerCase();
+    const profile = profileByText.get(item.path);
+    const capT = profile ? profileText(profile) : '';
 
     let score = 0;
     for (const term of terms) {
       if (!term) continue;
       if (labelT.includes(term)) score += 3;
       if (aliasT.includes(term)) score += 4;
+      if (capT.includes(term)) score += 4;
       if (sectionT.includes(term)) score += 2;
       if (groupT.includes(term)) score += 2;
       if (pathT.includes(term)) score += 1;

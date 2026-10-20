@@ -1,54 +1,33 @@
 import { RouteRecordRaw } from 'vue-router';
 
+/**
+ * 3D 引擎示例路由
+ *
+ * 2026-10-20 菜单合并：Three.js / Babylon.js 的基础示例聚合为两个标签合集页，
+ * 旧路径保留为 redirect 兼容历史链接（银河系、拾取、火焰、PBR、中国地图等大件保持独立）。
+ */
 const threejsRoutes: RouteRecordRaw[] = [
   {
-    path: '/threejs-basic',
+    path: '/threejs-lab',
     meta: {
-      name: 'Three.js 基础图形',
+      name: 'Three.js 基础合集',
     },
-    component: () => import('../../pages/threejs/threejs-basic/threejs-basic.vue'),
+    component: () => import('../../pages/threejs/threejs-lab/threejs-lab.vue'),
+  },
+  {
+    path: '/threejs-basic',
+    meta: { name: 'Three.js 基础图形(已合并)' },
+    redirect: { path: '/threejs-lab', query: { tab: 'basic' } },
   },
   {
     path: '/threejs-scene',
-    meta: {
-      name: 'Three.js 场景与物体',
-    },
-    component: () => import('../../pages/threejs/threejs-scene/threejs-scene.vue'),
+    meta: { name: 'Three.js 场景与物体(已合并)' },
+    redirect: { path: '/threejs-lab', query: { tab: 'scene' } },
   },
   {
     path: '/threejs-sun',
-    meta: {
-      name: 'Three.js 太阳地球',
-    },
-    component: () => import('../../pages/threejs/threejs-sun/threejs-sun.vue'),
-  },
-  {
-    path: '/babylon-base',
-    meta: {
-      name: 'Babylon 基础',
-    },
-    component: () => import('../../pages/babylon/babylon-base/babylon-base.vue'),
-  },
-  {
-    path: '/babylon-mesh',
-    meta: {
-      name: 'Babylon 形状',
-    },
-    component: () => import('../../pages/babylon/babylon-mesh/babylon-mesh.vue'),
-  },
-  {
-    path: '/babylon-params',
-    meta: {
-      name: 'Babylon 参数化',
-    },
-    component: () => import('../../pages/babylon/babylon-params/babylon-params.vue'),
-  },
-  {
-    path: '/babylon-texture',
-    meta: {
-      name: 'Babylon 材质',
-    },
-    component: () => import('../../pages/babylon/babylon-texture/babylon-texture.vue'),
+    meta: { name: 'Three.js 太阳地球(已合并)' },
+    redirect: { path: '/threejs-lab', query: { tab: 'sun' } },
   },
   {
     path: '/threejs-galaxy',
@@ -63,6 +42,33 @@ const threejsRoutes: RouteRecordRaw[] = [
       name: 'Threejs 交互拾取',
     },
     component: () => import('../../pages/threejs/threejs-raycaster/threejs-raycaster.vue'),
+  },
+  {
+    path: '/babylon-lab',
+    meta: {
+      name: 'Babylon 基础合集',
+    },
+    component: () => import('../../pages/babylon/babylon-lab/babylon-lab.vue'),
+  },
+  {
+    path: '/babylon-base',
+    meta: { name: 'Babylon 基础(已合并)' },
+    redirect: { path: '/babylon-lab', query: { tab: 'base' } },
+  },
+  {
+    path: '/babylon-mesh',
+    meta: { name: 'Babylon 形状(已合并)' },
+    redirect: { path: '/babylon-lab', query: { tab: 'mesh' } },
+  },
+  {
+    path: '/babylon-params',
+    meta: { name: 'Babylon 参数化(已合并)' },
+    redirect: { path: '/babylon-lab', query: { tab: 'params' } },
+  },
+  {
+    path: '/babylon-texture',
+    meta: { name: 'Babylon 材质(已合并)' },
+    redirect: { path: '/babylon-lab', query: { tab: 'texture' } },
   },
   {
     path: '/babylon-flame',

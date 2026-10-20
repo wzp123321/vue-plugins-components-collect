@@ -126,6 +126,14 @@
           <input class="map-ctrl__color" type="color" v-model="columnColor" />
         </div>
         <div v-show="!showColumn" class="map-ctrl__note">已切换为地理标牌</div>
+        <div class="map-ctrl__row">
+          <span class="map-ctrl__label map-ctrl__label--wide">板块填色</span>
+          <label class="map-ctrl__switch">
+            <input type="checkbox" v-model="fillByValue" />
+            <span class="map-ctrl__track"></span>
+          </label>
+        </div>
+        <div v-show="fillByValue" class="map-ctrl__note">顶面按数值分档着色，可与数据柱叠加</div>
       </div>
       <!-- 飞线 -->
       <div class="map-ctrl__group">
@@ -231,6 +239,8 @@ import { ref } from 'vue';
 // 双向绑定控制参数（与 ChinaMap3D 的 props 一一对应）
 const dragMode = defineModel<'pan' | 'rotate'>('dragMode', { default: 'pan' });
 const showColumn = defineModel<boolean>('showColumn', { default: true });
+/** 板块填色模式：按数值给行政区顶面着色（与柱体/图例同一套分档） */
+const fillByValue = defineModel<boolean>('fillByValue', { default: false });
 const columnColor = defineModel<string>('columnColor', { default: '#5FC9EE' });
 const showFlyline = defineModel<boolean>('showFlyline', { default: true });
 const flylineColor = defineModel<string>('flylineColor', { default: '#7FD4F5' });

@@ -36,6 +36,12 @@ interface Options {
   measureMode?: () => boolean
   /** 测量落点回调（世界坐标，已落到地面 z=depth 平面） */
   onMeasure?: (world: THREE.Vector3) => void
+  /**
+   * 右键上下文菜单：contextmenu 事件（未发生右键拖拽时）触发。
+   * @param pick 命中结果（可能为 null=点在空白）
+   * @param pos  菜单锚点（相对容器的 CSS 像素坐标）
+   */
+  onContext?: (pick: PickResult | null, pos: { x: number; y: number }) => void
 }
 
 /** 拖拽判定阈值：超过这个位移就当成旋转/平移，不触发点击选中 */
@@ -273,6 +279,23 @@ export const usePointerPick = (options: Options) => {
   };
 
   /**
+   * 右键：弹出上下文菜单。
+   * ⚠️ 坑：右键拖拽 = OrbitControls 旋转，与点击共用右键 —— 和左键单击一样
+   *   用按下/抬起距离阈值区分，拖拽旋转松手不弹菜单。
+   * ⚠️ 无论如何都 preventDefault：canvas 上的浏览器默认菜单（图片另存为等）
+   *   没有意义，且测量/框选模式下也不应弹系统菜单。
+   */
+  const handleContextMenu = (event: MouseEvent) => {
+    event.preventDefault()
+    if (!host) return
+    // 右键拖拽（旋转）不弹菜单；downX/downY 在 mousedown 里记录
+    if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD) return
+    const rect = host.getBoundingClientRect()
+    const pick = options.measureMode?.() || options.boxMode?.() ? null : pickAt(event.clientX, event.clientY)
+    options.onContext?.(pick, { x: event.clientX - rect.left, y: event.clientY - rect.top })
+  };
+
+  /**
    * 触屏手势：只做"被动观察"，缩放（双指捏合）/ 旋转 / 平移仍由 OrbitControls 处理，
    * 这里仅补它不提供的点选语义 —— 单指点按 = 选中，快速双击 = 下钻，测量模式下 = 落点。
    * 全部监听器 passive，不 preventDefault，绝不与 OrbitControls 抢手势。
@@ -345,6 +368,7 @@ export const usePointerPick = (options: Options) => {
     element.addEventListener('mouseup', handleUp, false)
     element.addEventListener('click', handleClick, false)
     element.addEventListener('dblclick', handleDoubleClick, false)
+    element.addEventListener('contextmenu', handleContextMenu, false)
     // 触屏：passive 观察，不干扰 OrbitControls 自身的触摸手势
     element.addEventListener('touchstart', handleTouchStart, { passive: true })
     element.addEventListener('touchmove', handleTouchMove, { passive: true })
@@ -360,6 +384,7 @@ export const usePointerPick = (options: Options) => {
     host.removeEventListener('mouseup', handleUp, false)
     host.removeEventListener('click', handleClick, false)
     host.removeEventListener('dblclick', handleDoubleClick, false)
+    host.removeEventListener('contextmenu', handleContextMenu, false)
     host.removeEventListener('touchstart', handleTouchStart)
     host.removeEventListener('touchmove', handleTouchMove)
     host.removeEventListener('touchend', handleTouchEnd)

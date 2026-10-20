@@ -34,5 +34,5 @@ declare module 'd3';
 declare module 'vue-virtual-scroller';
 declare module '@arco-iconbox/vue-te';
 declare module 'qrcode';
-declare module 'vue-i18n';
 declare module 'file-saver';
+declare module 'frappe-gantt';

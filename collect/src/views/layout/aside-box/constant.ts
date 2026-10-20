@@ -1,14 +1,14 @@
 /*
- * 导航结构（重新规划版）
+ * 导航结构（2026-10-20 二次收敛版）
  *
- * 旧结构：14 个顶级菜单，每个菜单直接挂一串路由（最长 19 项平铺），
- *        侧边栏需要滚动很久，且同级之间没有语义归类。
- * 新结构：5 个能力域 → 若干分区 → 具体示例，三级收敛。
- *        顶级菜单由 14 个降到 5 个，单个分区最多 14 项，
- *        单条分区已全部合并（2026-10-20 精简，条目与路由不动）。
+ * 旧结构：5 个能力域 → 13 个分区 → 83 个条目。
+ * 新结构：5 个能力域 → 10 个分区 → 57 个菜单条目，
+ *        同域小示例聚合为「合集页」（DemoHub 标签页，?tab= 可深链），
+ *        被合并的示例转为 searchOnly 条目 —— 不占侧边栏，但搜索/命令面板仍可直达。
  *
  * 注意：这里只组织「导航」，不新增/删除路由。
- *      每个 path 都对应 src/router/modules/*.ts 中已存在的路由。
+ *      每个 path 都对应 src/router/modules/*.ts 中已存在的路由；
+ *      合并前的旧路径在路由表中保留为 redirect，历史链接不断。
  */
 
 import { semanticSearch } from '@/utils/semantic-search';
@@ -16,6 +16,10 @@ import { semanticSearch } from '@/utils/semantic-search';
 export interface NavItem {
   path: string;
   label: string;
+  /** 仅参与搜索索引，不在侧边栏菜单中展示（合集页内的子示例） */
+  searchOnly?: boolean;
+  /** 侧边栏角标文案（合集入口展示内部子示例数） */
+  badge?: string;
 }
 
 export interface NavSection {
@@ -28,6 +32,8 @@ export interface NavGroup {
   label: string;
   caption: string;
   icon: string;
+  /** 分组强调色（侧边栏图标徽章与激活态点缀），不设置则用品牌色 */
+  tone?: string;
   sections: NavSection[];
 }
 
@@ -43,16 +49,18 @@ export const navGroups: NavGroup[] = [
     label: '组件库',
     caption: '通用能力与业务组件，覆盖选择器、打印、空间与人员模型',
     icon: 'components',
+    tone: '#7c5cff',
     sections: [
       {
         label: '通用组件与指令',
         items: [
+          { path: '/capability-map', label: '能力地图', badge: '新' },
           { path: '/component-home', label: '组件总览' },
           { path: '/component-inputFilter', label: '输入框过滤' },
           { path: '/spark-upload', label: '大文件上传' },
           { path: '/component-qr-code', label: '二维码生成' },
           { path: '/tree-select-transfer', label: '树形穿梭' },
-          { path: '/inputFilter', label: '输入框过滤指令' },
+          { path: '/inputFilter', label: '输入框过滤指令', searchOnly: true },
           { path: '/drag', label: '拖拽指令' },
         ],
       },
@@ -82,6 +90,7 @@ export const navGroups: NavGroup[] = [
     label: '可视化 & 3D',
     caption: 'ECharts、G6 与 Three.js / Babylon.js 的三维表达',
     icon: 'visual',
+    tone: '#22d3ee',
     sections: [
       {
         label: '图表',
@@ -97,9 +106,10 @@ export const navGroups: NavGroup[] = [
       {
         label: 'Three.js',
         items: [
-          { path: '/threejs-basic', label: '基础图形' },
-          { path: '/threejs-scene', label: '场景与物体' },
-          { path: '/threejs-sun', label: '太阳地球' },
+          { path: '/threejs-lab', label: 'Three.js 基础合集', badge: '3' },
+          { path: '/threejs-basic', label: '基础图形', searchOnly: true },
+          { path: '/threejs-scene', label: '场景与物体', searchOnly: true },
+          { path: '/threejs-sun', label: '太阳地球', searchOnly: true },
           { path: '/threejs-galaxy', label: '粒子银河系' },
           { path: '/threejs-raycaster', label: '交互拾取' },
           { path: '/threejs-china-3d-map', label: '中国 3D 地图' },
@@ -108,10 +118,11 @@ export const navGroups: NavGroup[] = [
       {
         label: 'Babylon.js',
         items: [
-          { path: '/babylon-base', label: '基础场景' },
-          { path: '/babylon-mesh', label: '几何形状' },
-          { path: '/babylon-params', label: '参数化建模' },
-          { path: '/babylon-texture', label: '材质贴图' },
+          { path: '/babylon-lab', label: 'Babylon 基础合集', badge: '4' },
+          { path: '/babylon-base', label: '基础场景', searchOnly: true },
+          { path: '/babylon-mesh', label: '几何形状', searchOnly: true },
+          { path: '/babylon-params', label: '参数化建模', searchOnly: true },
+          { path: '/babylon-texture', label: '材质贴图', searchOnly: true },
           { path: '/babylon-flame', label: '粒子火焰' },
           { path: '/babylon-pbr', label: 'PBR 材质' },
         ],
@@ -123,6 +134,7 @@ export const navGroups: NavGroup[] = [
     label: '工程能力',
     caption: '网络与浏览器 API、表单文件、第三方插件与数据平台',
     icon: 'engineering',
+    tone: '#38bdf8',
     sections: [
       {
         label: '网络与浏览器 API',
@@ -163,35 +175,32 @@ export const navGroups: NavGroup[] = [
     label: 'Vue 深入',
     caption: 'Vue 3 核心特性、状态管理、性能优化与工具函数',
     icon: 'framework',
+    tone: '#34d399',
     sections: [
       {
-        label: '核心特性',
+        label: '核心特性与状态',
         items: [
-          { path: '/vue3-advanced', label: 'Vue3 进阶特性' },
-          { path: '/vue3-teleport', label: 'Teleport 传送门' },
-          { path: '/vue3-suspense', label: 'Suspense 异步组件' },
-          { path: '/vue3-provide-inject', label: 'provide / inject' },
-          { path: '/vue3-watch-compare', label: 'watch 对比' },
-        ],
-      },
-      {
-        label: '状态与性能',
-        items: [
-          { path: '/store-persist', label: 'Pinia 持久化' },
-          { path: '/store-setup', label: 'Setup Store' },
-          { path: '/perf-keep-alive', label: 'KeepAlive 缓存' },
-          { path: '/perf-async-component', label: '异步组件懒加载' },
+          { path: '/vue3-core-lab', label: 'Vue3 核心特性合集', badge: '4' },
+          { path: '/vue3-teleport', label: 'Teleport 传送门', searchOnly: true },
+          { path: '/vue3-suspense', label: 'Suspense 异步组件', searchOnly: true },
+          { path: '/vue3-provide-inject', label: 'provide / inject', searchOnly: true },
+          { path: '/vue3-watch-compare', label: 'watch 对比', searchOnly: true },
+          { path: '/store-perf-lab', label: '状态与性能合集', badge: '4' },
+          { path: '/store-persist', label: 'Pinia 持久化', searchOnly: true },
+          { path: '/store-setup', label: 'Setup Store', searchOnly: true },
+          { path: '/perf-keep-alive', label: 'KeepAlive 缓存', searchOnly: true },
+          { path: '/perf-async-component', label: '异步组件懒加载', searchOnly: true },
         ],
       },
       {
         label: '工具函数',
         items: [
-          { path: '/utils-advance', label: '工具函数进阶' },
-          { path: '/utils-copy-clone', label: '深拷贝与浅拷贝' },
-          { path: '/utils-debounce-throttle', label: '防抖节流原理' },
-          { path: '/utils-event-bus', label: '事件总线 mitt' },
-          { path: '/utils-clipboard', label: '剪贴板操作' },
-          { path: '/utils-indexeddb', label: 'IndexedDB 封装' },
+          { path: '/utils-lab', label: '工具函数合集', badge: '5' },
+          { path: '/utils-copy-clone', label: '深拷贝与浅拷贝', searchOnly: true },
+          { path: '/utils-debounce-throttle', label: '防抖节流原理', searchOnly: true },
+          { path: '/utils-event-bus', label: '事件总线 mitt', searchOnly: true },
+          { path: '/utils-clipboard', label: '剪贴板操作', searchOnly: true },
+          { path: '/utils-indexeddb', label: 'IndexedDB 封装', searchOnly: true },
         ],
       },
     ],
@@ -201,34 +210,73 @@ export const navGroups: NavGroup[] = [
     label: '样式与动效',
     caption: 'CSS 布局技法、层叠细节与关键帧动画',
     icon: 'style',
+    tone: '#f472b6',
     sections: [
       {
         label: 'CSS 布局',
         items: [
-          { path: '/css-home', label: 'CSS 总览' },
-          { path: '/css-grid', label: 'Grid 布局' },
-          { path: '/css-flex', label: 'Flex 布局' },
-          { path: '/css-responsive', label: '响应式布局' },
-          { path: '/css-semantization', label: '语义化标签' },
+          { path: '/css-layout-lab', label: 'CSS 布局合集', badge: '4' },
+          { path: '/css-grid', label: 'Grid 布局', searchOnly: true },
+          { path: '/css-flex', label: 'Flex 布局', searchOnly: true },
+          { path: '/css-responsive', label: '响应式布局', searchOnly: true },
+          { path: '/css-semantization', label: '语义化标签', searchOnly: true },
         ],
       },
       {
-        label: 'CSS 与动效',
+        label: 'CSS 效果与动效',
         items: [
-          { path: '/css-whitespace-wordbreak-wordwrap', label: '换行处理' },
-          { path: '/css-zindex', label: 'z-index 层叠' },
-          { path: '/css-pseudo-element', label: '伪元素伪类' },
-          { path: '/css-backdrop', label: '毛玻璃' },
-          { path: '/css-keyframe-animation', label: '关键帧动画' },
-          { path: '/css-var-theme', label: '变量主题' },
+          { path: '/css-effects-lab', label: 'CSS 效果合集', badge: '6' },
+          { path: '/css-keyframe-animation', label: '关键帧动画', searchOnly: true },
+          { path: '/css-backdrop', label: '毛玻璃', searchOnly: true },
+          { path: '/css-var-theme', label: '变量主题', searchOnly: true },
+          { path: '/css-zindex', label: 'z-index 层叠', searchOnly: true },
+          { path: '/css-pseudo-element', label: '伪元素伪类', searchOnly: true },
+          { path: '/css-whitespace-wordbreak-wordwrap', label: '换行处理', searchOnly: true },
           { path: '/animations', label: '动画大全' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'extended',
+    label: '补缺新增',
+    caption: '2026-10 缺口盘点后新增：流程协作、AI、媒体与工程效率',
+    icon: 'spark',
+    tone: '#fbbf24',
+    sections: [
+      {
+        label: '流程与协作',
+        items: [
+          { path: '/workflow-designer', label: '审批流设计器' },
+          { path: '/gantt-schedule', label: '甘特图排期' },
+          { path: '/permission', label: '权限方案' },
+        ],
+      },
+      {
+        label: 'AI 与多媒体',
+        items: [
+          { path: '/ai-chat', label: 'AI 对话界面' },
+          { path: '/speech-recognition', label: '语音识别与录音' },
+          { path: '/screenshot-capture', label: '页面截图' },
+          { path: '/pdf-export', label: 'PDF 生成' },
+        ],
+      },
+      {
+        label: '工程效率',
+        items: [
+          { path: '/code-editor', label: '代码编辑器' },
+          { path: '/api-mock', label: '接口 Mock' },
+          { path: '/unit-test', label: '单元测试示例' },
+          { path: '/gsap-animation', label: 'GSAP 动画' },
+          { path: '/mind-map', label: '思维导图' },
+          { path: '/i18n-demo', label: '国际化' },
         ],
       },
     ],
   },
 ];
 
-/** 扁平化索引：搜索与命令面板共用 */
+/** 扁平化索引：搜索与命令面板共用（含 searchOnly 条目，保证合集页内示例仍可直达） */
 export const allNavItems: FlatNavItem[] = navGroups.reduce<FlatNavItem[]>((acc, group) => {
   group.sections.forEach((section) => {
     section.items.forEach((item) => {
@@ -243,15 +291,20 @@ export const allNavItems: FlatNavItem[] = navGroups.reduce<FlatNavItem[]>((acc, 
   return acc;
 }, []);
 
-/** 示例总数（用于侧边栏、品牌徽标与首页统计） */
+/** 示例总数（用于侧边栏、品牌徽标与首页统计，含合集页内的子示例） */
 export const navTotal = allNavItems.length;
 
+/** 菜单可见条目数（不含 searchOnly） */
+export function visibleCountOfSection(section: NavSection): number {
+  return section.items.filter((item) => !item.searchOnly).length;
+}
+
 export function countOfGroup(group: NavGroup): number {
-  return group.sections.reduce((sum, section) => sum + section.items.length, 0);
+  return group.sections.reduce((sum, section) => sum + visibleCountOfSection(section), 0);
 }
 
 export function firstPathOfGroup(group: NavGroup): string {
-  return group.sections[0]?.items[0]?.path ?? '/home';
+  return group.sections[0]?.items.find((item) => !item.searchOnly)?.path ?? '/home';
 }
 
 /** 关键字检索：命中标题、路径、分区与分组名 */

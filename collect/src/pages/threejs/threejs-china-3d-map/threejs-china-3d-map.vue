@@ -28,6 +28,7 @@
       :project-data="projectData"
       :theme="theme"
       :show-column="showColumn"
+      :fill-by-value="fillByValue"
       :column-color="columnColor"
       :show-flyline="showFlyline"
       :flyline-color="flylineColor"
@@ -62,6 +63,7 @@
       <MapControlPanel
         v-model:drag-mode="dragMode"
         v-model:show-column="showColumn"
+        v-model:fill-by-value="fillByValue"
         v-model:column-color="columnColor"
         v-model:show-flyline="showFlyline"
         v-model:flyline-color="flylineColor"
@@ -137,6 +139,8 @@ import chinaGeo from '@/assets/geojson/china.json';
 // 可视化控制参数（右上角控制台双向绑定）。这些 ref 即 ChinaMap3D 的 props，
 // 通过 v-model 下发；改任意一项都会触发 ChinaMap3D 内对应的 watch 即时生效。
 const showColumn = ref(true);
+// 板块填色模式：顶面按数值分档着色（choropleth），与数据柱可叠加
+const fillByValue = ref(false);
 const columnColor = ref('#5FC9EE');
 const showFlyline = ref(true);
 const flylineColor = ref('#7FD4F5');

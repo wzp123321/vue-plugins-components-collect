@@ -81,7 +81,11 @@
 
       <main class="ai-main">
         <common-page-container>
-          <router-view></router-view>
+          <router-view v-slot="{ Component }">
+            <transition name="ai-page" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
         </common-page-container>
       </main>
     </div>
@@ -108,6 +112,7 @@
           </div>
 
           <div class="ai-palette__list">
+            <div v-if="isRecentsMode" class="ai-palette__hint">最近访问</div>
             <button
               v-for="(item, index) in paletteResults"
               :key="item.path"
@@ -117,7 +122,12 @@
               @mouseenter="paletteIndex = index"
             >
               <span class="ai-palette__label">{{ item.label }}</span>
-              <span class="ai-palette__meta">{{ item.groupLabel }} / {{ item.sectionLabel }}</span>
+              <span
+                class="ai-palette__meta"
+                :title="getProfile(item.path)?.positioning ?? ''"
+              >
+                {{ getProfile(item.path)?.positioning ?? `${item.groupLabel} / ${item.sectionLabel}` }}
+              </span>
               <span class="ai-palette__path">{{ item.path }}</span>
             </button>
             <div v-if="paletteResults.length === 0" class="ai-palette__empty">
@@ -141,7 +151,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import AiIcon from '@/components/ai-icon/ai-icon.vue';
 import Aside from '../layout/aside-box/aside-box.vue';
-import { allNavItems, menuList, navTotal, searchNav } from '../layout/aside-box/constant';
+import { allNavItems, menuList, navTotal, searchNav, type FlatNavItem } from '../layout/aside-box/constant';
+import { getProfile } from '@/config/capability-profiles';
 import { useThemeStore } from '@/store/modules/useThemeStore';
 
 defineOptions({
@@ -177,7 +188,47 @@ const paletteQuery = ref('');
 const paletteIndex = ref(0);
 const paletteInput = ref<HTMLInputElement | null>(null);
 
-const paletteResults = computed(() => searchNav(paletteQuery.value).slice(0, 50));
+/** 最近访问：空查询时优先展示，减少重复检索成本 */
+const RECENTS_STORAGE_KEY = 'ai-nav-recents';
+const RECENTS_LIMIT = 8;
+const recents = ref<string[]>(loadRecents());
+
+function loadRecents(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENTS_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function recordRecent(path: string) {
+  if (!allNavItems.some((item) => item.path === path)) return;
+  recents.value = [path, ...recents.value.filter((entry) => entry !== path)].slice(0, RECENTS_LIMIT);
+  try {
+    localStorage.setItem(RECENTS_STORAGE_KEY, JSON.stringify(recents.value));
+  } catch {
+    // 忽略存储异常
+  }
+}
+
+watch(
+  () => route.path,
+  (path) => recordRecent(path),
+  { immediate: true },
+);
+
+const paletteResults = computed(() => {
+  if (paletteQuery.value.trim() === '') {
+    return recents.value
+      .map((path) => allNavItems.find((item) => item.path === path))
+      .filter((item): item is FlatNavItem => Boolean(item));
+  }
+  return searchNav(paletteQuery.value).slice(0, 50);
+});
+
+const isRecentsMode = computed(() => paletteQuery.value.trim() === '' && paletteResults.value.length > 0);
 
 watch(paletteQuery, () => {
   paletteIndex.value = 0;
@@ -448,6 +499,22 @@ onBeforeUnmount(() => {
   padding: 18px;
 }
 
+/* ---------------- 路由切换过渡 ---------------- */
+.ai-page-enter-active,
+.ai-page-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.ai-page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.ai-page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 /* ---------------- 命令面板 ---------------- */
 .ai-palette {
   position: fixed;
@@ -501,6 +568,15 @@ onBeforeUnmount(() => {
     max-height: 46vh;
     overflow-y: auto;
     padding: 8px;
+  }
+
+  &__hint {
+    padding: 4px 12px 8px;
+    color: var(--ai-text-mute);
+    font-family: var(--ai-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   &__item {

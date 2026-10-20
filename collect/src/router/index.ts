@@ -10,10 +10,10 @@ import directiveRoutes from './modules/directive';
 import networkRoutes from './modules/network';
 import formEnhanceRoutes from './modules/form-enhance';
 import storeAdvanceRoutes from './modules/store-advance';
-import performanceRoutes from './modules/performance';
 import vue3AdvancedRoutes from './modules/vue3-advanced';
 import utilsAdvanceRoutes from './modules/utils-advance';
 import dataPlatformRoutes from './modules/data-platform';
+import extendedRoutes from './modules/extended-capability';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -26,6 +26,13 @@ const routes: RouteRecordRaw[] = [
       name: '总览',
     },
     component: () => import('../pages/home/home.vue'),
+  },
+  {
+    path: '/capability-map',
+    meta: {
+      name: '能力地图',
+    },
+    component: () => import('../pages/capability-map/capability-map.vue'),
   },
   {
     path: '/demo',
@@ -41,10 +48,10 @@ const routes: RouteRecordRaw[] = [
   ...networkRoutes,
   ...formEnhanceRoutes,
   ...storeAdvanceRoutes,
-  ...performanceRoutes,
   ...vue3AdvancedRoutes,
   ...utilsAdvanceRoutes,
   ...dataPlatformRoutes,
+  ...extendedRoutes,
   { path: '/:pathMatch(.*)*', name: 'Other', redirect: '/home' },
 ];
 

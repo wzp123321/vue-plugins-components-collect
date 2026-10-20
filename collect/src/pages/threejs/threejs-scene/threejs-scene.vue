@@ -13,7 +13,10 @@ import {
   PerspectiveCamera,
   MeshBasicMaterial,
 } from 'three';
-import { onMounted } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+
+/** 渲染器提升到组件作用域，卸载时释放，避免合集页内切换标签泄漏 WebGL 上下文 */
+const rendererRef = ref<WebGLRenderer | null>(null);
 
 function initThree() {
   // 创建场景
@@ -46,6 +49,7 @@ function initThree() {
 
   //   渲染器
   const renderer = new WebGLRenderer({ antialias: true });
+  rendererRef.value = renderer;
   renderer.setClearColor('rgb(0, 0, 0)', 1.0);
   renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -66,6 +70,16 @@ function initThree() {
 
 onMounted(() => {
   initThree();
+});
+
+onBeforeUnmount(() => {
+  const renderer = rendererRef.value;
+  if (renderer) {
+    renderer.domElement.remove();
+    renderer.dispose();
+    renderer.forceContextLoss();
+    rendererRef.value = null;
+  }
 });
 </script>
 

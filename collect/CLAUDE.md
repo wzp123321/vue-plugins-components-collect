@@ -56,10 +56,19 @@ types.ts  errors.ts  token-manager.ts  interceptors.ts  client.ts  index.ts
 - 401 只重试一次；重试只打幂等方法（`retry.idempotentOnly` 默认 true）
 - 后端字段差异用 `getCode` / `getMessage` / `successCodes` 适配，不改模板
 
+## 能力画像（需求 → 工具倒排）
+
+`src/config/capability-profiles.ts` 是全站的「需求画像」：每个条目回答什么需求直接用（fits）、
+什么要自己封装（partial）、什么别用（no）。**新示例进站必须同步补一条 profile**；
+`/capability-map` 能力地图页与命令面板检索都吃这份数据，需求句改动要同步更新。
+
 ## 风格
 
 - 组件目录四件套：`index.ts`（带 `withInstall` 风格出口）/ `src/<name>.vue` / 类型 / composable
 - 组件名 `defineOptions({ name: 'Xxx' })`；**demo 页统一加 `Demo` 后缀**
+- **同域小示例用 `src/components/demo-hub/` 聚合成合集页**（标签容器，`?tab=` 深链），
+  菜单只放合集入口；合集内子示例在 `aside-box/constant.ts` 标 `searchOnly: true`（只进搜索索引）。
+  被合并的旧路由保留为 redirect；带 WebGL/渲染循环的 demo 必须补 `onBeforeUnmount` 清理（参考 threejs-lab / babylon-lab）
 - 路径别名 `@/` 可用，但 pages 内引用跨目录组件目前用相对路径，保持一致即可
 - 不留被注释掉的 import；不用 `require()`（走 ESM）
 - 不写行内静态样式，样式放 `<style lang="less" scoped>`

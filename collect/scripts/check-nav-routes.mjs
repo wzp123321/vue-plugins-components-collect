@@ -21,6 +21,50 @@ const srcDir = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 // 非示例路由：首页、根重定向、404 兜底，不进侧边栏属预期
 const ROUTE_ALLOWLIST = new Set(['/', '/home', '/:pathMatch(.*)*']);
 
+// 菜单合并遗留路径：已 redirect 到对应合集页（?tab=），保留是为了兼容历史链接，不再进侧边栏
+const LEGACY_REDIRECT_PATHS = new Set([
+  // Three.js 基础合集 /threejs-lab
+  '/threejs-basic',
+  '/threejs-scene',
+  '/threejs-sun',
+  // Babylon 基础合集 /babylon-lab
+  '/babylon-base',
+  '/babylon-mesh',
+  '/babylon-params',
+  '/babylon-texture',
+  // CSS 布局合集 /css-layout-lab
+  '/css-home',
+  '/css-grid',
+  '/css-flex',
+  '/css-responsive',
+  '/css-semantization',
+  // CSS 效果合集 /css-effects-lab
+  '/css-keyframe-animation',
+  '/css-backdrop',
+  '/css-var-theme',
+  '/css-zindex',
+  '/css-pseudo-element',
+  '/css-whitespace-wordbreak-wordwrap',
+  // 工具函数合集 /utils-lab
+  '/utils-advance',
+  '/utils-copy-clone',
+  '/utils-debounce-throttle',
+  '/utils-event-bus',
+  '/utils-clipboard',
+  '/utils-indexeddb',
+  // Vue3 核心合集 /vue3-core-lab
+  '/vue3-advanced',
+  '/vue3-teleport',
+  '/vue3-suspense',
+  '/vue3-provide-inject',
+  '/vue3-watch-compare',
+  // 状态与性能合集 /store-perf-lab
+  '/store-persist',
+  '/store-setup',
+  '/perf-keep-alive',
+  '/perf-async-component',
+]);
+
 function collectPaths(file) {
   const content = readFileSync(resolve(srcDir, file), 'utf8');
   return [...content.matchAll(/path:\s*'([^']+)'/g)].map((m) => m[1]);
@@ -55,7 +99,7 @@ for (const path of navPaths) {
   if (!routePaths.includes(path)) errors.push(`死链：导航 ${path} 在路由中不存在`);
 }
 for (const path of routePaths) {
-  if (!ROUTE_ALLOWLIST.has(path) && !navPaths.includes(path)) {
+  if (!ROUTE_ALLOWLIST.has(path) && !LEGACY_REDIRECT_PATHS.has(path) && !navPaths.includes(path)) {
     errors.push(`未收录：路由 ${path} 缺少侧边栏导航条目`);
   }
 }

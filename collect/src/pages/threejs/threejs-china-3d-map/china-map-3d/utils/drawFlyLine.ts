@@ -35,7 +35,18 @@
 
 import * as THREE from 'three'
 import { mapConfig } from './mapConfig'
-import { getGlowTexture } from './textures'
+import { getGlowTexture, getRingTexture } from './textures'
+
+/**
+ * 由一对坐标生成的确定性伪随机数（0~1）。
+ * ⚠️ 不用 Math.random()：弧高/速度的个体差异如果每次 build 随机，
+ *   下钻返回重建后每条线的形状会变，观感「漂移」。用端点坐标做哈希，
+ *   同一条线永远得到同一个扰动值，重建前后形状稳定。
+ */
+export const hash01 = (a: number, b: number, salt = 0): number => {
+  const h = Math.sin(a * 12.9898 + b * 78.233 + salt * 37.719) * 43758.5453
+  return h - Math.floor(h)
+}
 
 /**
  * 飞线 = 连续条带几何（ribbon）+ 加法混合拖尾 + 头部光点。
@@ -232,7 +243,9 @@ export const createFlyLine = (
   const z = mapConfig.spotZ
   // 平面距离越大，弧线抬升越高（封顶 arcMax），避免长线被压平
   const distance = Math.hypot(to[0] - from[0], to[1] - from[1])
-  const arc = mapConfig.fly.arcBase + Math.min(mapConfig.fly.arcMax, distance * mapConfig.fly.arcRatio)
+  // 弧高个体差异（±15%，确定性哈希）：同一高度族会让弧场显得机械
+  const arcJitter = 0.85 + hash01(from[0] + to[0], from[1] + to[1], 1) * 0.3
+  const arc = (mapConfig.fly.arcBase + Math.min(mapConfig.fly.arcMax, distance * mapConfig.fly.arcRatio)) * arcJitter
   // 二次贝塞尔：端点 + 中点抬高 arc 作控制点
   const curve = new THREE.QuadraticBezierCurve3(
     new THREE.Vector3(from[0], -from[1], z),
@@ -335,10 +348,17 @@ const samplePoint = (points: THREE.Vector3[], p: number): THREE.Vector3 => {
   return sampleScratch.copy(points[index]).lerp(points[next], raw - index)
 };
 
+/** 飞行起步的淡入弧长比例（较长，出现柔和） */
+const FADE_IN = 0.08
+/** 落地收尾的淡出弧长比例（短促，流星「砸」在终点涟漪上熄灭） */
+const FADE_OUT = 0.03
+
 /**
  * 逐帧推进流星：
+ * - 循环 = 飞行(p∈[0,1]) + 停顿(p∈(1,1+restGap))：到终点熄灭后歇一拍再发射，
+ *   不会出现「上一颗还没走完、下一颗已经起飞」的连发感
  * - 头部 = 白热核（短、全白），尾部 = 色调拖尾（长、按幂次衰减）
- * - 弧线首尾各留一小段淡入淡出，避免「瞬移」的突兀感
+ * - 起步 8% 弧长淡入 / 落地 3% 弧长急熄（不对称：亮着到达，让涟漪接住落点）
  * - 相机移动时同步重算条带朝向；相机静止则跳过，省一半顶点写入
  *
  * ⚠️ 坑：progress 必须按 dt 累加（见下方 `anim.p += dt * anim.speed`），
@@ -361,20 +381,24 @@ export const updateFlyLine = (
   worldPerPx = 0,
 ) => {
   const band = mapConfig.fly.streakBand
-  // ⚠️ 关键：按 dt 累加推进，保证掉帧时连贯
+  const restGap = mapConfig.fly.restGap
+  // ⚠️ 关键：按 dt 累加推进，保证掉帧时连贯。周期 = 飞行 1 + 停顿 restGap
   anim.p += dt * anim.speed
-  if (anim.p >= 1) anim.p -= 1
-
-  // 首尾 8% 弧长做淡入淡出，避免从端点凭空出现 / 消失的突兀感
-  const edge = Math.min(anim.p, 1 - anim.p)
-  const fade = Math.min(1, edge / 0.08)
-  const { points, tangents, tint, p } = anim
+  if (anim.p >= 1 + restGap) anim.p -= 1 + restGap
+  // 飞行进度：停顿段(anim.p>1)钳在 1 —— 条带颜色全部乘 fade=0，整条熄灭
+  const flight = Math.min(anim.p, 1)
+  const resting = anim.p > 1
+  // 不对称淡入淡出：起步柔和淡入，落地急熄（resting 时 fade=0，整条不可见）
+  const fade = resting
+    ? 0
+    : Math.min(1, flight / FADE_IN, (1 - flight) / FADE_OUT)
+  const { points, tangents, tint } = anim
   const n = points.length
   const colors = anim.streakColors
 
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1)
-    const behind = p - t
+    const behind = flight - t
     let r = 0
     let g = 0
     let b = 0
@@ -401,10 +425,10 @@ export const updateFlyLine = (
     // 屏幕像素下限换算成世界半宽：拉远时托住线宽，避免断成一截一截
     const minStreakHalf = (MIN_STREAK_PX * 0.5) * worldPerPx
     const minTrackHalf = (MIN_TRACK_PX * 0.5) * worldPerPx
-    // 拖尾：头部饱满、尾部收细成尖，每帧随 p 一起推进（k 越靠近头部越宽）
+    // 拖尾：头部饱满、尾部收细成尖，每帧随 flight 一起推进（k 越靠近头部越宽）
     const half = mapConfig.fly.streakWidth / 2
     writeRibbon(anim.streakPositions, points, tangents, cameraPos, (index) => {
-      const k = Math.min(1, Math.max(0, (p - index / (n - 1)) / band))
+      const k = Math.min(1, Math.max(0, (flight - index / (n - 1)) / band))
       const shaped = half * (0.85 - 0.5 * Math.pow(k, 0.7))
       // 下限作用在「收细之后」的宽度上：否则尾部依旧会断
       return Math.max(shaped, minStreakHalf)
@@ -419,8 +443,8 @@ export const updateFlyLine = (
     }
   }
 
-  // 彗星头 Sprite 跟随同一条曲线上的当前进度位置
-  anim.head.position.copy(samplePoint(points, p))
+  // 彗星头 Sprite 跟随同一条曲线上的当前进度位置（停顿段钳在终点、透明不可见）
+  anim.head.position.copy(samplePoint(points, flight))
   // 头部轻微呼吸，像流星掠过时的闪烁；
   // 拉远时同样给屏幕像素下限，否则光点会缩成一粒看不清的灰点
   const pulse = 1 + Math.sin(elapsed * 9 + anim.phase) * 0.1
@@ -434,4 +458,75 @@ export const updateFlyLine = (
 export const setFlyLineTint = (anim: FlyAnim, tint: string) => {
   anim.tint.set(tint)
   anim.headMat.color.set(tint)
+};
+
+// ── 端点涟漪：飞线起点 / 落点的扩散圆环 ──────────────────────────────
+// 大屏飞线的经典收尾：流星落地处一圈圈扩散光环，让端点「有生命」而不只是
+// 两个静止坐标。全部涟漪共用一个单位平面几何（userData.shared，下钻重建时
+// 不会被 disposeObject3D 误释放），材质逐个独立（各自的颜色 / 透明度）。
+
+export interface Ripple {
+  mesh: THREE.Mesh
+  material: THREE.MeshBasicMaterial
+  /** 扩散相位（0~1，错峰让多个涟漪不同步） */
+  phase: number
+  /** 最大世界直径 */
+  size: number
+}
+
+let rippleGeometry: THREE.PlaneGeometry | null = null
+
+/** 涟漪几何：单位平面躺在地图平面（XY），仅一份、跨层级复用 */
+const getRippleGeometry = (): THREE.PlaneGeometry => {
+  if (!rippleGeometry) {
+    rippleGeometry = new THREE.PlaneGeometry(1, 1)
+    rippleGeometry.userData = { shared: true }
+  }
+  return rippleGeometry
+};
+
+/**
+ * 创建一个端点涟漪。
+ * @param point 世界坐标（地图平面上的锚点，z 取 spotZ 即可）
+ * @param tint  涟漪颜色（与飞线拖尾同色，换色时由外部同步更新）
+ * @param size  最大世界直径
+ * @param phase 扩散相位 0~1
+ */
+export const createRipple = (
+  point: { x: number; y: number; z: number },
+  tint: string,
+  size: number,
+  phase: number,
+): Ripple => {
+  const material = new THREE.MeshBasicMaterial({
+    map: getRingTexture(),
+    color: tint,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  })
+  const mesh = new THREE.Mesh(getRippleGeometry(), material)
+  mesh.position.set(point.x, point.y, point.z + 0.15)
+  mesh.scale.setScalar(size * 0.3)
+  mesh.renderOrder = 7
+  // 进泛光图层：涟漪与拖尾一样被 UnrealBloom 晕开，融合成一片光
+  mesh.layers.enable(mapConfig.bloomLayer)
+  return { mesh, material, phase, size }
+};
+
+/**
+ * 逐帧推进涟漪：直径从 30% 扩到 100%，透明度按 (1-prog)^1.6 衰减，
+ * 循环往复。由 useFlyLines.tick 每帧调用（飞线隐藏时 tick 早退，涟漪自动停）。
+ */
+export const updateRipple = (ripple: Ripple, elapsed: number) => {
+  const prog = (elapsed * mapConfig.fly.ripple.speed + ripple.phase) % 1
+  ripple.mesh.scale.setScalar(ripple.size * (0.3 + 0.7 * prog))
+  ripple.material.opacity = Math.pow(1 - prog, 1.6) * mapConfig.fly.ripple.opacity
+};
+
+/** 修改涟漪颜色（控制台换色时与拖尾同步） */
+export const setRippleTint = (ripple: Ripple, tint: string) => {
+  ripple.material.color.set(tint)
 };

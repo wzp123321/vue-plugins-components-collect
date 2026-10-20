@@ -11,8 +11,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import * as BABYLON from 'babylonjs';
+
+/** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
+let engine: BABYLON.Engine | null = null;
 
 function initBaBy() {
   const canvas = document.getElementById('babylon-texture-canvas');
@@ -20,7 +23,7 @@ function initBaBy() {
     return;
   }
   // 引擎
-  const engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true);
+  engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true);
   // 场景
   const scene = new BABYLON.Scene(engine);
   // 摄像头
@@ -105,6 +108,11 @@ function initBaBy() {
 
 onMounted(() => {
   initBaBy();
+});
+
+onBeforeUnmount(() => {
+  engine?.dispose();
+  engine = null;
 });
 </script>
 <style lang="less" scoped>

@@ -5,7 +5,10 @@
 </template>
 <script lang="ts" setup>
 import * as BABYLON from 'babylonjs';
-import { onMounted } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
+
+/** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
+let engine: BABYLON.Engine | null = null;
 
 function initBaby() {
   const canvas = document.getElementById('babylon-mesh-canvas');
@@ -13,7 +16,7 @@ function initBaby() {
     return;
   }
   // 引擎
-  const engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true);
+  engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true);
   // 创建场景
   const scene = new BABYLON.Scene(engine);
   // 相机 此相机始终会朝向给定目标的位置点，可以当前目标作为旋转中心旋转。它可以通过光标，鼠标和触摸事件控制。
@@ -94,6 +97,11 @@ function initBaby() {
 
 onMounted(() => {
   initBaby();
+});
+
+onBeforeUnmount(() => {
+  engine?.dispose();
+  engine = null;
 });
 </script>
 <style lang="less" scoped>

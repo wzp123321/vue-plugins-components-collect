@@ -60,11 +60,18 @@ const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() 
 export const useMapLevels = (options: Options) => {
   // 用 shallowRef：栈里存的是普通对象引用，频繁替换整段而不需要深度响应
   const stack = shallowRef<MapLevel[]>([])
+  /**
+   * 重做栈：back() 弹出的层级暂存在这里，redo() 再压回主栈。
+   * 任何「向前」的导航（下钻 / 跳级 / 回全国）都会清空它——这是标准
+   * 撤销/重做语义：一旦走上新路径，旧的重做分支即失效。
+   */
+  const redoStack = shallowRef<MapLevel[]>([])
   const busy = ref(false)
   const stage = ref<{ text: string; ratio: number } | null>(null)
 
   const current = computed(() => stack.value[stack.value.length - 1] ?? null)
   const canGoBack = computed(() => stack.value.length > 1)
+  const canRedo = computed(() => redoStack.value.length > 0)
   // 面包屑：每一层的名称 + 该层行政区数量
   const crumbs = computed(() => stack.value.map((level) => ({ name: level.name, count: level.geo.features.length })))
 
@@ -165,7 +172,8 @@ export const useMapLevels = (options: Options) => {
         level: nextLevel,
         fit: fitProjection(geo),
       }
-      // 入栈：栈尾即当前层
+      // 入栈：栈尾即当前层；走上新路径，旧的重做分支失效
+      redoStack.value = []
       stack.value = [...stack.value, entry]
       await enter(entry, true)
     } catch (error) {
@@ -181,8 +189,10 @@ export const useMapLevels = (options: Options) => {
     if (busy.value || stack.value.length < 2) return
     busy.value = true
     try {
-      // 丢弃栈尾 = 回到上一级；再用新栈尾重建
+      // 丢弃栈尾 = 回到上一级；弹出的层级进重做栈，供 redo() 压回
+      const popped = stack.value[stack.value.length - 1]
       stack.value = stack.value.slice(0, -1)
+      redoStack.value = [...redoStack.value, popped]
       const previous = stack.value[stack.value.length - 1]
       await enter(previous, true)
     } catch (error) {
@@ -193,11 +203,12 @@ export const useMapLevels = (options: Options) => {
     }
   };
 
-  /** 回到全国：直接截到栈首（全国层） */
+  /** 回到全国：直接截到栈首（全国层）；重做分支随新路径失效 */
   const resetToCountry = async () => {
     if (busy.value || stack.value.length <= 1) return
     busy.value = true
     try {
+      redoStack.value = []
       stack.value = stack.value.slice(0, 1)
       await enter(stack.value[0], true)
     } catch (error) {
@@ -215,9 +226,30 @@ export const useMapLevels = (options: Options) => {
     if (!target || index === stack.value.length - 1) return
     busy.value = true
     try {
-      // 截断到目标层（含），丢弃其后所有"更深层"
+      // 截断到目标层（含），丢弃其后所有"更深层"；重做分支随新路径失效
+      redoStack.value = []
       stack.value = stack.value.slice(0, index + 1)
       await enter(target, true)
+    } catch (error) {
+      options.onError?.(error)
+    } finally {
+      report(null)
+      busy.value = false
+    }
+  };
+
+  /**
+   * 重做下钻：把 back() 弹出的层级压回主栈并重建。
+   * 只在重做栈非空时生效；成功后重做栈弹出栈尾。
+   */
+  const redo = async () => {
+    if (busy.value || !redoStack.value.length) return
+    busy.value = true
+    try {
+      const next = redoStack.value[redoStack.value.length - 1]
+      redoStack.value = redoStack.value.slice(0, -1)
+      stack.value = [...stack.value, next]
+      await enter(next, true)
     } catch (error) {
       options.onError?.(error)
     } finally {
@@ -319,11 +351,13 @@ export const useMapLevels = (options: Options) => {
     stage,
     crumbs,
     canGoBack,
+    canRedo,
     report,
     canDrill,
     loadCountry,
     drill,
     back,
+    redo,
     jumpTo,
     locateByName,
     locateByAdcode,

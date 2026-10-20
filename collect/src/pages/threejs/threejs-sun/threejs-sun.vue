@@ -2,7 +2,7 @@
   <div class="threejs-sun" id="threejs-sun"></div>
 </template>
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import {
   SphereGeometry,
   Scene,
@@ -24,6 +24,10 @@ let earthMesh: Mesh;
 let camera: PerspectiveCamera;
 let renderer: WebGLRenderer;
 let oldtime = 0;
+
+/** 动画帧句柄与控制器引用，卸载时回收，避免合集页内切换标签泄漏渲染循环 */
+let rafId = 0;
+let controls: OrbitControls | null = null;
 
 const clock = new Clock();
 
@@ -87,7 +91,7 @@ function initThree() {
   scene.add(aLight);
 
   // 轨道控制器
-  const controls = new OrbitControls(camera, renderer.domElement);
+  controls = new OrbitControls(camera, renderer.domElement);
   controls.update();
   // 绘制
   renderer = new WebGLRenderer({ alpha: true });
@@ -113,12 +117,22 @@ function animate() {
   sunMesh.rotateOnAxis(axis, ((elapsed - oldtime) * Math.PI) / 10);
   renderer.render(scene, camera);
   oldtime = elapsed;
-  requestAnimationFrame(animate);
+  rafId = requestAnimationFrame(animate);
 }
 
 onMounted(() => {
   initThree();
   animate();
+});
+
+onBeforeUnmount(() => {
+  cancelAnimationFrame(rafId);
+  controls?.dispose();
+  if (renderer) {
+    renderer.domElement.remove();
+    renderer.dispose();
+    renderer.forceContextLoss();
+  }
 });
 </script>
 <style lang="less" scoped>

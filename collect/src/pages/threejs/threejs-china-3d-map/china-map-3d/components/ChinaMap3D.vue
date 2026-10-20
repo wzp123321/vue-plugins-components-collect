@@ -39,6 +39,7 @@
       所以这层能透上来。传了 bgImage 就用外部设计图，没传则用内置程序化底图（按主题两套）。
     -->
     <div
+      ref="bgLayer"
       class="map-bg-image"
       :class="[
         `map-bg-image--${theme}`,
@@ -47,6 +48,7 @@
       :style="bgImageStyle"
       aria-hidden="true"
     >
+      <span class="map-bg-image__aurora"></span>
       <span class="map-bg-image__veil"></span>
     </div>
     <div ref="canvasHost" class="china-map-3d-canvas"></div>
@@ -78,6 +80,21 @@
       @search="handleSearchKeyword"
     />
     <MapTooltip v-bind="tooltip" />
+    <!--
+      右键上下文菜单：按命中类型出操作项（行政区=下钻/选中/复制，空白=导航）。
+      定位与收窄见 contextMenuStyle；点击菜单项 / 画布 / Esc 均关闭。
+    -->
+    <div v-if="contextMenu" class="map-ctx" :style="contextMenuStyle">
+      <button
+        v-for="item in contextItems"
+        :key="item.key"
+        type="button"
+        class="map-ctx__item"
+        @click="handleContextAction(item)"
+      >
+        {{ item.label }}
+      </button>
+    </div>
     <!--
       左下角信息栏：饼图在上、图例在下，共用同一条左边缘与间距。
       原先两块各自 absolute 写死 bottom（150 / 22），间距靠数字去猜、左边缘还差 6px。
@@ -187,6 +204,11 @@ const props = withDefaults(
     projectData?: Record<number, number | { count: number; names: string[]; ids: string[] }>;
     /** 是否显示数据柱（关闭时改为显示地理位置标牌） */
     showColumn?: boolean;
+    /**
+     * 板块填色模式（choropleth）：按数值给行政区顶面着色（与柱体/图例同一套分档）。
+     * 与数据柱可叠加使用；区县级柱体拥挤时关掉柱子单用填色更清爽。
+     */
+    fillByValue?: boolean;
     /** 数据柱高值档颜色（分级色板以它为高值锚点） */
     columnColor?: string;
     showFlyline?: boolean;
@@ -238,6 +260,7 @@ const props = withDefaults(
     zoomDrillThreshold: 0.4,
     deferEntrance: false,
     showColumn: true,
+    fillByValue: false,
     columnColor: '#5FC9EE',
     showFlyline: true,
     flylineColor: '#7FD4F5',
@@ -281,6 +304,44 @@ const emit = defineEmits<{
 // 画布容器 host：渲染器创建的 <canvas> 会 appendChild 进这里（不在模板里），
 // ⚠️ 坑④：HMR 残留画布就发生在这个容器上，需在 viewport 内做 mount 清空。
 const canvasHost = ref<HTMLDivElement | null>(null);
+
+/**
+ * 大屏底图层引用：视差用。底图随相机平移做远小于地图本体的微动，
+ * 制造「背景在更远处」的景深（大屏常见的高级感来源之一）。
+ */
+const bgLayer = ref<HTMLDivElement | null>(null);
+/** 背景视差的平滑值：对 (target / PAN_LIMIT) 做指数趋近，拖拽时底图不抖 */
+const bgParallax = { x: 0, y: 0 };
+/** 上一次实际写入 style 的值：变化极小时跳过，避免每帧样式失效 */
+const bgParallaxWritten = { x: NaN, y: NaN };
+/** 用户系统声明减少动效时：既不加视差，CSS 动画也由媒体查询关闭 */
+const prefersReducedMotion =
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * 每帧更新背景视差。
+ * 屏幕方向推导（默认从南向北看，北朝上）：视点向东(+x)移动 → 地图内容
+ * 在屏幕上向左走 → 背景应同向更小幅度左移；向北(+y) → 内容向下走 →
+ * 背景同向小幅下移。scale(1.06) 留 6% 出血，±14px 平移永不露边。
+ */
+const updateBgParallax = () => {
+  const el = bgLayer.value;
+  if (!el || prefersReducedMotion) return;
+  const target = viewport.controls()?.target;
+  const tx = target ? target.x / 130 : 0;
+  const ty = target ? target.y / 130 : 0;
+  bgParallax.x += (tx - bgParallax.x) * 0.06;
+  bgParallax.y += (ty - bgParallax.y) * 0.06;
+  if (
+    Math.abs(bgParallax.x - bgParallaxWritten.x) < 0.0006 &&
+    Math.abs(bgParallax.y - bgParallaxWritten.y) < 0.0006
+  ) return;
+  bgParallaxWritten.x = bgParallax.x;
+  bgParallaxWritten.y = bgParallax.y;
+  el.style.transform = `translate3d(${(-bgParallax.x * 14).toFixed(2)}px, ${(bgParallax.y * 10).toFixed(2)}px, 0) scale(1.06)`;
+};
 
 /**
  * 大屏底图（A）内联样式：传了 bgImage 才覆盖内置程序化底图；
@@ -406,6 +467,16 @@ const syncLabels = () => {
   c2d.setVisible(css2dOn);
   // 重新套用一次显隐规则：css2d 模式据此隐藏 Sprite 标牌/卡片，sprite 模式据此恢复
   markers.applyMode();
+};
+
+/**
+ * syncFill — 同步「板块填色」映射到图层：开启时取 markers.build 生成的
+ * adcode→分档色（与柱体/图例同一套 tier），关闭时传 null 回统一底色。
+ * 必须在 markers.build 之后调用（映射随 build 生成、随 clear 清空），
+ * 故挂在 onEnter / 数据变化 / 主题重建这几个 markers 重建点的后面。
+ */
+const syncFill = () => {
+  layer.setValueFill(props.fillByValue ? markers.tierColorByAdcode() : null);
 };
 
 // ── 测量（P1 交互）：单击地面落点，折线累计长度 + ≥3 点自动算面积 ──
@@ -577,6 +648,8 @@ const {
   loadCountry,
   drill,
   back,
+  redo,
+  canRedo,
   jumpTo,
   locateByName,
   locateByAdcode,
@@ -604,6 +677,8 @@ const {
     // 数据柱/标牌：deferEntrance 为 true 时由外部 playEntrance() 触发增长动画，
     // 否则立即长出（!deferEntrance）。
     markers.build(level, !props.deferEntrance);
+    // 板块填色映射随 markers 重建同步（fillByValue 开启时顶面按分档色着色）
+    syncFill();
     // 柱体长到一半再让流星起飞，两个动画不抢同一个瞬间
     flies.build(level, props.deferEntrance ? 0 : 0.72);
     // 展示型装饰层随层级重建（几何与层级无关的项也借 root 挂载）
@@ -620,6 +695,8 @@ const {
   // 切层时先清掉悬停态（picker 在下方创建，回调可安全引用：切层发生在挂载之后）
   onLeave: async () => {
     picker.clearHover();
+    // 切层后旧菜单指向的对象已不存在，一并关闭
+    closeContextMenu();
     // 测量几何挂在旧层 root 上，切层必须清掉，否则会悬在重建后的新地图上空
     clearMeasure();
     flies.clear();
@@ -667,10 +744,16 @@ watch(
       markers.build(level, false);
       // 与下面 projectData watcher 保持同一套重建清单，避免装饰层停留在旧 root
       pyramids.build(level);
+      orbits.build(level);
       heat.build(level);
       c2d.build(level);
+      // ⚠️ 飞线组也挂在 layer.root() 上：layer.build 内部 clear() 会把它连同旧 root
+      //   一起从场景摘除。漏了这条，切主题后飞线就会「消失」，且之后切飞线开关/
+      //   颜色/速度都只作用于已脱离场景的对象，永远无法恢复（下钻才会重建）。
+      flies.build(level, 0);
       // build 内部按"无选中"重置显隐，这里补回落：选中态 / 标签模式 / 当前月份
       markers.applyMode();
+      syncFill();
       if (!props.timelinePlaying) markers.setMonth(props.timelineMonth, false);
     }
   },
@@ -732,6 +815,82 @@ const selectAdcode = (adcode: number | null) => {
   selectedAdcodes.value = adcode != null ? [adcode] : [];
   emit('select-change', adcode);
 };
+
+// ── 右键上下文菜单（P0 交互）─────────────────────────────────────
+/** 菜单状态：null=关闭；pick 为右键命中结果（null=点在空白，给导航类操作） */
+const contextMenu = ref<{ x: number; y: number; pick: PickResult | null } | null>(null);
+const closeContextMenu = () => {
+  contextMenu.value = null;
+};
+
+/** 剪贴板写入：优先 Clipboard API，非 https / 旧环境回退 execCommand；失败静默 */
+const copyText = (text: string) => {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => {});
+  } else {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch { /* 权限受限时静默 */ }
+    el.remove();
+  }
+  pushNotice(`已复制 ${text}`, 'info', 1600);
+};
+
+/** 菜单项按命中类型生成：行政区 / 标记 / 空白处（导航快捷操作） */
+const contextItems = computed(() => {
+  const menu = contextMenu.value;
+  if (!menu) return [];
+  const pick = menu.pick;
+  const info = pick ? ((pick.spot ?? pick.properties) as GeoJsonFeature['properties'] | null) : null;
+  if (info) {
+    const adcode = Number(info.adcode) || 0;
+    const items: Array<{ key: string; label: string; action: () => void }> = [];
+    // 仅行政区板块给「下钻」项（标记热区下钻语义不明确）
+    if (pick!.kind === 'region' && canDrill(pick!.properties as GeoJsonFeature['properties'])) {
+      items.push({
+        key: 'drill',
+        label: `下钻到「${info.name}」`,
+        action: () => drillProperties(pick!.properties as GeoJsonFeature['properties']),
+      });
+    }
+    if (adcode) {
+      const selected = markers.selectedAdcode.value === adcode;
+      items.push({ key: 'select', label: selected ? '取消选中' : '选中', action: () => selectAdcode(selected ? null : adcode) });
+      items.push({ key: 'copy-adcode', label: `复制区域代码 ${adcode}`, action: () => copyText(String(adcode)) });
+    }
+    items.push({ key: 'copy-name', label: `复制名称「${info.name}」`, action: () => copyText(String(info.name ?? '')) });
+    return items;
+  }
+  // 空白处：层级导航快捷操作
+  const items: Array<{ key: string; label: string; action: () => void }> = [];
+  if (canGoBack.value) items.push({ key: 'back', label: '返回上一级', action: () => handleBack() });
+  if (canRedo.value) items.push({ key: 'redo', label: '重做下钻', action: () => redo() });
+  if (current.value && current.value.level !== 'country') {
+    items.push({ key: 'reset', label: '复位到全国', action: () => resetToCountry() });
+  }
+  items.push({ key: 'view', label: '复位视角', action: () => viewport.focus(current.value?.fit ?? null, 0.5) });
+  return items;
+});
+
+const handleContextAction = (item: { key: string; action: () => void }) => {
+  closeContextMenu();
+  item.action();
+};
+
+/** 菜单定位：贴着右键锚点，越界时向内收（不裁出容器） */
+const contextMenuStyle = computed(() => {
+  const menu = contextMenu.value;
+  if (!menu) return {};
+  const hostEl = canvasHost.value;
+  const width = hostEl?.clientWidth ?? 1200;
+  const height = hostEl?.clientHeight ?? 700;
+  return {
+    left: `${Math.min(menu.x + 4, width - 200)}px`,
+    top: `${Math.min(menu.y + 4, height - contextItems.value.length * 34 - 16)}px`,
+  };
+});
 
 /**
  * adcodeOf — 从拾取结果中解析出行政区 adcode。
@@ -850,11 +1009,19 @@ const picker = usePointerPick({
       emit('hover-change', (pick?.spot ?? pick?.properties ?? null) as GeoJsonFeature['properties'] | null);
     }
   },
-  onSelect: (pick) => selectAdcode(adcodeOf(pick)),
+  onSelect: (pick) => {
+    closeContextMenu();
+    selectAdcode(adcodeOf(pick));
+  },
   onDrill: handleDrill,
-  // 点空白（未命中任何板块 / 标记）→ 若当前有选中则取消选中
+  // 点空白（未命中任何板块 / 标记）→ 关菜单；若当前有选中则取消选中
   onMiss: () => {
+    closeContextMenu();
     if (markers.selectedAdcode.value != null) selectAdcode(null)
+  },
+  // ── 右键上下文菜单：拾取结果 + 锚点交给菜单 UI（拖拽旋转不触发）──
+  onContext: (pick, pos) => {
+    contextMenu.value = { x: pos.x, y: pos.y, pick };
   },
   // ── 框选（Shift + 拖拽）：交给 usePointerPick 处理矩形，结果回传 onBoxEnd ──
   boxMode: () => shiftDown.value,
@@ -1078,6 +1245,8 @@ watch(
     // 数据 / 配色变更即时生效，重播入场动画会显得整屏在抖
     if (!level || !layer.root()) return;
     markers.build(level, false);
+    // 板块填色映射随 markers 重建同步
+    syncFill();
     // 依赖数据的装饰层同步重建：棱锥 / 热力 / CSS2D 标签
     pyramids.build(level);
     heat.build(level);
@@ -1090,6 +1259,12 @@ watch(
 watch(
   () => props.showColumn,
   () => markers.applyMode(),
+);
+
+// 板块填色开关：即时切换顶面着色（映射已随 markers.build 生成，无需重建）
+watch(
+  () => props.fillByValue,
+  () => syncFill(),
 );
 
 watch(
@@ -1179,10 +1354,19 @@ const handleKeydown = (event: KeyboardEvent) => {
     showHelp.value = !showHelp.value;
   } else if (event.key === 'Escape') {
     event.preventDefault();
-    // 优先取消选中；已无选中且还能返回时才回上一级
-    if (markers.selectedAdcode.value != null) selectAdcode(null);
+    // 优先关右键菜单，再取消选中；已无选中且还能返回时才回上一级
+    if (contextMenu.value) closeContextMenu();
+    else if (markers.selectedAdcode.value != null) selectAdcode(null);
     else if (canGoBack.value) handleBack();
     else if (showHelp.value) showHelp.value = false;
+  } else if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'z' || event.key === 'Z')) {
+    event.preventDefault();
+    // Ctrl+Shift+Z = 重做；Ctrl+Z = 撤销（返回上一级）。Ctrl+Y 走下方独立分支
+    if (event.shiftKey) redo();
+    else if (canGoBack.value) handleBack();
+  } else if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || event.key === 'Y')) {
+    event.preventDefault();
+    redo();
   } else if (event.code === 'Space') {
     event.preventDefault();
     viewport.focus(current.value?.fit ?? null, 0.5);
@@ -1266,6 +1450,8 @@ onMounted(async () => {
     flies.tick(dt, elapsed, viewport.camera(), view);
     // 底板跟随轨道中心：地图平移/下钻后，圆环不会偏到一边
     ground.syncToFocus(viewport.controls()?.target ?? null);
+    // 背景视差：底图随相机平移微动，制造景深（静止时写入会很快收敛为零开销）
+    updateBgParallax();
     pyramids.tick(dt, elapsed);
     orbits.tick(dt);
     // 侧壁扫描流光：推进共享材质的时间戳
@@ -1362,12 +1548,41 @@ onUnmounted(() => {
   /* 强度由组件内联注入的 --bg-opacity 控制（0~1）；不传时按 1 处理 */
   opacity: var(--bg-opacity, 1);
   transition: opacity 0.4s ease;
+  /* 视差基准：预放大 6% 留出血，JS 每帧覆写 transform（平移 + 同倍率缩放） */
+  transform: scale(1.06);
+  will-change: transform;
 }
 /* 超宽屏（≥ 2:1）时 cover 会大量裁掉上下；焦点上移到地平线辉光所在的上三分之一 */
 @media (min-aspect-ratio: 2 / 1) {
   .map-bg-image { background-position: center 42%; }
 }
 .map-bg-image--hidden { opacity: 0; }
+
+/* ── 极光漂移层：三团大半径柔光在背景上极缓慢游走 ──
+   纯 transform 动画（GPU 合成，不触发重排/重绘），周期 56s、alternate 往返，
+   给静态底图加一层「活着」的低频光变化；自定义底图同样受益。 */
+.map-bg-image__aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 34% at 26% 30%, rgba(64, 170, 255, 0.13) 0%, rgba(64, 170, 255, 0) 70%),
+    radial-gradient(38% 30% at 74% 62%, rgba(112, 84, 236, 0.11) 0%, rgba(112, 84, 236, 0) 70%),
+    radial-gradient(30% 26% at 58% 20%, rgba(47, 216, 255, 0.09) 0%, rgba(47, 216, 255, 0) 70%);
+  animation: map-aurora-drift 56s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes map-aurora-drift {
+  0% { transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+  50% { transform: translate3d(2%, 1.8%, 0) scale(1.045); }
+  100% { transform: translate3d(-1.2%, 2.2%, 0) scale(1.02); }
+}
+/* 亮色主题下柔光压淡，避免在浅底上泛灰 */
+.map-bg-image--light .map-bg-image__aurora { opacity: 0.45; }
+/* 用户系统声明减少动效：漂移动画关闭 */
+@media (prefers-reduced-motion: reduce) {
+  .map-bg-image__aurora { animation: none; }
+}
 
 /* 暗色：中心聚光 + 稀疏网格 + 底部地平线辉光 */
 .map-bg-image--dark {
@@ -1427,6 +1642,37 @@ onUnmounted(() => {
   background: rgba(95, 201, 238, 0.14);
   pointer-events: none;
   z-index: 5;
+}
+/* 右键上下文菜单：玻璃拟态 + 青光，风格与统计浮层一致 */
+.map-ctx {
+  position: absolute;
+  z-index: 50;
+  min-width: 180px;
+  padding: 6px;
+  background: rgba(6, 16, 30, 0.9);
+  border: 1px solid rgba(95, 216, 255, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 18px rgba(47, 192, 255, 0.18);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.map-ctx__item {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #cfeaff;
+  font: 500 13px/1.2 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.map-ctx__item:hover {
+  background: rgba(47, 192, 255, 0.2);
+  color: #eaf8ff;
 }
 /* 批量统计浮层（左下角，玻璃拟态 + 青光） */
 .map-sel-stats {

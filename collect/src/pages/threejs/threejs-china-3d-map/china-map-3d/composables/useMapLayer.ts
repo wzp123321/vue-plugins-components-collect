@@ -60,6 +60,12 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   let hoveredAdcode: number | null = null
   /** 选中集合：支持框选 / 多选（P0 交互），单值选中只是容量为 1 的特例 */
   let selectedSet: Set<number> = new Set()
+  /**
+   * 板块填色模式（choropleth）：adcode → 顶面基色。
+   * null = 关闭（回到统一底色）；悬停 / 选中色始终优先于填色。
+   * 数据源是 markers 的分档结果（与柱体 / 图例同一套 tier 色）。
+   */
+  let valueFill: Map<number, string> | null = null
   let disposed = false
 
   const adcodeOf = (node: RegionNode) => Number(node.properties.adcode) || 0
@@ -76,9 +82,11 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     for (const node of regions) {
       const adcode = adcodeOf(node)
       const active = selectedSet.has(adcode) ? 'focus' : adcode === hoveredAdcode ? 'hover' : 'base'
+      // 基色：填色模式按分档色上顶面，未命中的区域回退统一底色
+      const baseColor = valueFill?.get(adcode) ?? mapConfig.color
       for (const material of node.topMaterials) {
         material.color.set(
-          active === 'focus' ? mapConfig.focusColor : active === 'hover' ? mapConfig.hoverColor : mapConfig.color,
+          active === 'focus' ? mapConfig.focusColor : active === 'hover' ? mapConfig.hoverColor : baseColor,
         )
         material.opacity = active === 'base' ? mapConfig.opacity : 1
       }
@@ -205,6 +213,14 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     clear,
     sink,
     paint,
+    /**
+     * 板块填色模式开关：传入 adcode→颜色映射开启（立即重绘），传 null 关闭。
+     * 由 ChinaMap3D 在 markers.build 之后调用，保证映射与当前层数据同步。
+     */
+    setValueFill(map: Map<number, string> | null) {
+      valueFill = map
+      paint()
+    },
     setHover(adcode: number | null) {
       if (hoveredAdcode === adcode) return
       hoveredAdcode = adcode

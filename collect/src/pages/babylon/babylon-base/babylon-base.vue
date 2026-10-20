@@ -4,8 +4,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import * as BABYLON from 'babylonjs';
+
+/** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
+let engine: BABYLON.Engine | null = null;
 
 const initBaBy = () => {
   const canvas = document.getElementById('babylon-base-canvas');
@@ -13,12 +16,12 @@ const initBaBy = () => {
     return;
   }
   console.log(canvas);
-  const engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true); // 初始化 BABYLON 3D engine
+  engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true); // 初始化 BABYLON 3D engine
 
   /******* Add the create scene function ******/
   const createScene = () => {
     // 创建一个场景scene
-    const scene = new BABYLON.Scene(engine);
+    const scene = new BABYLON.Scene(engine!);
     console.log(scene);
     // 添加一个相机，并绑定鼠标事件
     const camera = new BABYLON.ArcRotateCamera(
@@ -51,6 +54,11 @@ const initBaBy = () => {
 
 onMounted(() => {
   initBaBy();
+});
+
+onBeforeUnmount(() => {
+  engine?.dispose();
+  engine = null;
 });
 </script>
 <style lang="less" scoped>

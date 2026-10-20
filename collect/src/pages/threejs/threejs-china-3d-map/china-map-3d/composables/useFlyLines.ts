@@ -3,8 +3,8 @@ import gsap from 'gsap'
 import { createProjection } from '../utils/projection'
 import type { ProjectionFn } from '../utils/projection'
 import { anchorOf } from '../utils/anchor'
-import { createFlyLine, setFlyLineTint, updateFlyLine } from '../utils/drawFlyLine'
-import type { FlyAnim } from '../utils/drawFlyLine'
+import { createFlyLine, setFlyLineTint, updateFlyLine, createRipple, updateRipple, setRippleTint, hash01 } from '../utils/drawFlyLine'
+import type { FlyAnim, Ripple } from '../utils/drawFlyLine'
 import { disposeObject3D } from '../utils/dispose'
 import { mapConfig } from '../utils/mapConfig'
 import type { MapLevel } from './useMapLayer'
@@ -60,6 +60,8 @@ interface Options {
 export const useFlyLines = (options: Options) => {
   let group: THREE.Group | null = null
   let anims: FlyAnim[] = []
+  /** 端点涟漪：枢纽 + 各辐射端点的扩散圆环（与飞线同色、同生命周期） */
+  let ripples: Ripple[] = []
   /** 延迟起飞计时器（柱体长完再让流星出现） */
   let revealTimer: gsap.core.Tween | null = null
   /** 相机上一次位置：用于判断是否需要重算条带朝向 */
@@ -77,6 +79,7 @@ export const useFlyLines = (options: Options) => {
       group = null
     }
     anims = []
+    ripples = []
     needsOrientation = true
   };
 
@@ -137,11 +140,36 @@ export const useFlyLines = (options: Options) => {
     group.userData = { kind: 'flylines' }
     const tint = options.color()
     const speed = options.speed() ?? mapConfig.fly.speed
+    // 地图平面上的锚点 → 世界坐标（屏幕 y 向下 → 世界 y 向上，与 drawFlyLine 同约定）
+    const rippleZ = mapConfig.spotZ
+    const worldOf = (point: [number, number]) => ({
+      x: point[0],
+      y: -point[1],
+      z: rippleZ,
+    })
+    // 涟漪相位错峰：用辐射端点数均匀铺开，避免所有圈同起同落的机械感
+    const count = graph.spokes.length + 1
+    let phaseIndex = 0
+    // 枢纽涟漪更大（辐射源）：先放枢纽，再放各端点
+    ripples = [
+      createRipple(worldOf(hubPoint), tint, mapConfig.fly.ripple.size * mapConfig.fly.ripple.hubScale, phaseIndex++ / count),
+    ]
     for (const spoke of graph.spokes) {
-      const { object, anim } = createFlyLine(hubPoint, spoke, { tint, speed, phase: Math.random() })
+      // 速度个体差异（±18%，确定性哈希）：整齐划一的速度会让弧场像节拍器
+      const speedMul = 0.82 + hash01(spoke[0], spoke[1], 3) * 0.36
+      const { object, anim } = createFlyLine(hubPoint, spoke, {
+        tint,
+        speed: speed * speedMul,
+        phase: Math.random(),
+      })
       group.add(object)
       anims.push(anim)
+      // 端点涟漪：流星落点一圈圈扩散
+      ripples.push(
+        createRipple(worldOf(spoke), tint, mapConfig.fly.ripple.size, phaseIndex++ / count),
+      )
     }
+    for (const ripple of ripples) group.add(ripple.mesh)
     root.add(group)
 
     if (delay > 0 && options.visible()) {
@@ -192,6 +220,8 @@ export const useFlyLines = (options: Options) => {
           viewHeight > 0 ? (2 * tanHalf * position.distanceTo(anim.mid)) / viewHeight : 0
         updateFlyLine(anim, dt, elapsed, position, moved, worldPerPx)
       }
+      // 端点涟漪与流星同帧推进（tick 开头已做过 group.visible 早退）
+      for (const ripple of ripples) updateRipple(ripple, elapsed)
     },
     /** 重建 / 换层级后强制重算一次朝向 */
     invalidate() {
@@ -202,6 +232,8 @@ export const useFlyLines = (options: Options) => {
     },
     setColor(color: string) {
       for (const anim of anims) setFlyLineTint(anim, color)
+      // 涟漪与拖尾同色：控制台换色时同步
+      for (const ripple of ripples) setRippleTint(ripple, color)
     },
     setSpeed(speed: number) {
       for (const anim of anims) anim.speed = speed

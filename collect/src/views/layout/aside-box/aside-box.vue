@@ -20,7 +20,7 @@
       <ai-icon name="search" />
     </button>
 
-    <div class="ai-aside__scroll">
+    <div ref="scrollRef" class="ai-aside__scroll">
       <!-- 检索态：跨分组平铺结果 -->
       <template v-if="query">
         <div class="ai-aside__hint">{{ results.length }} 个匹配</div>
@@ -38,7 +38,7 @@
         <div v-if="results.length === 0" class="ai-aside__empty">没有匹配的示例</div>
       </template>
 
-      <!-- 常态：能力域 → 分区 → 示例 -->
+      <!-- 常态：能力域 → 分区 → 示例（合集页子示例为 searchOnly，不占菜单） -->
       <template v-else>
         <template v-for="group in menuList" :key="group.key">
           <!-- 只有一个条目的能力域直接当入口，不再套一层折叠 -->
@@ -46,6 +46,7 @@
             v-if="countOfGroup(group) === 1"
             class="ai-group-head ai-group-head--single"
             :class="{ 'is-active': activePath === firstPathOfGroup(group) }"
+            :style="{ '--tone': group.tone }"
             :title="collapsed ? group.label : ''"
             @click="go(firstPathOfGroup(group))"
           >
@@ -60,6 +61,7 @@
             <button
               class="ai-group-head"
               :class="{ 'is-open': isOpen(group.key) }"
+              :style="{ '--tone': group.tone }"
               :title="collapsed ? group.label : ''"
               @click="toggleGroup(group.key)"
             >
@@ -75,7 +77,7 @@
               <div v-for="section in group.sections" :key="section.label" class="ai-section">
                 <div class="ai-section__label">{{ section.label }}</div>
                 <button
-                  v-for="item in section.items"
+                  v-for="item in visibleItems(section)"
                   :key="item.path"
                   class="ai-item"
                   :class="{ 'is-active': item.path === activePath }"
@@ -83,6 +85,7 @@
                 >
                   <span class="ai-item__dot"></span>
                   <span class="ai-item__label">{{ item.label }}</span>
+                  <span v-if="item.badge" class="ai-item__badge">{{ item.badge }}</span>
                 </button>
               </div>
             </div>
@@ -93,16 +96,16 @@
 
     <div v-if="!collapsed" class="ai-aside__foot">
       <span class="ai-aside__pulse"></span>
-      <span>{{ totalCount }} 个示例 · {{ menuList.length }} 个能力域</span>
+      <span>{{ totalCount }} 个入口 · {{ navTotal }} 个示例</span>
     </div>
   </aside>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AiIcon from '@/components/ai-icon/ai-icon.vue';
-import { countOfGroup, firstPathOfGroup, navGroups, searchNav, type NavGroup } from './constant';
+import { countOfGroup, firstPathOfGroup, navGroups, navTotal, searchNav, type NavGroup, type NavSection } from './constant';
 
 defineOptions({
   name: 'AiAside',
@@ -129,12 +132,18 @@ const emit = defineEmits<{
 
 const router = useRouter();
 const query = ref('');
+const scrollRef = ref<HTMLElement | null>(null);
 
 const OPEN_STORAGE_KEY = 'ai-nav-open-groups';
 
 const activePath = computed(() => props.selectedMenu?.[0] ?? '');
 const totalCount = computed(() => props.menuList.reduce((sum, group) => sum + countOfGroup(group), 0));
 const results = computed(() => searchNav(query.value));
+
+/** 合集页内的子示例为 searchOnly，只进搜索索引，不在菜单里重复铺开 */
+function visibleItems(section: NavSection) {
+  return section.items.filter((item) => !item.searchOnly);
+}
 
 /** 分组展开状态：首次进入只展开当前路由所在分组 */
 const openMap = ref<Record<string, boolean>>(loadOpenState());
@@ -183,8 +192,8 @@ function goFirst() {
   if (first) go(first.path);
 }
 
-/** 路由变化时，确保所属分组处于展开状态 */
-watch(activePath, (path) => {
+/** 路由变化时，确保所属分组处于展开状态，并把激活项滚进可视区 */
+watch(activePath, async (path) => {
   const group = props.menuList.find((item) =>
     item.sections.some((section) => section.items.some((entry) => entry.path === path)),
   );
@@ -192,6 +201,10 @@ watch(activePath, (path) => {
     openMap.value = { ...openMap.value, [group.key]: true };
     persistOpenState();
   }
+  await nextTick();
+  scrollRef.value
+    ?.querySelector('.ai-item.is-active')
+    ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 });
 </script>
 
@@ -298,6 +311,22 @@ watch(activePath, (path) => {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 6px 0 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ai-border-strong) transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 6px;
+      background-color: transparent;
+      transition: background-color 0.2s ease;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: var(--ai-border-strong);
+    }
   }
 
   &__hint {
@@ -380,17 +409,23 @@ watch(activePath, (path) => {
   &__icon {
     display: grid;
     place-items: center;
-    width: 22px;
-    height: 22px;
-    font-size: 17px;
-    color: var(--ai-text-dim);
-    transition: color 0.18s ease;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tone, #7c5cff) 15%, transparent);
+    color: color-mix(in srgb, var(--tone, #7c5cff) 80%, var(--ai-text));
+    font-size: 16px;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
   }
 
-  &:hover &__icon,
+  &:hover &__icon {
+    transform: scale(1.06);
+  }
+
   &.is-open &__icon,
   &--single.is-active &__icon {
-    color: var(--ai-accent);
+    background: color-mix(in srgb, var(--tone, #7c5cff) 24%, transparent);
+    color: color-mix(in srgb, var(--tone, #7c5cff) 95%, #fff);
   }
 
   &__label {
@@ -432,12 +467,22 @@ watch(activePath, (path) => {
 /* ---------- 分区 ---------- */
 .ai-section {
   &__label {
-    padding: 10px 12px 4px 42px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px 4px 40px;
     color: var(--ai-text-mute);
     font-family: var(--ai-font-mono);
     font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--ai-hairline);
+    }
   }
 }
 
@@ -459,11 +504,12 @@ watch(activePath, (path) => {
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.16s ease, color 0.16s ease;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
 
   &:hover {
     background: var(--ai-surface-hover);
     color: var(--ai-text);
+    transform: translateX(2px);
   }
 
   &__dot {
@@ -488,6 +534,21 @@ watch(activePath, (path) => {
     color: var(--ai-text-mute);
     font-family: var(--ai-font-mono);
     font-size: 10px;
+  }
+
+  &__badge {
+    flex-shrink: 0;
+    min-width: 16px;
+    padding: 0 5px;
+    height: 15px;
+    line-height: 14px;
+    border: 1px solid color-mix(in srgb, var(--ai-accent) 32%, transparent);
+    border-radius: 5px;
+    background: var(--ai-accent-soft);
+    color: var(--ai-accent);
+    font-family: var(--ai-font-mono);
+    font-size: 9.5px;
+    text-align: center;
   }
 
   &--flat {

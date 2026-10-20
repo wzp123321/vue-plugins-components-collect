@@ -427,10 +427,11 @@ writeRibbon(positions, pts, tan, camPos, widthAt):
     positions[o+3..o+5] = pts[i] - side*hw
 
 updateFlyLine(anim, dt, elapsed, camPos, cameraMoved):
-  anim.p += dt*anim.speed; if anim.p>=1: anim.p-=1       // 按 dt 累加推进（防掉帧瞬移）
-  fade = min(1, min(anim.p, 1-anim.p)/0.08)             // 首尾 8% 弧长淡入淡出
+  anim.p += dt*anim.speed; if anim.p>=1+restGap: anim.p-=1+restGap  // 按 dt 累加；周期=飞行+落地停顿
+  flight = min(anim.p, 1); resting = anim.p > 1            // 停顿段整条熄灭，歇一拍再发射
+  fade = resting ? 0 : min(1, flight/0.08, (1-flight)/0.03) // 起步 8% 柔和淡入 / 落地 3% 急熄
   for i in 0..n-1:
-    behind = anim.p - i/(n-1)
+    behind = flight - i/(n-1)
     if 0<=behind<band:
       tail = pow(1-behind/band,1.7)*tailGain
       core = behind<CORE_SPAN ? pow(1-behind/CORE_SPAN,2)*coreGain : 0

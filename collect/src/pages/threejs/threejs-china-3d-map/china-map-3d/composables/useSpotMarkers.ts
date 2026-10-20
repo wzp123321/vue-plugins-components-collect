@@ -69,6 +69,8 @@ export const useSpotMarkers = (options: Options) => {
   let seriesByAdcode = new Map<number, number[]>()
   /** 时间轴：所有月度值的最大值，作为柱高归一化基准（避免某月超原始最大值后柱体溢出） */
   let seriesMax = 1
+  /** adcode → 分档色：build 时生成，供「板块填色模式」给顶面上色（与柱体/图例同一套分档） */
+  let tierColorByAdcode = new Map<number, string>()
 
   /**
    * 把当前层级所有 features 收集成 SpotItem：取数值、算锚点、投影到世界坐标。
@@ -117,6 +119,7 @@ export const useSpotMarkers = (options: Options) => {
     }
     legend.value = []
     selectedAdcode.value = null
+    tierColorByAdcode = new Map()
   };
 
   /** 入场生长：把 state.t 从 0 补间到 1，每帧把生长比例写进图层 */
@@ -152,6 +155,8 @@ export const useSpotMarkers = (options: Options) => {
     const tiers: Tier[] = buildTiers(values, options.columnColor())
     for (const item of items) item.tier = tierOf(item.value, tiers)
     legend.value = tiers.map((tier) => ({ color: tier.color, label: tier.label }))
+    // 同步生成 adcode → 分档色映射（板块填色模式的数据源；clear 时一并丢弃）
+    tierColorByAdcode = new Map(items.map((item) => [item.adcode, tiers[item.tier].color]))
     // 各分档城市数量（供饼图统计用）
     const counts = new Array<number>(tiers.length).fill(0)
     for (const item of items) counts[item.tier]++
@@ -278,6 +283,8 @@ export const useSpotMarkers = (options: Options) => {
     clear,
     select,
     applyMode,
+    /** adcode → 分档色映射（板块填色模式用；随 build 生成、clear 清空） */
+    tierColorByAdcode: () => tierColorByAdcode,
     /** 阈值聚焦：ratio 0~1（相对最大值），0=不过滤 */
     setThreshold,
     /** 时间轴：把数据柱高度切到指定月份（0~11），animate=是否补间 */
