@@ -3,12 +3,26 @@
 一个用于**学习、对比、收藏**的 Vue3 插件与组件实验场。  
 按业务场景把常用前端插件封装为独立可运行的演示页，全部基于同一个 `collect` 子项目路由化展示，开箱即用。
 
-> 当前收录 **17 个主题**（含 1 个 jspreadsheet-ce 完整功能演示页）。
+> 当前收录 **6 个能力域 · 81 个可运行示例**（含 1 个 jspreadsheet-ce 完整功能演示页）。
+
+---
+
+## 仓库地图
+
+本仓库是**多项目拼装结构**（非 pnpm workspace monorepo）：只有 `collect/` 是演示应用主体，其余三个是各自独立的 npm 项目，随用随取：
+
+| 目录                    | 身份                                              | 规模（git 跟踪文件） | 说明 |
+| ----------------------- | ------------------------------------------------- | -------------------- | ---- |
+| `collect/`              | 本仓库主体：Vue3 + Vite + TS 演示应用             | ~586                 | 81 个示例按 6 能力域组织，开发/构建都在这里 |
+| `mobile-component/`     | `ts-mobile-ui`：UniApp / UniApp-X 移动端组件库    | ~1515                | 独立项目，自带 VitePress 文档站，详见其 README |
+| `terminal/`             | `terminal-project`：终端相关实验                  | ~47                  | 独立项目（Vue3 + TS + Vite 模板起步） |
+| `dependencies-guard/`   | `demo-pro`：依赖守门实验                          | ~22                  | 独立项目，验证依赖白名单/守卫机制 |
 
 ---
 
 ## 目录
 
+- [仓库地图](#仓库地图)
 - [项目结构](#项目结构)
 - [快速开始](#快速开始)
 - [脚本命令](#脚本命令)
@@ -21,27 +35,28 @@
 
 ## 项目结构
 
-仓库为 monorepo 风格的多模块结构，仅 `collect/` 目录为可运行的 Vue3 应用主体：
+仓库为多项目拼装结构，仅 `collect/` 目录为可运行的 Vue3 应用主体（各目录身份见上方[仓库地图](#仓库地图)）：
 
 ```text
 vue-plugins-components-collect/
 ├── collect/                       # 主体：Vue3 + Vite + TypeScript 演示应用
 │   ├── src/
-│   │   ├── pages/plugins/         # 各插件独立演示页
+│   │   ├── pages/                 # 各演示页（按类目分目录，不止 plugins）
 │   │   ├── components/            # 公共组件
 │   │   ├── hooks/                 # 组合式函数
 │   │   ├── services/              # 接口请求封装
-│   │   ├── router/                # 路由配置
+│   │   ├── router/                # 路由配置（modules/*.ts 按类目拆分）
 │   │   ├── store/                 # Pinia 状态
 │   │   ├── directives/            # 自定义指令
 │   │   ├── utils/                 # 工具方法
-│   │   ├── views/                 # 业务页面
+│   │   ├── views/                 # 布局与框架（含侧边栏导航 constant.ts）
 │   │   └── assets/                # 静态资源
+│   ├── _archive/                  # 已归档的孤儿页面（不参与构建）
 │   ├── vite.config.ts
 │   └── package.json
-├── mobile-component/              # 移动端组件实验（独立子项目）
-├── terminal/                      # 终端相关实验
-├── dependencies-guard/            # 依赖守门脚本
+├── mobile-component/              # ts-mobile-ui：UniApp 组件库（独立项目）
+├── terminal/                      # terminal-project（独立项目）
+├── dependencies-guard/            # demo-pro（独立项目）
 ├── README.md
 └── package.json
 ```
@@ -85,6 +100,7 @@ pnpm dev
 | `pnpm lint:css`        | Stylelint 检查样式                              |
 | `pnpm fix`             | 自动修复 HTML / CSS 问题                        |
 | `pnpm prettier-format` | Prettier 格式化源码                             |
+| `pnpm check:nav`       | 校验导航与路由双向一致（pre-commit 自动执行）   |
 
 ---
 
@@ -101,18 +117,10 @@ pnpm dev
 | `/pluginsLittle`             | 小插件               | crypto-js / canvas                                                   | Canvas 绘图、加解密（AES / Base64 / MD5 等）                                                                                                                                                                                                   |
 | `/plugins-jspreadsheet-ce`   | jspreadsheet电子表格 | [jspreadsheet-ce](https://bossanova.uk/jspreadsheet/) + jsuites      | 4 个工作表覆盖全部核心功能（详见下文）                                                                                                                                                                                                         |
 
-### 其它主题（持续扩充中）
+### 页面收录现状
 
-仓库中还存在以下未挂载到侧边栏的实验性页面（可直接访问对应路径）：
-
-- `plugin-table-export-excel`（`/plugin-table-export-excel` 旧实现 + v2 实现）
-- `plugin-word-pdf-preview` 兼容旧版入口
-- `plugins-antv-g6`（关系图）
-- `plugins-export-to-excel`（exceljs 导出）
-- `plugins-webrtc`（音视频通信）
-- `vue-monoplasty-slide-verify`（老版滑块验证）
-
-> 这些页面在 `plugins.ts` 之外维护，访问方式以源代码中路径为准。
+所有可访问的演示页均已挂载导航（6 能力域 → 分区 → 示例，定义在 `collect/src/views/layout/aside-box/constant.ts`）。
+历史上存在过一批未接线的实验页面，已于 2026-10-20 归档至 [`collect/_archive/`](collect/_archive/README.md)，不再随构建分发。
 
 ---
 
@@ -202,8 +210,9 @@ text / numeric(千分位) / calendar / dropdown(单选+多选) / checkbox / radi
 
 ## 开发约定
 
-- **风格统一**：所有插件页位于 `pages/plugins/<plugin-name>/`，主页 `*.vue`，可挂载 `*.api.ts` / `*.service.ts` / `model.ts` 作为附属文件。
-- **路由**：统一在 `collect/src/router/modules/plugins.ts` 注册，meta.name 即菜单显示名。
+- **风格统一**：演示页位于 `pages/<类目>/<页面名>/<页面名>.vue`，可挂载 `*.api.ts` / `*.service.ts` / `model.ts` 作为附属文件。
+- **路由**：按类目拆在 `collect/src/router/modules/*.ts`（14 个模块），`meta.name` 即页面标题。
+- **导航（双注册，必改两处）**：新增页面除注册路由外，还必须在 `collect/src/views/layout/aside-box/constant.ts` 的 `navGroups` 补条目，否则侧边栏不可达。改动后执行 `pnpm check:nav` 校验两边一致（pre-commit 也会自动跑）。
 - **样式**：使用 `lang="less" scoped`；覆写第三方库样式用 `:deep()`，避免污染全局。
 - **图标**：统一使用 `@element-plus/icons-vue`。
 - **数据**：本仓库偏演示性质，业务数据使用 mock，无真实接口依赖。
@@ -220,7 +229,7 @@ A. 项目 lockfile 是 pnpm v9 格式。如全局 pnpm 是 v11，建议使用 `n
 A. 检查 `jsuites` 是否安装且版本为 `^5.x`（与 jspreadsheet-ce v5 匹配）。`pnpm add jsuites@5` 后重启 dev server。
 
 **Q3. 路由访问 404？**
-A. 路由统一在 `collect/src/router/modules/plugins.ts` 注册，确认已加入该数组并重启 dev server。
+A. 路由按类目注册在 `collect/src/router/modules/*.ts`，确认已加入对应模块的数组；同时检查侧边栏导航 `constant.ts` 是否补了条目（双注册）。可用 `pnpm check:nav` 一键排查两边不一致。
 
 **Q4. ESLint / Stylelint 报错？**
 A. 先 `pnpm fix` 自动修复大部分问题，剩余的根据提示手动处理。

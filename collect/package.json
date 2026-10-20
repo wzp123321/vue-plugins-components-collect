@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "gen": "node ./scripts/genCommitId.js",
+    "check:nav": "node ./scripts/check-nav-routes.mjs",
     "dev": "vite",
     "ts-check": "vue-tsc --noEmit",
     "build:start": "vite build  --mode production",

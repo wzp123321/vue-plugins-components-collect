@@ -61,6 +61,16 @@
           <el-option v-for="option in fontFamilyOptions" :key="option.value" :label="option.label" :value="option.value" />
         </el-select>
 
+        <el-select
+          :model-value="snapshot.lineHeight"
+          size="small"
+          style="width: 92px"
+          placeholder="行高"
+          @change="onLineHeightChange"
+        >
+          <el-option v-for="option in lineHeightOptions" :key="option.value" :label="option.label" :value="option.value" />
+        </el-select>
+
         <el-dropdown size="small" @command="onAlignChange">
           <el-button size="small">
             {{ currentAlignLabel }}
@@ -175,6 +185,22 @@
         </el-popover>
         <input ref="imageFileInput" type="file" accept="image/*" class="hidden-file-input" @change="onImageFileChange" />
 
+        <!-- 格式刷：单击采样并单次应用，双击连续应用，Esc 取消 -->
+        <el-button-group>
+          <el-button
+            size="small"
+            :type="snapshot.formatPainterActive ? 'primary' : 'default'"
+            title="格式刷：选中文本后单击采样格式，再选中目标文本应用；双击连续应用，Esc 取消"
+            @click="onFormatPainterClick"
+            @dblclick="onFormatPainterDoubleClick"
+          >
+            格式刷
+          </el-button>
+        </el-button-group>
+        <span v-if="snapshot.formatPainterActive" class="format-painter-hint">
+          已采样格式，选中目标文本即应用（Esc 取消）
+        </span>
+
         <el-button-group>
           <el-button size="small" @click="exec((chain) => chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }))">表格</el-button>
           <el-button size="small" @click="exec((chain) => chain.clearNodes().unsetAllMarks())">清除格式</el-button>
@@ -220,11 +246,12 @@
  * 命令执行 / 状态检查抽成 utils，扩展统一在 extensions.ts 配置
  */
 import { computed, nextTick, ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import type { JSONContent } from '@tiptap/vue-3';
 import { ArrowDown, Check } from '@element-plus/icons-vue';
 import { buildExtensions } from './extensions';
-import { createCommandRunner } from './utils/editorCommands';
+import { createCommandRunner, executeCommand } from './utils/editorCommands';
 import { createStateCheckers, getCurrentParagraphStyle, getCurrentTextAlign } from './utils/editorState';
 import type { CommandBuilder } from './utils/editorCommands';
 import EditorBubbleMenu from './EditorBubbleMenu.vue';
@@ -239,9 +266,12 @@ interface EditorSnapshot {
   align: 'left' | 'center' | 'right' | 'justify';
   fontFamily: string;
   fontSize: string;
+  lineHeight: string;
   textColor: string;
   highlightColor: string;
   linkHref: string;
+  /** 格式刷是否激活（采样后等待应用） */
+  formatPainterActive: boolean;
 }
 
 interface ChangePayload {
@@ -325,6 +355,15 @@ const fontSizeOptions = [
   { value: '32px', label: '32' },
 ];
 
+const lineHeightOptions = [
+  { value: '1.0', label: '1.0' },
+  { value: '1.5', label: '1.5' },
+  { value: '1.75', label: '1.75' },
+  { value: '2.0', label: '2.0' },
+  { value: '2.5', label: '2.5' },
+  { value: '3.0', label: '3.0' },
+];
+
 // 斜杠命令菜单实例（扩展回调经它驱动显隐）
 const slashMenuRef = ref<InstanceType<typeof EditorSlashMenu>>();
 
@@ -365,9 +404,11 @@ const snapshot = ref<EditorSnapshot>({
   align: 'left',
   fontFamily: '',
   fontSize: '',
+  lineHeight: '1.5',
   textColor: '',
   highlightColor: '',
   linkHref: '',
+  formatPainterActive: false,
 });
 
 function refreshSnapshot() {
@@ -381,7 +422,10 @@ function refreshSnapshot() {
   };
   const highlightAttrs = instance.getAttributes('highlight') as { color?: string };
   const linkAttrs = instance.getAttributes('link') as { href?: string };
+  const paragraphAttrs = instance.getAttributes('paragraph') as { lineHeight?: string };
+  const headingAttrs = instance.getAttributes('heading') as { lineHeight?: string };
   const characterCount = instance.storage.characterCount as { characters?: () => number } | undefined;
+  const formatPainterStorage = instance.storage as { formatPainter?: { isActive?: boolean } };
 
   snapshot.value = {
     html: instance.getHTML(),
@@ -391,9 +435,13 @@ function refreshSnapshot() {
     align: getCurrentTextAlign(editor),
     fontFamily: fontFamilyOptions.find((option) => option.value === textStyleAttrs.fontFamily)?.value ?? '',
     fontSize: fontSizeOptions.find((option) => option.value === textStyleAttrs.fontSize)?.value ?? '',
+    lineHeight:
+      lineHeightOptions.find((option) => option.value === (paragraphAttrs.lineHeight ?? headingAttrs.lineHeight))
+        ?.value ?? '',
     textColor: textStyleAttrs.color ?? '',
     highlightColor: highlightAttrs.color ?? '',
     linkHref: linkAttrs.href ?? '',
+    formatPainterActive: formatPainterStorage.formatPainter?.isActive ?? false,
   };
 }
 
@@ -465,6 +513,47 @@ function onFontSizeChange(value: string) {
     exec((chain) => chain.setFontSize(value));
   } else {
     exec((chain) => chain.unsetFontSize());
+  }
+}
+
+function onLineHeightChange(value: string) {
+  exec((chain) => chain.setLineHeight(value));
+}
+
+// ===== 格式刷 =====
+/** 读取格式刷激活态（扩展 storage） */
+function isFormatPainterActive(): boolean {
+  const instance = editor.value;
+  if (!instance) return false;
+  const storage = instance.storage as { formatPainter?: { isActive?: boolean } };
+  return storage.formatPainter?.isActive ?? false;
+}
+
+/** 单击：激活单次模式 / 取消 */
+function onFormatPainterClick() {
+  const instance = editor.value;
+  if (!instance) return;
+  if (isFormatPainterActive()) {
+    exec((chain) => chain.cancelFormatPainting());
+    return;
+  }
+  const ok = executeCommand(editor, (chain) => chain.startFormatPainting());
+  if (!ok) {
+    ElMessage.warning('请先选中一段文本，再单击格式刷采样');
+  }
+}
+
+/** 双击：激活连续应用模式 / 取消 */
+function onFormatPainterDoubleClick() {
+  const instance = editor.value;
+  if (!instance) return;
+  if (isFormatPainterActive()) {
+    exec((chain) => chain.cancelFormatPainting());
+    return;
+  }
+  const ok = executeCommand(editor, (chain) => chain.startFormatPainting(2));
+  if (!ok) {
+    ElMessage.warning('请先选中一段文本，再双击格式刷采样');
   }
 }
 
@@ -610,6 +699,13 @@ watch(
   gap: 6px;
 }
 
+.format-painter-hint {
+  font-size: 12px;
+  line-height: 1;
+  color: #e6a23c;
+  white-space: nowrap;
+}
+
 .tiptap-content {
   :deep(.ProseMirror) {
     min-height: var(--editor-min-height, 240px);
@@ -674,6 +770,11 @@ watch(
       border-left: 3px solid #dcdfe6;
       padding-left: 12px;
       color: #606266;
+    }
+
+    /* 格式刷激活时的光标提示（类名由 formatPainter 扩展挂在 view.dom 上） */
+    &.cursor-format-painter {
+      cursor: crosshair;
     }
 
     pre {

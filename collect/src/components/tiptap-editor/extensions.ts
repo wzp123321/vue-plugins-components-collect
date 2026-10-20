@@ -24,6 +24,10 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { FontFamily } from '@tiptap/extension-font-family';
 import { FontSize } from './extensions/fontSize';
+import { LineHeight } from './extensions/lineHeight';
+import { PasteWord } from './extensions/pasteWord';
+import { PasteImage } from './extensions/pasteImage';
+import { FormatPainter } from './extensions/formatPainter';
 import { SlashCommandExtension } from './extensions/slashCommand';
 import type { SlashCommandOptions } from './extensions/slashCommand';
 
@@ -34,6 +38,8 @@ export interface BuildExtensionsOptions {
   disableHistory?: boolean;
   /** 斜杠命令菜单回调 */
   slashCommand?: SlashCommandOptions;
+  /** 粘贴图片的上传函数，不传则回退 base64（演示用） */
+  uploadImage?: (file: File) => Promise<string>;
 }
 
 /**
@@ -42,7 +48,7 @@ export interface BuildExtensionsOptions {
  * 保证链接新窗口打开、下划线可被工具栏切换
  */
 export function buildExtensions(options: BuildExtensionsOptions = {}): AnyExtension[] {
-  const { placeholder = '开始编辑你的文档...', disableHistory = false, slashCommand } = options;
+  const { placeholder = '开始编辑你的文档...', disableHistory = false, slashCommand, uploadImage } = options;
 
   const starterKitConfig: Record<string, unknown> = {
     heading: { levels: [1, 2, 3] },
@@ -74,6 +80,10 @@ export function buildExtensions(options: BuildExtensionsOptions = {}): AnyExtens
     TableCell,
     FontFamily,
     FontSize,
+    LineHeight,
+    PasteWord,
+    PasteImage.configure({ uploadImage }),
+    FormatPainter,
     Subscript,
     Superscript,
     CharacterCount,

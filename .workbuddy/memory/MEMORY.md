@@ -3,7 +3,7 @@
 ## 工程结构与约定
 - 应用根目录 `collect/`：Vue3 + Vite + TS + Element Plus + vue-router，样式用 less scoped。
 - 路由按类目拆在 `src/router/modules/*.ts`，页面放 `src/pages/<类目>/<页面名>/<页面名>.vue`。
-- 侧边栏**不是**从路由自动派生：由 `src/views/layout/aside-box/constant.ts` 手工维护 `navGroups`（6 能力域 → 分区 → 示例，81 条），搜索走 `src/utils/semantic-search.ts`（Ctrl K 命令面板）。**新增页面必须同时改路由 + 导航两处**；2026-10-19 校验 81/81 无死链、5 个孤儿页面（canvas-advance/echarts-gantt|heatmap|scatter、components/g6-chart 空壳、plugins/vue-monoplasty-slide-verify 旧版）。
+- 侧边栏**不是**从路由自动派生：由 `src/views/layout/aside-box/constant.ts` 手工维护 `navGroups`（6 能力域 → 分区 → 示例，81 条），搜索走 `src/utils/semantic-search.ts`（Ctrl K 命令面板）。**新增页面必须同时改路由 + 导航两处**，提交前跑 `collect/scripts/check-nav-routes.mjs`（npm script `check:nav`，已挂 `.husky/pre-commit`；查死链/未收录/import 目标缺失三项）。2026-10-20 校验 84 路由 / 81 导航 / 82 import 目标全通过；孤儿页面统一归档到 `collect/_archive/pages/`（在 src 外，不参与构建，原因见 `_archive/README.md`）。
 - **组件统一用 `el-*`**（Element Plus，vite 已配自动按需导入）。
 - `te-*`（@tiansu）组件**实际存在并在用**：`src/components/te-*` 共 14 个目录，`src/pages/components/components/te-model.ts` 将其作为演示注册，全仓约 75 处引用。原"禁用 te-*"约定已被代码推翻 → **待用户确认口径**（保留演示 / 新代码禁用 / 拆独立包），在此之前不要凭旧记忆删 te-*。
 

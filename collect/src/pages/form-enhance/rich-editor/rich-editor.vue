@@ -8,7 +8,8 @@
       <strong>WangEditor</strong>
       （功能完整，代码示意）、
       <strong>TipTap</strong>
-      （下方为真实可交互演示，底层 ProseMirror）。
+      （下方为真实可交互演示，底层 ProseMirror；覆盖基础用法与进阶用法：
+      字号 / 行高 / 格式刷 / 粘贴 Word 净化 / 粘贴图片 / 气泡菜单 / 斜杠命令 / 表格浮动工具栏）。
     </el-alert>
 
     <el-row :gutter="20">
@@ -81,6 +82,9 @@
 
             <p class="guide-title" style="margin-top: 16px">💻 Vue3 使用方式</p>
             <pre class="code-block">{{ tiptapCode }}</pre>
+
+            <p class="guide-title" style="margin-top: 16px">🚀 进阶用法（组件内置，无需额外依赖）</p>
+            <pre class="code-block">{{ tiptapAdvancedCode }}</pre>
           </div>
         </el-card>
       </el-col>
@@ -212,6 +216,22 @@ const editor = useEditor({
 // 工具栏命令统一走链式 API，如：editor.chain().focus().toggleBold().run()
 // 查询激活态：editor.isActive('bold') / editor.isActive('heading', { level: 1 })`;
 
+const tiptapAdvancedCode = `// 1) 行高 / 字号：自定义扩展向节点挂全局属性
+editor.chain().focus().setLineHeight('2.0').run()
+editor.chain().focus().setFontSize('18px').run()
+
+// 2) 粘贴 Word 净化：transformPastedHTML 清理 o:p / 注释 / Mso 类名 / mso-* 样式
+// 3) 粘贴图片：纯图片走 base64 插入；图文混排替换 file://；可传 uploadImage 走服务端
+buildExtensions({ uploadImage: (file) => uploadToServer(file) })
+
+// 4) 格式刷：采样当前选区格式 → 选中目标文本自动应用（Esc 取消）
+editor.chain().focus().startFormatPainting().run()        // 单次
+editor.chain().focus().startFormatPainting(2).run()       // 连续
+editor.commands.applyFormat() / cancelFormatPainting()
+
+// 5) 交互组件：EditorBubbleMenu（选中气泡）/ EditorSlashMenu（斜杠命令）/
+//    EditorTableMenu（表格浮动工具栏），均已内置在 TiptapEditor 中`;
+
 const tiptapInstall = `# 核心
 pnpm add @tiptap/vue-3 @tiptap/starter-kit @tiptap/pm
 
@@ -222,7 +242,12 @@ pnpm add @tiptap/extension-placeholder @tiptap/extension-text-align \\
   @tiptap/extension-table @tiptap/extension-table-row @tiptap/extension-table-cell \\
   @tiptap/extension-table-header @tiptap/extension-task-list @tiptap/extension-task-item \\
   @tiptap/extension-character-count @tiptap/extension-subscript @tiptap/extension-superscript \\
-  @tiptap/extension-font-family`;
+  @tiptap/extension-font-family
+
+# 菜单组件依赖（BubbleMenu / 斜杠命令定位）
+pnpm add @tiptap/extension-bubble-menu @tiptap/extension-floating-menu tippy.js
+
+# 行高 / 粘贴 Word 净化 / 粘贴图片 / 格式刷为组件内自定义扩展，无需额外安装`;
 
 // ===== TipTap 演示状态 =====
 const tiptapHtml = ref('');
