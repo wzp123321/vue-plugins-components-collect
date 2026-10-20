@@ -8,7 +8,8 @@
     "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@tiptap/vue-3/menus": ["node_modules/@tiptap/vue-3/dist/menus/index.d.ts"]
     },
     "moduleResolution": "Node",
     "allowImportingTsExtensions": true,

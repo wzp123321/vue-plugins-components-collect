@@ -2,11 +2,12 @@
 
 ## 工程结构与约定
 - 应用根目录 `collect/`：Vue3 + Vite + TS + Element Plus + vue-router，样式用 less scoped。
-- 路由按类目拆在 `src/router/modules/*.ts`，页面放 `src/pages/<类目>/<页面名>/<页面名>.vue`；侧边栏由 routes 自动派生，加页面只需注册路由。
+- 路由按类目拆在 `src/router/modules/*.ts`，页面放 `src/pages/<类目>/<页面名>/<页面名>.vue`。
+- 侧边栏**不是**从路由自动派生：由 `src/views/layout/aside-box/constant.ts` 手工维护 `navGroups`（6 能力域 → 分区 → 示例，81 条），搜索走 `src/utils/semantic-search.ts`（Ctrl K 命令面板）。**新增页面必须同时改路由 + 导航两处**；2026-10-19 校验 81/81 无死链、5 个孤儿页面（canvas-advance/echarts-gantt|heatmap|scatter、components/g6-chart 空壳、plugins/vue-monoplasty-slide-verify 旧版）。
 - **组件统一用 `el-*`**（Element Plus，vite 已配自动按需导入）。
 - `te-*`（@tiansu）组件**实际存在并在用**：`src/components/te-*` 共 14 个目录，`src/pages/components/components/te-model.ts` 将其作为演示注册，全仓约 75 处引用。原"禁用 te-*"约定已被代码推翻 → **待用户确认口径**（保留演示 / 新代码禁用 / 拆独立包），在此之前不要凭旧记忆删 te-*。
 
-## AG Grid（ag-grid-community / ag-grid-vue3 v32）集成硬约束
+## AG Grid（ag-grid-community / ag-grid-vue3 v32）集成硬约束（2026-10-19 核实：ag-grid 已不在 package.json、src 0 引用，本节仅作历史经验保留）
 1. **主题类必须挂在网格的祖先元素上**。挂在 `<AgGridVue class="ag-theme-quartz">` 标签上会被丢弃 → 主题规则全不生效 → 列头与行高塌成 0、被 overflow 裁光，表现为"表格整块空白、新增行列都没反应"，但数据其实都在。
    原理：AG Grid 的 `Environment.readAncestorThemeClasses()` 从网格根元素**向上遍历祖先**收集 `ag-theme-*`，并把这些类**复制到弹层元素**。
    正确写法：`<div class="grid-wrap ag-theme-quartz"><AgGridVue ... /></div>`。

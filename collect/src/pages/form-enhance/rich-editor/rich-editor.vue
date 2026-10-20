@@ -2,12 +2,13 @@
   <div class="rich-editor-page">
     <h5>富文本编辑器</h5>
     <el-alert type="info" :closable="false" style="margin-bottom: 20px">
-      演示两种主流富文本编辑器的用法：
+      演示三种富文本编辑器方案：
       <strong>原生 contenteditable</strong>
-      （轻量）和
-      <strong>WangEditor 风格封装</strong>
-      （功能完整）。 如需引入真实 WangEditor，执行
-      <code>pnpm add @wangeditor/editor @wangeditor/editor-for-vue</code>
+      （轻量，execCommand 已废弃）、
+      <strong>WangEditor</strong>
+      （功能完整，代码示意）、
+      <strong>TipTap</strong>
+      （下方为真实可交互演示，底层 ProseMirror）。
     </el-alert>
 
     <el-row :gutter="20">
@@ -62,10 +63,25 @@
             <pre class="code-block">{{ wangEditorConfig }}</pre>
           </div>
         </el-card>
+      </el-col>
+    </el-row>
 
-        <el-card style="margin-top: 16px">
-          <template #header>③ TipTap（更现代的选择）</template>
-          <pre class="code-block">{{ tiptapCode }}</pre>
+    <!-- TipTap 真实可交互演示 -->
+    <el-row :gutter="20" style="margin-top: 20px">
+      <el-col :span="24">
+        <el-card>
+          <template #header>③ TipTap 富文本编辑器（真实可交互）</template>
+          <TiptapEditor v-model="tiptapHtml" @change="onTiptapChange" />
+          <div class="tiptap-status">
+            最近一次 change 事件：字数 {{ tiptapChange.characters }} · HTML 长度 {{ tiptapChange.htmlLength }}
+          </div>
+          <div class="install-guide" style="margin-top: 16px">
+            <p class="guide-title">📦 安装</p>
+            <pre class="code-block">{{ tiptapInstall }}</pre>
+
+            <p class="guide-title" style="margin-top: 16px">💻 Vue3 使用方式</p>
+            <pre class="code-block">{{ tiptapCode }}</pre>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -74,6 +90,7 @@
 
 <script lang="ts" setup>
 import { ref, nextTick } from 'vue';
+import { TiptapEditor } from '@/components/tiptap-editor';
 
 defineOptions({ name: 'RichEditor' });
 
@@ -179,19 +196,41 @@ const wangEditorConfig = `const editorConfig = {
   }
 }`;
 
-const tiptapCode = `// pnpm add @tiptap/vue-3 @tiptap/starter-kit
+const tiptapCode = `// 组件位置：src/components/tiptap-editor（可直接复用）
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
+import { buildExtensions } from '@/components/tiptap-editor'
 
 const editor = useEditor({
-  content: '<p>Hello World!</p>',
-  extensions: [StarterKit],
+  content: '<p>Hello TipTap!</p>',
+  extensions: buildExtensions({ placeholder: '开始编辑你的文档...' }),
+  onUpdate: ({ editor }) => {
+    editor.getHTML()  // HTML 输出
+    editor.getJSON()  // JSON 输出（结构化存储推荐）
+  },
 })
 
-// 获取 HTML 内容
-editor.value?.getHTML()
-// 获取 JSON 内容（更结构化）
-editor.value?.getJSON()`;
+// 工具栏命令统一走链式 API，如：editor.chain().focus().toggleBold().run()
+// 查询激活态：editor.isActive('bold') / editor.isActive('heading', { level: 1 })`;
+
+const tiptapInstall = `# 核心
+pnpm add @tiptap/vue-3 @tiptap/starter-kit @tiptap/pm
+
+# 基础扩展（当前组件已装）
+pnpm add @tiptap/extension-placeholder @tiptap/extension-text-align \\
+  @tiptap/extension-underline @tiptap/extension-color @tiptap/extension-text-style \\
+  @tiptap/extension-highlight @tiptap/extension-link @tiptap/extension-image \\
+  @tiptap/extension-table @tiptap/extension-table-row @tiptap/extension-table-cell \\
+  @tiptap/extension-table-header @tiptap/extension-task-list @tiptap/extension-task-item \\
+  @tiptap/extension-character-count @tiptap/extension-subscript @tiptap/extension-superscript \\
+  @tiptap/extension-font-family`;
+
+// ===== TipTap 演示状态 =====
+const tiptapHtml = ref('');
+const tiptapChange = ref({ characters: 0, htmlLength: 0 });
+
+const onTiptapChange = (payload: { html: string; json: unknown; characters: number }) => {
+  tiptapChange.value = { characters: payload.characters, htmlLength: payload.html.length };
+};
 </script>
 
 <style lang="less" scoped>
@@ -255,6 +294,12 @@ editor.value?.getJSON()`;
     margin-bottom: 6px;
     color: #303133;
   }
+}
+
+.tiptap-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #909399;
 }
 
 .code-block {
