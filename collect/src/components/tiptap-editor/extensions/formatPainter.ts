@@ -182,6 +182,9 @@ export const FormatPainter = Extension.create<Record<string, never>, FormatPaint
           if (!this.storage.isContinuous) {
             this.storage.isActive = false;
             editor.view.dom.classList.remove('cursor-format-painter');
+            // 退出只改存储、不动文档，不会产生任何事务事件；
+            // 补一个仅带 meta 的事务触发 onTransaction，让工具栏按钮态/提示文字同步刷新
+            editor.view.dispatch(editor.state.tr.setMeta('formatPainter', true));
           }
           return true;
         },
@@ -194,6 +197,8 @@ export const FormatPainter = Extension.create<Record<string, never>, FormatPaint
           this.storage.isContinuous = false;
           this.storage.formats = {};
           editor.view.dom.classList.remove('cursor-format-painter');
+          // 同上：Esc 取消不产生文档事务，需主动通知监听者刷新 UI
+          editor.view.dispatch(editor.state.tr.setMeta('formatPainter', true));
           return true;
         },
     };
@@ -201,6 +206,11 @@ export const FormatPainter = Extension.create<Record<string, never>, FormatPaint
 
   addProseMirrorPlugins() {
     const ext = this;
+    // mousedown 时的旧选区（anchor/head）：
+    // Chrome 原生双击/三击的选词/选段是异步同步进 PM state 的，mouseup 当时
+    // state 里往往还是旧选区——直接应用会把格式打到旧选区（如采样词自己）上；
+    // 用它判断鼠标抬起后选区是否真的发生了变化
+    let downSelection: { anchor: number; head: number } | null = null;
     return [
       new Plugin({
         key: new PluginKey('formatPainter'),
@@ -215,22 +225,39 @@ export const FormatPainter = Extension.create<Record<string, never>, FormatPaint
             return false;
           },
 
-          // 格式刷激活时，鼠标抬起后自动把格式应用到新选区
           handleDOMEvents: {
+            // 记录鼠标按下时的选区，供 mouseup 判断选区是否发生变化
+            mousedown: () => {
+              const sel = ext.editor?.state.selection;
+              downSelection = sel ? { anchor: sel.anchor, head: sel.head } : null;
+              return false;
+            },
+
+            // 格式刷激活时，鼠标抬起后自动把格式应用到新选区
             mouseup: () => {
               const storage = ext.storage as FormatPainterStorage;
-              if (storage.isActive && ext.editor) {
-                requestAnimationFrame(() => {
-                  if (!storage.isActive || !ext.editor) return;
+              const editor = ext.editor;
+              if (!storage.isActive || !editor) return false;
+              // selectionchange 把原生多击的选词/选段同步进 state 可能晚于紧随的
+              // rAF（实测慢一帧以上），因此做有界重试：选区相对 mousedown 发生变化
+              // 且非空才应用；始终未变（普通单击）则放弃，保持激活态
+              let frames = 0;
+              const tryApply = () => {
+                if (!storage.isActive || editor.isDestroyed) return;
+                const sel = editor.state.selection;
+                const changed =
+                  !downSelection || sel.anchor !== downSelection.anchor || sel.head !== downSelection.head;
+                if (!sel.empty && changed) {
                   try {
-                    if (!ext.editor.state.selection.empty) {
-                      ext.editor.commands.applyFormat();
-                    }
+                    editor.commands.applyFormat();
                   } catch {
                     // ignore
                   }
-                });
-              }
+                  return;
+                }
+                if (frames++ < 10) requestAnimationFrame(tryApply);
+              };
+              requestAnimationFrame(tryApply);
               return false;
             },
           },

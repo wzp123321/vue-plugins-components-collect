@@ -11,7 +11,7 @@ const dataVisRoutes: RouteRecordRaw[] = [
   {
     path: '/echarts-map',
     meta: {
-      name: '大屏-地球',
+      name: '中国地图大屏',
     },
     component: () => import('../../pages/echarts/chart-map/chart-map.vue'),
   },
@@ -28,6 +28,13 @@ const dataVisRoutes: RouteRecordRaw[] = [
       name: 'G6 拓扑图',
     },
     component: () => import('../../pages/plugins/plugins-antv-g6/plugins-antv-g6.vue'),
+  },
+  {
+    path: '/vchart',
+    meta: {
+      name: 'VChart 图表',
+    },
+    component: () => import('../../pages/vchart/vchart.vue'),
   },
 ];
 

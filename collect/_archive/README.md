@@ -11,3 +11,9 @@
 | `pages/plugins/vue-monoplasty-slide-verify/` | 旧版滑动验证；新版在 `pages/plugins/vue3-slide-verify/`（路由 `/vue3SlideVerify`） |
 
 如需恢复某个页面：把目录移回 `src/pages/` 原位置，并在 `src/router/modules/*.ts` 注册路由、在 `src/views/layout/aside-box/constant.ts` 补导航条目（两处都要改，可用 `npm run check:nav` 校验一致性）。
+
+## echarts-orphan-map-json/（2026-10-20 归档）
+
+- 来源：`src/pages/echarts/chart-province/map/`（map-china.json / map-china-merge.json / map-sichuan.json，共约 1.3MB）
+- 原因：chart-province 只 import map-config.json，这三个大 json 全仓零引用，且与 chart-map/map/ 下同名文件逐字节重复。
+- 恢复方法：如需省级地图原始数据，从这里拷回对应 map/ 目录即可。

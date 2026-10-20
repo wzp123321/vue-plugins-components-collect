@@ -1,7 +1,7 @@
 <template>
   <div class="chart-map">
     <div class="cm-header">
-      <div class="cm-header-title"><span class="cm-header-title-text">地球大屏</span></div>
+      <div class="cm-header-title"><span class="cm-header-title-text">中国地图大屏</span></div>
       <div class="cm-header-light"></div>
       <img class="cm-header-rect-left" src="../../../assets/images/echarts/echarts-map-header-rect-left.png" alt="" />
       <img class="cm-header-rect-right" src="../../../assets/images/echarts/echarts-map-header-rect-right.png" alt="" />

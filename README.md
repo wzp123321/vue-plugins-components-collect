@@ -3,7 +3,7 @@
 一个用于**学习、对比、收藏**的 Vue3 插件与组件实验场。  
 按业务场景把常用前端插件封装为独立可运行的演示页，全部基于同一个 `collect` 子项目路由化展示，开箱即用。
 
-> 当前收录 **6 个能力域 · 81 个可运行示例**（含 1 个 jspreadsheet-ce 完整功能演示页）。
+> 当前收录 **5 个能力域 · 81 个可运行示例**（含 1 个 jspreadsheet-ce 完整功能演示页）。
 
 ---
 
@@ -13,7 +13,7 @@
 
 | 目录                    | 身份                                              | 规模（git 跟踪文件） | 说明 |
 | ----------------------- | ------------------------------------------------- | -------------------- | ---- |
-| `collect/`              | 本仓库主体：Vue3 + Vite + TS 演示应用             | ~586                 | 81 个示例按 6 能力域组织，开发/构建都在这里 |
+| `collect/`              | 本仓库主体：Vue3 + Vite + TS 演示应用             | ~586                 | 81 个示例按 5 能力域组织，开发/构建都在这里 |
 | `mobile-component/`     | `ts-mobile-ui`：UniApp / UniApp-X 移动端组件库    | ~1515                | 独立项目，自带 VitePress 文档站，详见其 README |
 | `terminal/`             | `terminal-project`：终端相关实验                  | ~47                  | 独立项目（Vue3 + TS + Vite 模板起步） |
 | `dependencies-guard/`   | `demo-pro`：依赖守门实验                          | ~22                  | 独立项目，验证依赖白名单/守卫机制 |
@@ -119,7 +119,7 @@ pnpm dev
 
 ### 页面收录现状
 
-所有可访问的演示页均已挂载导航（6 能力域 → 分区 → 示例，定义在 `collect/src/views/layout/aside-box/constant.ts`）。
+所有可访问的演示页均已挂载导航（5 能力域 → 分区 → 示例，定义在 `collect/src/views/layout/aside-box/constant.ts`）。
 历史上存在过一批未接线的实验页面，已于 2026-10-20 归档至 [`collect/_archive/`](collect/_archive/README.md)，不再随构建分发。
 
 ---
@@ -210,6 +210,11 @@ text / numeric(千分位) / calendar / dropdown(单选+多选) / checkbox / radi
 
 ## 开发约定
 
+- **收录规则（两池分流）**：新增条目按「场景」建页，不为单个技术堆 demo。
+  - 建页判定：要解决的问题是「某技术本身怎么用」→ **不建页**（查官方文档或已有 demo 即可）；「技术 A × 技术 B × 我的约束」→ **建场景页**。
+  - 场景页三要素：① 页面注释写场景与业务上下文（解决什么问题）；② 文件头注释列出技术组合（A × B × C）；③ 踩坑落点注明卡点与原因，可指向 `.workbuddy/memory/MEMORY.md` 的接缝本。
+  - 建场景页当天，同步在接缝本记一条（两池在「建页」动作上闭环）。
+- **存量不动**：已收录示例继续按原样维护，收录规则只对新条目生效。
 - **风格统一**：演示页位于 `pages/<类目>/<页面名>/<页面名>.vue`，可挂载 `*.api.ts` / `*.service.ts` / `model.ts` 作为附属文件。
 - **路由**：按类目拆在 `collect/src/router/modules/*.ts`（14 个模块），`meta.name` 即页面标题。
 - **导航（双注册，必改两处）**：新增页面除注册路由外，还必须在 `collect/src/views/layout/aside-box/constant.ts` 的 `navGroups` 补条目，否则侧边栏不可达。改动后执行 `pnpm check:nav` 校验两边一致（pre-commit 也会自动跑）。

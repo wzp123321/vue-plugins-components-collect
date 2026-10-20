@@ -3,8 +3,9 @@
  *
  * 旧结构：14 个顶级菜单，每个菜单直接挂一串路由（最长 19 项平铺），
  *        侧边栏需要滚动很久，且同级之间没有语义归类。
- * 新结构：6 个能力域 → 若干分区 → 具体示例，三级收敛。
- *        顶级菜单由 14 个降到 6 个，单个分区最多 14 项。
+ * 新结构：5 个能力域 → 若干分区 → 具体示例，三级收敛。
+ *        顶级菜单由 14 个降到 5 个，单个分区最多 14 项，
+ *        单条分区已全部合并（2026-10-20 精简，条目与路由不动）。
  *
  * 注意：这里只组织「导航」，不新增/删除路由。
  *      每个 path 都对应 src/router/modules/*.ts 中已存在的路由。
@@ -44,13 +45,15 @@ export const navGroups: NavGroup[] = [
     icon: 'components',
     sections: [
       {
-        label: '通用组件',
+        label: '通用组件与指令',
         items: [
           { path: '/component-home', label: '组件总览' },
           { path: '/component-inputFilter', label: '输入框过滤' },
           { path: '/spark-upload', label: '大文件上传' },
           { path: '/component-qr-code', label: '二维码生成' },
           { path: '/tree-select-transfer', label: '树形穿梭' },
+          { path: '/inputFilter', label: '输入框过滤指令' },
+          { path: '/drag', label: '拖拽指令' },
         ],
       },
       {
@@ -72,13 +75,6 @@ export const navGroups: NavGroup[] = [
           { path: '/te-icon-lib', label: '图标库' },
         ],
       },
-      {
-        label: '自定义指令',
-        items: [
-          { path: '/inputFilter', label: '输入框过滤指令' },
-          { path: '/drag', label: '拖拽指令' },
-        ],
-      },
     ],
   },
   {
@@ -91,8 +87,9 @@ export const navGroups: NavGroup[] = [
         label: '图表',
         items: [
           { path: '/echarts', label: 'ECharts 集合' },
-          { path: '/echarts-map', label: '大屏地球' },
+          { path: '/echarts-map', label: '中国地图大屏' },
           { path: '/echarts-province', label: '省份地图' },
+          { path: '/vchart', label: 'VChart 图表' },
           { path: '/data-vis-g6', label: 'G6 拓扑图' },
         ],
       },
@@ -123,16 +120,17 @@ export const navGroups: NavGroup[] = [
   {
     key: 'engineering',
     label: '工程能力',
-    caption: '网络通信、表单文件与第三方插件接入',
+    caption: '网络与浏览器 API、表单文件、第三方插件与数据平台',
     icon: 'engineering',
     sections: [
       {
-        label: '网络通信',
+        label: '网络与浏览器 API',
         items: [
           { path: '/network-axios', label: 'Axios 请求封装' },
           { path: '/network-websocket', label: 'WebSocket 通信' },
           { path: '/network-sse', label: 'SSE 流式数据' },
           { path: '/network-webrtc', label: 'WebRTC 通信' },
+          { path: '/demo', label: 'Chrome TTS 语音播报' },
         ],
       },
       {
@@ -148,16 +146,13 @@ export const navGroups: NavGroup[] = [
         ],
       },
       {
-        label: '数据平台',
-        items: [{ path: '/data-platform-metric-catalog', label: '指标口径管理' }],
-      },
-      {
-        label: '插件生态',
+        label: '插件与数据平台',
         items: [
           { path: '/vue3SlideVerify', label: '滑动验证' },
           { path: '/plugins-vueuse', label: 'VueUse 组合式函数' },
           { path: '/plugins-draggable-formula', label: '拖拽公式' },
           { path: '/pluginsLittle', label: '小插件合集' },
+          { path: '/data-platform-metric-catalog', label: '指标口径管理' },
         ],
       },
     ],
@@ -179,15 +174,10 @@ export const navGroups: NavGroup[] = [
         ],
       },
       {
-        label: '状态管理',
+        label: '状态与性能',
         items: [
           { path: '/store-persist', label: 'Pinia 持久化' },
           { path: '/store-setup', label: 'Setup Store' },
-        ],
-      },
-      {
-        label: '性能优化',
-        items: [
           { path: '/perf-keep-alive', label: 'KeepAlive 缓存' },
           { path: '/perf-async-component', label: '异步组件懒加载' },
         ],
@@ -222,7 +212,7 @@ export const navGroups: NavGroup[] = [
         ],
       },
       {
-        label: 'CSS 技法',
+        label: 'CSS 与动效',
         items: [
           { path: '/css-whitespace-wordbreak-wordwrap', label: '换行处理' },
           { path: '/css-zindex', label: 'z-index 层叠' },
@@ -230,23 +220,8 @@ export const navGroups: NavGroup[] = [
           { path: '/css-backdrop', label: '毛玻璃' },
           { path: '/css-keyframe-animation', label: '关键帧动画' },
           { path: '/css-var-theme', label: '变量主题' },
+          { path: '/animations', label: '动画大全' },
         ],
-      },
-      {
-        label: '动效',
-        items: [{ path: '/animations', label: '动画大全' }],
-      },
-    ],
-  },
-  {
-    key: 'lab',
-    label: '实验室',
-    caption: '浏览器原生能力试验田',
-    icon: 'lab',
-    sections: [
-      {
-        label: '浏览器能力',
-        items: [{ path: '/demo', label: 'Chrome TTS 语音播报' }],
       },
     ],
   },
