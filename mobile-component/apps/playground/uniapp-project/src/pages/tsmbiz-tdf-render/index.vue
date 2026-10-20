@@ -1,7 +1,14 @@
 <template>
   <tsm-theme-provider>
     <!-- 测试基本用法 -->
-    <tsmbiz-tdf-render :data="dsl" v-model="formData" @submit="submitData" />
+    <tsmbiz-tdf-render
+      :data="dsl"
+      v-model="formData"
+      :select-teleport-to-body="true"
+      @submit="submitData"
+      @esign-landscape-change="onLandscapeChange"
+    />
+    <view class="landscape-tip">横屏签字态：{{ isLandscape ? '是' : '否' }}</view>
   </tsm-theme-provider>
 </template>
 
@@ -10,183 +17,107 @@ import { ref } from 'vue';
 
 const dsl = ref([
   {
-    type: 'input',
-    field: 'name',
-    title: '名字',
-    info: '',
-    $required: '请输入',
-    props: {
-      placeholder: '请输入名字',
-      maxlength: 6,
-      showWordimit: true,
-    },
-    _fc_id: 'id_F8mkmqfz0j5facc',
-    name: 'ref_F4gimqfz0j5fadc',
-    display: true,
-    hidden: false,
+    $required: false,
     _fc_drag_tag: 'input',
-    validate: [
-      {
-        mode: 'maxLen',
-        trigger: 'blur',
-        adapter: true,
-        maxLen: 6,
-      },
-      {
-        mode: 'email',
-        trigger: 'blur',
-        adapter: true,
-        email: true,
-        message: '请输入正确的邮箱格式',
-      },
-    ],
-  },
-  {
+    _fc_id: 'id_Fs97mu6ndlspboc',
+    field: 'F1kxmu6ndlspbnc',
+    info: '请输入你的想法',
+    name: 'ref_Fd20mu6ndlspbpc',
+    title: '输入框',
     type: 'input',
-    field: 'remark',
-    title: '备注',
-    info: '请输入',
-    $required: true,
-    props: {
-      type: 'textarea',
-      placeholder: '请输入',
-    },
-    _fc_id: 'id_Fgubmqfz0jmjafc',
-    name: 'ref_F78emqfz0jmjagc',
     display: true,
     hidden: false,
+  },
+  {
+    $required: false,
     _fc_drag_tag: 'textarea',
-  },
-  {
-    type: 'radio',
-    field: 'Fnacmqg8nfl5ahc',
-    title: '单选框',
-    info: '',
-    effect: {
-      fetch: '',
-    },
-    $required: false,
-    options: [
-      {
-        label: '选项01',
-        value: '1',
-      },
-      {
-        label: '选项02',
-        value: '2',
-      },
-      {
-        label: '选项03',
-        value: '3',
-      },
-    ],
-    _fc_id: 'id_Feh7mqg8nfl6aic',
-    name: 'ref_Frmumqg8nfl6ajc',
+    _fc_id: 'id_F38rmu6ndmpncjc',
+    field: 'Ftk6mu6ndmpncic',
+    info: '请详细说明下你的想法',
+    name: 'ref_Fuuwmu6ndmpnckc',
+    props: { type: 'textarea' },
+    title: '多行输入框',
+    type: 'input',
     display: true,
     hidden: false,
+  },
+  {
+    $required: false,
+    _fc_drag_tag: 'inputNumber',
+    _fc_id: 'id_Feu6mu6ndnrkdcc',
+    field: 'Fps7mu6ndnrkdbc',
+    info: '',
+    name: 'ref_F14zmu6ndnrkddc',
+    title: '计数器',
+    type: 'inputNumber',
+    display: true,
+    hidden: false,
+  },
+  {
+    $required: false,
     _fc_drag_tag: 'radio',
-  },
-  {
-    type: 'checkbox',
-    field: 'Fn99mqg96vhlakc',
-    title: '多选框',
-    info: '',
-    effect: {
-      fetch: '',
-    },
-    $required: false,
+    _fc_id: 'id_Fr94mu6ndov2e9c',
+    effect: { fetch: '' },
+    field: 'Fcwhmu6ndov2e8c',
+    info: '你有什么问题',
+    name: 'ref_Fxwdmu6ndov2eac',
     options: [
-      {
-        label: '选项01',
-        value: '1',
-      },
-      {
-        label: '选项02',
-        value: '2',
-      },
-      {
-        label: '选项03',
-        value: '3',
-      },
+      { label: '没问题', value: '1' },
+      { label: '问题好多', value: '2' },
+      { label: '都行', value: '3' },
     ],
-    _fc_id: 'id_Fvt6mqg96vhlalc',
-    name: 'ref_Fdqbmqg96vhlamc',
+    title: '单选框',
+    type: 'radio',
     display: true,
     hidden: false,
+  },
+  {
+    $required: false,
     _fc_drag_tag: 'checkbox',
-  },
-  {
-    type: 'rate',
-    field: 'Fw35mqg9ee69anc',
-    title: '评分',
-    info: '',
-    $required: '请打分',
-    _fc_id: 'id_Ffdlmqg9ee69aoc',
-    name: 'ref_Fid6mqg9ee69apc',
-    display: true,
-    hidden: false,
-    _fc_drag_tag: 'rate',
-    value: 0,
-  },
-  {
-    type: 'select',
-    field: 'Fbvbmqgahyb9aqc',
-    title: '城市',
-    info: '',
-    effect: {
-      fetch: '',
-    },
-    $required: false,
+    _fc_id: 'id_Fam9mu6ndq66f4c',
+    effect: { fetch: '' },
+    field: 'Fi02mu6ndq66f3c',
+    info: '请选择你的爱好',
+    name: 'ref_F6i0mu6ndq66f5c',
     options: [
-      {
-        label: '选项01',
-        value: '1',
-      },
-      {
-        label: '选项02',
-        value: '2',
-      },
-      {
-        label: '选项03',
-        value: '3',
-      },
+      { label: '唱歌', value: '1' },
+      { label: '跳舞', value: '2' },
+      { label: '乒乓球', value: '3' },
     ],
-    _fc_id: 'id_Fn1lmqgahyb9arc',
-    name: 'ref_Ftelmqgahyb9asc',
+    title: '多选框',
+    type: 'checkbox',
     display: true,
     hidden: false,
-    _fc_drag_tag: 'select',
-    visiable: false,
   },
   {
-    type: 'select',
-    field: 'select1',
-    title: '城市',
-    info: '',
-    effect: {
-      fetch: '',
-    },
     $required: false,
+    _fc_drag_tag: 'select',
+    _fc_id: 'id_Fdnmmu6ndr9sg3c',
+    effect: { fetch: '' },
+    field: 'F5h3mu6ndr9sg2c',
+    info: '请选择你的想法',
+    name: 'ref_F5uwmu6ndr9sg4c',
     options: [
-      {
-        label: '选项01',
-        value: '1',
-      },
-      {
-        label: '选项02',
-        value: '2',
-      },
-      {
-        label: '选项03',
-        value: '3',
-      },
+      { label: '选项01', value: '1' },
+      { label: '选项02', value: '2' },
+      { label: '选项03', value: '3' },
     ],
-    _fc_id: 'id_Fn1lmqgahyb9arc',
-    name: 'ref_Ftelmqgahyb9asc',
+    title: '选择器',
+    type: 'select',
     display: true,
     hidden: false,
-    _fc_drag_tag: 'select',
-    visiable: false,
+  },
+  {
+    $required: false,
+    _fc_drag_tag: 'signaturePad',
+    _fc_id: 'id_Fxblmu6ndsl4hgc',
+    field: 'Fxb8mu6ndsl4hfc',
+    info: '请输入你的签名',
+    name: 'ref_Fshrmu6ndsl4hhc',
+    title: '手写签名',
+    type: 'signaturePad',
+    display: true,
+    hidden: false,
   },
 ]);
 const formData = ref<Record<string, any>>({
@@ -197,9 +128,27 @@ const formData = ref<Record<string, any>>({
 const submitData = () => {
   console.log(formData.value);
 };
+
+// 横屏签字态：内部签名板进入旋转横屏签名时为 true，退出为 false
+const isLandscape = ref(false);
+const onLandscapeChange = (val: boolean) => {
+  isLandscape.value = val;
+  console.log('tdf-render esign-landscape-change:', val);
+};
 </script>
 
 <style scoped>
+.landscape-tip {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 9999;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
 .container {
   padding: 20rpx;
   min-height: 100vh;

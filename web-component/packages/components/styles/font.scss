@@ -1,0 +1,17 @@
+:root {
+    --te-font-family-d-din: "d-din";
+    --te-font-family-d-din-bold: "d-din-bold";
+}
+
+@font-face {
+    font-family: "d-din-bold";
+    src: url('../assets/fonts/D-DIN-Bold.otf');
+}
+@font-face {
+    font-family: "d-din";
+    src: url('../assets/fonts/D-DIN.otf');
+}
+@font-face {
+    font-family: "YouSheBiaoTiHei";
+    src: url('../assets/fonts/YouSheBiaoTiHei.ttf');
+}

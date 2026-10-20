@@ -1,35 +1,55 @@
 <template>
   <view class="tsm-picker" :class="[customClass]" :style="customStyle">
-    <tsm-popup mode="bottom" :show="show" :title="title" :closeable="true" @update:show="onUpdateShow" @close="onClose">
-      <!-- picker-view 选择器 -->
-      <view class="tsm-picker__content">
-        <picker-view
-          class="tsm-picker__view"
-          :value="[currentIndex]"
-          indicator-class="tsm-picker__indicator"
-          mask-class="tsm-picker__mask"
-          @change="onChange"
+    <!-- #ifdef H5 -->
+    <!-- teleportToBody=true 时把弹层挂到 body：页面里含 transform/overflow 的祖先会形成包含块，
+         页面内的 fixed 弹层会被裁剪或被导航条·状态栏盖住（iOS 上尤其明显）；默认 false 保持页面内渲染。
+         小程序 / App 运行时没有 Teleport，整段在编译期剔除 -->
+    <Teleport to="body" :disabled="!teleportToBody">
+      <!-- 挂到 body 后已离开页面的 tsm-theme-provider，取不到主题变量（弹层底色/文字色会失效），故自带一层 -->
+      <tsm-theme-provider>
+        <!-- #endif -->
+        <tsm-popup
+          mode="bottom"
+          :show="show"
+          :title="title"
+          :closeable="true"
+          custom-class="tsm-picker-popup"
+          @update:show="onUpdateShow"
+          @close="onClose"
         >
-          <picker-view-column>
-            <view
-              v-for="(option, index) in options"
-              :key="index"
-              class="tsm-picker__item"
-              :class="{ 'tsm-picker__item--active': index === currentIndex }"
+          <!-- picker-view 选择器 -->
+          <view class="tsm-picker__content">
+            <picker-view
+              class="tsm-picker__view"
+              :value="[currentIndex]"
+              indicator-class="tsm-picker__indicator"
+              mask-class="tsm-picker__mask"
+              @change="onChange"
             >
-              {{ option.label }}
-            </view>
-          </picker-view-column>
-        </picker-view>
-      </view>
+              <picker-view-column>
+                <view
+                  v-for="(option, index) in options"
+                  :key="index"
+                  class="tsm-picker__item"
+                  :class="{ 'tsm-picker__item--active': index === currentIndex }"
+                >
+                  {{ option.label }}
+                </view>
+              </picker-view-column>
+            </picker-view>
+          </view>
 
-      <!-- Footer 插槽：确定按钮 -->
-      <template #footer>
-        <view class="tsm-picker__footer">
-          <tsm-button :style="{ width: '100%' }" theme="primary" block :label="confirmText" @click="onConfirm" />
-        </view>
-      </template>
-    </tsm-popup>
+          <!-- Footer 插槽：确定按钮 -->
+          <template #footer>
+            <view class="tsm-picker__footer">
+              <tsm-button :style="{ width: '100%' }" theme="primary" block :label="confirmText" @click="onConfirm" />
+            </view>
+          </template>
+        </tsm-popup>
+        <!-- #ifdef H5 -->
+      </tsm-theme-provider>
+    </Teleport>
+    <!-- #endif -->
   </view>
 </template>
 
@@ -93,6 +113,11 @@ const onChange = (e: any) => {
 const onConfirm = () => {
   const option = props.options[currentIndex.value];
   if (option) {
+    // 未滚动时 onChange 不会触发，此处补一次值回写：否则受控模式(v-model:value)下
+    // 「打开弹层直接点确定」不入值，外部拿到的仍是空值（表单必填校验也会拦下）。
+    // 与 tsm-datetime-picker 的确认逻辑保持一致：confirm 同时派发 update:value
+    internalValue.value = option.value;
+    emit('update:value', option.value);
     emit('confirm', option.value);
     // 触发 FormItem 验证（change 触发）
     formItemContext?.onValueChange(option.value);
@@ -138,7 +163,10 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.tsm-picker {
+// 弹层内容体（滚动区）默认带一圈 --tsm-spacing-xl 的内边距，选择器需要贴边展示，上下留白归零。
+// 挂在 `.tsm-picker-popup`（弹层根节点，弹层内容体的祖先）而不是 `.tsm-picker` 上：
+// teleportToBody=true 时弹层已挂到 body，不再是 `.tsm-picker` 的后代，那条选择器会失效。
+.tsm-picker-popup {
   :deep(.tsm-popup-content-body) {
     padding-top: 0 !important;
     padding-bottom: 0 !important;

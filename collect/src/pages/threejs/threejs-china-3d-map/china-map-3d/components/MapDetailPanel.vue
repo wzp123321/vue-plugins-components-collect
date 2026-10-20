@@ -138,14 +138,12 @@ const barColor = (v: number) => {
 
 <style scoped>
 .map-detail {
-  position: absolute;
-  right: 18px;
-  top: 290px;
-  z-index: 28;
-  width: 244px;
-  /* 展开高度封顶：为右下角「数据看板」留出空间；内容超高时条列表内部滚动 */
-  max-height: calc(100% - 800px);
-  min-height: 120px;
+  /* 位置由外部 .china3d-rail 的纵向排列决定，这里不写 top/right */
+  position: relative;
+  /* 吃掉控制台与看板之间的剩余空间；窗口变矮时自动压缩，条列表内部滚动 */
+  flex: 1 1 0;
+  width: 300px;
+  min-height: 130px;
   display: flex;
   flex-direction: column;
   padding: 12px 14px 14px;
@@ -161,11 +159,16 @@ const barColor = (v: number) => {
   user-select: none;
 }
 .map-detail--collapsed {
-  width: 150px;
-  max-height: none;
+  flex: 0 0 auto;
+  width: auto;
   min-height: 0;
+  /* 折叠态贴到栏底：与控制台（贴顶）分成「设置区 / 数据区」两组，
+     中间那段空白留给地图，不要出现一颗小胶囊孤零零悬在半空。
+     注意 auto margin 只在折叠态写 —— 展开态要留给 flex-grow 撑满剩余高度。 */
+  margin-top: auto;
 }
 .map-detail__head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -207,12 +210,15 @@ const barColor = (v: number) => {
   color: #6f9fc4;
 }
 .map-detail__body {
-  margin-top: 10px;
+  margin-top: 8px;
+  /* 撑满面板剩余高度，把压力传给下面的条列表（由它滚动） */
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 .map-detail__name {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -242,10 +248,11 @@ const barColor = (v: number) => {
   color: #eaf6ff;
 }
 .map-detail__stat {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 10px 0 8px;
+  margin: 8px 0 6px;
   font-size: 12px;
   color: #8fb8d6;
 }
@@ -255,6 +262,9 @@ const barColor = (v: number) => {
   font-variant-numeric: tabular-nums;
 }
 .map-detail__bars {
+  /* 唯一可滚动的部分：面板被压矮时这里出现滚动条 */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -312,9 +322,10 @@ const barColor = (v: number) => {
 }
 /* ---- 视图切换（条形 / 明细表） ---- */
 .map-detail__viewToggle {
+  flex: 0 0 auto;
   display: flex;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .map-detail__viewToggle button {
   flex: 1;
@@ -334,7 +345,9 @@ const barColor = (v: number) => {
 }
 /* ---- 明细表 ---- */
 .map-detail__table {
-  height: 220px;
+  /* 跟着面板剩余高度走（el-table height="100%" 内部滚动），别写死 220 撑破卡片 */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 .map-detail__table :deep(.el-table) {

@@ -83,10 +83,8 @@ const arcs = computed(() => {
 
 <style scoped>
 .map-pie {
-  position: absolute;
-  left: 16px;
-  bottom: 150px; /* 叠在左下角「数据量分级」图例上方，避免两块卡片互相遮挡 */
-  z-index: 6;
+  /* 位置由父级 .map-left-rail 统一排列（贴左下角、与图例同一条左边缘） */
+  position: relative;
   padding: 12px 14px;
   background: rgba(6, 16, 30, 0.82);
   border: 1px solid rgba(95, 201, 238, 0.32);

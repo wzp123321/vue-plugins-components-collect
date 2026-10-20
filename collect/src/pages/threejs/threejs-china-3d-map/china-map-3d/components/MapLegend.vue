@@ -26,10 +26,8 @@ withDefaults(defineProps<{
 
 <style scoped>
 .map-legend {
-  position: absolute;
-  left: 22px;
-  bottom: 22px;
-  z-index: 30;
+  /* 位置由父级 .map-left-rail 统一排列（原先 left:22 / bottom:22 与饼图差 6px） */
+  position: relative;
   padding: 10px 12px;
   border-radius: 10px;
   background: rgba(6, 16, 34, 0.72);

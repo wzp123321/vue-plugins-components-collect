@@ -243,6 +243,12 @@
       "style": {
         "navigationBarTitleText": "Rate 评分"
       }
+    },
+    {
+      "path": "pages/tsm-esign/index",
+      "style": {
+        "navigationBarTitleText": "Esign 电子签名"
+      }
     }
   ],
   "globalStyle": {

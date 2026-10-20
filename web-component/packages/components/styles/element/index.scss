@@ -1,0 +1,137 @@
+@use '../../../../node_modules/@tiansu/element-plus/theme-chalk/src/mixins/function' as *;
+
+@forward "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/common/var.scss" with (
+  $colors: (
+    "primary": ("base": #0e6dfa),
+    "success": ("base": #21b534),
+    "warning": ("base": #fa8205),
+    "danger": ("base": #e60a15),
+    "error": ("base": #e60a15)),
+  $font-size: ( // elem原生font-size变量集合
+    "small": var(--te-font-size-b14),
+    "large": var(--te-font-size-h20),
+    "extra-large": var(--te-font-size-h20),
+    "medium": var(--te-font-size-b16),
+    "base": var(--te-font-size-b14),
+    "extra-small": var(--te-font-size-b12),
+    // 天溯通用的font-size变量集合
+    "b12": 12px,
+    "b14": 14px,
+    "h16": 16px,
+    "h20": 20px,
+    "h24": 24px,
+    "oh32": 32px,
+    "oh40": 40px,
+    "oh48": 48px),
+  $rate: ("icon-size": 16px),
+  $dialog: ("title-font-size": var(--te-font-size-extra-large),
+    "margin-top": var(--te-space-96),
+    "box-shadow": var(--te-box-shadow-dark)),
+  $pagination: ("button-bg-color": transparent),
+  $box-shadow: ("lighter": (0px 2px 6px rgba(0, 0, 0, 0.14)),
+    "lighter-up": (0px -2px 6px rgba(0, 0, 0, 0.14)),
+    "lighter-left": (-2px 0px 6px rgba(0, 0, 0, 0.14)),
+    "lighter-right": (2px 0px 6px rgba(0, 0, 0, 0.14)),
+    "light": (0px 2px 6px rgba(0, 0, 0, 0.12),
+      0px 4px 12px rgba(0, 0, 0, 0.1)),
+    "light-up": (0px -2px 6px rgba(0, 0, 0, 0.12),
+      0px -4px 12px rgba(0, 0, 0, 0.1)),
+    "light-left": (-2px 0px 6px rgba(0, 0, 0, 0.12),
+      -4px 0px 12px rgba(0, 0, 0, 0.1)),
+    "light-right": (2px 0px 6px rgba(0, 0, 0, 0.12),
+      4px 0px 12px rgba(0, 0, 0, 0.1)),
+    "": (0px 2px 6px -3px rgba(0, 0, 0, 0.1),
+      0px 4px 12px rgba(0, 0, 0, 0.08),
+      0px 6px 18px 6px rgba(0, 0, 0, 0.06)),
+    "up": (0px -2px 6px -3px rgba(0, 0, 0, 0.1),
+      0px -4px 12px rgba(0, 0, 0, 0.08),
+      0px -6px 18px 6px rgba(0, 0, 0, 0.06)),
+    "left": (-2px 0px 6px -3px rgba(0, 0, 0, 0.1),
+      -4px 0px 12px rgba(0, 0, 0, 0.08),
+      -6px 0px 18px 6px rgba(0, 0, 0, 0.06)),
+    "right": (2px 0px 6px -3px rgba(0, 0, 0, 0.1),
+      4px 0px 12px rgba(0, 0, 0, 0.08),
+      6px 0px 18px 6px rgba(0, 0, 0, 0.06)),
+    "dark": (0px 4px 12px -6px rgba(0, 0, 0, 0.08),
+      0px 6px 18px rgba(0, 0, 0, 0.06),
+      0px 8px 24px 12px rgba(0, 0, 0, 0.04)),
+    "dark-up": (0px -4px 12px -6px rgba(0, 0, 0, 0.08),
+      0px -6px 18px rgba(0, 0, 0, 0.06),
+      0px -8px 24px 12px rgba(0, 0, 0, 0.04)),
+    "dark-left": (-4px 0px 12px -6px rgba(0, 0, 0, 0.08),
+      -6px 0px 18px rgba(0, 0, 0, 0.06),
+      -8px 0px 24px 12px rgba(0, 0, 0, 0.04)),
+    "dark-right": (4px 0px 12px -6px rgba(0, 0, 0, 0.08),
+      6px 0px 18px rgba(0, 0, 0, 0.06),
+      8px 0px 24px 12px rgba(0, 0, 0, 0.04))),
+  $alert: ("title-font-size": var(--te-font-size-h16),
+    "description-font-size": var(--te-font-size-b14),
+    "icon-large-size": var(--te-font-size-h24)),
+  $table: ("header-bg-color": var(--te-fill-color-light)),
+  $messagebox: ("width": 400px,
+    "padding-primary": 20px),
+  $dropdown: ("menu-box-shadow": var(--te-box-shadow)),
+  $text-color: (
+    "secondary": rgba(0,0,0,0.55),
+    "primary": rgba(0, 0, 0, 0.85),
+    "placeholder": rgba(0,0,0,0.4),
+    "regular": getCssVar('text-color', 'primary'),
+    "disabled": rgba(0,0,0,0.25)
+  ),
+  $transfer: ("border-color": var(--te-border-color-light)),
+  $bg-color: (
+    'page': getCssVar('gray_brand', 'color', '1'),
+    'secondary': getCssVar('gray_brand', 'color', '2'),
+    'tertiary': getCssVar('gray_brand', 'color', '3'),
+    'component': getCssVar('gray_brand', 'color', '5'),
+    'component-hover': getCssVar('gray_brand', 'color', '4'),
+    'component-active': getCssVar('gray_brand', 'color', '6'),
+    'component-disabled': getCssVar('gray_brand', 'color', '2'),
+    'blank': #FFFFFF
+  ),
+  $border-color: (
+    '': getCssVar('border', 'color', 'component'),
+    'component': getCssVar('gray', 'color', '5'),
+    'component-hover': getCssVar('gray', 'color','6'),
+    'component-light': getCssVar('gray', 'color','4'),
+    'divider': getCssVar('gray', 'color','4'),
+    'divider-light': getCssVar('gray', 'color','3'),
+    'darker': getCssVar('color', 'info'),
+    'dark': getCssVar('border', 'color', 'component', 'hover'),
+    'lighter': getCssVar('border', 'color', 'divider', 'light'),
+  ),
+  $disabled: (
+    'border-color': getCssVar('border-color', 'divider'),
+    'bg-color': var(--te-bg-color-secondary),
+    'text-color': getCssVar('text-color', 'placeholder'),
+  ),
+  $fill-color: (
+    'darker': var(--te-bg-color-component-active),
+    'dark': var(--te-bg-color-component),
+    'light': var(--te-bg-color-secondary),
+    'lighter': var(--te-bg-color-page),
+    'blank': var(--te-bg-color-blank),
+  )
+  );
+
+@forward "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/form.scss" with ($form-item-label-top-margin-bottom: ("default": 5px));
+
+// 如果只是按需导入，则可以忽略以下内容。
+// 如果你想导入所有样式:
+@use "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/index.scss" as *;
+
+:root {
+  --te-space-4: 4px;
+  --te-space-8: 8px;
+  --te-space-12: 12px;
+  --te-space-16: 16px;
+  --te-space-20: 20px;
+  --te-space-24: 24px;
+  --te-space-32: 32px;
+  --te-space-40: 40px;
+  --te-space-48: 48px;
+  --te-space-64: 64px;
+  --te-space-80: 80px;
+  --te-space-96: 96px;
+  --te-space-160: 160px;
+}

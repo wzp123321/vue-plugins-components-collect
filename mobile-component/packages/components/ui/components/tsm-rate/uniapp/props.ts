@@ -5,6 +5,8 @@ export interface RateProps {
   value?: number;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 只读模式：禁止编辑 */
+  readonly?: boolean;
   /** 自定义类名 */
   customClass?: string;
   /** 自定义样式 */
@@ -14,6 +16,7 @@ export interface RateProps {
 export const defaultProps = {
   value: 0,
   disabled: false,
+  readonly: false,
   customClass: '',
   customStyle: () => ({}),
 } as const;

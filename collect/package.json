@@ -6,10 +6,11 @@
   "scripts": {
     "gen": "node ./scripts/genCommitId.js",
     "check:nav": "node ./scripts/check-nav-routes.mjs",
+    "check:components": "node ./scripts/check-unresolved-components.mjs",
     "dev": "vite",
     "ts-check": "vue-tsc --noEmit",
     "build:start": "vite build  --mode production",
-    "build": "npm-run-all gen ts-check build:start  --parallel",
+    "build": "run-s gen ts-check build:start",
     "lint:html": "eslint \"src/**/*.{js,vue,ts,html}\"",
     "lint:css": "stylelint \"src/**/*.{css,scss,vue,sass,html}\"",
     "fix": "run-p \"lint:html -- --fix\" \"lint:css -- --fix\"",

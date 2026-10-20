@@ -1,0 +1,140 @@
+// 暗黑模式样式覆盖
+@forward "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/dark/var.scss" with (
+  $colors: (
+    "primary": (
+      "base": #1890ff
+    ),
+    "success": (
+      "base": #52c41a
+    ),
+    "warning": (
+      "base": #fa8c16
+    ),
+    "danger": (
+      "base": #f5222d
+    ),
+    "error": (
+      "base": #f5222d
+    )
+  )
+);
+
+@forward "../common/var.scss" with (
+  $te-colors: (
+    'gray': (
+      'color': (
+        '1': #0A0A0A,
+        '2': #141414,
+        '3': #1F1F1F,
+        '4': #292929,
+        '5': #3D3D3D,
+        '6': #525252,
+        '7': #666666,
+        '8': #808080,
+        '9': #9E9E9E,
+        '10': #BDBDBD,
+      )
+    ),
+    'gray_brand': (
+      'color': (
+        '1': #0B0C0E,
+        '2': #14161A,
+        '3': #1D2126,
+        '4': #262B32,
+        '5': #383D46,
+        '6': #4A525E,
+        '7': #5B6778,
+        '8': #78818F,
+        '9': #9BA1A9,
+        '10': #BCC0C5,
+      )
+    ),
+    'danger': (
+      'color': (
+        '1': #291314,
+        '2': #3E1214,
+        '3': #531114,
+        '4': #681014,
+        '5': #7D0F15,
+        '6': #A70D15,
+        '7': #E60A15,
+        '8': #EB3B44,
+        '9': #F3848A,
+        '10': #F7B5B9,
+      )
+    ),
+    'warning': (
+      'color': (
+        '1': #2B1F13,
+        '2': #422A11,
+        '3': #593510,
+        '4': #70400E,
+        '5': #874B0D,
+        '6': #B5610A,
+        '7': #FA8205,
+        '8': #FB9B37,
+        '9': #FDC082,
+        '10': #FED9B4,
+      )
+    ),
+    'success': (
+      'color': (
+        '1': #152417,
+        '2': #17341A,
+        '3': #18441E,
+        '4': #195421,
+        '5': #1B6524,
+        '6': #1D852A,
+        '7': #21B534,
+        '8': #4DC45D,
+        '9': #90DA99,
+        '10': #BCE9C2,
+      )
+    ),
+    'brand': (
+      'color': (
+        '1': #131D2B,
+        '2': #132642,
+        '3': #122F59,
+        '4': #123870,
+        '5': #114187,
+        '6': #1052B5,
+        '7': #0E6DFA,
+        '8': #3E8AFB,
+        '9': #86B6FD,
+        '10': #B7D3FE,
+      )
+    ),
+  )
+);
+
+@use "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/dark/css-vars.scss" as *;
+
+@use 'sass:map';
+@use '../common/var' as *;
+@use '../mixins/var' as *;
+
+html.dark {
+  color-scheme: dark;
+
+  @each $key, $value in $te-colors {
+    @each $key1, $value1 in $value {
+      @if type-of($value1) == map {
+        @each $key2, $value2 in $value1 {
+          @if type-of($value2) == map {
+            @each $key3, $value3 in $value2 {
+              @include set-css-var-value(($key, $key1, $key2, $key3), 
+              $value3)
+            }
+          } @else {
+            @include set-css-var-value(($key, $key1, $key2), 
+            $value2)
+          }
+        }
+      } @else {
+        @include set-css-var-value(($key, $key1), 
+        $value1)
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+export enum TerminalTypeEnum {
+	// 
+	WECHATEP = 'WECHATEP',
+	// 
+	WECHATOA = 'WECHATOA',
+	// 
+	DINGTALKH5 = 'DINGTALKH5',
+	// 
+	TIANSUWEB = 'TIANSUWEB',
+	// 
+	TIANSUAPP = 'TIANSUAPP',
+	// 
+	WECHATMP = 'WECHATMP'
+}

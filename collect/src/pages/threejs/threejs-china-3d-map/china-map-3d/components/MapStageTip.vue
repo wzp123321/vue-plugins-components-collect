@@ -39,8 +39,10 @@ defineProps<{
 <style scoped>
 .stage-host {
   position: absolute;
-  left: 50%;
-  bottom: 26px;
+  /* 与时间轴同一个居中基准（右栏之外的可用区域） */
+  left: calc(50% - var(--rail-shift, 0px));
+  /* 让开底部时间轴（bottom 18 / 高约 100）：原先 26px 会落在时间轴内部 */
+  bottom: 130px;
   transform: translateX(-50%);
   transition: bottom 0.25s ease;
   z-index: 40;
@@ -50,7 +52,9 @@ defineProps<{
   gap: 8px;
   pointer-events: none;
 }
-.stage-host--raised { bottom: 96px; }
+/* 下钻出现「返回上级」导航条（实测高 74）时，提示再上移到它上面：
+   130（时间轴让位）+ 74（导航条）+ 12（间距） */
+.stage-host--raised { bottom: 216px; }
 
 .stage-tip {
   display: flex;

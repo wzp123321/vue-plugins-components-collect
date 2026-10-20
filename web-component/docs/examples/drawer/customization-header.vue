@@ -1,0 +1,23 @@
+<template>
+  <te-button @click="visible = true">
+    Open Drawer with customized header
+  </te-button>
+  <te-drawer v-model="visible" :show-close="false">
+    <template #header="{ close, titleId, titleClass }">
+      <h4 :id="titleId" :class="titleClass">This is a custom header!</h4>
+      <te-button type="danger" @click="close">
+        <te-icon class="te-icon--left"><CircleCloseFilled /></te-icon>
+        Close
+      </te-button>
+    </template>
+    This is drawer content.
+  </te-drawer>
+</template>
+
+<script lang="ts" setup>
+import { ref } from 'vue'
+import { TeButton, TeDrawer } from '@tiansu/element-plus'
+import { CircleCloseFilled } from '@element-plus/icons-vue'
+
+const visible = ref(false)
+</script>

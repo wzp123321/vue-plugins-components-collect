@@ -36,6 +36,13 @@ const dataVisRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/vchart/vchart.vue'),
   },
+  {
+    path: '/canvas-advance',
+    meta: {
+      name: 'Canvas 绘图进阶',
+    },
+    component: () => import('../../pages/canvas-advance/canvas-advance.vue'),
+  },
 ];
 
 export default dataVisRoutes;

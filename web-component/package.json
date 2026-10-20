@@ -1,0 +1,121 @@
+{
+  "name": "ts-package-document",
+  "version": "0.1.0",
+  "description": "天溯组件库说明文档",
+  "private": "true",
+  "workspaces": [
+    "packages",
+    "example",
+    "docs"
+  ],
+  "scripts": {
+    "dev": "pnpm -C example dev",
+    "build": "rm -rf packages/dist && pnpm run build:css && pnpm run build:js",
+    "lint": "vue-cli-service lint",
+    "build:css": "npx gulp --gulpfile scripts/gulpfile.ts",
+    "build:js": "vite build --config scripts/buildjs.vite.config.ts",
+    "docs:build": "pnpm run -C docs build",
+    "docs:dev": "pnpm run -C docs dev",
+    "docs:serve": "pnpm run -C docs serve",
+    "docs:deploy": "bash scripts/docs-deploy.sh",
+    "docs:gen-locale": "pnpm run -C docs gen-locale",
+    "ct": "node scripts/create-templete.js",
+    "pck:publish": "bash scripts/package-publish.sh",
+    "clean": "npm cache clean --force && rm -rf node_modules && rm pnpm-lock.yaml && pnpm install"
+  },
+  "dependencies": {
+    "@arco-iconbox/vue-te": "0.0.30",
+    "@element-plus/icons-vue": "^2.0.9",
+    "@floating-ui/dom": "^1.0.1",
+    "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7",
+    "@tiansu/element-plus": "2.3.7-beta.28",
+    "@types/lodash": "^4.14.182",
+    "@types/lodash-es": "^4.17.6",
+    "@vueuse/core": "^9.1.0",
+    "async-validator": "^4.2.5",
+    "dayjs": "^1.11.3",
+    "escape-html": "^1.0.3",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
+    "lodash-unified": "^1.0.2",
+    "memoize-one": "^6.0.0",
+    "normalize-wheel-es": "^1.2.0",
+    "pinyin-match": "^1.2.5",
+    "resize-observer-polyfill": "^1.5.1",
+    "sortablejs": "^1.15.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@esbuild-kit/cjs-loader": "^2.2.1",
+    "@pnpm/find-workspace-packages": "^4.0.16",
+    "@pnpm/logger": "^4.0.0",
+    "@pnpm/types": "^8.4.0",
+    "@rollup/plugin-commonjs": "^22.0.1",
+    "@types/fs-extra": "^9.0.13",
+    "@types/gulp": "^4.0.9",
+    "@types/jsdom": "^16.2.14",
+    "@types/node": "*",
+    "@types/sass": "^1.43.1",
+    "@vitejs/plugin-vue": "^2.3.3",
+    "@vitejs/plugin-vue-jsx": "^1.3.10",
+    "@vitest/ui": "0.16.0",
+    "@vue/compiler-sfc": "3.3.4",
+    "@vue/test-utils": "^2.0.0",
+    "@vue/tsconfig": "^0.1.3",
+    "c8": "^7.11.3",
+    "chalk": "^5.0.1",
+    "concurrently": "^7.2.2",
+    "consola": "^2.15.3",
+    "csstype": "^2.6.20",
+    "cz-git": "^1.3.8",
+    "czg": "^1.3.8",
+    "eslint": "^8.18.0",
+    "eslint-define-config": "^1.5.1",
+    "expect-type": "^0.13.0",
+    "fast-glob": "^3.2.11",
+    "gulp": "^4.0.2",
+    "gulp-cssmin": "^0.2.0",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-sass": "^5.1.0",
+    "husky": "^8.0.1",
+    "jsdom": "16.4.0",
+    "lint-staged": "^13.0.3",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "resize-observer-polyfill": "^1.5.1",
+    "rimraf": "^3.0.2",
+    "sass": "^1.53.0",
+    "ts-morph": "^14.0.0",
+    "tsx": "^3.6.0",
+    "type-fest": "^2.14.0",
+    "typescript": "^4.7.4",
+    "unplugin-element-plus": "^0.4.0",
+    "unplugin-vue-macros": "^0.11.2",
+    "vite": "4.4.9",
+    "vite-plugin-dts": "^3.7.0",
+    "vite-plugin-require-transform": "^1.0.21",
+    "vitest": "0.12.6",
+    "vue": "^3.3.4"
+  },
+  "engines": {
+    "node": ">= 16"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-git"
+    }
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "vite",
+        "react",
+        "react-dom"
+      ]
+    }
+  },
+  "lint-staged": {
+    "*.{vue,js,ts,jsx,tsx,md,json}": "eslint --fix"
+  }
+}

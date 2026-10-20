@@ -1,0 +1,426 @@
+@use 'sass:math';
+@use 'sass:map';
+@use '../../../../node_modules/@tiansu/element-plus/theme-chalk/src/mixins/function' as *;
+@use '../mixins/var' as *;
+
+// Color
+$te-colors: () !default;
+$te-colors: map.deep-merge(
+  (
+    'gray': (
+      'color': (
+        '1': #F7F7F7,
+        '2': #F2F2F2,
+        '3': #EDEDED,
+        '4': #E8E8E8,
+        '5': #DEDEDE,
+        '6': #B5B5B5,
+        '7': #969696,
+        '8': #828282,
+        '9': #6E6E6E,
+        '10': #636363,
+      )
+    ),
+    'gray_brand': (
+      'color': (
+        '1': #F5F6F8,
+        '2': #EEF0F3,
+        '3': #E7EAEF,
+        '4': #DFE4EB,
+        '5': #D3D9E2,
+        '6': #AAB2BE,
+        '7': #8691A2,
+        '8': #747D8A,
+        '9': #626770,
+        '10': #585B60,
+      )
+    ),
+    'danger': (
+      'color': (
+        '1': #FCE6E7,
+        '2': #FACED0,
+        '3': #F7B5B9,
+        '4': #F59DA1,
+        '5': #F3848A,
+        '6': #EE545B,
+        '7': #E60A15,
+        '8': #B80811,
+        '9': #73050B,
+        '10': #450306,
+      )
+    ),
+    // 'volcano': (
+    //   '1': #FEEDE8,
+    //   '2': #FEDDD2,
+    //   '3': #FDCCBB,
+    //   '4': #FDBBA4,
+    //   '5': #FDA98D,
+    //   '6': #FC8760,
+    //   '7': #FA541C,
+    //   '8': #C84316,
+    //   '9': #7D2A0E,
+    //   '10': #4B1908,
+    // ),
+    'warning': (
+      'color': (
+        '1': #FEF2E6,
+        '2': #FEE6CD,
+        '3': #FDD9B4,
+        '4': #FDCD9B,
+        '5': #FDC182,
+        '6': #FCA750,
+        '7': #FA8205,
+        '8': #C86804,
+        '9': #7D4103,
+        '10': #4B2702,
+      )
+    ),
+    // 'calendula_gold': (
+    //   '1': #FEF6E7,
+    //   '2': #FEEFD0,
+    //   '3': #FDE6B8,
+    //   '4': #FDDEA1,
+    //   '5': #FDD689,
+    //   '6': #FCC65B,
+    //   '7': #FAAD14,
+    //   '8': #C88A10,
+    //   '9': #7D570A,
+    //   '10': #7D570A,
+    // ),
+    // 'sunrise_yellow': (
+    //   '1': #FEFBE7,
+    //   '2': #FEF8D0,
+    //   '3': #FDF4B8,
+    //   '4': #FDF1A1,
+    //   '5': #FDED89,
+    //   '6': #FCE65B,
+    //   '7': #FADB14,
+    //   '8': #C8AF10,
+    //   '9': #7D6E0A,
+    //   '10': #4B4206,
+    // ),
+    // 'lime': (
+    //   '1': #F5FBE7,
+    //   '2': #ECF7CF,
+    //   '3': #E3F4B8,
+    //   '4': #D9F0A0,
+    //   '5': #CFEC88,
+    //   '6': #BDE458,
+    //   '7': #A0D911,
+    //   '8': #80AE0E,
+    //   '9': #506D09,
+    //   '10': #304105,
+    // ),
+    'success': (
+      'color': (
+        '1': #E8F7EA,
+        '2': #D3F0D6,
+        '3': #BCE9C2,
+        '4': #A6E1AE,
+        '5': #90DA99,
+        '6': #64CB71,
+        '7': #21B534,
+        '8': #1A912A,
+        '9': #105A1A,
+        '10': #0A3610,
+      )
+    ),
+    // 'aquamarine': (
+    //   '1': #E7FBF5,
+    //   '2': #D0F9ED,
+    //   '3': #B9F5E3,
+    //   '4': #A2F2DA,
+    //   '5': #8AEFD1,
+    //   '6': #5CE9BF,
+    //   '7': #16DFA3,
+    //   '8': #12B282,
+    //   '9': #0B7052,
+    //   '10': #074331,
+    // ),
+    // 'cyan': (
+    //   '1': #E7F8F8,
+    //   '2': #D0F3F3,
+    //   '3': #B8EDED,
+    //   '4': #A1E7E7,
+    //   '5': #89E1E1,
+    //   '6': #5AD4D4,
+    //   '7': #13C2C2,
+    //   '8': #0F9B9B,
+    //   '9': #0A6161,
+    //   '10': #063A3A,
+    // ),
+    'brand': (
+      'color': (
+        '1': #E6F0FE,
+        '2': #CFE2FE,
+        '3': #B7D3FD,
+        '4': #9FC5FD,
+        '5': #86B6FD,
+        '6': #5699FC,
+        '7': #0E6DFA,
+        '8': #0B57C8,
+        '9': #07377D,
+        '10': #04214B,
+      )
+    ),
+    // 'geek_blue': (
+    //   '1': #EAEDFD,
+    //   '2': #D5DDFB,
+    //   '3': #C1CCF9,
+    //   '4': #ACBBF7,
+    //   '5': #97A9F5,
+    //   '6': #6D87F1,
+    //   '7': #2F54EB,
+    //   '8': #2643BC,
+    //   '9': #182A76,
+    //   '10': #0E1947,
+    // ),
+    // 'golden_purple': (
+    //   '1': #F0EAFA,
+    //   '2': #E3D5F6,
+    //   '3': #D5C0F1,
+    //   '4': #C7ABED,
+    //   '5': #B896E8,
+    //   '6': #9C6DDF,
+    //   '7': #722ED1,
+    //   '8': #5B25A7,
+    //   '9': #391769,
+    //   '10': #220E3F,
+    // ),
+    // 'steel_pink': (
+    //   '1': #FBE8FB,
+    //   '2': #F8D1F8,
+    //   '3': #F4BAF4,
+    //   '4': #F1A3F1,
+    //   '5': #ED8CED,
+    //   '6': #E65FE6,
+    //   '7': #DB1ADB,
+    //   '8': #AF15AF,
+    //   '9': #6E0D6E,
+    //   '10': #420842,
+    // ),
+    // 'magenta': (
+    //   '1': #FDEAF4,
+    //   '2': #FBD5EA,
+    //   '3': #F9C1DF,
+    //   '4': #F7ACD5,
+    //   '5': #F597CB,
+    //   '6': #F16DB5,
+    //   '7': #EB2F96,
+    //   '8': #BC2678,
+    //   '9': #76184B,
+    //   '10': #470E2D,
+    // ),
+    'color': (
+      'primary': (
+        'hover': getCssVar('brand', 'color', '6'),
+        'active': getCssVar('brand', 'color', '8'),
+        'disabled': getCssVar('brand', 'color', '5'),
+        'light': (
+          '': getCssVar('brand', 'color', '1'),
+          'hover': getCssVar('brand', 'color', '2'),
+          'border': getCssVar('brand', 'color', '3'),
+          '3': getCssVar('color', 'primary', 'hover'),
+          '5': getCssVar('color', 'primary', 'disabled'),
+          '7': getCssVar('color', 'primary', 'light', 'border'),
+          '8': getCssVar('color', 'primary', 'light', 'hover'),
+          '9': getCssVar('color', 'primary', 'light'),
+        ),
+        'dark': (
+          '2': getCssVar('color', 'primary', 'active'),
+        )
+      ),
+      'success': (
+        'hover': getCssVar('success', 'color', '6'),
+        'active': getCssVar('success', 'color', '8'),
+        'disabled': getCssVar('success', 'color', '5'),
+        'light': (
+          '': getCssVar('success', 'color', '1'),
+          'hover': getCssVar('success', 'color', '2'),
+          'border': getCssVar('success', 'color', '3'),
+          '3': getCssVar('color', 'success', 'hover'),
+          '5': getCssVar('color', 'success', 'disabled'),
+          '7': getCssVar('color', 'success', 'light', 'border'),
+          '8': getCssVar('color', 'success', 'light', 'hover'),
+          '9': getCssVar('color', 'success', 'light'),
+        ),
+        'dark': (
+          '2': getCssVar('color', 'success', 'active'),
+        )
+      ),
+      'warning': (
+        'hover': getCssVar('warning', 'color', '6'),
+        'active': getCssVar('warning', 'color', '8'),
+        'disabled': getCssVar('warning', 'color', '5'),
+        'light': (
+          '': getCssVar('warning', 'color', '1'),
+          'hover': getCssVar('warning', 'color', '2'),
+          'border': getCssVar('warning', 'color', '3'),
+          '3': getCssVar('color', 'warning', 'hover'),
+          '5': getCssVar('color', 'warning', 'disabled'),
+          '7': getCssVar('color', 'warning', 'light', 'border'),
+          '8': getCssVar('color', 'warning', 'light', 'hover'),
+          '9': getCssVar('color', 'warning', 'light'),
+        ),
+        'dark': (
+          '2': getCssVar('color', 'warning', 'active'),
+        )
+      ),
+      'danger': (
+        'hover': getCssVar('danger', 'color', '6'),
+        'active': getCssVar('danger', 'color', '8'),
+        'disabled': getCssVar('danger', 'color', '5'),
+        'light': (
+          '': getCssVar('danger', 'color', '1'),
+          'hover': getCssVar('danger', 'color', '2'),
+          'border': getCssVar('danger', 'color', '3'),
+          '3': getCssVar('color', 'danger', 'hover'),
+          '5': getCssVar('color', 'danger', 'disabled'),
+          '7': getCssVar('color', 'danger', 'light', 'border'),
+          '8': getCssVar('color', 'danger', 'light', 'hover'),
+          '9': getCssVar('color', 'danger', 'light'),
+        ),
+        'dark': (
+          '2': getCssVar('color', 'danger', 'active'),
+        )
+      ),
+      'info': (
+        'hover': getCssVar('gray', 'color', '6'),
+        'active': getCssVar('gray', 'color', '8'),
+        'disabled': getCssVar('gray', 'color', '5'),
+        'light': (
+          '': getCssVar('gray', 'color', '1'),
+          'hover': getCssVar('gray', 'color', '2'),
+          'border': getCssVar('gray', 'color', '3'),
+          '3': getCssVar('color', 'info', 'hover'),
+          '5': getCssVar('color', 'info', 'disabled'),
+          '7': getCssVar('color', 'info', 'light', 'border'),
+          '8': getCssVar('color', 'info', 'light', 'hover'),
+          '9': getCssVar('color', 'info', 'light'),
+        ),
+        'dark': (
+          '2': getCssVar('color', 'info', 'active'),
+        )
+      ),
+      'data1': (
+        'default': #0E6DFA,
+        'light': (
+          '': #E6F0FE,
+          'border': #B7D3FD,
+        ),
+      ),
+      'data2': (
+        'default': #13C2C2,
+        'light': (
+          '': #E7F8F8,
+          'border': #B8EDED,
+        ),
+      ),
+      'data3': (
+        'default': #FA8205,
+        'light': (
+          '': #FEF2E6,
+          'border': #FDD9B4,
+        ),
+      ),
+      'data4': (
+        'default': #21B534,
+        'light': (
+          '': #E8F7EA,
+          'border': #BCE9C2,
+        ),
+      ),
+      'data5': (
+        'default': #722ED1,
+        'light': (
+          '': #F0EAFA,
+          'border': #D5C0F1,
+        ),
+      ),
+      'data6': (
+        'default': #FAAD14,
+        'light': (
+          '': #FEF6E7 ,
+          'border': #FDD9B4,
+        ),
+      ),
+      'data7': (
+        'default': #A0D911,
+        'light': (
+          '': #F5FBE7,
+          'border': #E3F4B8,
+        ),
+      ),
+      'data8': (
+        'default': #DB1ADB,
+        'light': (
+          '': #FBE8FB,
+          'border': #F4BAF4,
+        ),
+      ),
+      'data9': (
+        'default': #16DFA3,
+        'light': (
+          '': #E7FBF5,
+          'border': #B9F5E3,
+        ),
+      ),
+      'data10': (
+        'default': #FA541C,
+        'light': (
+          '': #FEEDE8,
+          'border': #FDCCBB,
+        ),
+      ),
+    )
+  ),
+  $te-colors
+);
+
+$sizes: 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 24, 32, 40;
+
+$radius: (
+  's': getCssVar('size', '1'),
+  'm': getCssVar('size', '2'),
+  'l': getCssVar('size', '4'),
+  'xl': getCssVar('size', '8'),
+  'round': 9999,
+);
+
+$spacing: (
+  'xxs': getCssVar('size', '1'),
+  'xs': getCssVar('size', '2'),
+  's': getCssVar('size', '4'),
+  'm': getCssVar('size', '5'),
+  'l': getCssVar('size', '6'),
+  'xl': getCssVar('size', '7'),
+  '2xl': getCssVar('size', '8'),
+  '3xl': getCssVar('size', '10'),
+  '4xl': getCssVar('size', '12'),
+  '5xl': getCssVar('size', '13'),
+);
+
+$container-height: (
+  's': 24px,
+  'm': 32px,
+  'l': 40px
+);
+
+$container-width: (
+  'xxs': 120px,
+  'xs': 160px,
+  's': 200px,
+  'm': 280px,
+  'l': 360px,
+  'xl': 480px,
+  '2xl': 560px,
+  '3xl': 680px,
+  '4xl': 800px,
+  '5xl': 960px,
+);
+
+$header-height: (
+  's': 48px,
+  'm': 56px,
+  'l': 72px
+)

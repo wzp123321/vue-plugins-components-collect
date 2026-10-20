@@ -24,6 +24,13 @@
  *   顶点每帧重写 → 包围球不会跟着更新 → 必须 frustumCulled=false，否则会被误裁剪。
  * ⚠️ 坑（等弧长采样）：用 curve.getSpacedPoints() 而非 getPoints()，否则流星在
  *   贝塞尔参数上忽快忽慢，全程匀速靠等弧长采样保证。
+ *
+ * ⚠️ 坑（缩小后断成一截一截）：条带宽度是按「世界单位」写死的（streakWidth=0.66），
+ *   相机拉远时它的屏幕宽度会一路缩到 1 像素以下。WebGL 没有 MSAA 时（本工程用
+ *   EffectComposer 后处理，renderTarget 默认 samples=0），不足 1 像素宽的四边形
+ *   覆盖率不稳定 → 有的画出一像素、有的整段丢失，看起来就是一节一节的断链。
+ *   解法：给一半世界宽度设「屏幕像素下限」——see MIN_STREAK_PX / writeRibbon 的
+ *   worldPerPx 参数。拉近时下限不生效，渲染结果与原来完全一致。
  */
 
 import * as THREE from 'three'
@@ -44,6 +51,16 @@ const SEGMENTS = 140
 /** 头部白热核长度（占弧长比例） */
 const CORE_SPAN = 0.03
 
+/**
+ * 屏幕像素下限：相机拉远到线宽不足 1px 时，按这几个值反算世界宽度。
+ * 取 2px 而非 1px —— 1px 的加法混合条带太细，泛光几乎采不到，反而更糊。
+ */
+const MIN_STREAK_PX = 2
+/** 轨道只是"隐约的路线"，下限比拖尾细一档 */
+const MIN_TRACK_PX = 1.2
+/** 彗星头光点直径下限（Sprite 也是世界尺寸，拉远会缩成一粒灰点） */
+const MIN_HEAD_PX = 6
+
 const WHITE = new THREE.Color(1, 1, 1)
 const TRACK_NEAR = new THREE.Color(mapConfig.fly.trackColorNear)
 const TRACK_FAR = new THREE.Color(mapConfig.fly.trackColorFar)
@@ -56,6 +73,8 @@ export interface FlyAnim {
   points: THREE.Vector3[]
   /** 每个采样点的单位切线（静态） */
   tangents: THREE.Vector3[]
+  /** 曲线中点：用来估算「相机到这条线的距离」，把世界宽度换算成屏幕像素 */
+  mid: THREE.Vector3
   /** 拖尾颜色 */
   tint: THREE.Color
   /** 头部位置 0~1 */
@@ -284,6 +303,7 @@ export const createFlyLine = (
   const anim: FlyAnim = {
     points,
     tangents,
+    mid: points[Math.floor(points.length / 2)].clone(),
     tint: new THREE.Color(options.tint),
     p: options.phase ?? Math.random(),
     speed: options.speed ?? mapConfig.fly.speed,
@@ -329,6 +349,8 @@ const samplePoint = (points: THREE.Vector3[], p: number): THREE.Vector3 => {
  * @param elapsed     总时长（秒），用于头部呼吸闪烁
  * @param cameraPos   相机世界坐标（用于重算条带朝向），null 则跳过几何重写
  * @param cameraMoved 相机本帧是否移动（静止时连轨道朝向都不重算，省开销）
+ * @param worldPerPx  当前缩放下「1 个 CSS 像素 = 多少世界单位」（用于线宽下限；
+ *                    传 0 表示不做下限，等同于旧行为）
  */
 export const updateFlyLine = (
   anim: FlyAnim,
@@ -336,6 +358,7 @@ export const updateFlyLine = (
   elapsed: number,
   cameraPos: THREE.Vector3 | null,
   cameraMoved: boolean,
+  worldPerPx = 0,
 ) => {
   const band = mapConfig.fly.streakBand
   // ⚠️ 关键：按 dt 累加推进，保证掉帧时连贯
@@ -375,25 +398,35 @@ export const updateFlyLine = (
   anim.streakColorAttr.needsUpdate = true
 
   if (cameraPos) {
+    // 屏幕像素下限换算成世界半宽：拉远时托住线宽，避免断成一截一截
+    const minStreakHalf = (MIN_STREAK_PX * 0.5) * worldPerPx
+    const minTrackHalf = (MIN_TRACK_PX * 0.5) * worldPerPx
     // 拖尾：头部饱满、尾部收细成尖，每帧随 p 一起推进（k 越靠近头部越宽）
     const half = mapConfig.fly.streakWidth / 2
     writeRibbon(anim.streakPositions, points, tangents, cameraPos, (index) => {
       const k = Math.min(1, Math.max(0, (p - index / (n - 1)) / band))
-      return half * (0.85 - 0.5 * Math.pow(k, 0.7))
+      const shaped = half * (0.85 - 0.5 * Math.pow(k, 0.7))
+      // 下限作用在「收细之后」的宽度上：否则尾部依旧会断
+      return Math.max(shaped, minStreakHalf)
     })
     anim.streakAttr.needsUpdate = true
     if (cameraMoved) {
       const trackHalf = mapConfig.fly.trackWidth / 2
-      writeRibbon(anim.trackPositions, points, tangents, cameraPos, () => trackHalf)
+      writeRibbon(anim.trackPositions, points, tangents, cameraPos, () =>
+        Math.max(trackHalf, minTrackHalf),
+      )
       anim.trackAttr.needsUpdate = true
     }
   }
 
   // 彗星头 Sprite 跟随同一条曲线上的当前进度位置
   anim.head.position.copy(samplePoint(points, p))
-  // 头部轻微呼吸，像流星掠过时的闪烁
+  // 头部轻微呼吸，像流星掠过时的闪烁；
+  // 拉远时同样给屏幕像素下限，否则光点会缩成一粒看不清的灰点
   const pulse = 1 + Math.sin(elapsed * 9 + anim.phase) * 0.1
-  anim.head.scale.setScalar(mapConfig.fly.headSize * pulse)
+  anim.head.scale.setScalar(
+    Math.max(mapConfig.fly.headSize * pulse, MIN_HEAD_PX * worldPerPx),
+  )
   anim.headMat.opacity = mapConfig.fly.headOpacity * fade
 };
 

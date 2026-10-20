@@ -1,0 +1,38 @@
+# 提交流程
+
+主要流程包括：发起--提交--审核--发布<br />（1）发起<br />发起流程有如下三种：
+
+- 基础组件：由架构部统一导入，element-plus（web端）、uni-ui（移动端）作为基础组件库
+- 业务组件：按业务开发计划，在TR1评审交互设计的时候，确认哪些需要组件化，并由业务部门负责组件开发
+- 组件优化：对基础组件、业务组件有任何意见建议，都可以优化或者新增组件，提供一定奖励
+
+（2）提交
+
+1. 从git上fork组件库代码的master分支
+2. 完成组件开发和组件说明文档书写
+3. 提交合并到master分支的请求
+
+web端组件git地址：[http://192.168.20.76:8000/web/ts-package-document.git](http://192.168.20.76:8000/web/ts-package-document.git)<br />移动端组件git地址：[http://192.168.20.76:8000/mobile/ts-package-document.git](http://192.168.20.76:8000/web/ts-package-document.git)<br />（3）审核<br />由架构部牵头，UXD、各个BU的组件负责人，以及提交组件的开发人员，一起评审<br />（4）发布
+
+1. 审核通过后，更新组件代码到git的master分支，更新说明文档到vuepress
+2. 架构部，将组件整体版本更新，发布到私有仓库，并邮件通知整个产研中心
+3. BU内部，和代码review会议合并，代码review结束后看下组件更新内容，做好信息同步
+
+![](https://cdn.nlark.com/yuque/__puml/a2e74bd6c67b502ce262a375d6159940.svg#lake_card_v2=eyJ0eXBlIjoicHVtbCIsImNvZGUiOiJAc3RhcnR1bWxcblxucGFydGljaXBhbnQgXCLlj5HotbdcIiBhcyBTdGFydFxucGFydGljaXBhbnQgXCLmj5DkuqRcIiBhcyBTdWJtaXRcbnBhcnRpY2lwYW50IFwi5a6h5qC4XCIgYXMgRXhhbWluZVxucGFydGljaXBhbnQgXCLlj5HluINcIiBhcyBQdWJsaXNoXG5hY3RvciBcIueglOWPkVwiIGFzIFVzZXJcblxuYWN0aXZhdGUgU3RhcnRcblxuU3RhcnQgLT4gU3VibWl0OiDmnrbmnoTpg6jnu5_kuIDlr7zlhaVcblN0YXJ0IC0-IFN1Ym1pdDogVFIx5Lqk5LqS6K6-6K6h5Yaz5a6aXG5TdGFydCAtPiBTdWJtaXQ6IOiHquWPkeaUuei_m-S8mOWMllxuXG5hY3RpdmF0ZSBTdWJtaXRcblxuU3VibWl0IC0-IFN1Ym1pdDog5LuOZ2l05LiKZm9ya-e7hOS7tuW6k-S7o-eggeeahG1hc3RlcuWIhuaUr1xuU3VibWl0IC0-IFN1Ym1pdDog5a6M5oiQ57uE5Lu25byA5Y-R5ZKM57uE5Lu26K-05piO5paH5qGj5Lmm5YaZXG5TdWJtaXQgLT4gRXhhbWluZTog5o-Q5Lqk5ZCI5bm25YiwbWFzdGVy5YiG5pSv55qE6K-35rGCXG5cbmFjdGl2YXRlIEV4YW1pbmVcblxuRXhhbWluZSAtPiBQdWJsaXNoOiDnlLHmnrbmnoTpg6jnibXlpLTvvIxVWETjgIFcXG7lkITkuKpCVeeahOe7hOS7tui0n-i0o-S6uu-8jFxcbuS7peWPiuaPkOS6pOe7hOS7tueahOW8gOWPkeS6uuWRmO-8jFxcbuS4gOi1t-ivhOWuoVxuXG5hY3RpdmF0ZSBQdWJsaXNoXG5cblB1Ymxpc2ggLT4gUHVibGlzaDog5a6h5qC46YCa6L-H5ZCO77yM5pu05paw57uE5Lu25Luj56CB5YiwXFxuZ2l055qEbWFzdGVy5YiG5pSv77yMXFxu5pu05paw6K-05piO5paH5qGj5YiwdnVlcHJlc3NcblB1Ymxpc2ggLT4gVXNlcjog5p625p6E6YOo77yM5bCG57uE5Lu25pW05L2T54mI5pys5pu05paw77yMXFxu5Y-R5biD5Yiw56eB5pyJ5LuT5bqT77yMXFxu5bm26YKu5Lu26YCa55-l5pW05Liq5Lqn56CU5Lit5b-DXG5QdWJsaXNoIC0-IFVzZXI6IEJV5YaF6YOo77yM5ZKM5Luj56CBcmV2aWV35Lya6K6u5ZCI5bm277yMXFxu5Luj56CBcmV2aWV357uT5p2f5ZCO77yMXFxu55yL5LiL57uE5Lu25pu05paw5YaF5a6577yM5YGa5aW95L-h5oGv5ZCM5q2lXG5cbkBlbmR1bWwiLCJ1cmwiOiJodHRwczovL2Nkbi5ubGFyay5jb20veXVxdWUvX19wdW1sL2EyZTc0YmQ2YzY3YjUwMmNlMjYyYTM3NWQ2MTU5OTQwLnN2ZyIsImlkIjoiRHZuNEYiLCJtYXJnaW4iOnsidG9wIjp0cnVlLCJib3R0b20iOnRydWV9LCJoZWlnaHQiOjY2OC4zMjgxMjUsImNhcmQiOiJkaWFncmFtIn0=)<a name="wuB4K"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

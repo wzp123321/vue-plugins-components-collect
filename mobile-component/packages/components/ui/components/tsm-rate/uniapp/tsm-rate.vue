@@ -13,11 +13,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import type { RateProps } from './props';
 import { defaultProps } from './props';
 
 const props = withDefaults(defineProps<RateProps>(), defaultProps);
+
+// Inject FormItem 上下文（默认 null，独立使用时正常）
+const formItemContext = inject<any | null>('formItemContext', null);
 
 const emit = defineEmits<{
   change: [value: number];
@@ -26,6 +29,9 @@ const emit = defineEmits<{
 
 const inactiveColor = 'rgba(213, 215, 218, 1)';
 const activeColor = 'rgba(247, 144, 9, 1)';
+
+// 只读状态：自身 readonly 或 FormItem（合并 Form 的 readonly）
+const isReadonly = computed(() => props.readonly || formItemContext?.readonly);
 
 const clampedValue = computed(() => Math.max(0, Math.min(5, props.value)));
 
@@ -43,9 +49,12 @@ const getOverlayWidth = (i: number) => {
 };
 
 const onSelect = (value: number) => {
-  if (props.disabled) return;
+  // 禁用或只读时不可编辑
+  if (props.disabled || isReadonly.value) return;
   emit('update:value', value);
   emit('change', value);
+  // 触发表单 change 验证（内部已处理 readonly 判断）
+  formItemContext?.onValueChange(value);
 };
 </script>
 

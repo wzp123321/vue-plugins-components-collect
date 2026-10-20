@@ -12,6 +12,7 @@
           class="tsm-input-field"
           :value="inputValue"
           :disabled="disabled"
+          :maxlength="maxlength > 0 ? maxlength : -1"
           cursor-color="#444CE7"
           @input="handleInput"
           @blur="handleBlur"
@@ -75,9 +76,12 @@ const inputGroupRef = ref<any>(null);
 
 const focused = ref(false);
 // 双向绑定的值
+// 注意：这里必须兜底空串。defineModel() 会覆盖掉 defaultProps 里 modelValue 的 ``''`` 默认值，
+// 父组件把 undefined（如表单字段还没有初值）传进来时 props.modelValue 就是 undefined，
+// 渲染字数统计等地方读 .length 会直接抛错、把整个组件渲染成空节点。
 const inputValue = computed({
   get: () => {
-    return props.modelValue;
+    return props.modelValue ?? '';
   },
   set: newValue => {
     emit('update:modelValue', newValue);

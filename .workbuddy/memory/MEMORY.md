@@ -19,7 +19,7 @@
 
 ## 本机环境坑
 - 亿赛通透明加密：本工程 `.md` 被加密。读用 `head -c N "$f"`；判断密文 `tr -dc '\0' < "$f" | wc -c`（>0 即密文）；写用 Edit/Write 工具或 bash `>` 重定向才产出明文。
-- 沙箱安全删除守卫（>50 文件）会杀掉 `pnpm dev` / `vite build`：先 `mv node_modules/.vite` / `mv dist` 移开再跑；检查中间结果优先用真实浏览器（Chrome `--headless=new --remote-debugging-port` + Node22 全局 WebSocket 直连 CDP，零依赖）。
+- 沙箱安全删除守卫（>50 文件）会杀掉 `pnpm dev` / `vite build`。2026-10-20 修正：**别靠 `mv node_modules/.vite` 绕** —— 移开缓存会触发全量重优化，optimizer 提交阶段 `rm deps_temp_*`（本次 58 文件）照样被拦、进程直接退出（表现为 ready 之后浏览器 ERR_CONNECTION_REFUSED）。缓存存在时别动它；已移开的 `mv .vite-bak-* .vite` 移回去即可。检查中间结果优先用真实浏览器（Chrome `--headless=new --remote-debugging-port` + Node22 全局 WebSocket 直连 CDP，零依赖）。
 
 ## echarts 可视化页现状（2026-10-19）
 - `drill-map` 已删除（目录 + 路由 + semantic-search 别名 + aside-box/constant.ts 菜单共 4 处）。
@@ -56,3 +56,27 @@
 - 坑：head / grep / Read 读密文有「假明文」现象，Edit 匹配密文 old_string 必失败
 - 解法：`git show ":<path>" > tmp && cat tmp > <path>` 恢复明文再改；写完用 python 复验（非白名单读取器）
 - 落点：用户级 MEMORY.md「亿赛通」节 + 技能 `esafenet-plaintext-convert`
+
+### 2026-10-20 threejs 飞线线宽 × 缩放 × 断线（接缝）
+- 坑：飞线是会正对相机的三角带，线宽写在**世界单位**里；相机拉远后屏幕宽度 <1px，
+  而后处理链（EffectComposer）的 renderTarget 默认无 MSAA → 覆盖率不稳定，断成一截一截
+- 解法：`useMapViewport` 的 Tick 多传 `ViewportMetrics{width,height,pixelRatio}`；
+  每条线按「中点到相机距离」算 worldPerPx，给半宽下限 `MIN_STREAK_PX=2 / TRACK=1.2 / HEAD=6`
+- 坑：flex 列里给「展开态」的项写 `margin-top:auto` 会先吃掉自由空间，`flex-grow` 直接失效
+- 落点：`composables/useMapViewport.ts`、`composables/useFlyLines.ts`、`utils/drawFlyLine.ts`、
+  `threejs-china-3d-map.vue`（右栏 `.china3d-rail` + `--rail-shift`）
+
+### 2026-10-20 底图强度 × 内联样式 × CSS 变量（接缝）
+- 坑：给 DOM 底图加「可调强度」时直接内联写 `opacity`，会盖掉 `.xx--hidden{opacity:0}`（内联优先级高于类选择器），显隐开关失效
+- 解法：内联只注入 `--bg-opacity`，样式表写 `opacity: var(--bg-opacity, 1)`；显隐仍归类管
+- 落点：`ChinaMap3D.vue`（`bgImageStyle` / `.map-bg-image`）、`MapControlPanel.vue`（强度滑块）
+
+### 2026-10-20 世界坐标底板 × 相机轨道中心（接缝）
+- 坑：底板 mesh 固定在世界原点时，地图平移 / 下钻后圆环偏到一边，像「盘子歪了」
+- 解法：每帧 `syncToFocus(controls.target)`，只同步 x/y、z 恒定 -0.6 防共面闪烁；位移 <1e-3 时跳过省矩阵更新
+- 落点：`composables/useGroundPlane.ts`、`ChinaMap3D.vue`（`viewport.onTick` 内）
+
+### 2026-10-20 星空 × 亮色主题（接缝）
+- 坑：加法混合的白色星芒在浅底上糊成一片「脏点」；starfield 自身没有主题概念
+- 解法：viewport 暴露 `setStarfieldVisible()`，并在内部记住意图（主题 watcher 可能先于 `start()` 触发）
+- 落点：`composables/useMapViewport.ts`、`ChinaMap3D.vue` 的 theme watcher

@@ -88,11 +88,14 @@ const onSlide = (e: Event) => {
 <style scoped>
 .map-timeline {
   position: absolute;
-  left: 50%;
+  /* 按「右栏之外的可用区域」居中：--rail-shift 由页面根节点下发，缺失时退化为普通居中 */
+  left: calc(50% - var(--rail-shift, 0px));
   bottom: 18px;
   transform: translateX(-50%);
   z-index: 30;
-  width: min(720px, 76vw);
+  /* 宽度上限同时受两侧栏位约束：440 = 左信息卡让位 + 右控制栏让位，
+     窄屏时时间轴自动收窄，不会被挤出画布或压到面板下面 */
+  width: min(700px, calc(100% - 440px));
   display: flex;
   flex-direction: column;
   gap: 8px;

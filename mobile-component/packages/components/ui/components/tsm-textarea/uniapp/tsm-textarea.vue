@@ -19,7 +19,7 @@
       :value="inputValue"
       :placeholder="placeholder"
       :disabled="isDisabled"
-      :maxlength="-1"
+      :maxlength="maxlength > 0 ? maxlength : -1"
       :focus="autofocus"
       :auto-height="rows === 1"
       :placeholder-style="placeholderStyle"

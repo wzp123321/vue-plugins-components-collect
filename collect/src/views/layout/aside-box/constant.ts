@@ -90,6 +90,7 @@ export const navGroups: NavGroup[] = [
           { path: '/echarts-map', label: '中国地图大屏' },
           { path: '/echarts-province', label: '省份地图' },
           { path: '/vchart', label: 'VChart 图表' },
+          { path: '/canvas-advance', label: 'Canvas 绘图进阶' },
           { path: '/data-vis-g6', label: 'G6 拓扑图' },
         ],
       },

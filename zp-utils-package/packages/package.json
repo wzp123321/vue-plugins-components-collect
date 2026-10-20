@@ -1,0 +1,47 @@
+{
+  "name": "@tiansu/tools",
+  "version": "2.0.0",
+  "private": false,
+  "type": "module",
+  "description": "天溯公共工具库",
+  "module": "dist/index.mjs",
+  "main": "dist/index.js",
+  "bin": {
+    "ci-tools": "./bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "author": "wanglei",
+  "files": [
+    "dist",
+    "bin",
+    "utils"
+  ],
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "keywords": [
+    "tools",
+    "ts-tools"
+  ],
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "minimist": "^1.2.8",
+    "mkdirp": "^3.0.1",
+    "sm-crypto-v2": "1.15.1"
+  },
+  "publishConfig": {
+    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
+  },
+  "devDependencies": {
+    "@types/sm-crypto": "^0.3.4"
+  }
+}

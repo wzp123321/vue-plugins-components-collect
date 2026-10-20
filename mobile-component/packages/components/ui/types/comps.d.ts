@@ -14,6 +14,7 @@ declare module 'vue' {
     'tsm-datetime-picker': (typeof import('../components/tsm-datetime-picker/uniapp/tsm-datetime-picker.vue'))['default'];
     'tsm-dialog': (typeof import('../components/tsm-dialog/uniapp/tsm-dialog.vue'))['default'];
     'tsm-empty': (typeof import('../components/tsm-empty/uniapp/tsm-empty.vue'))['default'];
+    'tsm-esign': (typeof import('../components/tsm-esign/uniapp/tsm-esign.vue'))['default'];
     'tsm-fab-button': (typeof import('../components/tsm-fab-button/uniapp/tsm-fab-button.vue'))['default'];
     'tsm-form': (typeof import('../components/tsm-form/uniapp/tsm-form.vue'))['default'];
     'tsm-form-item': (typeof import('../components/tsm-form-item/uniapp/tsm-form-item.vue'))['default'];

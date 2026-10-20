@@ -34,6 +34,21 @@
  -->
 <template>
   <div class="china-map-3d-wrapper">
+    <!--
+      大屏底图（A）：2D 层，铺在 canvas 之下。canvas 是 alpha:true + clearColor(0,0,0,0)，
+      所以这层能透上来。传了 bgImage 就用外部设计图，没传则用内置程序化底图（按主题两套）。
+    -->
+    <div
+      class="map-bg-image"
+      :class="[
+        `map-bg-image--${theme}`,
+        { 'map-bg-image--hidden': !showBgImage, 'map-bg-image--custom': !!resolvedBgImage },
+      ]"
+      :style="bgImageStyle"
+      aria-hidden="true"
+    >
+      <span class="map-bg-image__veil"></span>
+    </div>
     <div ref="canvasHost" class="china-map-3d-canvas"></div>
 
     <!-- 框选矩形（Shift + 拖拽实时绘制） -->
@@ -63,8 +78,14 @@
       @search="handleSearchKeyword"
     />
     <MapTooltip v-bind="tooltip" />
-    <MapLegend :items="legend" />
-    <MapPieChart v-if="showPie" :segments="pie" title="数据分档" />
+    <!--
+      左下角信息栏：饼图在上、图例在下，共用同一条左边缘与间距。
+      原先两块各自 absolute 写死 bottom（150 / 22），间距靠数字去猜、左边缘还差 6px。
+    -->
+    <div class="map-left-rail">
+      <MapPieChart v-if="showPie" :segments="pie" title="数据分档" />
+      <MapLegend :items="legend" />
+    </div>
     <MapNavBar :crumbs="crumbs" @back="handleBack" @jump="handleJump" />
     <MapStageTip :stage="stage" :notice="notice" :raised="canGoBack" />
     <MapBookmarkPanel
@@ -124,8 +145,37 @@ import { useOrbitRoutes } from '../composables/useOrbitRoutes';
 import { useHeatmap } from '../composables/useHeatmap';
 import { useCss2dLabels } from '../composables/useCss2dLabels';
 import { useMeasure } from '../composables/useMeasure';
+import { useGroundPlane } from '../composables/useGroundPlane';
 import { addBookmark, loadBookmarks, removeBookmark } from '../utils/viewBookmarks';
 import type { ViewBookmark } from '../utils/viewBookmarks';
+
+// 大屏底图预设：静态图片统一走 assets/backgrounds，用 import 让 Vite 参与哈希与按需加载
+import bgHorizon from '../../../../../assets/backgrounds/horizon.webp';
+import bgTopo from '../../../../../assets/backgrounds/topo.webp';
+import bgHex from '../../../../../assets/backgrounds/hex.webp';
+import bgCloud from '../../../../../assets/backgrounds/cloud.webp';
+
+/** 预设名 → 图片地址；builtin 不在表内，回退到 CSS 程序化底图 */
+const BG_PRESETS: Record<string, string> = {
+  horizon: bgHorizon,
+  topo: bgTopo,
+  hex: bgHex,
+  cloud: bgCloud,
+};
+
+/**
+ * 预加载全部预设底图：4 张 webp 合计约 242KB。
+ * 不预热的话，首次切到某个预设会有一帧空白（背景图正在下载，DOM 已切换）。
+ * 这里只创建 Image 并给 src，浏览器把响应放进 HTTP 缓存，切换时即命中。
+ */
+const preloadBgPresets = () => {
+  for (const url of Object.values(BG_PRESETS)) {
+    if (!url) continue;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = url;
+  }
+};
 
 const props = withDefaults(
   defineProps<{
@@ -168,6 +218,19 @@ const props = withDefaults(
     timelineSpeed?: number;
     /** 主题（暗/亮），切换时覆写地图配色并重新上色 */
     theme?: 'dark' | 'light';
+    /** 大屏底图（2D）：外部设计图 URL；不传则回退到 bgPreset 预设，再回退到内置 CSS 渐变 */
+    bgImage?: string;
+    /** 内置底图预设：builtin=程序化渐变，其余为 assets/backgrounds 下的静态图 */
+    bgPreset?: 'builtin' | 'horizon' | 'topo' | 'hex' | 'cloud';
+    /** 是否显示大屏底图（2D）。关闭后露出页面底色 */
+    showBgImage?: boolean;
+    /** 是否显示三维底板（3D 透视网格盘）。与大屏底图可各自独立开关 */
+    showGroundPlane?: boolean;
+    /**
+     * 大屏底图强度（0~1）。canvas 上的地图/飞线/星空会压暗底图，
+     * 两者同开时往往需要把它调低或调高来配平观感。0 等价于关闭。
+     */
+    bgOpacity?: number;
   }>(),
   {
     maxDrillLevel: 'district',
@@ -192,6 +255,11 @@ const props = withDefaults(
     timelineMonth: 11,
     timelineSpeed: 1,
     theme: 'dark',
+    bgImage: '',
+    bgPreset: 'builtin',
+    showBgImage: true,
+    showGroundPlane: true,
+    bgOpacity: 1,
   },
 );
 
@@ -213,6 +281,21 @@ const emit = defineEmits<{
 // 画布容器 host：渲染器创建的 <canvas> 会 appendChild 进这里（不在模板里），
 // ⚠️ 坑④：HMR 残留画布就发生在这个容器上，需在 viewport 内做 mount 清空。
 const canvasHost = ref<HTMLDivElement | null>(null);
+
+/**
+ * 大屏底图（A）内联样式：传了 bgImage 才覆盖内置程序化底图；
+ * 没传就只有强度变量，背景由 .map-bg-image--dark / --light 里的 CSS 渐变兜底。
+ */
+const resolvedBgImage = computed(() => props.bgImage || BG_PRESETS[props.bgPreset] || '');
+/**
+ * 底图内联样式：图 URL + 强度变量。
+ * ⚠️ 强度走 CSS 变量 `--bg-opacity` 而不是直接写 opacity ——
+ *   内联的 opacity 优先级高于样式表，会把 `.map-bg-image--hidden` 的 0 覆盖掉。
+ */
+const bgImageStyle = computed<Record<string, string>>(() => ({
+  ...(resolvedBgImage.value ? { backgroundImage: `url("${resolvedBgImage.value}")` } : {}),
+  '--bg-opacity': String(Math.min(1, Math.max(0, props.bgOpacity))),
+}));
 
 // ── 框选 / 多选 / 批量统计 / 画框缩放（P0 交互）──
 /** Shift 修饰键：按住时左键拖拽进入框选模式，并临时禁用轨道控制器 */
@@ -249,6 +332,13 @@ const viewport = useMapViewport(() => canvasHost.value);
  *   MAP_EXTENT=130；⚠️ 坑⑤：泛光用相机图层切换实现选择性发光。
  */
 const layer = useMapLayer(() => viewport.scene());
+
+/**
+ * ground — 三维底板（B）：地图下方随视角透视的网格盘。
+ * 常驻 scene、不随层级重建（与星空同级别），仅受 showGroundPlane / theme 影响。
+ * 与大屏底图（A，屏幕平面的 2D 层）互补，两者可独立开关、也可叠加。
+ */
+const ground = useGroundPlane(() => viewport.scene());
 
 /**
  * markers — 标记层（数据柱 / 地理标牌）。
@@ -565,6 +655,10 @@ watch(
   async (t) => {
     if (!t) return;
     layer.setTheme(t);
+    // 三维底板跟着换配色（暗=青色加法混合 / 亮=深蓝正常混合）
+    ground.setTheme(t);
+    // 星空只在暗色主题显示：亮色底上加法混合的白色星芒会糊成一片"脏点"
+    viewport.setStarfieldVisible(t === 'dark');
     const level = current.value;
     if (level && layer.root()) {
       // 重建会清掉旧 root，测量几何挂在旧 root 上 → 必须先清掉，否则残留失效引用
@@ -581,6 +675,12 @@ watch(
     }
   },
   { immediate: true },
+);
+
+// 三维底板（B）显隐：只切 mesh.visible，不重建几何；scene 就绪前调用也无副作用
+watch(
+  () => props.showGroundPlane,
+  (on) => ground.setVisible(on),
 );
 
 /**
@@ -1134,6 +1234,12 @@ onMounted(async () => {
   await nextTick();
   viewport.setDragMode(props.dragMode);
   viewport.start();
+  // 三维底板（B）：scene 就绪后再建，按当前主题生成纹理，显隐跟 props 走。
+  // 顺序不能反 —— setVisible 内部要往 scene 里挂 mesh。
+  ground.setTheme(props.theme);
+  ground.setVisible(props.showGroundPlane);
+  // 底图预设预加载：不阻塞首屏，切预设时不再有一帧空白
+  preloadBgPresets();
   // ⚠️ 坑④：canvas 由 viewport 以 appendChild 注入 canvasHost（不在模板里）。
   //   HMR 时旧实例可能残留画布，viewport 内部会在 mount 时先清空容器内已有
   //   canvas 再挂新的，避免两块画布叠加。
@@ -1155,8 +1261,11 @@ onMounted(async () => {
     window.addEventListener('resize', onCss2dResize, false);
   }
 
-  tickOff = viewport.onTick((dt, elapsed) => {
-    flies.tick(dt, elapsed, viewport.camera());
+  tickOff = viewport.onTick((dt, elapsed, view) => {
+    // 传视口度量：飞线据此把世界线宽换算成屏幕像素，拉远时托住细线
+    flies.tick(dt, elapsed, viewport.camera(), view);
+    // 底板跟随轨道中心：地图平移/下钻后，圆环不会偏到一边
+    ground.syncToFocus(viewport.controls()?.target ?? null);
     pyramids.tick(dt, elapsed);
     orbits.tick(dt);
     // 侧壁扫描流光：推进共享材质的时间戳
@@ -1196,6 +1305,8 @@ onUnmounted(() => {
   markers.clear();
   flies.clear();
   layer.dispose();
+  // 三维底板在 viewport.stop() 之前释放：dispose 内部还要从 scene 上摘 mesh
+  ground.dispose();
   // ⚠️ 坑④：停掉渲染循环并释放 GPU 资源；viewport.stop() 内部还会把注入的
   //   canvas.remove() 摘掉 DOM，确保 unmount 后不残留画布。
   viewport.stop();
@@ -1218,7 +1329,90 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   position: relative;
+  /* 压在底图之上：canvas 自身 alpha 透明，底图才能透上来 */
+  z-index: 1;
 }
+
+/* 左下角信息栏（数据分档饼图 + 数据量分级图例）：纵向排列，底边贴住画布左下角。
+   底部留 18px 且整体高约 330px，正好停在上方时间轴（bottom 18 / 高 100）之上。 */
+.map-left-rail {
+  position: absolute;
+  left: 16px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+}
+.map-left-rail > * { pointer-events: auto; }
+
+/* ── 大屏底图（A）：2D 层，位于 canvas 之下 ──
+   没传 bgImage 时用这里的程序化底图（暗/亮两套 CSS 渐变）；
+   传了 bgImage 则由内联 background-image 覆盖，并叠一层 veil 压暗/提亮保对比度。 */
+.map-bg-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  /* 强度由组件内联注入的 --bg-opacity 控制（0~1）；不传时按 1 处理 */
+  opacity: var(--bg-opacity, 1);
+  transition: opacity 0.4s ease;
+}
+/* 超宽屏（≥ 2:1）时 cover 会大量裁掉上下；焦点上移到地平线辉光所在的上三分之一 */
+@media (min-aspect-ratio: 2 / 1) {
+  .map-bg-image { background-position: center 42%; }
+}
+.map-bg-image--hidden { opacity: 0; }
+
+/* 暗色：中心聚光 + 稀疏网格 + 底部地平线辉光 */
+.map-bg-image--dark {
+  background-image:
+    linear-gradient(to top, rgba(47, 192, 255, 0.15) 0%, rgba(47, 192, 255, 0) 27%),
+    radial-gradient(circle at 50% 44%, rgba(38, 120, 220, 0.34) 0%, rgba(6, 30, 70, 0) 62%),
+    radial-gradient(circle at 14% 82%, rgba(96, 64, 210, 0.2) 0%, rgba(96, 64, 210, 0) 55%),
+    linear-gradient(rgba(95, 216, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(95, 216, 255, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 50% 42%, #061530 0%, #030c1c 58%, #01050d 100%);
+  background-size: auto, auto, auto, 64px 64px, 64px 64px, auto;
+}
+
+/* 亮色：白心 + 淡蓝网格，避免亮色地图配深底 */
+.map-bg-image--light {
+  background-image:
+    linear-gradient(to top, rgba(120, 190, 235, 0.26) 0%, rgba(120, 190, 235, 0) 27%),
+    radial-gradient(circle at 50% 44%, #ffffff 0%, rgba(232, 244, 255, 0) 62%),
+    linear-gradient(rgba(46, 110, 170, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 110, 170, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 50% 42%, #eaf4ff 0%, #d7e8f8 60%, #c3d9ee 100%);
+  background-size: auto, auto, 64px 64px, 64px 64px, auto;
+}
+
+/* 自定义底图：单张图铺满（必须覆盖 --dark/--light 里的多层 background-size） */
+.map-bg-image--custom { background-size: cover; }
+
+/* 自定义底图的对比度蒙版：只有 --custom 才显形。
+   中心几乎不压（保留图本身的纹理），只在四周收暗做暗角，
+   避免把本来就很暗的科技底图压成一片死黑。 */
+.map-bg-image__veil {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.map-bg-image--custom .map-bg-image__veil { opacity: 1; }
+.map-bg-image--custom.map-bg-image--dark .map-bg-image__veil {
+  background: radial-gradient(circle at 50% 44%, rgba(2, 10, 22, 0.04) 0%, rgba(1, 5, 12, 0.34) 92%);
+}
+.map-bg-image--custom.map-bg-image--light .map-bg-image__veil {
+  background: radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.18) 0%, rgba(228, 240, 252, 0.5) 92%);
+}
+/* 预设底图偏暗，轻微提亮让它从 canvas 下透得出来 */
+.map-bg-image--custom.map-bg-image--dark { filter: brightness(1.22) saturate(1.08); }
 .china-map-3d-canvas :deep(canvas) {
   display: block;
   width: 100% !important;

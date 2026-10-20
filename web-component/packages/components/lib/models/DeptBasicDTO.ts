@@ -1,0 +1,29 @@
+// 部门基本信息对象
+export default class DeptBasicDTO {
+	// 部门ID
+	id: Nullable<string>;
+	// 租户id
+	tenantId: Nullable<string>;
+	// 组织Id
+	organizationId: Nullable<string>;
+	// 部门编码
+	code: Nullable<string>;
+	// 部门名称
+	name: Nullable<string>;
+	// 部门简称
+	shortName: Nullable<string>;
+	// 上级部门id
+	parentId: Nullable<string>;
+	// 部门负责人员工id
+	managerId: Nullable<string>;
+	// 部门负责人
+	managerName: Nullable<string>;
+	// 部门属性：9-部门、8-班组
+	typeNo: Nullable<number>;
+	// 关联院区编码，多个之间以英文逗号隔开
+	campus: Nullable<string>;
+	// 部门电话
+	phone: Nullable<string>;
+	// 部门描述
+	description: Nullable<string>;
+}

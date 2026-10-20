@@ -48,6 +48,14 @@ import { ref } from 'vue';
 import { ElButton, ElDivider, ElInput, ElTag } from 'element-plus';
 import type { IFilterCallbackInfo } from '../../../directives/directive-filter/directive-filter.api';
 
+/**
+ * 子组件必须显式 import：
+ * unplugin-vue-components 默认只扫描 src/components，扫不到 src/pages 下的目录，
+ * 靠模板标签名自动解析会静默失败（控制台报 Failed to resolve component，场景渲染为空）。
+ */
+import IfTextInputFilter from './if-text-filter/if-text-filter.vue';
+import IfNumberInputFilter from './if-number-filter/if-number-filter.vue';
+
 const logs = ref<string[]>([]);
 const f1Value = ref<string>('');
 const f2Value = ref<string>('');

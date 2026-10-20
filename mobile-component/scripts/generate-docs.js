@@ -25,7 +25,8 @@ const componentConfigMap = {
     switch: '开关',
     textarea: '文本域',
     upload: '上传',
-    select: '选择器'
+    select: '选择器',
+    esign: '电子签名',
   },
   数据展示: {
     avatar: '头像',
@@ -56,13 +57,12 @@ const componentConfigMap = {
     'tabbar-item': '底部导航栏项',
     tabs: '标签页',
   },
-  布局组件: {
-  },
+  布局组件: {},
   其他组件: {
     'fab-button': '浮动按钮',
     'pull-refresh': '下拉刷新',
     sidebar: '侧边栏',
-    'breadcrumb': '面包屑',
+    breadcrumb: '面包屑',
   },
 };
 
@@ -161,9 +161,9 @@ if (componentName) {
 
 function processComponent(component, componentPath, platform) {
   const propsPath = path.join(componentPath, platform === 'uniapp' ? 'props.ts' : 'props.uts');
-  const vueFile = fs.readdirSync(componentPath).find(file =>
-    file === `${component}.vue` || file === `${component}.uvue`
-  );
+  const vueFile = fs
+    .readdirSync(componentPath)
+    .find(file => file === `${component}.vue` || file === `${component}.uvue`);
   const vuePath = vueFile ? path.join(componentPath, vueFile) : null;
 
   if (!fs.existsSync(propsPath)) return { props: [], api: [], emits: [] };
@@ -280,7 +280,9 @@ function extractProps(propsPath, platform) {
         // 按逗号拆分 key-value pairs（追踪括号深度）
         const defaultMap = {};
         let kvStart = 0;
-        let braceDepth = 0, parenDepth = 0, bracketDepth = 0;
+        let braceDepth = 0,
+          parenDepth = 0,
+          bracketDepth = 0;
         for (let j = 0; j <= inner.length; j++) {
           const ch = inner[j];
           if (ch === '{') braceDepth++;
@@ -294,7 +296,9 @@ function extractProps(propsPath, platform) {
             if (kv) {
               // 找到第一个深度为0的冒号
               let colonIdx = -1;
-              let cb = 0, cp = 0, cbr = 0;
+              let cb = 0,
+                cp = 0,
+                cbr = 0;
               for (let k = 0; k < kv.length; k++) {
                 const kch = kv[k];
                 if (kch === '{') cb++;
@@ -479,7 +483,10 @@ function parseEmitMember(memberStr) {
 
   if (colonIdx === -1) return null;
 
-  const name = memberStr.substring(0, colonIdx).trim().replace(/^['"]|['"]$/g, '');
+  const name = memberStr
+    .substring(0, colonIdx)
+    .trim()
+    .replace(/^['"]|['"]$/g, '');
   const params = memberStr.substring(colonIdx + 1).trim();
 
   return {
@@ -579,9 +586,7 @@ function extractSlots(vuePath) {
           const name = nameMatch ? nameMatch[1] : 'default';
           // 如果本行也有注释（inline），优先使用本行注释
           const inlineCommentMatch = line.match(/<!--\s*(.*?)\s*-->/);
-          const description = inlineCommentMatch
-            ? inlineCommentMatch[1].trim()
-            : pendingComment || '-';
+          const description = inlineCommentMatch ? inlineCommentMatch[1].trim() : pendingComment || '-';
           slots.push({ name, description });
           pendingComment = '';
         }
@@ -653,9 +658,7 @@ ${eventsRows}
   // 处理 Slots 部分
   let slotsContent = '';
   if (api.slots.length > 0) {
-    const slotsRows = api.slots
-      .map(slot => `| ${slot.name} | ${slot.description || '-'} |`)
-      .join('\n');
+    const slotsRows = api.slots.map(slot => `| ${slot.name} | ${slot.description || '-'} |`).join('\n');
 
     slotsContent = `## Slots
 
@@ -716,7 +719,9 @@ table td {
         `  🔄 更新 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，以同步关联组件文档`
       );
     } else {
-      console.log(`  ⏭️  跳过生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，文件已存在`);
+      console.log(
+        `  ⏭️  跳过生成 ${platform === 'uniapp' ? 'uniapp/' : 'uniapp-x/'}${component}.md (${platform === 'uniapp' ? 'UniApp' : 'UniApp-X'})，文件已存在`
+      );
       return;
     }
   }
@@ -784,7 +789,10 @@ function buildRelatedComponentsSection(component, platform) {
     const propsInfo = extractProps(propsPath, platform);
     const vueFile = fs.readdirSync(relatedPlatformPath).find(file => file.endsWith('.vue') || file.endsWith('.uvue'));
     const apiInfo = vueFile ? extractAPI(path.join(relatedPlatformPath, vueFile)) : [];
-    const { title, description } = extractComponentInfo(path.join(relatedComponentRootPath, 'uniapp'), relatedComponent);
+    const { title, description } = extractComponentInfo(
+      path.join(relatedComponentRootPath, 'uniapp'),
+      relatedComponent
+    );
 
     const propsRows = buildPropsRows(propsInfo);
     const relatedPropsSection = propsRows
@@ -822,9 +830,9 @@ ${sections.join('\n\n')}`;
 
 function extractComponentInfo(componentPath, component) {
   // 尝试从组件的 .vue 文件中提取注释信息
-  const vueFile = fs.readdirSync(componentPath).find(file =>
-    file === `${component}.vue` || file === `${component}.uvue`
-  );
+  const vueFile = fs
+    .readdirSync(componentPath)
+    .find(file => file === `${component}.vue` || file === `${component}.uvue`);
   if (vueFile) {
     const vuePath = path.join(componentPath, vueFile);
     const content = fs.readFileSync(vuePath, 'utf8');
@@ -954,7 +962,9 @@ function updateVitepressConfigForComponent(targetComponent) {
   if (uniappMatch) {
     const categoryContent = uniappMatch[2];
     // 检查组件是否已存在
-    const componentRegex = new RegExp(`\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp/${targetComponent}' \\},?`);
+    const componentRegex = new RegExp(
+      `\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp/${targetComponent}' \\},?`
+    );
 
     if (componentRegex.test(categoryContent)) {
       // 组件已存在，不需要更新
@@ -982,14 +992,22 @@ function updateVitepressConfigForComponent(targetComponent) {
 
     if (categoryMatch) {
       const categoryContent = categoryMatch[2];
-      const componentRegex = new RegExp(`\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp-x/${targetComponent}' \\},?`);
+      const componentRegex = new RegExp(
+        `\\{ text: '${displayName} ${chineseName}', link: '/components/uniapp-x/${targetComponent}' \\},?`
+      );
 
       if (componentRegex.test(categoryContent)) {
         console.log(`  ⏭️  uniapp-x/${targetComponent} 已存在，跳过`);
       } else {
         const newCategoryContent = categoryContent + uniappXItem + '\n';
-        const newUniappXSection = uniappXSection.replace(categoryMatch[0], categoryMatch[1] + newCategoryContent + categoryMatch[3]);
-        newConfigContent = newConfigContent.replace(uniappXSectionMatch[0], uniappXSectionMatch[0].replace(uniappXSection, newUniappXSection));
+        const newUniappXSection = uniappXSection.replace(
+          categoryMatch[0],
+          categoryMatch[1] + newCategoryContent + categoryMatch[3]
+        );
+        newConfigContent = newConfigContent.replace(
+          uniappXSectionMatch[0],
+          uniappXSectionMatch[0].replace(uniappXSection, newUniappXSection)
+        );
         console.log(`  ✅ 添加 uniapp-x/${targetComponent} 到配置`);
       }
     }
@@ -1021,7 +1039,8 @@ function getComponentsInDir(dirPath) {
   }
 
   // 只返回在 componentConfigMap 中定义、实际存在且文档文件存在的组件
-  return fs.readdirSync(dirPath)
+  return fs
+    .readdirSync(dirPath)
     .filter(file => file.endsWith('.md'))
     .map(file => file.replace('.md', ''))
     .filter(component => definedComponents.includes(component));
@@ -1208,7 +1227,9 @@ function updateComponentsConfigForComponent(targetComponent) {
   const newComponentConfig = `  { name: '${componentName}', title: '${displayName} ${chineseName}', category: '${targetCategory}', hasUniapp: ${hasUniapp}, hasUniappX: ${hasUniappX} },`;
 
   // 检查组件是否已存在
-  const componentRegex = new RegExp(`\\{ name: '${componentName}', title: '[^']+', category: '[^']+', hasUniapp: [^,]+, hasUniappX: [^}]+ \\},?`);
+  const componentRegex = new RegExp(
+    `\\{ name: '${componentName}', title: '[^']+', category: '[^']+', hasUniapp: [^,]+, hasUniappX: [^}]+ \\},?`
+  );
 
   let newConfigContent = configContent;
 

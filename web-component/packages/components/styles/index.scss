@@ -1,0 +1,47 @@
+@use 'sass:map';
+@use 'common/var' as *;
+@use 'mixins/var' as *;
+@import './font.scss';
+@import 'element/index.scss';
+
+body,
+html,
+#app {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+// common
+:root {
+  @include set-css-sizes-var-value($sizes);
+  @include set-component-css-var('radius', $radius);
+  @include set-component-css-var('container-height', $container-height);
+  @include set-component-css-var('container-width', $container-width);
+  @include set-component-css-var('header-height', $header-height);
+}
+
+:root {
+  color-scheme: light;
+
+  @each $key, $value in $te-colors {
+    @each $key1, $value1 in $value {
+      @if type-of($value1) == map {
+        @each $key2, $value2 in $value1 {
+          @if type-of($value2) == map {
+            @each $key3, $value3 in $value2 {
+              @include set-css-var-value(($key, $key1, $key2, $key3), 
+              $value3)
+            }
+          } @else {
+            @include set-css-var-value(($key, $key1, $key2), 
+            $value2)
+          }
+        }
+      } @else {
+        @include set-css-var-value(($key, $key1), 
+        $value1)
+      }
+    }
+  }
+}

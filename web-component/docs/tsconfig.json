@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "lib": ["WebWorker"],
+    "types": ["uni-app-types"],
+    "paths": {
+      "element-plus": ["../packages/element-plus"],
+      "~/*": ["./.vitepress/vitepress/*"]
+    },
+    "jsx": "preserve"
+  },
+  "include": ["**/*", ".vitepress/**/*", "./shims-vue-runtime.d.ts", "./global.d.ts", "./shims-uni-app.d.ts"],
+  "exclude": ["node_modules"]
+}

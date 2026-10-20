@@ -1,0 +1,143 @@
+{
+  "basic": {
+    "text": "通用",
+    "children": [
+      {
+        "link": "/button",
+        "text": "Button 按钮"
+      }
+    ]
+  },
+  "navigator": {
+    "text": "导航",
+    "children": [
+      {
+        "link": "/navbar",
+        "text": "NavBar 导航栏"
+      },
+      {
+        "link": "/sidebar",
+        "text": "SideBar 侧边栏"
+      },
+      {
+        "link": "/tabs",
+        "text": "Tabs 选项卡"
+      }
+    ]
+  },
+  "data-input": {
+    "text": "数据录入",
+    "children": [
+      {
+        "link": "/checkbox",
+        "text": "Checkbox 复选框"
+      },
+      {
+        "link": "/input",
+        "text": "Input 输入框"
+      },
+      {
+        "link": "/picker",
+        "text": "Picker 选择器"
+      },
+      {
+        "link": "/radio",
+        "text": "Radio 单选框"
+      },
+      {
+        "link": "/rate",
+        "text": "Rate 评分"
+      },
+      {
+        "link": "/search",
+        "text": "Search 搜索框"
+      },
+      {
+        "link": "/stepper",
+        "text": "Stepper 步进器"
+      },
+      {
+        "link": "/switch",
+        "text": "Switch 开关"
+      },
+      {
+        "link": "/upload",
+        "text": "Upload 上传"
+      },
+      {
+        "link": "/icon",
+        "text": "Icon 图标"
+      }
+    ]
+  },
+  "data-show": {
+    "text": "数据展示",
+    "children": [
+      {
+        "link": "/avatar",
+        "text": "Aavatar 头像"
+      },
+      {
+        "link": "/badge",
+        "text": "Badge 徽标"
+      },
+      {
+        "link": "/cell",
+        "text": "Cell 单元格"
+      },
+      {
+        "link": "/cell-select",
+        "text": "CellSelect 单元格选择器"
+      },
+      {
+        "link": "/collapse",
+        "text": "Collapse 折叠面板"
+      },
+      {
+        "link": "/image-viewer",
+        "text": "ImageViewer 图片预览"
+      },
+      {
+        "link": "/list",
+        "text": "List 描述列表"
+      },
+      {
+        "link": "/tag",
+        "text": "Tag 标签"
+      }
+    ]
+  },
+  "feedback": {
+    "text": "反馈",
+    "children": [
+      {
+        "link": "/action-sheet",
+        "text": "ActionSheet 动作面板"
+      },
+      {
+        "link": "/dialog",
+        "text": "Dialog 对话框"
+      },
+      {
+        "link": "/loading",
+        "text": "Loading 加载"
+      },
+      {
+        "link": "/notice-bar",
+        "text": "NoticeBar 公告栏"
+      },
+      {
+        "link": "/popup",
+        "text": "Popup 弹出层"
+      },
+      {
+        "link": "/popover",
+        "text": "Popover 弹出气泡"
+      },
+      {
+        "link": "/toast",
+        "text": "Toast 轻提示"
+      }
+    ]
+  }
+}

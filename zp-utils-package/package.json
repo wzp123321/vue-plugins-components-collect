@@ -1,0 +1,80 @@
+{
+	"name": "ts-web-tools",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"serve": "vue-cli-service serve",
+		"build": "rollup -w --config scripts/rollup.config.js",
+		"build:p": "rollup  --config scripts/rollup.config.js",
+		"lint": "vue-cli-service lint",
+		"docs:build": "vuepress build docs",
+		"docs:dev": "vuepress dev docs",
+		"docs:deploy": "bash scripts/docs-deploy.sh",
+		"ct": "node scripts/create-templete.js",
+		"pck:publish": "bash scripts/package-publish.sh",
+		"clean": "npm cache clean --force && rm -rf node_modules && rm package-lock.json && npm install"
+	},
+	"dependencies": {
+		"@babel/core": "^7.22.10",
+		"@babel/preset-env": "^7.22.10",
+		"@babel/preset-typescript": "^7.22.5",
+		"@custom/element-plus": "file:packages",
+		"@rollup/plugin-commonjs": "^25.0.7",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@rollup/plugin-typescript": "^11.1.6",
+		"@tiansu/ts-web-package": "^1.2.26-beta.9",
+		"axios": "^1.5.1",
+		"babel-loader": "^9.1.3",
+		"core-js": "^3.8.3",
+		"rollup": "^4.13.0",
+		"rollup-plugin-polyfill-node": "^0.13.0",
+		"rollup-plugin-typescript2": "^0.36.0",
+		"sm-crypto-v2": "1.15.1",
+		"ts-tools": "file:packages",
+		"vue": "^3.2.13",
+		"vue-loader": "^17.2.2",
+		"ws": "^8.17.0"
+	},
+	"devDependencies": {
+		"@rollup/plugin-babel": "^6.0.4",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@types/crypto-js": "^4.2.2",
+		"@types/estree": "^1.0.5",
+		"@types/serialize-javascript": "^5.0.4",
+		"@typescript-eslint/eslint-plugin": "^5.4.0",
+		"@typescript-eslint/parser": "^5.4.0",
+		"@vue/cli-plugin-babel": "~5.0.0",
+		"@vue/cli-plugin-eslint": "~5.0.0",
+		"@vue/cli-plugin-typescript": "~5.0.0",
+		"@vue/cli-service": "~5.0.0",
+		"@vue/eslint-config-typescript": "^9.1.0",
+		"eslint": "^7.32.0",
+		"eslint-plugin-vue": "^8.0.3",
+		"typescript": "^5.9.3",
+		"webpack-cli": "^5.1.4"
+	},
+	"eslintConfig": {
+		"root": true,
+		"env": {
+			"node": true
+		},
+		"extends": [
+			"plugin:vue/vue3-essential",
+			"eslint:recommended",
+			"@vue/typescript/recommended"
+		],
+		"parserOptions": {
+			"ecmaVersion": 2020
+		},
+		"rules": {
+			"@typescript-eslint/no-explicit-any": "off"
+		}
+	},
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not dead",
+		"not ie 11"
+	]
+}

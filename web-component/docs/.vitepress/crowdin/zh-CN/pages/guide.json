@@ -1,0 +1,87 @@
+{
+  "intro": {
+    "text": "基础",
+    "children": [
+      {
+        "text": "快速开始",
+        "link": "/guide/quickstart"
+      },
+      {
+        "text": "样式表",
+        "link": "/guide/package-style-list"
+      },
+      {
+        "text": "提交流程",
+        "link": "/guide/package-push"
+      },
+      {
+        "text": "使用说明",
+        "link": "/guide/package-usage"
+      },
+      {
+        "text": "常用链接",
+        "link": "/guide/package-normal-link"
+      },
+      {
+        "text": "脚手架",
+        "link": "/guide/ts-cli"
+      }
+    ]
+  },
+  "advanced": {
+    "text": "进阶",
+    "children": [
+      {
+        "text": "国际化",
+        "link": "/guide/i18n"
+      },
+      {
+        "text": "主题",
+        "link": "/guide/theming"
+      },
+      {
+        "text": "暗黑模式",
+        "link": "/guide/dark-mode",
+        "promotion": "2.2.0"
+      },
+      {
+        "text": "自定义命名空间",
+        "link": "/guide/namespace",
+        "promotion": "2.2.0"
+      },
+      {
+        "text": "SSR",
+        "link": "/guide/ssr"
+      },
+      {
+        "text": "内置过渡动画",
+        "link": "/guide/transitions"
+      },
+      {
+        "text": "更新日志",
+        "link": "/guide/changelog"
+      }
+    ]
+  },
+  "development": {
+    "text": "开发",
+    "children": [
+      {
+        "text": "开发指南",
+        "link": "/guide/dev-guide"
+      },
+      {
+        "text": "开发常见问题",
+        "link": "/guide/dev-faq"
+      },
+      {
+        "text": "提交示例",
+        "link": "/guide/commit-examples"
+      },
+      {
+        "text": "翻译",
+        "link": "/guide/translation"
+      }
+    ]
+  }
+}

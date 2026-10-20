@@ -40,6 +40,10 @@
       :show-wall-scan="showWallScan"
       :label-mode="labelMode"
       :filter-threshold="filterThreshold"
+      :show-bg-image="showBgImage"
+      :show-ground-plane="showGroundPlane"
+      :bg-preset="bgPreset"
+      :bg-opacity="bgOpacity"
       :timeline-playing="timelinePlaying"
       :timeline-month="timelineMonth"
       :timeline-speed="timelineSpeed"
@@ -49,46 +53,57 @@
       @timeline-month-change="timelineMonth = $event"
       @update:timeline-playing="timelinePlaying = $event"
     />
-    <MapControlPanel
-      v-model:drag-mode="dragMode"
-      v-model:show-column="showColumn"
-      v-model:column-color="columnColor"
-      v-model:show-flyline="showFlyline"
-      v-model:flyline-color="flylineColor"
-      v-model:flyline-speed="flylineSpeed"
-      v-model:show-pyramid="showPyramid"
-      v-model:show-orbit="showOrbit"
-      v-model:show-heatmap="showHeatmap"
-      v-model:show-pie="showPie"
-      v-model:show-wall-scan="showWallScan"
-      v-model:label-mode="labelMode"
-      v-model:filter-threshold="filterThreshold"
-      v-model:theme="theme"
-    />
-    <MapDetailPanel
-      :region-name="currentName"
-      :region-level="currentLevelKey"
-      :level-text="currentLevelText"
-      :sub-regions="subRegions"
-      :total="detailTotal"
-      :max-value="detailMax"
-      :selected-adcode="selectedAdcode"
-      @drill="onPanelDrill"
-      @select="onPanelSelect"
-      @reset="onPanelReset"
-    />
-    <!-- 右下角数据看板：DIY 图表 + 与地图双向联动（替代原先的提示文字占位） -->
-    <MapDashBoard
-      :scope-name="currentName"
-      :sub-regions="subRegions"
-      :selected-adcode="selectedAdcode"
-      :trend="trend"
-      :trend-label="trendLabel"
-      :trend-months="trendMonths"
-      :active-month="timelineMonth"
-      @drill="onPanelDrill"
-      @select="onPanelSelect"
-    />
+    <!--
+      右侧竖栏：控制台 / 区域详情 / 数据看板统一在这里纵向排列。
+      三块面板不再各自 absolute 定 top，改由 flex 分配高度，宽度统一 300：
+      控制台超高时内部滚动，详情吃掉剩余空间，看板常驻底部。
+    -->
+    <div class="china3d-rail">
+      <MapControlPanel
+        v-model:drag-mode="dragMode"
+        v-model:show-column="showColumn"
+        v-model:column-color="columnColor"
+        v-model:show-flyline="showFlyline"
+        v-model:flyline-color="flylineColor"
+        v-model:flyline-speed="flylineSpeed"
+        v-model:show-pyramid="showPyramid"
+        v-model:show-orbit="showOrbit"
+        v-model:show-heatmap="showHeatmap"
+        v-model:show-pie="showPie"
+        v-model:show-wall-scan="showWallScan"
+        v-model:label-mode="labelMode"
+        v-model:filter-threshold="filterThreshold"
+        v-model:theme="theme"
+        v-model:show-bg-image="showBgImage"
+        v-model:show-ground-plane="showGroundPlane"
+        v-model:bg-preset="bgPreset"
+        v-model:bg-opacity="bgOpacity"
+      />
+      <MapDetailPanel
+        :region-name="currentName"
+        :region-level="currentLevelKey"
+        :level-text="currentLevelText"
+        :sub-regions="subRegions"
+        :total="detailTotal"
+        :max-value="detailMax"
+        :selected-adcode="selectedAdcode"
+        @drill="onPanelDrill"
+        @select="onPanelSelect"
+        @reset="onPanelReset"
+      />
+      <!-- 数据看板：DIY 图表 + 与地图双向联动（替代原先的提示文字占位） -->
+      <MapDashBoard
+        :scope-name="currentName"
+        :sub-regions="subRegions"
+        :selected-adcode="selectedAdcode"
+        :trend="trend"
+        :trend-label="trendLabel"
+        :trend-months="trendMonths"
+        :active-month="timelineMonth"
+        @drill="onPanelDrill"
+        @select="onPanelSelect"
+      />
+    </div>
     <!-- 底部时间轴控制条：播放/暂停 + 滑块 + 倍速，驱动 3D 柱高按月演化 -->
     <MapTimeline
       v-model:playing="timelinePlaying"
@@ -144,6 +159,15 @@ const theme = ref<'dark' | 'light'>('dark');
 const timelinePlaying = ref(false);
 const timelineMonth = ref(11);
 const timelineSpeed = ref(1);
+// 地图背景开关（右上角控制台「地图背景」组）：
+//   A 大屏底图 = 2D 层铺在 canvas 之下；B 三维底板 = 场景内的透视网格盘。二者可叠加。
+const showBgImage = ref(true);
+const showGroundPlane = ref(true);
+// 大屏底图预设：builtin=程序化渐变，其余为 assets/backgrounds 下的静态图。
+// 默认 topo（丝线）：铺满且低对比，和三维底板的圆环不打架。
+const bgPreset = ref<'builtin' | 'horizon' | 'topo' | 'hex' | 'cloud'>('topo');
+// 大屏底图强度（0~1）：canvas 上的地图/飞线会压暗底图，与三维底板同开时用它配平观感
+const bgOpacity = ref(1);
 
 // 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色。
 // 真实业务中应替换为后端按 adcode 返回的统计值。
@@ -281,9 +305,33 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
   height: 100%;
   position: relative;
   overflow: hidden;
+  /* 底部停靠条（时间轴 / 面包屑 / 进度提示）的居中偏移：
+     右侧被 300+18 的控制栏占掉、左侧被左下角信息卡占掉，取两者的折中值 110px，
+     让停靠条左右两端的余量都为正（不压右栏卡片、也不压左下角图例）。 */
+  --rail-shift: 110px;
   background:
     radial-gradient(circle at 50% 38%, #05173e 0%, #030f2a 55%, #01060f 100%);
 }
+/* 右侧竖栏：把三块面板收进一条 300 宽的列，右边缘对齐、间距一致。
+   高度由上到下按「控制台 ≤38% / 详情吃掉剩余 / 看板 ≤38% 贴底」分配，
+   任何一屏高度下都不会溢出或被裁掉——超出的内容在各面板内部滚动。
+   底部 68px 让给右下角交互说明图标，避免压住它。 */
+.china3d-rail {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  bottom: 68px;
+  z-index: 30;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  /* 空白处不挡地图拖拽；面板自身恢复可交互 */
+  pointer-events: none;
+}
+.china3d-rail > * { pointer-events: auto; }
+
 .china3d-overlay {
   position: absolute;
   inset: 0;

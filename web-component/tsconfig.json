@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "esnext",
+    "strict": false,
+    "jsx": "preserve",
+    "moduleResolution": "Node",
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "sourceMap": true,
+    "jsxImportSource": "vue",
+    "noImplicitAny": false,
+    // 是否自动生成声明文件
+    "declaration": true,
+    // 设置生成的声明文件存放目录
+    "declarationDir": "./packages/components",
+    // 对每个 .d.ts 文件，都生成对应的 .d.ts.map（sourcemap）文件
+    // "declarationMap": true,
+    // 仅生成 .d.ts 文件，不生成 .js 文件
+    // "emitDeclarationOnly": true,
+    "baseUrl": ".",
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "@/*": [
+        "example/*",
+        "packages/components/*"
+      ]
+    },
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable",
+      "scripthost"
+    ]
+  },
+  "include": [
+    "packages/components",
+    "shims-uni-app.d.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

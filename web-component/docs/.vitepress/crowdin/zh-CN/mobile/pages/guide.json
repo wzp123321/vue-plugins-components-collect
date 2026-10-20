@@ -1,0 +1,11 @@
+{
+  "intro": {
+    "text": "基础",
+    "children": [
+      {
+        "text": "快速开始",
+        "link": "/quickstart"
+      }
+    ]
+  }
+}

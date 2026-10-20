@@ -15,13 +15,14 @@ import './assets/css/common.less';
 import './assets/style/global.less';
 import './assets/style/dark-theme.css';
 import './assets/style/ai-theme.less';
-import './assets/test-color.js';
+// iconfont symbol 注入（window._iconfont_svg_string_*），供 <svg><use> 使用
+import './assets/iconfont-symbol.js';
 
 import { registerDirectives } from './directives';
-import registerAntv from './components/index';
+import registerGlobalComponents from './components/index';
 
 const app = createApp(App);
-registerAntv(app);
+registerGlobalComponents(app);
 registerDirectives(app);
 
 app.use(VxeUIAll).use(VxeUITable);

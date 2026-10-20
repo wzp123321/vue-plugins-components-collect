@@ -52,8 +52,10 @@ const canGoBack = computed(() => props.crumbs.length > 1)
 <style scoped>
 .map-nav {
   position: absolute;
-  left: 50%;
-  bottom: 22px;
+  /* 与时间轴同一个居中基准（右栏之外的可用区域） */
+  left: calc(50% - var(--rail-shift, 0px));
+  /* 让开底部时间轴（bottom 18 / 高约 100）：原先 bottom:22 会直接压在时间轴上 */
+  bottom: 130px;
   transform: translateX(-50%);
   z-index: 35;
   display: flex;

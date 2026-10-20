@@ -1,0 +1,15 @@
+@use 'sass:map';
+
+@use '../mixins/mixins' as *;
+
+tem-button {
+  margin: 0 !important;
+}
+
+// tem-button + tem-button {
+//   margin-left: 12px !important;
+// }
+
+.mobile-row {
+  gap: 20px;
+}

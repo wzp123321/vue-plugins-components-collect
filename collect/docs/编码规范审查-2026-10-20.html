@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>collect 工程编码规范审查 · 2026-10-20</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1a1d26;
+    --panel-2: #21252f;
+    --line: #2c313d;
+    --text: #e6e9ef;
+    --text-dim: #9aa3b2;
+    --text-faint: #6b7385;
+    --p0: #ff6b6b;
+    --p1: #f0b24d;
+    --p2: #5aa9e6;
+    --ok: #4ec9a3;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 32px 96px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+  h1 { font-size: 26px; margin: 0 0 10px; letter-spacing: -0.3px; font-weight: 650; }
+  .sub { color: var(--text-dim); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; }
+  .sub code { font-family: var(--mono); font-size: 12px; color: var(--text-dim); background: var(--panel-2); padding: 1px 6px; border-radius: 4px; }
+  h2 { font-size: 17px; margin: 40px 0 16px; padding-left: 11px; border-left: 3px solid var(--p1); font-weight: 620; }
+  h2.p0 { border-left-color: var(--p0); }
+  h2.p1 { border-left-color: var(--p1); }
+  h2.p2 { border-left-color: var(--p2); }
+  h2.ok { border-left-color: var(--ok); }
+  .lead { color: var(--text-dim); font-size: 13px; margin: -8px 0 18px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .card h3 { font-size: 14.5px; margin: 0 0 10px; font-weight: 620; display: flex; align-items: baseline; gap: 10px; }
+  .tag {
+    font-size: 11px; font-family: var(--mono); padding: 2px 7px; border-radius: 4px;
+    font-weight: 500; letter-spacing: 0.3px; flex-shrink: 0;
+  }
+  .tag.p0 { color: var(--p0); background: rgba(255,107,107,.12); border: 1px solid rgba(255,107,107,.3); }
+  .tag.p1 { color: var(--p1); background: rgba(240,178,77,.12); border: 1px solid rgba(240,178,77,.3); }
+  .tag.p2 { color: var(--p2); background: rgba(90,169,230,.12); border: 1px solid rgba(90,169,230,.3); }
+  .tag.ok { color: var(--ok); background: rgba(78,201,163,.12); border: 1px solid rgba(78,201,163,.3); }
+  .row { display: grid; grid-template-columns: 72px 1fr; gap: 12px; margin: 8px 0; }
+  .row .k { color: var(--text-faint); font-size: 12px; padding-top: 2px; }
+  .row .v { color: var(--text-dim); }
+  code, .path { font-family: var(--mono); font-size: 12.5px; }
+  .path { color: #a9c7e8; background: rgba(90,169,230,.08); padding: 1px 5px; border-radius: 3px; word-break: break-all; }
+  .why { color: var(--text); }
+  .fix { color: #cfe6d9; }
+  .borrow { color: #e8d5b0; }
+  ul { margin: 6px 0 0; padding-left: 20px; color: var(--text-dim); }
+  li { margin: 5px 0; }
+  li::marker { color: var(--text-faint); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--text-faint); font-weight: 500; font-size: 12px; letter-spacing: .3px; }
+  td code { color: #a9c7e8; }
+  .kv { display: flex; gap: 24px; flex-wrap: wrap; margin: 18px 0 6px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 132px; }
+  .stat b { display: block; font-size: 20px; font-weight: 620; font-family: var(--mono); }
+  .stat span { color: var(--text-faint); font-size: 12px; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--text-faint); font-size: 12px; }
+  .note { background: rgba(240,178,77,.06); border: 1px solid rgba(240,178,77,.2); border-radius: 8px; padding: 12px 16px; color: var(--text-dim); font-size: 13px; margin: 16px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>collect 工程编码规范审查</h1>
+  <div class="sub">
+    <span>对照基准：HLMS 8 工程（dgmp-nodejs / bi-front / bi-chart-package / mega-vision / nts-dgmp）</span>
+    <span>2026-10-20</span>
+    <span><code>vue-plugins-components-collect</code></span>
+  </div>
+</header>
+
+<div class="kv">
+  <div class="stat"><b>578</b><span>src 文件</span></div>
+  <div class="stat"><b>251</b><span>.vue 组件</span></div>
+  <div class="stat"><b>244</b><span>script setup（97%）</span></div>
+  <div class="stat"><b>398</b><span>: any 出现次数</span></div>
+  <div class="stat"><b>19</b><span>组件与 demo 双份</span></div>
+</div>
+
+<div class="note">
+  本次为只读审查，未修改任何源码。结论按 P0（已失效/真故障）→ P1（结构风险）→ P2（清洁度）分层，每条给证据路径与改法。最后附「不必改」清单。
+</div>
+
+<div class="card" style="border-color: rgba(78,201,163,.35); background: rgba(78,201,163,.05);">
+  <h3><span class="tag ok">已落地</span>16:20 第一批改动（类型检查通过）</h3>
+  <div class="row"><div class="k">新增</div><div class="v">
+    <span class="path">src/services/http/</span> —— 可整目录复制的请求层模板（types / errors / token-manager / interceptors / client / index + README），零框架依赖。
+  </div></div>
+  <div class="row"><div class="k">修掉</div><div class="v">
+    P0-1 拦截器改显式实例导出；P0-2 两个 request 改名（<code>utils/auth-sign.ts</code> + <code>services/request.ts</code> 接线示例）；P0-4 删除 <code>utils/refresh-token.ts</code>，<code>useTokenRefresh</code> 改为委托 token-manager；P0-5 build 改串行；P2-2 .gitignore 修正；P2-7 之外的环境变量与类型声明一并修正。
+  </div></div>
+  <div class="row"><div class="k">未动</div><div class="v">
+    P1-4 element-plus 注册清单精简 —— 会改变现有页面表现，待确认后再做。P1-1 原判「组件副本」已在复查中推翻：pages 下同名文件是 demo 壳，仅 <code>count-down</code> 一份真副本且已删除。
+  </div></div>
+</div>
+
+<div class="card" style="border-color: rgba(78,201,163,.35); background: rgba(78,201,163,.05);">
+  <h3><span class="tag ok">已落地</span>18:10 第二批（复查 + 孤儿清理 + 新增守卫）</h3>
+  <div class="row"><div class="k">新增</div><div class="v">
+    <code>scripts/check-unresolved-components.mjs</code> + <code>pnpm check:components</code>：扫出「模板用了但解析不到」的组件，A 类阻断、B 类提示，已挂 <code>.husky/pre-commit</code>。<br />
+    <code>CLAUDE.md</code>：接手者手册，写明目录职责、两条踩过的坑、请求层用法与风格约定。
+  </div></div>
+  <div class="row"><div class="k">修掉</div><div class="v">
+    P0-6 <code>input-filter</code> 两个子组件漏 import（22 个场景渲染为空）；两个子组件补 <code>defineOptions</code> 对齐标签名。<br />
+    P1-1 真副本 <code>pages/animations/components/count-down/</code> 已删除。<br />
+    孤儿页 <code>canvas-advance</code> 接上路由 <code>/canvas-advance</code> 并进导航（路由 86 / 导航 83，守卫通过）。
+  </div></div>
+  <div class="row"><div class="k">未做</div><div class="v">
+    导航改 meta 生成：85 条路由的 <code>meta</code> 里没有分组/分区信息，要改得给每条路由补字段，改动面远大于收益 —— 结论是不做，继续用 <code>check:nav</code> 兜住双注册。
+  </div></div>
+</div>
+
+<h2 class="p0">P0 · 已经失效或正在误导人的东西</h2>
+<p class="lead">这五条不是风格问题，是「代码写了但没生效」或「名字和行为对不上」。</p>
+
+<div class="card">
+  <h3><span class="tag p0">P0-1</span>全局请求拦截器从未生效</h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <span class="path">src/services/request.ts</span> 在模块顶层注册 <code>axios.interceptors</code>，但全仓没有任何文件 import 它 —— <code>grep -rn "services/request" src</code> 只命中一处注释和一处 demo 代码字符串；<span class="path">src/main.ts</span> 也没有副作用引入。
+  </div></div>
+  <div class="row"><div class="k">连带</div><div class="v">
+    它设的 <code>config.baseURL = import.meta.env.VITE_BASE_URL</code> 也从未跑过，而 <code>VITE_BASE_URL</code> 在 <span class="path">.env</span> 里根本不存在（只有 <code>VITE_DEV_SERVER_PORT / VITE_PROXY_URL / VITE_TIME_OUT</code>）。
+  </div></div>
+  <div class="row"><div class="k">还有</div><div class="v">
+    <code>config.timeout = import.meta.env.VITE_TIME_OUT as number</code> —— env 值是字符串 <code>"60 * 1000"</code>，<code>as number</code> 只是类型断言，运行时仍是字符串。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    ① 改成显式实例导出 <code>export const http = axios.create({ timeout: Number(import.meta.env.VITE_TIME_OUT) || 60000 })</code>，业务侧 import 使用，别依赖模块副作用；② <code>.env</code> 只写数字 <code>VITE_TIME_OUT=60000</code>；③ <code>VITE_BASE_URL</code> 要么补进 env 文件，要么删掉这行。
+  </div></div>
+  <div class="row"><div class="k">借鉴</div><div class="v borrow">
+    HLMS <span class="path">hlms-bi-front/src/apis/DatasetApi.ts</span> 用 <code>ApiClientFactory.client()</code> 显式取实例；<span class="path">hlms-data-report-app-front/src/utils/request/index.ts</span> 也是 <code>ApiClientFactory</code> 单例。副作用注册在微前端 / 多入口场景下极易漏掉。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p0">P0-2</span>两个 <code>request.ts</code>，职责完全相反</h3>
+  <table>
+    <tr><th>文件</th><th>实际内容</th></tr>
+    <tr><td><span class="path">src/utils/request.ts</span></td><td>AES-GCM 加密 + 授权串生成（<code>FEncrypto</code> / <code>FGetAuthorization</code> / <code>getRandomSixNum</code>）—— 一行请求代码都没有</td></tr>
+    <tr><td><span class="path">src/services/request.ts</span></td><td>axios 拦截器 + 401 处理（<code>checkAxiosPermission</code> / <code>checkBlobPermission</code>）</td></tr>
+  </table>
+  <div class="row"><div class="k">放大</div><div class="v">
+    <span class="path">src/utils/index.ts</span> 里 <code>export * from './request'</code>，所以任何 <code>from '@/utils'</code> 都可能拿到 <code>FEncrypto</code>；而 <code>from '@/services/request'</code> 拿到的是拦截器。<strong>同名字、不同层、不同职责</strong>，读代码必须先翻实现才能确认。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    <code>utils/request.ts</code> → <code>utils/auth-sign.ts</code>（或 <code>crypto-sign.ts</code>）；<code>services/request.ts</code> → <code>services/http.ts</code>。
+  </div></div>
+  <div class="row"><div class="k">借鉴</div><div class="v borrow">
+    HLMS 的命名一律「见名知义」：<span class="path">mega-vision/packages/shared/src/request-crypto.ts</span>（加密）、<span class="path">hlms-dgmp-nodejs/src/utils/http.ts</span>（请求）。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p0">P0-3</span><code>utils/token.ts</code> 里没有 token</h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <span class="path">src/utils/token.ts</span> 66 行，全是 <code>FGetQueryParam / FSetQueryParamStr / FSetCookie / FGetCookie / clearCookie / FSetSession / FGetSession</code> —— query、cookie、session 三件事，没有一件与 token 有关。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    拆成 <code>utils/query.ts</code> / <code>utils/cookie.ts</code>，session 部分并入已有的 <span class="path">src/utils/storage.ts</span>。顺带去掉 <code>F</code> 前缀（工程内其余工具无此前缀，只有这一族有）。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p0">P0-4</span>三份 token 刷新逻辑，两份可用一份是残骸</h3>
+  <table>
+    <tr><th>文件</th><th>状态</th></tr>
+    <tr><td><span class="path">src/utils/refresh-token.ts</span>（77 行）</td><td>残骸：<code>const uid = 6666</code> 硬编码；<code>userInfoStore.$patch(() =&gt; { // state.auth = message; })</code> 空实现；<code>Promise.reject(error)</code> 没有 return（吞错）；<code>const { status }</code> 在内外层重复声明遮蔽；顶部是 koroFileHeader 默认注释</td></tr>
+    <tr><td><span class="path">src/hooks/useTokenRefresh.ts</span>（167 行）</td><td>完整：并发安全、等待队列、<code>onAuthFailed</code>、<code>TokenStorage</code> 抽象、失败清空</td></tr>
+    <tr><td><span class="path">src/hooks/createAuthInterceptor.ts</span>（60 行）</td><td>完整：注入 Authorization、401 → 刷新 → 重试原请求、防 refresh 死循环</td></tr>
+  </table>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    删掉 <code>utils/refresh-token.ts</code>。两套 hook 是标准做法，保留；真正接入时按 <code>createAuthInterceptor</code> 头部注释里的示例组装即可。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p0">P0-5</span>build 脚本把类型检查与出包并联，校验形同虚设</h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <code>"build": "npm-run-all gen ts-check build:start --parallel"</code> —— <code>--parallel</code> 让三条同时跑。类型报错时 <code>ts-check</code> 退出非 0，但 <code>build:start</code> 早已产出 <code>dist/</code>；<code>gen</code>（生成 commit id）也可能在 build 取版本号之后才写完。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    <code>npm-run-all gen ts-check --serial &amp;&amp; vite build --mode production</code>，或 <code>run-s gen ts-check build:start</code>。要让 CI 只有 build 一条命令时也能拦住类型错误，就得串行。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p0">P0-6</span>输入框过滤 demo 的两个子组件从未被解析 —— 22 个场景渲染为空 <span class="tag ok">已修</span></h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <code>pages/components/input-filter/input-filter.vue</code> 模板里用了 <code>&lt;if-text-input-filter /&gt;</code> 与 <code>&lt;if-number-input-filter /&gt;</code>，但脚本内既没 import，子组件也不在 <code>src/components</code>（unplugin 默认只扫这一层）。运行时 Vue 只留一条 <code>Failed to resolve component</code> 警告，<strong>文本 6 场景 + 数字 14 场景全部不渲染</strong>，页面只剩 2 个 fallback 示例。
+  </div></div>
+  <div class="row"><div class="k">为什么漏了</div><div class="v">
+    子组件文件名是 <code>if-text-filter.vue</code>，模板标签却是 <code>if-text-input-filter</code>，名字对不上；再加上构建期不报错，只有打开页面看控制台才发现。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    父页显式 import 两个子组件；两个子组件各补 <code>defineOptions({ name: 'IfTextInputFilter' / 'IfNumberInputFilter' })</code>，让组件名与模板标签对齐。同时新增守卫脚本 <code>scripts/check-unresolved-components.mjs</code>（<code>pnpm check:components</code>），已挂 pre-commit —— A 类（磁盘有组件但没 import）直接阻断提交。
+  </div></div>
+</div>
+
+<h2 class="p1">P1 · 结构层的双份与漂移</h2>
+<p class="lead">这一类不会立刻报错，但会让「哪份是真的」越来越说不清。</p>
+
+<div class="card">
+  <h3><span class="tag p1">P1-1</span><s style="color:#9aa3b2">19 组组件副本已漂移</s> —— <strong style="color:#c0392b">此结论有误，已更正</strong></h3>
+  <div class="row"><div class="k">更正</div><div class="v">
+    复查后确认：<code>pages/*/</code> 下的同名 <code>.vue</code> <strong>不是副本，是 demo 壳</strong>。16 个 demo 页全部正确 <code>import</code> 了组件本体，且 <code>defineOptions({ name: 'XxxDemo' })</code> 已带 Demo 后缀自我标识。当初判为「副本」是因为同名文件 + 行数差异（demo 页有自己的演示面板与 mock 交互），静态 diff 看不出引用关系。
+  </div></div>
+  <table>
+    <tr><th>判定</th><th>数量</th><th>处理</th></tr>
+    <tr><td>demo 壳（正确引用本体）</td><td>16 组</td><td>无需改动，代码层面已清晰</td></tr>
+    <tr><td><strong>真副本</strong>（重复实现、无人引用）</td><td>1 组</td><td>已删除 <code>pages/animations/components/count-down/</code></td></tr>
+    <tr><td>孤儿演示资源（有内容、无引用）</td><td>3 个</td><td>保留待定，见下</td></tr>
+  </table>
+  <div class="row"><div class="k">已处理</div><div class="v fix">
+    <code>pages/animations/components/count-down/count-down.vue</code>（161 行）与本体仅差一处 <code>ref&lt;any&gt;</code>，且 <code>pages/animations/components/index.ts</code> 早已指向 <code>@/components/count-down/count-down.vue</code> —— 整份副本是死代码，已 <code>git rm</code>，无残留引用。
+  </div></div>
+  <div class="row"><div class="k">遗留</div><div class="v">
+    三个无人引用的演示资源：<code>pages/canvas-advance/canvas-advance.vue</code>（307 行）、<code>pages/components/input-filter/if-text-filter/</code>（149 行）、<code>if-number-filter/</code>（280 行）。后两者只在 <code>input-filter.vue</code> 的注释里被提及、实际未 import。它们有内容，是否接路由或删除需你定，<strong>未动</strong>。
+  </div></div>
+  <div class="row"><div class="k">真正的风险</div><div class="v">
+    歧义只在<strong>文件名层面</strong>：<code>pages/components/te-title/te-title.vue</code> 与组件同名，人和静态扫描都会误判（本次审查就误判了两次）。若想彻底消除，可给 demo 壳加 <code>-demo</code> 后缀，但会破坏全仓「目录名 = 文件名」的约定并牵动 16 处路由 import —— 收益不抵成本，建议改为在 <code>CLAUDE.md</code> 写明约定。
+  </div></div>
+  <div class="row"><div class="k">借鉴</div><div class="v borrow">
+    HLMS 的核心约定是「边界靠目录，不靠自觉」：<span class="path">hlms-bi-front/CLAUDE.md</span> 明确 <code>src/models/remote/</code> 是生成物「不要手改」，手写的进 <code>src/apis/FeCustom/</code>。本工程已有 <code>src/components/</code>（本体）vs <code>src/pages/</code>（演示）的分层，缺的只是把这条约定写下来。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p1">P1-2</span>导航与路由双注册，守卫脚本只是止血</h3>
+  <div class="row"><div class="k">现状</div><div class="v">
+    <span class="path">src/router/modules/*.ts</span>（13 个文件）写路由，<span class="path">src/views/layout/aside-box/constant.ts</span>（262 行）手写导航 —— 两处都要改。已有 <span class="path">scripts/check-nav-routes.mjs</span> 做双向校验（很好，见「不必改」），但根因没消。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    把导航降级为「路由的投影」：路由加 <code>meta.nav = { group, order, title }</code>，<code>constant.ts</code> 由路由表按 <code>group + order</code> 生成。校验脚本从「防死链」降级为「校验 meta 完整性」，维护点从两处变一处。
+  </div></div>
+  <div class="row"><div class="k">借鉴</div><div class="v borrow">
+    <span class="path">hlms-bi-front/CLAUDE.md</span> 的路由约定：每条路由必须有 <code>name</code>、用 <code>meta.permissionCode</code> / <code>meta.hasTag</code> / <code>meta.tag</code> 驱动菜单与页签 —— 菜单是 meta 的函数，不是第二份清单。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p1">P1-3</span>组件目录两种风格混用，4 个缺入口</h3>
+  <div class="row"><div class="k">现状</div><div class="v">
+    19 个组件有 <code>index.ts</code>，4 个没有：<code>ai-icon</code>、<code>common-card</code>、<code>common-page-container</code>、<code>_mock</code>。且存在两种结构：
+    <ul>
+      <li>四件套：<code>te-title/index.ts</code> + <code>src/te-title.vue</code>（+ <code>instance.ts</code>）</li>
+      <li>平铺：<code>common-card/common-card.vue</code></li>
+    </ul>
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    统一成四件套：<code>index.ts</code>（用 <code>withInstall</code> 包裹 + 导出实例类型）/ <code>src/xxx.vue</code> / <code>src/instance.ts</code> / <code>src/use-xxx.ts</code>（逻辑抽 composable）。
+  </div></div>
+  <div class="row"><div class="k">借鉴</div><div class="v borrow">
+    <span class="path">hlms-bi-chart-package/packages/components/chart-line/</span> 四件套：<code>index.ts</code>（<code>withInstall</code> + <code>export type { ChartLineInstance }</code>）/ <code>src/index.vue</code> / <code>src/instance.ts</code> / <code>src/use-chart-front.ts</code>。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p1">P1-4</span><code>registerAntv</code> 名不副实，且与 unplugin 自动导入打架</h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <span class="path">src/components/index.ts</span> 里 <code>const registerAntv = (app: App) =&gt; {...}</code>，注册的是 <code>ElButton / ElInput / ElTree…</code> 加上 2 个自有组件（CommonCard、CommonPageContainer）—— 与 AntV 无关，19 个 <code>te-*</code> 组件一个都没注册。
+  </div></div>
+  <div class="row"><div class="k">冲突</div><div class="v">
+    <span class="path">vite.config.ts</span> 已配 <code>unplugin-auto-import</code> + <code>unplugin-vue-components</code> + <code>ElementPlusResolver</code>（按需引入），这里又手工全量注册 12 个 element-plus 组件 —— 按需引入的收益被抵消，还会让「为什么这个组件没注册也能用」变成玄学。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    函数改名 <code>registerGlobalComponents</code>；只注册真正需要全局的自有组件；element-plus 全交给 resolver。若要保留全量注册，就明确关掉 resolver 并注释原因。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag p1">P1-5</span><code>assets/test-color.js</code> 是 88KB iconfont，入口直接引入</h3>
+  <div class="row"><div class="k">证据</div><div class="v">
+    <span class="path">src/assets/test-color.js</span> 内容是一整串 <code>window._iconfont_svg_string_4150561 = '&lt;svg&gt;…'</code>；<span class="path">src/main.ts</span> 里 <code>import './assets/test-color.js'</code>。
+  </div></div>
+  <div class="row"><div class="k">改法</div><div class="v fix">
+    改名 <code>assets/iconfont-symbol.js</code>，顶部加一句说明（注入 iconfont symbol 供 <code>&lt;svg&gt;&lt;use&gt;</code> 使用）。若只有部分页面用到，移到 <code>te-icon-lib</code> 组件内部按需加载。
+  </div></div>
+</div>
+
+<h2 class="p2">P2 · 清洁度与可读性</h2>
+
+<table>
+  <tr><th style="width:52px">编号</th><th>问题</th><th>证据 / 改法</th></tr>
+  <tr>
+    <td><span class="tag p2">P2-1</span></td>
+    <td>三个 env 文件全部入库，含内网 IP</td>
+    <td><code>git ls-files</code> 含 <code>collect/.env</code>、<code>.env.development</code>、<code>.env.production</code>，且 <code>.gitignore</code> 无 <code>.env*</code> 规则；<code>.env</code> 里硬编码 <code>http://192.168.50.141:10130/energy/ems-api/</code>。建议：<code>.env</code> 入库只放非敏感默认值，环境相关的进 <code>.env.local</code>（已忽略），并补一个 <code>.env.example</code>。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-2</span></td>
+    <td><code>.gitignore</code> 里 vite 临时文件规则拼错</td>
+    <td>写的是 <code>vite-config.ts.*</code>，真实文件名是 <code>vite.config.ts.timestamp-*.mjs</code> —— 所以根目录躺着一个 15KB 的 <code>vite.config.ts.timestamp-1792484003006-*.mjs</code> 未被忽略。改成 <code>vite.config.ts.timestamp-*</code>。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-3</span></td>
+    <td><code>_archive/</code> 12 个文件仍被 git 跟踪</td>
+    <td>归档目录留在仓库里会一直被算进 clone 体积与检索噪音。要么移出仓库，要么确认「需要历史留档」并加 README 说明。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-4</span></td>
+    <td>命名拼写与孪生页面</td>
+    <td><code>mulit-line-chart</code>（应为 multi）；<code>pages/components/components/component-layout-drag/</code> 与 <code>component-drag-layout/</code> 两个疑似同功能页面；<code>ex.vue</code>、<code>index.vue</code> 泛名文件。建议至少修 <code>mulit</code>，孪生页合并。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-5</span></td>
+    <td>398 处 <code>any</code>，且 <code>utils/index.ts</code> 混入实现</td>
+    <td>密集处：<code>utils/index.ts</code>(14)、<code>excel-data-entry-vxe/hooks/*</code>（4 个文件各 8–11 处）、threejs 地图页。而 <code>utils/index.ts</code> 本该是纯 barrel，却塞了 167 行函数（含 <code>copyElementWithAllStyles</code>）。建议：barrel 只 re-export，实现拆到 <code>utils/dom.ts</code> / <code>utils/color.ts</code>。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-6</span></td>
+    <td>超大文件</td>
+    <td><code>components/tree-select-transfer/constant/index.ts</code> <strong>12237 行</strong>、<code>ChinaMap3D.vue</code> 1460 行、<code>plugins-jspreadsheet-ce.vue</code> 1229 行、<code>TiptapEditor.vue</code> 967 行。12237 行的常量表建议按业务分片 + 懒加载。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-7</span></td>
+    <td>ESM 工程里用 <code>require()</code></td>
+    <td><code>src/utils/request.ts</code> 首行 <code>const asmCrypto = require('asmcrypto.js')</code>，靠 <code>vite-plugin-require-transform</code> 兜底（<code>package.json</code> 是 <code>"type": "module"</code>）。改成 <code>import * as asmCrypto from 'asmcrypto.js'</code>，可去掉一个 transform 插件。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-8</span></td>
+    <td>生产代码里的 emoji 调试日志</td>
+    <td><code>src/hooks/useFileExport.ts</code>：<code>console.log('%c✨✨${type}失败✨✨', 'font-size: 24px', …)</code>。建议收敛成一个 <code>useLogger</code> 或直接 <code>console.error</code>，别在库里带装饰性输出。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-9</span></td>
+    <td>同类依赖并存</td>
+    <td><code>crypto-js</code>（仅 <code>plugins-crypto</code> demo 用）与 <code>asmcrypto.js</code>（业务加密用）；<code>dayjs</code>(1 处) 与 <code>date-fns</code>(2 处) 并存。收集站保留多套图表/3D 库是合理的（每样都要演示），但加密与日期这类基础库应各留一套。</td>
+  </tr>
+  <tr>
+    <td><span class="tag p2">P2-10</span></td>
+    <td><code>utils → services</code> 反向依赖且未用 <code>import type</code></td>
+    <td><code>src/utils/index.ts</code> 第一行 <code>import { ICommonRes } from '@/services/common.api'</code>。改为 <code>import type</code>，或把通用响应类型下沉到 <code>types/</code>，避免 utils 被 services 绑住。</td>
+  </tr>
+</table>
+
+<h2 class="ok">不必改 · 这工程已经做得比多数项目好</h2>
+<p class="lead">这三件事是 HLMS 里也在用、但本工程写得同样到位的，别在优化时顺手拆掉。</p>
+
+<div class="card">
+  <h3><span class="tag ok">保留</span>导航 / 路由一致性守卫脚本</h3>
+  <div class="row"><div class="v">
+    <span class="path">scripts/check-nav-routes.mjs</span> 做了三件事：导航 path 必存在于路由、路由 path 必被导航收录（白名单除外）、路由动态 import 的 .vue 必须真实存在。挂了 husky pre-commit，失败即 exit 1，报错还带修复指引。
+    <br />这是「用工具代替自觉」的正面样本 —— HLMS 8 个工程里没有等价的脚本，这条建议反向输出给 HLMS。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag ok">保留</span>vite 分包配置里的踩坑注释</h3>
+  <div class="row"><div class="v">
+    <span class="path">vite.config.ts</span> 的 <code>manualChunks</code> 上方写着：把 element-plus 和 vue 拆成两个 chunk 会因共享 <code>@vue/shared</code> 产生循环依赖，生产包启动报 <code>Cannot access 'tc' before initialization</code>（dev 不复现）。这种「为什么不能这么写」的注释，比任何文档都值钱。
+  </div></div>
+</div>
+
+<div class="card">
+  <h3><span class="tag ok">保留</span>零后端语义检索的设计约束</h3>
+  <div class="row"><div class="v">
+    <span class="path">src/utils/semantic-search.ts</span> 头部把设计约束写死了：不改 <code>navGroups</code> 那 80 条定义、所有语义知识集中在此文件、纯函数由调用方传 <code>allNavItems</code> 以避免循环依赖。同义词扩展 + 加权打分，零 API key。
+  </div></div>
+</div>
+
+<h2>执行建议（最小改动优先）</h2>
+<table>
+  <tr><th style="width:44px">序</th><th>动作</th><th>影响面</th><th>收益</th><th style="width:64px">状态</th></tr>
+  <tr><td>1</td><td>删 <code>utils/refresh-token.ts</code>；两个 <code>request.ts</code> 改名</td><td>3 个文件重命名 + 1 删除</td><td>消除三份 token 逻辑与同名歧义</td><td style="color:#4ec9a3">已完成</td></tr>
+  <tr><td>2</td><td><code>build</code> 改串行；<code>.gitignore</code> 修 <code>vite.config.ts.timestamp-*</code></td><td>2 行配置</td><td>类型检查恢复拦截能力</td><td style="color:#4ec9a3">已完成</td></tr>
+  <tr><td>3</td><td><code>services/request.ts</code> 改为显式实例导出并接入；<code>VITE_TIME_OUT</code> 改数字</td><td>请求层 1 处 + env 1 行</td><td>拦截器真正生效，超时可控</td><td style="color:#4ec9a3">已完成</td></tr>
+  <tr><td>4</td><td><s style="color:#9aa3b2">19 组组件副本收敛</s> → 实际只有 1 组真副本</td><td>1 个目录删除</td><td>无——原判定的副本是 demo 壳，已正确引用本体</td><td style="color:#4ec9a3">已完成</td></tr>
+  <tr><td>5</td><td>导航改由路由 meta 生成</td><td>要给 85 条路由补 meta 分组字段</td><td>维护点从两处变一处，但改动面远大于收益</td><td style="color:#9aa3b2">不做</td></tr>
+  <tr><td>6</td><td>3 个孤儿演示资源</td><td><code>canvas-advance</code> 接路由；<code>input-filter</code> 两子组件修 import</td><td>消除「写了但打不开 / 打开是空的」</td><td style="color:#4ec9a3">已完成</td></tr>
+  <tr><td>7</td><td>新增模板组件解析守卫</td><td>1 个脚本 + pre-commit 2 行 + package.json 1 行</td><td>同类「漏 import 静默失败」不再复发</td><td style="color:#4ec9a3">已完成</td></tr>
+</table>
+
+<footer>
+  审查方式：静态读取源码（578 个 src 文件）、git 索引比对、diff 抽样验证。未运行构建。<br />
+  证据中的行数、grep 计数均为 2026-10-20 当前工作区状态；若期间有提交，请以最新代码复核。<br />
+  <strong>修订记录</strong>：<br />
+  · P1-1「19 组组件副本」结论已于同日复查推翻并更正 —— pages 下的同名文件是 demo 壳而非副本，仅 <code>count-down</code> 一份为真副本且已删除。<br />
+  · 新增 P0-6：<code>input-filter</code> 两子组件漏 import 导致 22 个场景渲染为空，已修。
+</footer>
+
+</div>
+</body>
+</html>

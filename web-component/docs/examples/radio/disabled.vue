@@ -1,0 +1,12 @@
+<template>
+  <te-radio v-model="radio" disabled label="disabled">Option A</te-radio>
+  <te-radio v-model="radio" disabled label="selected and disabled"
+    >Option B</te-radio
+  >
+</template>
+
+<script lang="ts" setup>
+import { ref } from 'vue'
+
+const radio = ref('selected and disabled')
+</script>

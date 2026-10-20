@@ -15,6 +15,10 @@ export interface AuthInterceptorOptions {
 /**
  * 给 axios 实例安装 token 自动注入 + 401 自动刷新重试的拦截器。
  *
+ * 适用场景：你有一个**已存在**的 axios 实例（第三方 SDK、旧代码），只想加鉴权与重试。
+ * 新代码请直接用 `src/services/http` 的 createHttpClient —— 那套已内置同样的能力，
+ * 并且额外提供业务码判定、blob 错误还原、并发去重。
+ *
  * 通常与 useTokenRefresh 配合使用：
  * ```ts
  * const token = useTokenRefresh({ refreshApi, onAuthFailed });

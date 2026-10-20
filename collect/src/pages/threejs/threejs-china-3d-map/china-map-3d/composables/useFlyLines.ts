@@ -167,8 +167,14 @@ export const useFlyLines = (options: Options) => {
      * @param dt      帧间隔秒
      * @param elapsed 累计时间秒
      * @param camera 当前相机（条带朝向依赖相机位置）
+     * @param view   视口度量（可选；给了才能按屏幕像素托住线宽，见 drawFlyLine 的像素下限）
      */
-    tick(dt: number, elapsed: number, camera: THREE.PerspectiveCamera | null) {
+    tick(
+      dt: number,
+      elapsed: number,
+      camera: THREE.PerspectiveCamera | null,
+      view?: { height: number },
+    ) {
       if (!group?.visible || !camera) return
       // 条带朝向依赖相机位置：相机不动就不用重算顶点，省一半写入
       const position = camera.position
@@ -177,7 +183,15 @@ export const useFlyLines = (options: Options) => {
         lastCameraPos.copy(position)
         needsOrientation = false
       }
-      for (const anim of anims) updateFlyLine(anim, dt, elapsed, position, moved)
+      // fov 是「垂直」视角：1 CSS 像素对应的世界长度 = 2·tan(fov/2)·距离 / 视口高度。
+      // 每条线用自己中点到相机的距离，近处的线不会被远处的比例拖细。
+      const tanHalf = Math.tan((camera.fov * Math.PI) / 360)
+      const viewHeight = view?.height ?? 0
+      for (const anim of anims) {
+        const worldPerPx =
+          viewHeight > 0 ? (2 * tanHalf * position.distanceTo(anim.mid)) / viewHeight : 0
+        updateFlyLine(anim, dt, elapsed, position, moved, worldPerPx)
+      }
     },
     /** 重建 / 换层级后强制重算一次朝向 */
     invalidate() {

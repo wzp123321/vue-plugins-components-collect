@@ -1,0 +1,58 @@
+{
+  "name": "@tiansu/ts-web-package",
+  "version": "1.2.26-beta.42",
+  "private": false,
+  "description": "天溯web组件库",
+  "module": "dist/lib/index.mjs",
+  "main": "dist/lib/index.js",
+  "browser": "dist/lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/lib/index.mjs",
+      "require": "./dist/lib/index.js"
+    },
+    "./dist/styles/index.css": "./dist/styles/index.css",
+    "./lib/*": "./dist/lib/*",
+    "./dist/styles/element/dark.css": "./dist/styles/element/dark.css"
+  },
+  "types": "./dist/lib/index.d.ts",
+  "author": "wanglei",
+  "files": [
+    "dist"
+  ],
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "keywords": [
+    "ts-web-package",
+    "vue",
+    "ui"
+  ],
+  "dependencies": {
+    "@antv/x6": "^2.15.1",
+    "@antv/x6-plugin-scroller": "^2.0.10",
+    "@antv/x6-plugin-snapline": "^2.1.7",
+    "@antv/x6-vue-shape": "^2.1.1",
+    "@arco-iconbox/vue-te": "0.0.30",
+    "@arco-iconbox/vue-te-side": "0.0.9",
+    "@tiansu/custom-dagre": "^1.0.7",
+    "@tiansu/element-plus": "2.3.7-beta.20",
+    "@tiansu/tools": "^1.0.4",
+    "asmcrypto.js": "^2.3.2",
+    "axios": "^1.4.0",
+    "big.js": "^7.0.1",
+    "crypto-js": "^4.1.1",
+    "echarts": "^6.1.0",
+    "html-to-image": "^1.11.11",
+    "moment": "^2.29.4",
+    "pinyin-match": "^1.2.5",
+    "vue-virtual-scroller": "^2.0.0-beta.8",
+    "vue3-print-nb": "^0.1.4"
+  },
+  "publishConfig": {
+    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
+  }
+}

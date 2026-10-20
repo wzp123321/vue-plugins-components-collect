@@ -264,13 +264,13 @@ const tipStyle = computed(() => {
 
 <style scoped>
 .map-dash {
-  position: absolute;
-  right: 18px;
-  bottom: 68px; /* 右下角交互说明图标（36px + 间距）上方 */
-  z-index: 28;
+  /* 位置由外部 .china3d-rail 决定：夹在纵向末尾，自然落在栏底 */
+  position: relative;
+  flex: 0 0 auto;
   width: 300px;
-  max-height: calc(100% - 514px); /* 顶部避开控制台/详情面板；过矮时内部滚动 */
-  min-height: 232px;
+  /* 与「可视化控制台」配比：控制台 36%，看板 30%，余下留给区域详情 */
+  max-height: 30%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 12px 14px 14px;
@@ -289,6 +289,7 @@ const tipStyle = computed(() => {
   min-height: 0;
 }
 .map-dash__head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;

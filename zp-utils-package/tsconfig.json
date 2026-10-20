@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "ES5",
+		"module": "esnext",
+		"strict": true,
+		"moduleResolution": "node",
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"useDefineForClassFields": true,
+		"declaration": true,
+		"sourceMap": true,
+		"declarationMap": true,
+		"declarationDir": "packages/dist",
+		"noImplicitAny": true,
+		"lib": ["ES2018", "DOM", "DOM.Iterable", "scripthost"]
+	},
+	"include": ["packages/components/*"],
+	"exclude": ["node_modules"]
+}

@@ -74,6 +74,23 @@
           @confirm="showCustomTitle = false"
         />
       </view>
+
+      <view class="demo-card">
+        <view class="demo-content">
+          <text class="section-title">弹层挂到 body（teleport-to-body）</text>
+          <view class="demo-actions">
+            <tsm-button theme="primary" size="s" @click="showTeleport = true">打开选择器</tsm-button>
+          </view>
+          <text class="event-log">仅 H5 生效；弹层被页面祖先的 transform/overflow 裁剪时使用</text>
+        </view>
+        <tsm-picker
+          v-model:show="showTeleport"
+          title="选择性别"
+          :options="options3"
+          :teleport-to-body="true"
+          @confirm="showTeleport = false"
+        />
+      </view>
     </view>
   </tsm-theme-provider>
 </template>
@@ -85,6 +102,7 @@ const showBasic = ref(false);
 const showDefaultValue = ref(false);
 const showControlled = ref(false);
 const showCustomTitle = ref(false);
+const showTeleport = ref(false);
 
 const resultBasic = ref('');
 const resultDefaultValue = ref('');

@@ -1,11 +1,12 @@
-import { ICommonRes } from '@/services/common.api';
+import type { ICommonRes } from '@/services/common.api';
 
 export * from './date';
 export * from './number';
 export * from './storage';
 export * from './uuid';
 export * from './excel';
-export * from './request';
+// 报文加密与授权串签名（原 ./request，与 services/http 的请求封装不是一回事）
+export * from './auth-sign';
 
 // 全屏
 export const requestFullScreen = (element: any) => {

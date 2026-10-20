@@ -1,0 +1,3 @@
+@function is-string($value) {
+    @return type-of($value) == string or quote($value) != null;
+}

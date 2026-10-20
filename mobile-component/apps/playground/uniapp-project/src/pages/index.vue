@@ -56,6 +56,7 @@ const categories: Category[] = [
       { path: 'pages/tsm-select/index', title: 'Select 下拉选择器' },
       { path: 'pages/tsm-search/index', title: 'Search 搜索' },
       { path: 'pages/tsm-upload/index', title: 'Upload 上传' },
+      { path: 'pages/tsm-esign/index', title: 'Esign 电子签名' },
     ],
   },
   {

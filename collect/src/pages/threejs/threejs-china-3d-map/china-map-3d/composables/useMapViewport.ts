@@ -62,6 +62,9 @@ const MAX_POLAR = 1.02
 const FIT_MARGIN = 0.84
 
 // 泛光合成用的混合着色器：把基础画面 + bloom 纹理叠加输出
+// ⚠️ 必须原样带出 baseTexture 的 alpha：泛光合成若写死 vec4(rgb)（alpha 默认 1），
+//   整块 canvas 会变成不透明 —— renderer 的 alpha:true + clearColor(0,0,0,0) 就白设了，
+//   压在 canvas 下面的「大屏底图」永远透不上来（表现为"底图加了但看不到"）。
 const bloomMixShader = {
   uniforms: {
     baseTexture: { value: null },
@@ -75,12 +78,30 @@ const bloomMixShader = {
     uniform sampler2D baseTexture;
     uniform sampler2D bloomTexture;
     varying vec2 vUv;
-    void main() { gl_FragColor = texture2D(baseTexture, vUv) + texture2D(bloomTexture, vUv); }
+    void main() {
+      vec4 base = texture2D(baseTexture, vUv);
+      vec3 bloom = texture2D(bloomTexture, vUv).rgb;
+      gl_FragColor = vec4(base.rgb + bloom, base.a);
+    }
   `,
 }
 
-/** 每帧回调：渲染循环每帧按 (dt 秒, elapsed 秒) 调用 */
-type Tick = (dt: number, elapsed: number) => void
+/**
+ * 视口度量（CSS 像素）：供各动画层把「世界尺寸」换算成屏幕像素。
+ * 缩放得很远时，按世界单位写死的线宽会压到 1 像素以下 —— 栅格化断成一节一节，
+ * 所以飞线这类细长几何必须拿到 height 才能按屏幕像素给一个线宽下限。
+ */
+export interface ViewportMetrics {
+  /** 画布 CSS 宽 */
+  width: number
+  /** 画布 CSS 高（世界→像素换算用垂直方向，与 PerspectiveCamera.fov 同向） */
+  height: number
+  /** renderer device pixel ratio */
+  pixelRatio: number
+}
+
+/** 每帧回调：渲染循环每帧按 (dt 秒, elapsed 秒, 视口度量) 调用 */
+type Tick = (dt: number, elapsed: number, view: ViewportMetrics) => void
 
 /** 左键拖拽的行为：pan=拖着地图走（上下拖即视觉上的前后移动），rotate=绕地图转动 */
 export type DragMode = 'pan' | 'rotate'
@@ -104,6 +125,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   let composer: EffectComposer | null = null
   let bloomComposer: EffectComposer | null = null
   let starfield: ReturnType<typeof createStarfield> | null = null
+  /**
+   * 星空可见性：星光用加法混合的白色星芒，铺在浅色底上会变成一片"脏点"，
+   * 所以亮色主题应当整体隐藏。状态存在这里而不是外面，是因为星空的创建发生在
+   * start() 里 —— 主题 watcher 可能先于 start 触发，必须能记住意图。
+   */
+  let starfieldVisible = true
   // 底部辉光地面：地图正下方放射状光晕（纯装饰背景，不参与拾取）
   let groundGlow: THREE.Mesh | null = null
   let rafId = 0
@@ -506,7 +533,11 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     composer.setSize(width, height)
 
     starfield = createStarfield()
-    for (const points of starfield.points) scene.add(points)
+    for (const points of starfield.points) {
+      // 创建时套用已记录的主题意图（亮色主题下 start 前就可能已被关掉）
+      points.visible = starfieldVisible
+      scene.add(points)
+    }
 
     // 底部辉光地面：半径 = MAP_EXTENT * decor.ground.radius 的圆盘，
     // 放射状青色光晕（中心亮、边缘透明），加法混合贴在地图正下方 z=-0.1。
@@ -560,6 +591,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     document.addEventListener('visibilitychange', onVisibility, false)
 
     lastTime = performance.now()
+    // 复用一个度量对象：每帧只更新数值，避免每帧分配新对象
+    const metrics: ViewportMetrics = { width: 0, height: 0, pixelRatio: 1 }
     const loop = () => {
       if (disposed) return
       rafId = requestAnimationFrame(loop)
@@ -569,7 +602,14 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       lastTime = now
       elapsed += dt
       controls?.update()
-      for (const tick of ticks) tick(dt, elapsed)
+      const host = renderer?.domElement
+      if (renderer && host) {
+        // clientWidth/Height 是 CSS 像素，与 fov 的垂直方向一致
+        metrics.width = host.clientWidth
+        metrics.height = host.clientHeight
+        metrics.pixelRatio = renderer.getPixelRatio()
+      }
+      for (const tick of ticks) tick(dt, elapsed, metrics)
       starfield?.update(elapsed)
       // 底部辉光地面呼吸动画
       if (groundGlow) (groundGlow.material as THREE.ShaderMaterial).uniforms.uTime.value = elapsed
@@ -627,6 +667,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     onTick: (tick: Tick) => {
       ticks.add(tick)
       return () => ticks.delete(tick)
+    },
+    /** 星空显隐：亮色主题下星芒会糊成脏点，由上层按主题切换（先记状态，start 时套用） */
+    setStarfieldVisible(value: boolean) {
+      starfieldVisible = value
+      if (!starfield) return
+      for (const points of starfield.points) points.visible = value
     },
     scene: () => scene,
     camera: () => camera,
