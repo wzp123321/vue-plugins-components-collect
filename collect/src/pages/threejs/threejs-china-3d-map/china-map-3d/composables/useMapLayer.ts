@@ -96,8 +96,17 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
       const current = Number(node.object.userData.lift ?? 0)
       if (current !== target) {
         node.object.userData.lift = target
-        gsap.killTweensOf(node.object.position)
-        gsap.to(node.object.position, { z: target, duration: 0.22, ease: 'power2.out' })
+        // 用 scale.z 把板块「拉高」，而不是 position.z 整体上移。
+        // 几何原点在底面（ExtrudeGeometry 的 z 从 0 到 depth），所以放大 z 只推高顶面、
+        // 底面纹丝不动 —— 底边留在原地才有"从地里抬起来"的参照；整体上移时底边一起走，
+        // 在斜俯视透视下会被读成"整块平移"，不像抬升。
+        // 线框与顶面同处一个 object，会按同一比例跟着上移，不会脱开。
+        gsap.killTweensOf(node.object.scale)
+        gsap.to(node.object.scale, {
+          z: 1 + target / mapConfig.depth,
+          duration: 0.22,
+          ease: 'power2.out',
+        })
       }
     }
   };
@@ -106,7 +115,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
   const clear = () => {
     if (!root) return
     // 抬升补间还挂在旧板块上，先掐断再释放
-    for (const node of regions) gsap.killTweensOf(node.object.position)
+    for (const node of regions) gsap.killTweensOf(node.object.scale)
     const scene = getScene()
     disposeObject3D(root)
     scene?.remove(root)

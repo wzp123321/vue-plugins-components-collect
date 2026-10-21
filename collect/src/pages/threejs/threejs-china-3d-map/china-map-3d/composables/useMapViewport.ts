@@ -40,6 +40,7 @@ import { MAP_EXTENT } from '../utils/projection'
 import type { FitProjection } from '../utils/projection'
 import { setLineResolution } from '../utils/lineMaterials'
 import { createStarfield } from './starfield'
+import { legacyIntensity } from '../../../shared/lighting'
 
 // ── 相机 / 取景相关常量 ──────────────────────────────────────────
 /** 相机视线相对「地图法线(Z 轴)」的倾角(度)：30° 俯视倾斜，越平越像桌面俯瞰，全局统一 */
@@ -82,6 +83,10 @@ const bloomMixShader = {
       vec4 base = texture2D(baseTexture, vUv);
       vec3 bloom = texture2D(bloomTexture, vUv).rgb;
       gl_FragColor = vec4(base.rgb + bloom, base.a);
+      // 注：当前链路是旧式线性直出（three-compat 关掉了 ColorManagement，
+      //    renderer 输出也是 LinearSRGB），这里不需要再转色彩空间。
+      //    若将来切回物理正确管线，在此加 #include <colorspace_fragment>，
+      //    并且只加在这一处（最后一道 renderToScreen），场景内材质不要加。
     }
   `,
 }
@@ -138,6 +143,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   let lastTime = 0
   let disposed = false
   let dragMode: DragMode = 'pan'
+  /**
+   * 当前层「贴合取景」基准距离：focus/viewPreset/flyTo 收尾时按当层重设，
+   * 供比例尺换算「缩放倍率」= 相机当前距离 / 此值（1 = 正好贴合本层）。
+   * 同时它也是动态缩放限幅的中值（min=×0.42、max=×2.1），避免钻进地里或飞太远。
+   */
+  let lastFitDistance = MAP_EXTENT * 2.2
   const ticks = new Set<Tick>()
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
@@ -246,6 +257,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       // 收尾时设定可缩放上下限：以当前距离为中值的 [0.42, 2.1] 倍，防止钻进地里或飞太远
       controls.minDistance = distance * 0.42
       controls.maxDistance = distance * 2.1
+      lastFitDistance = distance
       controls.enabled = true
     }
     if (duration <= 0) {
@@ -340,6 +352,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
         // 收尾时按当前距离设定可缩放上下限，避免被放宽到 1~4000 后缩放失控
         controls.minDistance = radius * 0.42
         controls.maxDistance = radius * 2.1
+        lastFitDistance = radius
         controls.enabled = true
         controls.update()
       },
@@ -370,6 +383,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       const distance = Math.max(camera.position.distanceTo(controls.target), 1)
       controls.minDistance = distance * 0.42
       controls.maxDistance = distance * 2.1
+      lastFitDistance = distance
       controls.enabled = true
       controls.update()
     }
@@ -410,6 +424,22 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       return null
     }
   };
+
+  /**
+   * 目标平面每像素对应的「世界单位数」（供实时比例尺换算真实公里）。
+   * 透视相机：屏幕高度方向 worldPerPx = 2·d·tan(fov/2) / heightPx，
+   * d = 相机到 controls.target 的距离（地图顶面附近），heightPx = 画布 CSS 高。
+   * 地图几乎落在 target 平面附近，该近似对比例尺足够准；把它再乘以当前层的
+   * kmPerUnit（= 6371·cos(lat) / fit.scale）即得每像素公里数。
+   */
+  const worldPerPixel = (): number => {
+    if (!camera || !controls) return 1
+    const el = host()
+    const heightPx = el?.clientHeight ?? 0
+    if (!heightPx) return 1
+    const distance = camera.position.distanceTo(controls.target)
+    return (2 * distance * Math.tan((FOV * Math.PI) / 180 / 2)) / heightPx
+  }
 
   /** 容器尺寸变化时同步相机宽高比、渲染器与两个 composer 的尺寸 */
   const resize = () => {
@@ -460,6 +490,13 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       // 截图需要：保留绘制缓冲，否则 toDataURL 在帧间会被清空得到黑图
       preserveDrawingBuffer: true,
     })
+    // 配套 src/three-compat.ts：ColorManagement 已关闭，输出端不能再编码一次，
+    // 否则颜色会被 gamma 提亮，与升级前的观感对不上。
+    renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+    // 渲染统计（draw call / 三角形）供左上角性能面板读：
+    // 一帧内 composer 会 render 多趟（bloom 趟 + 主趟），关掉自动重置、
+    // 改为每帧手动 reset，才能拿到整帧的累加值而不是最后一趟的数字。
+    renderer.info.autoReset = false
     renderer.setClearColor(0x000000, 0)
     // 限制像素比，避免 4K/Retina 屏下设备像素比过大导致 fill-rate 爆炸掉帧
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
@@ -477,6 +514,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     const target = new THREE.Vector3(0, 0, mapConfig.depth)
     camera.position.copy(viewDirection().multiplyScalar(MAP_EXTENT * 2.2).add(target))
     camera.lookAt(target)
+    lastFitDistance = MAP_EXTENT * 2.2
 
     controls = new OrbitControls(camera, renderer.domElement)
     controls.target.copy(target)
@@ -495,11 +533,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     controls.addEventListener('change', clampTarget)
     controls.update()
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.52))
-    const keyLight = new THREE.DirectionalLight(0xd6ebff, 0.95)
+    // 强度经 legacyIntensity 换算：three 0.173 取消了隐式 ×π，直接写原值会暗 3 倍
+    scene.add(new THREE.AmbientLight(0xffffff, legacyIntensity(0.52)))
+    const keyLight = new THREE.DirectionalLight(0xd6ebff, legacyIntensity(0.95))
     keyLight.position.set(-40, -90, 160)
     scene.add(keyLight)
-    const rimLight = new THREE.DirectionalLight(0x3f8fd0, 0.4)
+    const rimLight = new THREE.DirectionalLight(0x3f8fd0, legacyIntensity(0.4))
     rimLight.position.set(60, 40, 30)
     scene.add(rimLight)
 
@@ -527,7 +566,19 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       'baseTexture',
     )
     mixPass.needsSwap = true
-    composer = new EffectComposer(renderer)
+    // ⚠️ MSAA：constructor 里的 antialias:true 只对「直接渲染到默认帧缓冲」生效。
+    //   接了 EffectComposer 之后画面先进 renderTarget，而 renderTarget 默认没有多重采样，
+    //   于是 antialias 形同虚设 —— 飞线这类细长高对比几何的锯齿就是这么来的。
+    //   显式给主 composer 的 renderTarget 开 4x MSAA（WebGL2 原生，走 resolve 不需要额外 pass）。
+    //   bloomComposer 不用开：它的内容马上被高斯模糊，锯齿会被抹平，开了纯浪费带宽。
+    //   采样数取 2 而不是 4：4x 会让主 target 带宽 ×4 并多一次 resolve，实测把帧率
+    //   压在 35 附近；2x 对 2px 级的细线仍有明确抗锯齿效果，是性能/画质的平衡点。
+    //   机器富裕的话可以调回 4。
+    const composerTarget = new THREE.WebGLRenderTarget(width, height, {
+      type: THREE.HalfFloatType,
+      samples: 2,
+    })
+    composer = new EffectComposer(renderer, composerTarget)
     composer.addPass(renderPass)
     composer.addPass(mixPass)
     composer.setSize(width, height)
@@ -570,6 +621,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
           // 极缓慢呼吸，避免静止光晕显得"死板"
           float pulse = 0.92 + 0.08 * sin(uTime * 0.6);
           gl_FragColor = vec4(uColor * a * pulse, a * uOpacity * pulse);
+          // 不在这里转 sRGB：本材质渲染到 composer 的线性 renderTarget，
+          // 色彩空间转换统一由最后一道 mixPass 完成（见 bloomMixShader）。
         }
       `,
     })
@@ -613,6 +666,8 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       starfield?.update(elapsed)
       // 底部辉光地面呼吸动画
       if (groundGlow) (groundGlow.material as THREE.ShaderMaterial).uniforms.uTime.value = elapsed
+      // 统计本帧：必须在 render() 之前清，随后两趟渲染的 draw call 才会累加到同一份计数里
+      if (renderer) renderer.info.reset()
       render()
     }
     loop()
@@ -680,5 +735,14 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     canvas: () => renderer?.domElement ?? null,
     raycaster,
     pointer,
+    /** 目标平面每像素世界单位数（比例尺换算用）；相机/控制器未就绪时返回 1 */
+    worldPerPixel,
+    /** 当前层贴合取景基准距离；比例尺「缩放倍率」= 相机当前距 / 它 */
+    fitDistance: () => lastFitDistance,
+    /** 渲染统计：本帧 draw call 与三角形数（已含 bloom 趟 + 主趟两遍渲染的累加） */
+    stats: () => ({
+      calls: renderer?.info.render.calls ?? 0,
+      triangles: renderer?.info.render.triangles ?? 0,
+    }),
   }
 };

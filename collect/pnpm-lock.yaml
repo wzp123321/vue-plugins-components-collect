@@ -198,8 +198,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       three:
-        specifier: ^0.147.0
-        version: 0.147.0
+        specifier: ^0.173.0
+        version: 0.173.0
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -265,8 +265,8 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       '@types/three':
-        specifier: ^0.146.0
-        version: 0.146.0
+        specifier: ^0.173.0
+        version: 0.173.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.21.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.3.3))(eslint@8.57.1)(typescript@5.3.3)
@@ -1466,6 +1466,9 @@ packages:
   '@turf/rewind@6.5.0':
     resolution: {integrity: sha512-IoUAMcHWotBWYwSYuYypw/LlqZmO+wcBpn8ysrBNbazkFNkLf3btSDZMkKJO/bvOzl55imr/Xj4fi3DdsLsbzQ==}
 
+  '@tweenjs/tween.js@23.1.3':
+    resolution: {integrity: sha512-vJmvvwFxYuGnF2axRtPYocag6Clbb5YS7kLL+SO/TeVFzHqDIWrNKYtcsPMibjDx9O+bu+psAy9NKfWklassUA==}
+
   '@types/crypto-js@4.2.2':
     resolution: {integrity: sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ==}
 
@@ -1511,8 +1514,11 @@ packages:
   '@types/spark-md5@3.0.5':
     resolution: {integrity: sha512-lWf05dnD42DLVKQJZrDHtWFidcLrHuip01CtnC2/S6AMhX4t9ZlEUj4iuRlAnts0PQk7KESOqKxeGE/b6sIPGg==}
 
-  '@types/three@0.146.0':
-    resolution: {integrity: sha512-75AgysUrIvTCB054eQa2pDVFurfeFW8CrMQjpzjt3yHBfuuknoSvvsESd/3EhQxPrz9si3+P0wiDUVsWUlljfA==}
+  '@types/stats.js@0.17.4':
+    resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
+
+  '@types/three@0.173.0':
+    resolution: {integrity: sha512-KtNjfI/CRB6JVKIVeZM1R3GYDX2wkoV2itNcQu2j4d7qkhjGOuB+s2oF6jl9mztycDLGMtrAnJQYxInC8Bb20A==}
 
   '@types/web-bluetooth@0.0.16':
     resolution: {integrity: sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==}
@@ -1798,6 +1804,9 @@ packages:
     resolution: {integrity: sha512-PzABKwlTiGGHdHFu7VEJb+p7ct0D+LjcVE4frBlctUT+C7Mvgrp2YEI4/awfShWgUtPQTV9zv2LAb26rqiIJWA==}
     peerDependencies:
       vue: ^3.2.0
+
+  '@webgpu/types@0.1.74':
+    resolution: {integrity: sha512-lgiI4hbuLcI9unnm2cL/tvCaQU45dp0xcLWJh5uB/9MBGvIA4F8XIk7nSiBeg+K4xWGYwgZKn80LmERI5CxoTA==}
 
   JSONStream@1.3.5:
     resolution: {integrity: sha512-E+iruNOY8VV9s4JEbe1aNEm6MiszPRr/UfcHMz0TQh1BXSxHK+ASV1R6W4HpjBhSeS+54PIsAMCBmwD06LLsqQ==}
@@ -2951,6 +2960,9 @@ packages:
   fecha@4.2.3:
     resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
 
+  fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
+
   figures@2.0.0:
     resolution: {integrity: sha512-Oa2M9atig69ZkfwiApY8F2Yy+tzMbazyvqv21R0NsSC8floSOC09BbT1ITWAdoMGQvJ/aZnR1KMwdx9tvHnTNA==}
     engines: {node: '>=4'}
@@ -3846,6 +3858,9 @@ packages:
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
+
+  meshoptimizer@0.18.1:
+    resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
 
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
@@ -4963,8 +4978,8 @@ packages:
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
 
-  three@0.147.0:
-    resolution: {integrity: sha512-LPTOslYQXFkmvceQjFTNnVVli2LaVF6C99Pv34fJypp8NbQLbTlu3KinZ0zURghS5zEehK+VQyvWuPZ/Sm8fzw==}
+  three@0.173.0:
+    resolution: {integrity: sha512-AUwVmViIEUgBwxJJ7stnF0NkPpZxx1aZ6WiAbQ/Qq61h6I9UR4grXtZDmO8mnlaNORhHnIBlXJ1uBxILEKuVyw==}
 
   through2@4.0.2:
     resolution: {integrity: sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==}
@@ -6723,6 +6738,8 @@ snapshots:
       '@turf/invariant': 6.5.0
       '@turf/meta': 6.5.0
 
+  '@tweenjs/tween.js@23.1.3': {}
+
   '@types/crypto-js@4.2.2': {}
 
   '@types/d3-timer@2.0.3': {}
@@ -6760,9 +6777,16 @@ snapshots:
 
   '@types/spark-md5@3.0.5': {}
 
-  '@types/three@0.146.0':
+  '@types/stats.js@0.17.4': {}
+
+  '@types/three@0.173.0':
     dependencies:
+      '@tweenjs/tween.js': 23.1.3
+      '@types/stats.js': 0.17.4
       '@types/webxr': 0.5.21
+      '@webgpu/types': 0.1.74
+      fflate: 0.8.3
+      meshoptimizer: 0.18.1
 
   '@types/web-bluetooth@0.0.16': {}
 
@@ -7207,6 +7231,8 @@ snapshots:
       dom-zindex: 1.0.7
       vue: 3.5.13(typescript@5.3.3)
       xe-utils: 4.1.3
+
+  '@webgpu/types@0.1.74': {}
 
   JSONStream@1.3.5:
     dependencies:
@@ -8547,6 +8573,8 @@ snapshots:
 
   fecha@4.2.3: {}
 
+  fflate@0.8.3: {}
+
   figures@2.0.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -9419,6 +9447,8 @@ snapshots:
   merge-stream@2.0.0: {}
 
   merge2@1.4.1: {}
+
+  meshoptimizer@0.18.1: {}
 
   micromatch@4.0.8:
     dependencies:
@@ -10666,7 +10696,7 @@ snapshots:
 
   text-table@0.2.0: {}
 
-  three@0.147.0: {}
+  three@0.173.0: {}
 
   through2@4.0.2:
     dependencies:

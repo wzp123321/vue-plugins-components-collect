@@ -72,6 +72,7 @@ const SYNONYM_GROUPS: string[][] = [
  */
 const INTENT_ALIASES: Record<string, string[]> = {
   '/threejs-china-3d-map': ['3d地图', '中国地图', '地理', '省份', '飞线', '下钻', '立体板块', '散点'],
+  '/threejs-lab': ['threejs', 'three.js', '3d', 'webgl', '三维', '基础图形', '场景', '太阳地球', '星系', '银河系', '拾取', '射线', '点击选中'],
   '/threejs-galaxy': ['星系', '星空', '粒子', '银河', '宇宙'],
   '/threejs-sun': ['太阳系', '太阳', '行星', '轨道'],
   '/threejs-raycaster': ['拾取', '点击选中', '射线', '鼠标交互'],
@@ -84,7 +85,7 @@ const INTENT_ALIASES: Record<string, string[]> = {
   '/babylon-pbr': ['pbr', '材质', '物理渲染'],
   '/babylon-texture': ['纹理', '贴图'],
   '/data-vis-g6': ['关系图', '拓扑', '图可视化', 'antv', '流程图'],
-  '/echarts-map': ['中国地图', '地图大屏', '大地图', 'echarts地图'],
+  '/echarts-map': ['中国地图', '地图大屏', '大地图', 'echarts地图', '省份下钻', '城市能源地图', '发电量', '城市排行'],
   '/echarts-province': ['省份地图', '中国省份', '城市地图', '发电量', '城市排行'],
   '/echarts': ['图表', '折线', '柱状', '饼图'],
   '/vchart': ['vchart', 'visactor', '字节图表', '叙事可视化', '声明式图表', '图表对比'],

@@ -96,8 +96,8 @@ export const navGroups: NavGroup[] = [
         label: '图表',
         items: [
           { path: '/echarts', label: 'ECharts 集合' },
-          { path: '/echarts-map', label: '中国地图大屏' },
-          { path: '/echarts-province', label: '省份地图' },
+          { path: '/echarts-map', label: '地图可视化大屏' },
+          { path: '/echarts-province', label: '省份地图', searchOnly: true },
           { path: '/vchart', label: 'VChart 图表' },
           { path: '/canvas-advance', label: 'Canvas 绘图进阶' },
           { path: '/data-vis-g6', label: 'G6 拓扑图' },
@@ -106,12 +106,12 @@ export const navGroups: NavGroup[] = [
       {
         label: 'Three.js',
         items: [
-          { path: '/threejs-lab', label: 'Three.js 基础合集', badge: '3' },
+          { path: '/threejs-lab', label: 'Three.js 合集', badge: '5' },
           { path: '/threejs-basic', label: '基础图形', searchOnly: true },
           { path: '/threejs-scene', label: '场景与物体', searchOnly: true },
           { path: '/threejs-sun', label: '太阳地球', searchOnly: true },
-          { path: '/threejs-galaxy', label: '粒子银河系' },
-          { path: '/threejs-raycaster', label: '交互拾取' },
+          { path: '/threejs-galaxy', label: '粒子银河系', searchOnly: true },
+          { path: '/threejs-raycaster', label: '交互拾取', searchOnly: true },
           { path: '/threejs-china-3d-map', label: '中国 3D 地图' },
         ],
       },

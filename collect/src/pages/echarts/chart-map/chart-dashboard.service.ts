@@ -1,8 +1,12 @@
 /*
- * @Description: 省份城市地图服务
- * @Author: zpwan
- * @Date: 2022-06-06 16:28:15
- * @Last Modified time: 2026-10-19
+ * @Description: 地图可视化大屏服务（全国视角 + 省份下钻）
+ * @Author: zpwan / 合并自 chart-map 与 chart-province
+ * @Date: 2026-10-21
+ *
+ * 设计：单一 ECharts 实例，按 level 切换「全国 / 省份」两套 option。
+ * - 全国视角：china-national 地图（geojson/china.json，含 35 个省级要素），
+ *   按 seeded 发电量着色 + 省级散点，点击省份下钻。
+ * - 省份视角：复用 chart-province 的懒加载 + 城市统计 + 项目散点 + TOP10 联动。
  */
 import { ref } from 'vue'
 import * as echarts from 'echarts/core'
@@ -18,6 +22,7 @@ import {
 
 import mapConfig from './map/map-config.json'
 import texture from './images/ch-map-texture.png'
+import chinaNational from '../../../assets/geojson/china.json'
 
 echarts.use([
   CanvasRenderer,
@@ -28,6 +33,8 @@ echarts.use([
   TooltipComponent,
   VisualMapComponent,
 ])
+
+echarts.registerMap('china-national', chinaNational as any)
 
 /** 省份选项：本地 src/assets/geojson/province 已内置 33 个省级 GeoJSON */
 const PROVINCE_OPTIONS = [
@@ -103,6 +110,8 @@ export interface CP_IProjectInfo {
   profitState: CP_EProfitState
 }
 
+export type DashboardLevel = 'national' | 'province'
+
 /**
  * 确定性伪随机：同一 adcode 每次刷新结果一致，演示页避免数据乱跳
  */
@@ -111,13 +120,23 @@ const seededValue = (adcode: number, salt: number): number => {
   return x - Math.floor(x)
 }
 
-class ChartProvinceService {
+class ChartDashboardService {
   static readonly provinceOptions = PROVINCE_OPTIONS
   static readonly profitLabels = PROFIT_LABELS
 
   private _customId = ref<string>('')
   public myEchart?: EChartsType
-  private readonly _option: EChartsOption = {}
+  private _option: EChartsOption = {}
+
+  /** 当前视图层级 */
+  public level = ref<DashboardLevel>('national')
+  /** 当前省 adcode（省份视图） */
+  public currentAdcode = ref('')
+  /** 当前省名称（省份视图） */
+  public currentProvinceName = ref('')
+
+  /** 全国视角：各省发电量（seeded），用于着色 */
+  private provincePowers: { name: string; adcode: number; power: number }[] = []
 
   /** 当前省城市统计（按发电量降序），ref 化供外层 computed 追踪 */
   private cityStats = ref<CP_ICityStat[]>([])
@@ -132,12 +151,13 @@ class ChartProvinceService {
   public onCitiesChange?: (cities: CP_ICityStat[]) => void
   /** 地图点击 / 侧栏选中城市回调 */
   public onCitySelect?: (city: CP_ICityStat | null) => void
+  /** 视图层级变化回调（面包屑渲染） */
+  public onLevelChange?: (level: DashboardLevel) => void
 
-  //#region
   public get customChartId(): string {
     return this._customId.value
   }
-  //#endregion
+
   constructor() {
     this._customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`
   }
@@ -152,13 +172,127 @@ class ChartProvinceService {
     }
     this.myEchart = init(ele)
     this.bindMapClick()
-    // 默认加载四川（与历史版本一致）
-    this.switchProvince('510000', '四川省')
+    this.renderNational()
   }
   //#endregion
 
-  //#region 切换省份
-  async switchProvince(adcode: string, name: string) {
+  //#region 全国视角
+  renderNational() {
+    this.level.value = 'national'
+    this.onLevelChange?.('national')
+
+    const features: any[] = (chinaNational as any).features || []
+    this.provincePowers = features
+      .filter((f) => f?.properties?.adcode)
+      .map((f) => {
+        const { adcode, name } = f.properties
+        return { name, adcode, power: Math.round(120 + seededValue(adcode, 1) * 880) }
+      })
+    const maxPower = this.provincePowers.reduce((m, p) => Math.max(m, p.power), 100)
+
+    this._option = {}
+    this._option.grid = this.mapGrid()
+    this._option.tooltip = this.nationalTooltip()
+    this._option.visualMap = {
+      show: true,
+      type: 'continuous',
+      min: 0,
+      max: maxPower,
+      left: 24,
+      bottom: 28,
+      itemHeight: 110,
+      text: ['高发电量', '低'],
+      textStyle: { color: '#9ec9ff', fontSize: 12 },
+      calculable: true,
+      inRange: { color: ['#0b2f5e', '#12507e', '#1b7fb8', '#35b8e8', '#7fe3f0'] },
+    } as any
+    this._option.geo = {
+      map: 'china-national',
+      roam: true,
+      aspectScale: 1.0,
+      silent: true,
+      itemStyle: {
+        areaColor: { image: texture, repeat: 'no-repeat' },
+        borderColor: {
+          type: 'linear',
+          x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: '#264571' },
+            { offset: 1, color: '#009EFF' },
+          ],
+        },
+        borderWidth: 2,
+        shadowBlur: 15,
+        shadowColor: 'rgba(51, 149, 216, 1)',
+        shadowOffsetY: 10,
+      },
+    }
+    const mapSeries: MapSeriesOption = {
+      type: 'map',
+      map: 'china-national',
+      geoIndex: 0,
+      roam: true,
+      selectedMode: false,
+      label: { show: false },
+      itemStyle: {
+        borderColor: '#009EFF',
+        borderWidth: 1,
+        shadowBlur: 20,
+        shadowColor: 'rgba(109, 178, 236, 0.5)',
+      },
+      emphasis: {
+        label: { show: true, color: '#ffffff', fontSize: 12 },
+        itemStyle: { areaColor: '#ffd666', borderColor: '#ffffff', borderWidth: 2 },
+      },
+      select: { disabled: true },
+      data: this.provincePowers.map((p) => ({ name: p.name, value: p.power })),
+    }
+
+    // 省级项目散点（取各省 centroid 附近的 seeded 点）
+    const projectSeries: ScatterSeriesOption = {
+      type: 'scatter',
+      id: 'national-projects',
+      coordinateSystem: 'geo',
+      geoIndex: 0,
+      symbol: 'none',
+      zlevel: 100,
+      data: this.provincePowers.map((p) => {
+        const feat = features.find((f) => f.properties.adcode === p.adcode)
+        const c = (feat?.properties?.centroid || feat?.properties?.center) as [number, number]
+        const jitter = (k: number) => (seededValue(p.adcode, k) - 0.5) * 4
+        return {
+          name: p.name,
+          value: [c[0] + jitter(5), c[1] + jitter(6), p.power],
+        }
+      }),
+    }
+
+    // 告警波纹（少量省份高亮）
+    const alarmSeries: EffectScatterSeriesOption = {
+      type: 'effectScatter',
+      id: 'national-alarms',
+      coordinateSystem: 'geo',
+      geoIndex: 0,
+      zlevel: 100,
+      rippleEffect: { color: '#FF3F00', number: 3, scale: 2.5, brushType: 'stroke' },
+      symbol: `image://${mapConfig.mark.alarm}`,
+      symbolSize: [22, 20],
+      data: this.provincePowers
+        .filter((p) => seededValue(p.adcode, 9) > 0.82)
+        .map((p) => {
+          const feat = features.find((f) => f.properties.adcode === p.adcode)
+          const c = (feat?.properties?.centroid || feat?.properties?.center) as [number, number]
+          return { name: p.name, value: [c[0], c[1]] }
+        }),
+    }
+
+    this._option.series = [mapSeries, projectSeries, alarmSeries] as any
+    this.myEchart?.setOption(this._option, true)
+  }
+  //#endregion
+
+  //#region 省份下钻
+  async drillToProvince(adcode: string, name: string) {
     const geo = await this.loadProvinceGeo(adcode)
 
     if (!geo?.features?.length) {
@@ -166,7 +300,11 @@ class ChartProvinceService {
       return
     }
     this.currentMapName = adcode
+    this.currentAdcode.value = adcode
+    this.currentProvinceName.value = name
     this.selectedCityName.value = ''
+    this.level.value = 'province'
+    this.onLevelChange?.('province')
     echarts.registerMap(adcode, geo as any)
 
     this.cityStats.value = this.buildCityStats(geo.features)
@@ -174,6 +312,10 @@ class ChartProvinceService {
     this.applyOption()
     this.onCitiesChange?.(this.cityStats.value)
     this.onCitySelect?.(null)
+  }
+
+  backToNational() {
+    this.renderNational()
   }
   //#endregion
 
@@ -233,26 +375,53 @@ class ChartProvinceService {
   }
   //#endregion
 
-  //#region 应用配置
+  //#region 应用配置（省份视角）
   private applyOption() {
+    this._option = {}
     this._option.grid = this.mapGrid()
     this._option.tooltip = this.mapTooltip()
     this._option.visualMap = this.mapVisualMap()
     this._option.geo = this.mapGeo()
     this._option.series = this.mapSeries()
-
     this.myEchart?.setOption(this._option, true)
   }
   //#endregion
 
-  //#region mapGrid
-  mapGrid(): EChartsOption['grid'] {
+  private mapGrid(): EChartsOption['grid'] {
     return { top: 0, right: 0, bottom: 0, left: 0 }
+  }
+
+  //#region 全国 tooltip
+  private nationalTooltip(): EChartsOption['tooltip'] {
+    return {
+      trigger: 'item',
+      enterable: true,
+      renderMode: 'html',
+      confine: true,
+      className: 'ch-map-tooltip',
+      position: 'right',
+      padding: 0,
+      backgroundColor: 'rgba(6, 39, 65, 0.95)',
+      borderColor: 'rgba(54, 129, 255, 1)',
+      borderWidth: 1,
+      formatter: (params: any) => {
+        if (params.seriesType !== 'map') return ''
+        const power = params.data?.value ?? 0
+        const drillable = PROVINCE_OPTIONS.some((o) => o.name === params.name)
+        return `
+          <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
+            <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${params.name}</div>
+            <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${power} GWh</span></div>
+            <div style="color:${drillable ? '#7fe3f0' : '#9ec9ff'};margin-top:4px;">${drillable ? '▸ 点击下钻到省份' : '暂未收录下级地图'}</div>
+          </div>
+        `
+      },
+    }
   }
   //#endregion
 
-  //#region mapTooltip
-  mapTooltip(): EChartsOption['tooltip'] {
+  //#region 省份 tooltip
+  private mapTooltip(): EChartsOption['tooltip'] {
     return {
       trigger: 'item',
       enterable: true,
@@ -268,7 +437,6 @@ class ChartProvinceService {
         // 地图区域 → 城市指标
         if (params.seriesType === 'map') {
           const city = params.data?.city as CP_ICityStat | undefined
-
           if (!city) return ''
           return `
             <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:190px;line-height:1.8;">
@@ -282,7 +450,6 @@ class ChartProvinceService {
         }
         // 项目散点 → 项目信息
         const project = params.data?.project as CP_IProjectInfo | undefined
-
         if (!project) return ''
         return `
           <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
@@ -297,10 +464,8 @@ class ChartProvinceService {
   }
   //#endregion
 
-  //#region mapVisualMap
-  mapVisualMap(): EChartsOption['visualMap'] {
+  private mapVisualMap(): EChartsOption['visualMap'] {
     const maxPower = this.cityStats.value.reduce((max, city) => Math.max(max, city.power), 100)
-
     return {
       show: true,
       type: 'continuous',
@@ -313,15 +478,11 @@ class ChartProvinceService {
       text: ['高', '低'],
       textStyle: { color: '#9ec9ff', fontSize: 12 },
       calculable: true,
-      inRange: {
-        color: ['#0b2f5e', '#12507e', '#1b7fb8', '#35b8e8', '#7fe3f0'],
-      },
-    }
+      inRange: { color: ['#0b2f5e', '#12507e', '#1b7fb8', '#35b8e8', '#7fe3f0'] },
+    } as any
   }
-  //#endregion
 
-  //#region mapGeo
-  mapGeo(): EChartsOption['geo'] {
+  private mapGeo(): EChartsOption['geo'] {
     return {
       map: this.currentMapName,
       roam: true,
@@ -331,10 +492,7 @@ class ChartProvinceService {
         areaColor: { image: texture, repeat: 'no-repeat' },
         borderColor: {
           type: 'linear',
-          x: 0,
-          y: 0,
-          x2: 0,
-          y2: 1,
+          x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
             { offset: 0, color: '#264571' },
             { offset: 1, color: '#009EFF' },
@@ -347,10 +505,8 @@ class ChartProvinceService {
       },
     }
   }
-  //#endregion
 
-  //#region mapSeries
-  mapSeries(): EChartsOption['series'] {
+  private mapSeries(): EChartsOption['series'] {
     // 城市数据层：visualMap 着色
     const mapSeries: MapSeriesOption = {
       type: 'map',
@@ -425,12 +581,7 @@ class ChartProvinceService {
       coordinateSystem: 'geo',
       geoIndex: 0,
       zlevel: 100,
-      rippleEffect: {
-        color: '#FF3F00',
-        number: 3,
-        scale: 2.5,
-        brushType: 'stroke',
-      },
+      rippleEffect: { color: '#FF3F00', number: 3, scale: 2.5, brushType: 'stroke' },
       symbol: `image://${mapConfig.mark.alarm}`,
       symbolSize: [26, 23],
       label: {
@@ -452,16 +603,21 @@ class ChartProvinceService {
 
     return [mapSeries, projectSeries, alarmSeries] as any
   }
-  //#endregion
 
-  //#region 地图点击：选中 / 取消选中城市
+  //#region 地图点击：全国下钻 / 省份选中城市
   private bindMapClick() {
     this.myEchart?.on('click', (params: any) => {
+      if (this.level.value === 'national') {
+        if (params.seriesType !== 'map') return
+        const opt = PROVINCE_OPTIONS.find((o) => o.name === params.name)
+        if (!opt) return
+        this.drillToProvince(opt.adcode, opt.name)
+        return
+      }
+      // 省份视角：点击城市区域选中 / 取消
       if (params.seriesType !== 'map') return
       const city = params.data?.city as CP_ICityStat | undefined
-
       if (!city) return
-      // 重复点击同一城市 → 回到全省视图
       this.selectCity(city.name === this.selectedCityName.value ? '' : city.name)
     })
   }
@@ -471,7 +627,6 @@ class ChartProvinceService {
   selectCity(cityName: string) {
     this.selectedCityName.value = cityName
     const city = this.cityStats.value.find((item) => item.name === cityName) || null
-
     if (city) {
       this.myEchart?.dispatchAction({ type: 'select', seriesIndex: 0, name: city.name })
     } else {
@@ -524,4 +679,4 @@ class ChartProvinceService {
   }
 }
 
-export default ChartProvinceService
+export default ChartDashboardService

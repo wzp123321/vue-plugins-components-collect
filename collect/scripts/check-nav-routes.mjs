@@ -63,6 +63,8 @@ const LEGACY_REDIRECT_PATHS = new Set([
   '/store-setup',
   '/perf-keep-alive',
   '/perf-async-component',
+  // 地图可视化大屏合并省份地图后，旧路径 redirect 到 /echarts-map
+  '/echarts-province',
 ]);
 
 function collectPaths(file) {

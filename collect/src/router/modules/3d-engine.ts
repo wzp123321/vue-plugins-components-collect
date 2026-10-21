@@ -10,7 +10,7 @@ const threejsRoutes: RouteRecordRaw[] = [
   {
     path: '/threejs-lab',
     meta: {
-      name: 'Three.js 基础合集',
+      name: 'Three.js 合集',
     },
     component: () => import('../../pages/threejs/threejs-lab/threejs-lab.vue'),
   },
@@ -31,17 +31,13 @@ const threejsRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/threejs-galaxy',
-    meta: {
-      name: 'Threejs 粒子银河系',
-    },
-    component: () => import('../../pages/threejs/threejs-galaxy/threejs-galaxy.vue'),
+    meta: { name: 'Threejs 粒子银河系(已合并)' },
+    redirect: { path: '/threejs-lab', query: { tab: 'galaxy' } },
   },
   {
     path: '/threejs-raycaster',
-    meta: {
-      name: 'Threejs 交互拾取',
-    },
-    component: () => import('../../pages/threejs/threejs-raycaster/threejs-raycaster.vue'),
+    meta: { name: 'Threejs 交互拾取(已合并)' },
+    redirect: { path: '/threejs-lab', query: { tab: 'raycaster' } },
   },
   {
     path: '/babylon-lab',

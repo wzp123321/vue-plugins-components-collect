@@ -11,16 +11,14 @@ const dataVisRoutes: RouteRecordRaw[] = [
   {
     path: '/echarts-map',
     meta: {
-      name: '中国地图大屏',
+      name: '地图可视化大屏',
     },
-    component: () => import('../../pages/echarts/chart-map/chart-map.vue'),
+    component: () => import('../../pages/echarts/chart-map/chart-dashboard.vue'),
   },
   {
+    // 省份地图已合并进「地图可视化大屏」（全国→省份下钻），保留历史链接
     path: '/echarts-province',
-    meta: {
-      name: '省份',
-    },
-    component: () => import('../../pages/echarts/chart-province/chart-province.vue'),
+    redirect: '/echarts-map',
   },
   {
     path: '/data-vis-g6',

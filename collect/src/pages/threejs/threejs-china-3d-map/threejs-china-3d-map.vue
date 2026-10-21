@@ -58,6 +58,7 @@
       右侧竖栏：控制台 / 区域详情 / 数据看板统一在这里纵向排列。
       三块面板不再各自 absolute 定 top，改由 flex 分配高度，宽度统一 300：
       控制台超高时内部滚动，详情吃掉剩余空间，看板常驻底部。
+      每块面板自带标题栏折叠（collapsed 默认 true），进页面只露小卡，点各自标题栏展开。
     -->
     <div class="china3d-rail">
       <MapControlPanel
@@ -106,7 +107,8 @@
         @select="onPanelSelect"
       />
     </div>
-    <!-- 底部时间轴控制条：播放/暂停 + 滑块 + 倍速，驱动 3D 柱高按月演化 -->
+    <!-- 底部时间轴控制条：播放/暂停 + 滑块 + 倍速，驱动 3D 柱高按月演化。
+         默认收起（点「时间轴」标题栏展开）；窄容器下展开时左锚定，让开左下角比例尺。 -->
     <MapTimeline
       v-model:playing="timelinePlaying"
       v-model:month="timelineMonth"
@@ -309,6 +311,9 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
   height: 100%;
   position: relative;
   overflow: hidden;
+  /* 容器查询基准：底部时间轴在「容器窄 + 展开」时改左锚定（见 MapTimeline 的
+     @container 规则），让开左下角固定停靠的比例尺，避免居中左缘爬进它下面 */
+  container-type: inline-size;
   /* 底部停靠条（时间轴 / 面包屑 / 进度提示）的居中偏移：
      右侧被 300+18 的控制栏占掉、左侧被左下角信息卡占掉，取两者的折中值 110px，
      让停靠条左右两端的余量都为正（不压右栏卡片、也不压左下角图例）。 */
@@ -316,10 +321,11 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
   background:
     radial-gradient(circle at 50% 38%, #05173e 0%, #030f2a 55%, #01060f 100%);
 }
-/* 右侧竖栏：把三块面板收进一条 300 宽的列，右边缘对齐、间距一致。
-   高度由上到下按「控制台 ≤38% / 详情吃掉剩余 / 看板 ≤38% 贴底」分配，
-   任何一屏高度下都不会溢出或被裁掉——超出的内容在各面板内部滚动。
-   底部 68px 让给右下角交互说明图标，避免压住它。 */
+  /* 右侧竖栏：把三块面板收进一条 300 宽的列，右边缘对齐、间距一致。
+     高度由上到下按「控制台 ≤38% / 详情吃掉剩余 / 看板 ≤38% 贴底」分配，
+     任何一屏高度下都不会溢出或被裁掉——超出的内容在各面板内部滚动。
+     底部 68px 让给右下角交互说明图标，避免压住它。
+     三块面板各自带标题栏折叠（默认收起），右栏整体不再有滑动开关。 */
 .china3d-rail {
   position: absolute;
   top: 18px;

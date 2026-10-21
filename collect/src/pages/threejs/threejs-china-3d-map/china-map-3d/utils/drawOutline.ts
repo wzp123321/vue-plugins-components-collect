@@ -18,8 +18,8 @@
  */
 
 import * as THREE from 'three'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { mapConfig } from './mapConfig'
 import { getOutlineGlowMaterial, getOutlineMaterial } from './lineMaterials'
 import { extractOuterRings } from './geo'
@@ -43,6 +43,11 @@ export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Gr
   // 贴顶面再抬高 0.02，比内部界线略高，避免与顶面 z-fighting
   const z = mapConfig.lineZ + 0.02
 
+  // 所有环合成一份线段 buffer：外轮廓原来每环建两条 Line2（实线 + 光晕），
+  // 中国地图的岛屿环有上百个，仅这一项就能吃掉几百次 draw call。
+  // 合并后整层只剩 2 次（实线 + 光晕共用同一个 geometry）。
+  const linePositions: number[] = []
+
   for (const ring of extractOuterRings(geo)) {
     const positions: number[] = []
     let valid = true
@@ -54,17 +59,34 @@ export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Gr
     }
     if (!valid || positions.length < 9) continue
 
-    const geometry = new LineGeometry()
-    geometry.setPositions(positions)
-
-    const glowLine = new (Line2 as any)(geometry, glow) as THREE.Object3D
-    glowLine.renderOrder = 3
-    group.add(glowLine)
-
-    const line = new (Line2 as any)(geometry, solid) as THREE.Object3D
-    line.renderOrder = 4
-    group.add(line)
+    // 闭合环：末点接回首点，逐段写入线段对
+    const pointCount = positions.length / 3
+    for (let i = 0; i < pointCount; i++) {
+      const a = i * 3
+      const b = ((i + 1) % pointCount) * 3
+      linePositions.push(
+        positions[a],
+        positions[a + 1],
+        positions[a + 2],
+        positions[b],
+        positions[b + 1],
+        positions[b + 2],
+      )
+    }
   }
+
+  if (!linePositions.length) return group
+
+  const geometry = new LineSegmentsGeometry()
+  geometry.setPositions(linePositions)
+
+  const glowLine = new (LineSegments2 as any)(geometry, glow) as THREE.Object3D
+  glowLine.renderOrder = 3
+  group.add(glowLine)
+
+  const line = new (LineSegments2 as any)(geometry, solid) as THREE.Object3D
+  line.renderOrder = 4
+  group.add(line)
 
   return group
 };

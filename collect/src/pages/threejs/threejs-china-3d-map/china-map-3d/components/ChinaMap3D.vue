@@ -53,6 +53,9 @@
     </div>
     <div ref="canvasHost" class="china-map-3d-canvas"></div>
 
+    <!-- 左上角性能读数（FPS / draw call / 三角形）：纯展示，pointer-events 已关，不拦鼠标 -->
+    <MapPerfPanel :theme="props.theme" :sample="viewport.stats" />
+
     <!-- 框选矩形（Shift + 拖拽实时绘制） -->
     <div v-if="boxRect" class="map-box-select" :style="boxStyle"></div>
     <!-- 批量统计浮层：框选 / 多选后展示合计与占比 -->
@@ -125,6 +128,8 @@
       @help="showHelp = true"
     />
     <MapHelpDialog v-model:visible="showHelp" />
+    <!-- 实时比例尺 + 缩放倍率：缩放时随相机距离动态更新，固定在左下角 -->
+    <MapScaleBar :km="scaleInfo.km" :px="scaleInfo.px" :ratio="scaleInfo.ratio" :theme="props.theme" />
   </div>
 </template>
 
@@ -154,6 +159,8 @@ import type { GeoJsonFeature } from '../types';
 import MapPieChart from './MapPieChart.vue';
 import MapToolbar from './MapToolbar.vue';
 import MapHelpDialog from './MapHelpDialog.vue';
+import MapScaleBar from './MapScaleBar.vue';
+import MapPerfPanel from './MapPerfPanel.vue';
 import MapBookmarkPanel from './MapBookmarkPanel.vue';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { updateRegionScan, setRegionScan } from '../utils/drawRegion';
@@ -375,6 +382,15 @@ const showHelp = ref(false);
 const roamOn = ref(false);
 /** 当前视角预设（高亮工具栏分段按钮） */
 const currentView = ref<'top' | 'oblique' | 'front'>('oblique');
+
+/**
+ * scaleInfo — 实时比例尺信息（onTick 每帧计算，仅量化值变化时才写 ref，避免无谓刷新；
+ *   由左下角的 MapScaleBar 直接渲染，不经过页面中转）：
+ *   km    比例尺条代表的真实距离（公里，已取 1/2/5×10ⁿ 整刻度）
+ *   px    该距离在屏幕上对应的像素长度
+ *   ratio 当前相机距离相对本层 fit 距离的倍率（1 = 正好贴合本层）
+ */
+const scaleInfo = ref<{ km: number; px: number; ratio: number }>({ km: 0, px: 0, ratio: 1 });
 
 /**
  * viewport — 渲染视口（相机 / 渲染器 / OrbitControls / 渲染循环）。
@@ -1398,9 +1414,125 @@ const toggleFullscreen = () => {
   else el.requestFullscreen?.().catch(() => pushNotice('当前环境不支持全屏', 'info'));
 };
 
-/** 截图：从 viewport 取 PNG dataURL，触发下载 */
-const doScreenshot = () => {
-  const url = viewport.screenshot();
+/** 载入图片并等解码完成：截图合成要读 naturalWidth，必须等 onload */
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`背景图加载失败：${src}`));
+    img.src = src;
+  });
+
+/**
+ * 解析 background-position 为 0~1 的百分比。
+ * 覆盖本项目实际会出现的三种写法：`center` / `center 42%` / `50% 42%`。
+ */
+const parseBgPosition = (value: string) => {
+  const toRatio = (token: string | undefined, fallback: number) => {
+    if (!token) return fallback;
+    if (token === 'center') return 0.5;
+    const n = Number.parseFloat(token);
+    return Number.isFinite(n) ? n / 100 : fallback;
+  };
+  const parts = value.trim().split(/\s+/);
+  return { px: toRatio(parts[0], 0.5), py: toRatio(parts[1], 0.5) };
+};
+
+/**
+ * 截图合成：把 canvas 之下的 2D 底图（.map-bg-image）一并画进导出图。
+ *
+ * 为什么必须单独做：底图是 DOM 元素、位于 canvas 之下，
+ * `renderer.domElement.toDataURL()` 只拍得到 WebGL 画面 —— 直接导出是「没背景的地图」。
+ * 这里按底图当前的 computed 样式重画一遍，再叠上 WebGL 画面。
+ *
+ * 复刻项：底色、background-size:cover、background-position、opacity、
+ *   transform 的 scale + 视差平移、--custom 主题下的 filter（提亮/饱和）。
+ * 刻意不复刻：__aurora 漂移光团（动画中间态，逐帧取值不稳）、
+ *   __veil 四周暗角（边缘 0~0.34 透明度，差异落在人眼阈值边缘）。
+ * 要 100% 像素一致只能把底图搬进 scene.background，代价是丢掉 CSS 的多层渐变表现力。
+ */
+const composeScreenshot = async (): Promise<string | null> => {
+  const baseUrl = viewport.screenshot();
+  const el = bgLayer.value;
+  if (!baseUrl) return null;
+  if (!el) return baseUrl;
+
+  let base: HTMLImageElement;
+  try {
+    base = await loadImage(baseUrl);
+  } catch {
+    return baseUrl;
+  }
+  const W = base.naturalWidth;
+  const H = base.naturalHeight;
+  if (!W || !H) return baseUrl;
+
+  const out = document.createElement('canvas');
+  out.width = W;
+  out.height = H;
+  const ctx = out.getContext('2d');
+  if (!ctx) return baseUrl;
+
+  // 导出图是设备像素、DOM 尺寸是 CSS 像素，长度按此倍率换算
+  const k = el.clientWidth > 0 ? W / el.clientWidth : 1;
+  const cs = getComputedStyle(el);
+
+  // 1) 兜底色：纯 CSS 渐变底图（没传 bgImage / bgPreset）无法在 canvas 上还原，
+  //    至少铺一层主题深色，避免导出透明 PNG（贴进白底文档会变成白底地图）。
+  ctx.fillStyle = cs.backgroundColor || '#030c1c';
+  ctx.fillRect(0, 0, W, H);
+
+  // 2) 自定义底图：按 cover + position + transform 重画
+  if (resolvedBgImage.value) {
+    try {
+      const img = await loadImage(resolvedBgImage.value);
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      if (iw && ih) {
+        // transform 取自计算值，不抄 scale(1.06) 常量：CSS 一改这里自动跟
+        const m =
+          cs.transform && cs.transform !== 'none' ? new DOMMatrixReadOnly(cs.transform) : null;
+        const s = m && Math.abs(m.a) > 0 ? Math.abs(m.a) : 1;
+        // 先在未变换的元素尺寸上做 cover（等价 background-size: cover）
+        const cover = Math.max(W / iw, H / ih);
+        const bw = iw * cover;
+        const bh = ih * cover;
+        // background-position
+        const pos = parseBgPosition(cs.backgroundPosition);
+        const bx = (W - bw) * pos.px;
+        const by = (H - bh) * pos.py;
+        // 再以元素中心为原点缩放 s，并叠加视差平移
+        const dx = (bx - W / 2) * s + W / 2 + (m?.e ?? 0) * k;
+        const dy = (by - H / 2) * s + H / 2 + (m?.f ?? 0) * k;
+
+        ctx.save();
+        // 暗色主题下 --custom 带 brightness/saturate 提亮，canvas filter 同语法
+        if (cs.filter && cs.filter !== 'none') ctx.filter = cs.filter;
+        const alpha = Number.parseFloat(cs.opacity);
+        ctx.globalAlpha = Number.isFinite(alpha) ? alpha : 1;
+        ctx.drawImage(img, dx, dy, bw * s, bh * s);
+        ctx.restore();
+      }
+    } catch {
+      /* 图加载失败：保留兜底色，不阻断导出 */
+    }
+  }
+
+  // 3) 叠上 WebGL 画面
+  ctx.drawImage(base, 0, 0, W, H);
+
+  try {
+    return out.toDataURL('image/png');
+  } catch {
+    // 跨域图污染画布时 toDataURL 会抛 SecurityError
+    return baseUrl;
+  }
+};
+
+/** 截图：把 2D 底图合成进导出图（见 composeScreenshot），再触发下载 */
+const doScreenshot = async () => {
+  const url = (await composeScreenshot()) ?? viewport.screenshot();
   if (!url) {
     pushNotice('截图失败，请稍后重试', 'error');
     return;
@@ -1463,6 +1595,35 @@ onMounted(async () => {
     const scn = viewport.scene();
     if (cam && scn && css2dRenderer && props.labelMode === 'css2d') css2dRenderer.render(scn, cam);
     zoom.update(viewport.camera()!, viewport.controls());
+
+    // ── 实时比例尺 + 缩放倍率 ──
+    // worldPerPx：每屏幕像素对应的世界单位（透视相机，由相机距离与画布高反推）；
+    // kmPerUnit：每个世界单位对应多少真实公里（= 6371·cos(lat) / fit.scale，与测量工具同款）；
+    // 二者相乘得每像素公里数 → 取一个「1/2/5×10ⁿ」整刻度，反推条长像素。
+    // ratio：相机当前距离 / 本层 fit 基准距离，1 表示正好贴合本层。
+    const fit = current.value?.fit as { scale?: number; center?: [number, number] } | undefined;
+    if (fit && cam && viewport.controls()) {
+      const wpp = viewport.worldPerPixel();
+      const lat = Number(fit.center?.[1] ?? 35);
+      const scaleVal = Number(fit.scale) || 1;
+      const kmPerUnit = (6371 * Math.cos((lat * Math.PI) / 180)) / scaleVal;
+      const kmPerPx = wpp * kmPerUnit;
+      const rawKm = kmPerPx * 100; // 目标条长约 100px
+      const mag = Math.pow(10, Math.floor(Math.log10(rawKm || 1)));
+      const norm = rawKm / mag;
+      const niceKm = (norm >= 5 ? 5 : norm >= 2 ? 2 : 1) * mag;
+      const barPx = kmPerPx > 0 ? niceKm / kmPerPx : 0;
+      const dist = cam.position.distanceTo(viewport.controls()!.target);
+      const ratio = viewport.fitDistance() > 0 ? dist / viewport.fitDistance() : 1;
+      // 量化值（整刻度 km、整数 px、两位小数 ratio）不变就不写 ref，避免每帧刷新
+      if (
+        niceKm !== scaleInfo.value.km ||
+        Math.abs(barPx - scaleInfo.value.px) > 0.5 ||
+        Math.abs(ratio - scaleInfo.value.ratio) > 0.01
+      ) {
+        scaleInfo.value = { km: niceKm, px: barPx, ratio };
+      }
+    }
   });
 
   window.addEventListener('keydown', handleKeydown, false);
@@ -1519,12 +1680,14 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-/* 左下角信息栏（数据分档饼图 + 数据量分级图例）：纵向排列，底边贴住画布左下角。
-   底部留 18px 且整体高约 330px，正好停在上方时间轴（bottom 18 / 高 100）之上。 */
+/* 左下角信息栏（数据分档饼图 + 数据量分级图例）：纵向排列。
+   底边上移到 bottom:84，给左下角固定停靠的「实时比例尺」（高 46、bottom:16）
+   让出底部空间：比例尺占 bottom:16~62，信息栏底边停在 84，两者留 22px 间隙。
+   时间轴展开时左缘不超过 180（窄容器左锚定 / 宽容器居中），也不会压到本栏。 */
 .map-left-rail {
   position: absolute;
   left: 16px;
-  bottom: 18px;
+  bottom: 84px;
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -1586,6 +1749,9 @@ onUnmounted(() => {
 
 /* 暗色：中心聚光 + 稀疏网格 + 底部地平线辉光 */
 .map-bg-image--dark {
+  /* 兜底色：被最底层不透明渐变完全盖住，视觉零影响；截图合成读它铺底，
+     避免纯渐变底图导出成透明 PNG。改主色时连同这行一起改。 */
+  background-color: #030c1c;
   background-image:
     linear-gradient(to top, rgba(47, 192, 255, 0.15) 0%, rgba(47, 192, 255, 0) 27%),
     radial-gradient(circle at 50% 44%, rgba(38, 120, 220, 0.34) 0%, rgba(6, 30, 70, 0) 62%),
@@ -1598,6 +1764,8 @@ onUnmounted(() => {
 
 /* 亮色：白心 + 淡蓝网格，避免亮色地图配深底 */
 .map-bg-image--light {
+  /* 同 --dark：仅作截图兜底色，被不透明渐变盖住 */
+  background-color: #e4eef8;
   background-image:
     linear-gradient(to top, rgba(120, 190, 235, 0.26) 0%, rgba(120, 190, 235, 0) 27%),
     radial-gradient(circle at 50% 44%, #ffffff 0%, rgba(232, 244, 255, 0) 62%),

@@ -237,21 +237,22 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/echarts-map',
-    positioning: 'ECharts 中国地图大屏：2D 地图 + 散点 + 视觉映射',
+    positioning: 'ECharts 地图可视化大屏：全国视角 + 省份下钻，2D 地图 + 散点 + 视觉映射',
     needs: [
       { text: '全国范围的数据分布大屏', level: 'fits' },
-      { text: '地图省份下钻', level: 'partial', comment: '2D 下钻参考省份地图页自行组合' },
+      { text: '地图省份下钻', level: 'fits' },
       { text: '立体/3D 地图板块', level: 'no', comment: '用 /threejs-china-3d-map' },
     ],
-    alternatives: ['/echarts-province', '/threejs-china-3d-map'],
+    alternatives: ['/threejs-china-3d-map'],
   },
   {
     path: '/echarts-province',
-    positioning: 'ECharts 省份地图：单省数据可视化与排行',
+    positioning: '已并入 /echarts-map（全国→省份下钻视角），保留历史别名',
     needs: [
-      { text: '单省/单市粒度的地图数据展示', level: 'fits' },
-      { text: 'geojson 按需加载省份边界', level: 'fits' },
+      { text: '单省/单市粒度的地图数据展示', level: 'fits', comment: '由 /echarts-map 省份视角承载' },
+      { text: 'geojson 按需加载省份边界', level: 'fits', comment: '由 /echarts-map 省份视角承载' },
     ],
+    alternatives: ['/echarts-map'],
   },
   {
     path: '/vchart',

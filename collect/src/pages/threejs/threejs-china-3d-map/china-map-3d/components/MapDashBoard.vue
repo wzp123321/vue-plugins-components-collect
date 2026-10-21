@@ -189,8 +189,9 @@ const emit = defineEmits<{
   (e: 'drill', adcode: number): void;
 }>();
 
-// 默认展开：本面板是右下角的主展示区；点击标题栏收起给地图让位。
-const collapsed = ref(false);
+// 默认收起：与其他面板（控制台/区域详情/时间轴）一致——一进页面只露标题栏小卡，
+// 需要看数据时点标题栏展开，避免右下角大块面板挡住地图。
+const collapsed = ref(true);
 
 // ---- KPI 与 TOP6 ----
 const total = computed(() => props.subRegions.reduce((s, r) => s + r.value, 0));

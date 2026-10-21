@@ -26,8 +26,8 @@ export const mapConfig = {
   depth: DEPTH,
   /** 顶面不透明度 */
   opacity: 0.94,
-  /** 板块顶面基色 */
-  color: '#0A1730',
+  /** 板块顶面基色（比侧壁亮一档，让板块顶面从侧壁里浮出来） */
+  color: '#0F2A4A',
   /** 悬停高亮色 */
   hoverColor: '#2C6B8C',
   /** 选中（点击锁定）高亮色 */
@@ -39,10 +39,10 @@ export const mapConfig = {
   /** 层级内部界线（省界 / 市界） */
   innerLineColor: 0x2a6c90,
   innerLineWidth: 1.3,
-  /** 当前层级外轮廓 */
+  /** 当前层级外轮廓：宽度收细、光晕收窄，避免一圈白色泛光抢掉板块本身的注意力 */
   outlineColor: 0x54b4e4,
-  outlineWidth: 2.2,
-  outlineGlowScale: 2.6,
+  outlineWidth: 1.4,
+  outlineGlowScale: 1.6,
 
   /** 贴面线层级：紧贴顶面（depth + 极小 epsilon） */
   // ⚠️ 坑：线框必须贴顶面。原来悬浮 1.5，斜视角下北侧边境线会明显离开板块边缘；

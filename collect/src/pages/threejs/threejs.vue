@@ -6,6 +6,7 @@
 import { MeshPhongMaterial } from 'three';
 import { Scene, PerspectiveCamera, WebGLRenderer, Color, Mesh, BoxGeometry, DirectionalLight } from 'three';
 import { onMounted } from 'vue';
+import { legacyIntensity } from './shared/lighting';
 
 function initThree() {
   // 场景
@@ -23,7 +24,7 @@ function initThree() {
   // 设置灯光
   const color = 0xffffff;
   const intensity = 1;
-  const light = new DirectionalLight(color, intensity);
+  const light = new DirectionalLight(color, legacyIntensity(intensity));
   light.position.set(-1, 2, 4);
   scene.add(light);
 

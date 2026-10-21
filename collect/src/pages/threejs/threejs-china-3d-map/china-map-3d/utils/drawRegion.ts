@@ -21,8 +21,8 @@
  */
 
 import * as THREE from 'three'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { mapConfig } from './mapConfig'
 import { getInnerLineMaterial } from './lineMaterials'
 import { featureRings } from './geo'
@@ -90,6 +90,8 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
         float contour = 0.04 * (0.5 + 0.5 * sin(h * 46.0 - uTime * 0.6));
         base += uScanColor * (scan * uScanIntensity + contour * uScanIntensity * 0.18);
         gl_FragColor = vec4(base, 1.0);
+        // 不在这里转 sRGB：本材质渲染到 composer 的线性 renderTarget，
+        // 色彩空间转换统一由最后一道 mixPass 完成（见 useMapViewport 的 bloomMixShader）。
       }
     `,
   })
@@ -135,6 +137,60 @@ const ringPositions = (ring: Ring, project: ProjectionFn, z: number): number[] |
 };
 
 /**
+ * 把 ExtrudeGeometry 的材质组折叠成两组（盖面 / 侧壁）。
+ *
+ * ⚠️ 坑：ExtrudeGeometry 对**每个 shape** 各 addGroup 两次 —— 盖面 materialIndex 0、
+ *   侧壁 materialIndex 1，N 个 shape 就有 2N 个组。而 Mesh 配材质数组时，
+ *   draw call 数取决于**组数**，不是材质数：339 个环合进一个 geometry 后照样是
+ *   678 次 draw call，等于白合。
+ *   这里按材质重排索引缓冲，让同材质的索引连续，再重建为两个组。
+ *   调用前后顶点数据完全不动，视觉零变化。
+ */
+const collapseExtrudeGroups = (geometry: THREE.ExtrudeGeometry) => {
+  const groups = geometry.groups
+  if (groups.length <= 2) return
+
+  // ⚠️ ExtrudeGeometry 产出的是「非索引几何」（geometry.index === null），
+  //   顶点就是一锅三角形汤，没有索引可重排。先补一份 0..N-1 的索引把它变成索引几何。
+  //   顶点本来就不共享，补索引不会减少顶点，纯粹是为让分组能重排 —— 代价是每个顶点
+  //   多 4 字节索引（五万顶点约 200KB），换来 draw call 从 2N 降到 2。
+  //   顶点数必然超过 65535，必须 Uint32（WebGL2 原生支持）。
+  if (!geometry.index) {
+    const vertexCount = geometry.attributes.position.count
+    const idx = new Uint32Array(vertexCount)
+    for (let i = 0; i < vertexCount; i += 1) idx[i] = i
+    geometry.setIndex(new THREE.BufferAttribute(idx, 1))
+  }
+
+  const index = geometry.index
+  if (!index) return
+
+  let lidCount = 0
+  for (const g of groups) if (g.materialIndex === 0) lidCount += g.count
+  if (lidCount === 0 || lidCount === index.count) return
+
+  // 非索引几何里 group.start 指的就是顶点序号，补完 0..N-1 索引后二者一一对应
+  const sorted = new Uint32Array(index.count)
+  let lidAt = 0
+  let sideAt = lidCount
+  for (const g of groups) {
+    const src = index.array.subarray(g.start, g.start + g.count)
+    if (g.materialIndex === 0) {
+      sorted.set(src, lidAt)
+      lidAt += g.count
+    } else {
+      sorted.set(src, sideAt)
+      sideAt += g.count
+    }
+  }
+
+  geometry.setIndex(new THREE.BufferAttribute(sorted, 1))
+  geometry.clearGroups()
+  geometry.addGroup(0, lidCount, 0)
+  geometry.addGroup(lidCount, index.count - lidCount, 1)
+}
+
+/**
  * 生成单个行政区的 3D 板块。
  * 顶面用 Phong 受光，与外轮廓线共用同一份投影，保证边界严丝合缝。
  *
@@ -152,7 +208,21 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
 
   const side = getSideMaterial()
   const lineMaterial = getInnerLineMaterial()
-  const topMaterials: THREE.MeshPhongMaterial[] = []
+
+  // 一个行政区只用一份顶面材质。原来按环各 new 一个，全国 339 个环就是 339 个
+  // MeshPhongMaterial 实例 —— 既拖慢 draw call 之间的状态切换，hover 改色还得逐个遍历。
+  const topMaterial = new THREE.MeshPhongMaterial({
+    color: mapConfig.color,
+    transparent: true,
+    opacity: mapConfig.opacity,
+    shininess: 18,
+    specular: 0x1a3d55,
+  })
+
+  const shapes: THREE.Shape[] = []
+  // 边界线改走 LineSegments2：闭合环拆成相邻点对写进同一个 buffer，
+  // 一个行政区只发一次 draw call（原来每个环一条 Line2）。
+  const linePositions: number[] = []
 
   for (const ring of rings) {
     // ⚠️ lineZ 贴顶面（depth + 0.06）：线框紧贴板块顶面，斜看不飘离
@@ -164,35 +234,49 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
       if (i === 0) shape.moveTo(positions[i], positions[i + 1])
       else shape.lineTo(positions[i], positions[i + 1])
     }
+    shapes.push(shape)
 
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: mapConfig.depth,
-      bevelEnabled: false,
-      curveSegments: 1,
-    })
+    // 闭合环：末点接回首点，逐段写入线段对 [ax,ay,az, bx,by,bz]
+    const pointCount = positions.length / 3
+    for (let i = 0; i < pointCount; i++) {
+      const a = i * 3
+      const b = ((i + 1) % pointCount) * 3
+      linePositions.push(
+        positions[a],
+        positions[a + 1],
+        positions[a + 2],
+        positions[b],
+        positions[b + 1],
+        positions[b + 2],
+      )
+    }
+  }
 
-    const topMaterial = new THREE.MeshPhongMaterial({
-      color: mapConfig.color,
-      transparent: true,
-      opacity: mapConfig.opacity,
-      shininess: 18,
-      specular: 0x1a3d55,
-    })
-    topMaterials.push(topMaterial)
+  if (!shapes.length) return null
 
-    const mesh = new THREE.Mesh(geometry, [topMaterial, side])
-    // [顶面, 侧壁]：射线只在顶面命中，侧壁不参与拾取
-    mesh.userData = { kind: 'surface', region: object }
-    mesh.renderOrder = 1
-    object.add(mesh)
+  // 所有环合成一个 geometry：draw call 从「每环 2 次」压成「每省 2 次」。
+  // 海南那种 133 个环（南海诸岛）也照样合进来，只是顶点多一点，不额外发 call。
+  const geometry = new THREE.ExtrudeGeometry(shapes, {
+    depth: mapConfig.depth,
+    bevelEnabled: false,
+    curveSegments: 1,
+  })
+  // 关键：不折叠的话 shape 数量直接等于 draw call 数量（每 shape 两个组）
+  collapseExtrudeGroups(geometry)
 
-    const lineGeometry = new LineGeometry()
-    lineGeometry.setPositions(positions)
-    const line = new (Line2 as any)(lineGeometry, lineMaterial) as THREE.Object3D
+  const mesh = new THREE.Mesh(geometry, [topMaterial, side])
+  // [顶面, 侧壁]：射线只在顶面命中，侧壁不参与拾取
+  mesh.userData = { kind: 'surface', region: object }
+  mesh.renderOrder = 1
+  object.add(mesh)
+
+  if (linePositions.length) {
+    const lineGeometry = new LineSegmentsGeometry()
+    lineGeometry.setPositions(linePositions)
+    const line = new (LineSegments2 as any)(lineGeometry, lineMaterial) as THREE.Object3D
     line.renderOrder = 3
     object.add(line)
   }
 
-  if (!topMaterials.length) return null
-  return { object, topMaterials, properties: feature.properties }
+  return { object, topMaterials: [topMaterial], properties: feature.properties }
 };

@@ -193,6 +193,8 @@ const getColumnMaterial = (color: string): THREE.ShaderMaterial => {
         // 横向边缘解析抗锯齿，细柱也不会出现硬边台阶
         alpha *= smoothstep(1.0, 0.86, abs(dx));
         gl_FragColor = vec4(col, alpha);
+        // 不在这里转 sRGB：本材质渲染到 composer 的线性 renderTarget，
+        // 色彩空间转换统一由最后一道 mixPass 完成（见 useMapViewport 的 bloomMixShader）。
       }
     `,
     transparent: true,

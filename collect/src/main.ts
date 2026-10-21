@@ -1,3 +1,5 @@
+// 必须最先执行：关闭 three 0.173 的默认色彩管理，恢复升级前的配色观感（详见文件内注释）
+import './three-compat';
 import { createApp } from 'vue';
 import App from './App.vue';
 import { createPinia } from 'pinia';
