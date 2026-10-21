@@ -120,6 +120,15 @@ export const setRegionScan = (enabled: boolean): void => {
 };
 
 /**
+ * 同步侧壁共享材质的 depth uniform：扁平模式改了 mapConfig.depth 后必须调用，
+ * 否则侧壁竖直渐变仍按旧厚度归一化（vZ/depth 错配），薄板会整体发暗或对比失真。
+ * 侧壁是全局单例材质，重建几何不会自动更新它的 uniform。
+ */
+export const updateRegionDepth = (d: number): void => {
+  if (sideMaterial) (sideMaterial.uniforms.depth as { value: number }).value = d
+};
+
+/**
  * 把一个环投影成顶面用的三维点序列 [x, y, z, ...]（z = lineZ 贴顶面）。
  * 坐标转换：世界 (x, -y, z)，即把投影的屏幕 y（向下）翻成世界 y（向上）。
  * @returns 点序列；若合法点少于 3 个（构不成面）返回 null

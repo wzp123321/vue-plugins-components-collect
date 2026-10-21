@@ -718,6 +718,39 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     setAutoRotate,
     screenshot,
     setDragMode,
+    /**
+     * 读取当前相机位姿（位置 + 视点），四舍五入便于写入分享链接 hash。
+     * 分享时取这一刻的视角；restore 时原样回放，做到"打开链接即还原机位"。
+     */
+    getViewState: () => {
+      if (!camera || !controls) return null
+      const r = (n: number) => Math.round(n * 100) / 100
+      return {
+        position: [r(camera.position.x), r(camera.position.y), r(camera.position.z)] as [
+          number,
+          number,
+          number,
+        ],
+        target: [r(controls.target.x), r(controls.target.y), r(controls.target.z)] as [
+          number,
+          number,
+          number,
+        ],
+      }
+    },
+    /**
+     * 还原相机位姿（瞬移，duration<=0）。分享链接进入时调用，让"层级 + 机位"
+     * 一起还原；同时按当前距离重设缩放上下限，避免被 min/maxDistance 夹断。
+     */
+    setViewState: (state: { position: [number, number, number]; target: [number, number, number] } | null) => {
+      if (!camera || !controls || !state) return
+      controls.target.set(state.target[0], state.target[1], state.target[2])
+      camera.position.set(state.position[0], state.position[1], state.position[2])
+      const dist = camera.position.distanceTo(controls.target)
+      controls.minDistance = Math.max(1, dist * 0.42)
+      controls.maxDistance = dist * 2.1
+      controls.update()
+    },
     dragMode: () => dragMode,
     onTick: (tick: Tick) => {
       ticks.add(tick)
