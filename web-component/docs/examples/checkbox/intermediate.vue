@@ -11,8 +11,8 @@
   >
     <te-checkbox v-for="city in cities" :key="city" :label="city">{{
       city
-    }}</te-checkbox>
-  </te-checkbox-group>
+    }}</el-checkbox>
+  </el-checkbox-group>
 </template>
 
 <script lang="ts" setup>

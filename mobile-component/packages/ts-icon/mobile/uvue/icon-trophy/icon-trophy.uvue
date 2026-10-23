@@ -1,0 +1,78 @@
+<template>
+  <view
+    class="icon"
+    <!-- #ifdef H5 -->
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    :style="[iconStyle]"
+    <!-- #endif -->
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" fill-rule="evenodd" d="M16.617 3a2 2 0 0 1 1.985 1.752L18.758 6h.668a2.29 2.29 0 0 1 2.246 2.74l-.2 1.005a4.05 4.05 0 0 1-2.973 3.13 7.18 7.18 0 0 1-5.5 4.056V19h3a1 1 0 0 1 0 2H8a1 1 0 0 1 0-2h3v-2.069a7.18 7.18 0 0 1-5.498-4.056 4.05 4.05 0 0 1-2.972-3.13l-.2-1.006A2.29 2.29 0 0 1 4.573 6h.668l.156-1.248A2 2 0 0 1 7.383 3zm0 2H7.383L6.86 9.178a5.18 5.18 0 1 0 10.28 0zm2.81 3h-.42l.117.93q.075.61.05 1.203.196-.276.294-.61l.042-.17.2-1.006a.29.29 0 0 0-.217-.34zM4.991 8h-.418a.29.29 0 0 0-.285.347l.201 1.005c.058.289.174.553.336.78q-.025-.592.05-1.202z" clip-rule="evenodd"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-trophy/trophy.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color ?? 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  /* #ifdef H5 */
+  color: var(--icon-color, currentColor);
+  /* #endif */
+}
+/* #ifdef H5 */
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+/* #endif */
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

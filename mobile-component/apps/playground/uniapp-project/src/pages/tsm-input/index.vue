@@ -133,7 +133,7 @@ const handleConfirm = (event: any) => {
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 .container {
   padding: 20px;
   background-color: #f5f7fa;

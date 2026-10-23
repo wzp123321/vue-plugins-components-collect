@@ -2,7 +2,7 @@
   <te-radio-group v-model="treeProps.checkStrictly">
     <te-radio-button :value="true" label="true" />
     <te-radio-button :value="false" label="false" />
-  </te-radio-group>
+  </el-radio-group>
   <te-table
     :data="tableData"
     :tree-props="treeProps"
@@ -13,7 +13,7 @@
     <te-table-column prop="date" label="Date" />
     <te-table-column prop="name" label="Name" />
     <te-table-column prop="address" label="Address" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

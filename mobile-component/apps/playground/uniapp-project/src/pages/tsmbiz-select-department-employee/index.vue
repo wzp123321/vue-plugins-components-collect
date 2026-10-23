@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import type { dataProps } from '@/uni_modules/@tiansu/ts-mobile-biz-ui/common/list-cell/props';
+import type { dataProps } from '@/uni_modules/@zpackage/mobile-package/biz-ui/common/list-cell/props';
 import Request from 'luch-request';
 
 const http = new Request({

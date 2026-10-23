@@ -12,7 +12,7 @@
         placeholder="Please Input"
         @select="handleSelect"
       />
-    </te-col>
+    </el-col>
     <te-col :span="12">
       <div class="sub-title my-2 text-sm text-gray-600">
         list suggestions on input
@@ -26,8 +26,8 @@
         placeholder="Please Input"
         @select="handleSelect"
       />
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

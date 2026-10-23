@@ -6,23 +6,23 @@
     :auto-upload="false"
   >
     <template #trigger>
-      <te-button type="primary">select file</te-button>
+      <te-button type="primary">select file</el-button>
     </template>
 
     <te-button class="ml-3" type="success" @click="submitUpload">
       upload to server
-    </te-button>
+    </el-button>
 
     <template #tip>
       <div class="te-upload__tip">
         jpg/png files with a size less than 500kb
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import type { UploadInstance } from '@tiansu/element-plus'
+import type { UploadInstance } from 'element-plus'
 
 const uploadRef = ref<UploadInstance>()
 

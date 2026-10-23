@@ -4,16 +4,16 @@
 		<te-carousel height="150px">
 			<te-carousel-item v-for="item in 4" :key="item">
 				<h3 class="small justify-center" text="2xl">{{ item }}</h3>
-			</te-carousel-item>
-		</te-carousel>
+			</el-carousel-item>
+		</el-carousel>
 	</div>
 	<div class="block text-center" m="t-4">
 		<span class="demonstration">Switch when indicator is clicked</span>
 		<te-carousel trigger="click" height="150px">
 			<te-carousel-item v-for="item in 4" :key="item">
 				<h3 class="small justify-center" text="2xl">{{ item }}</h3>
-			</te-carousel-item>
-		</te-carousel>
+			</el-carousel-item>
+		</el-carousel>
 	</div>
 </template>
 

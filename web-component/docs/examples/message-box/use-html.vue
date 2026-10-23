@@ -1,12 +1,12 @@
 <template>
-  <te-button text @click="open">Click to open Message Box</te-button>
+  <te-button text @click="open">Click to open Message Box</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessageBox } from '@tiansu/element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const open = () => {
-  TeMessageBox.alert(
+  ElMessageBox.alert(
     '<strong>proxy is <i>HTML</i> string</strong>',
     'HTML String',
     {

@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue';
 import type { AxiosInstance } from 'axios';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 import { TeAlarmAffixApi } from '../api/TeAlarmAffixApi';
 import { type AlarmInfo, AlarmType } from '../api/index.api';
 
@@ -94,7 +94,7 @@ export const useAlarmConfirm = (
         type: activeTab.value,
         comment: remark,
       });
-      TeMessage.success(
+      ElMessage.success(
         pendingIsBatch.value ? `已确认 ${idList.length} 条` : '已确认',
       );
       if (pendingIsBatch.value) {
@@ -105,7 +105,7 @@ export const useAlarmConfirm = (
       await refresh();
       startPolling();
     } catch (err) {
-      TeMessage.error(err instanceof Error ? err.message : '确认失败');
+      ElMessage.error(err instanceof Error ? err.message : '确认失败');
     } finally {
       remarkSaving.value = false;
     }
@@ -115,7 +115,7 @@ export const useAlarmConfirm = (
   const onBatchConfirm = () => {
     if (remarkDialogVisible.value) return;
     if (!selectedRows.value.length) {
-      TeMessage.error('请先勾选');
+      ElMessage.error('请先勾选');
       return;
     }
     pendingIsBatch.value = true;

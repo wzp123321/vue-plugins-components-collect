@@ -2,7 +2,7 @@
   <div :class="body ? 'hlms-workflow-detail-body' : 'hlms-workflow-detail'" v-loading="loading">
     <div :class="body ? 'hwd-content-body' : 'hwd-content'" @click="noClose">
       <div v-if="body" class="hwd-content-body-close">
-        <te-button text @click="close()"><icon-close></icon-close></te-button>
+        <te-button text @click="close()"><icon-close></icon-close></el-button>
       </div>
       <div class="hwdb-head">
         <div class="hwdb-head-tabs">
@@ -57,7 +57,7 @@
             class="hwdb-remark"
             v-if="identityType.includes(MyTaskTypeEnum.TODO) || identityType.includes('STARTER')"
           >
-            <te-input placeholder="请输入备注" v-model="remark" :maxlength="200"></te-input>
+            <te-input placeholder="请输入备注" v-model="remark" :maxlength="200"></el-input>
           </div>
         </div>
         <workflow-log
@@ -85,7 +85,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { TeInput, TeButton, vLoading, TeMessage } from '@tiansu/element-plus';
+import { ElInput, ElButton, vLoading, ElMessage } from 'element-plus';
 import { IconClose, IconTitleDecoration } from '@arco-iconbox/vue-te/esm';
 import { TeEmployee } from '../../te-employee';
 import WorkflowLog from './workflow-log.vue';
@@ -227,7 +227,7 @@ const completeTask = () => {
     (data) => {
       loading.value = false;
       if (data.errcode === '0') {
-        TeMessage.success('操作成功');
+        ElMessage.success('操作成功');
         emits('confirm', data);
       } else {
         emits('cancel', data.errmsg);

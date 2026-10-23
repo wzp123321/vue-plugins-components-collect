@@ -6,7 +6,7 @@
       active-value="100"
       inactive-value="0"
     />
-  </te-tooltip>
+  </el-tooltip>
 </template>
 
 <script lang="ts" setup>

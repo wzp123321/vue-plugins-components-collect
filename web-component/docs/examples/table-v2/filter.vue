@@ -10,15 +10,15 @@
 <script lang="tsx" setup>
 import { ref } from 'vue'
 import {
-  TeButton,
-  TeCheckbox,
-  TeIcon,
-  TePopover,
+  ElButton,
+  ElCheckbox,
+  ElIcon,
+  ElPopover,
   TableV2FixedDir,
-} from '@tiansu/element-plus'
+} from 'element-plus'
 import { Filter } from '@element-plus/icons-vue'
 
-import type { HeaderCellSlotProps } from '@tiansu/element-plus'
+import type { HeaderCellSlotProps } from 'element-plus'
 
 const generateColumns = (length = 10, prefix = 'column-', props?: any) =>
   Array.from({ length }).map((_, columnIndex) => ({
@@ -70,32 +70,32 @@ columns[0].headerCellRenderer = (props: HeaderCellSlotProps) => {
   return (
     <div class="flex items-center justify-center">
       <span class="mr-2 text-xs">{props.column.title}</span>
-      <TePopover ref={popoverRef} trigger="click" {...{ width: 200 }}>
+      <ElPopover ref={popoverRef} trigger="click" {...{ width: 200 }}>
         {{
           default: () => (
             <div class="filter-wrapper">
               <div class="filter-group">
-                <TeCheckbox v-model={shouldFilter.value}>
+                <ElCheckbox v-model={shouldFilter.value}>
                   Filter Text
-                </TeCheckbox>
+                </ElCheckbox>
               </div>
               <div class="te-table-v2__demo-filter">
-                <TeButton text onClick={onFilter}>
+                <ElButton text onClick={onFilter}>
                   Confirm
-                </TeButton>
-                <TeButton text onClick={onReset}>
+                </ElButton>
+                <ElButton text onClick={onReset}>
                   Reset
-                </TeButton>
+                </ElButton>
               </div>
             </div>
           ),
           reference: () => (
-            <TeIcon class="cursor-pointer">
+            <ElIcon class="cursor-pointer">
               <Filter />
-            </TeIcon>
+            </ElIcon>
           ),
         }}
-      </TePopover>
+      </ElPopover>
     </div>
   )
 }

@@ -9,29 +9,29 @@
   >
     <te-form-item label="Password" prop="pass">
       <te-input v-model="ruleForm.pass" type="password" autocomplete="off" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Confirm" prop="checkPass">
       <te-input
         v-model="ruleForm.checkPass"
         type="password"
         autocomplete="off"
       />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Age" prop="age">
       <te-input v-model.number="ruleForm.age" />
-    </te-form-item>
-    <te-form-item>
+    </el-form-item>
+    <el-form-item>
       <te-button type="primary" @click="submitForm(ruleFormRef)"
         >Submit</te-button
       >
-      <te-button @click="resetForm(ruleFormRef)">Reset</te-button>
-    </te-form-item>
-  </te-form>
+      <te-button @click="resetForm(ruleFormRef)">Reset</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import type { FormInstance, FormRules } from '@tiansu/element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const ruleFormRef = ref<FormInstance>()
 

@@ -1,5 +1,5 @@
 <template>
-  <te-button type="primary" @click="handleUpload">点击导入</te-button>
+  <te-button type="primary" @click="handleUpload">点击导入</el-button>
   <te-import
     v-model="excelUploadShow"
     importApi="sl/api/pms/v1/schedule/import"
@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
   import { TeImport } from '@ts-web-package/components/lib/te-import';
-  import { TeButton } from '@tiansu/element-plus';
+  import { ElButton } from 'element-plus';
   import { ref } from 'vue';
 
   const excelUploadShow = ref(false);

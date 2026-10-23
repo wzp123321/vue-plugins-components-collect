@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemFilePicker, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemFilePicker, TemCell } from '@zpackage/mobile-package';
 
 const imgFiles = ref<[]>([]);
 const videoFiles = ref<[]>([]);

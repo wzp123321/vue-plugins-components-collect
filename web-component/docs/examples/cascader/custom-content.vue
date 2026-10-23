@@ -4,7 +4,7 @@
       <span>{{ data.label }}</span>
       <span v-if="!node.isLeaf"> ({{ data.children.length }}) </span>
     </template>
-  </te-cascader>
+  </el-cascader>
 </template>
 
 <script lang="ts" setup>

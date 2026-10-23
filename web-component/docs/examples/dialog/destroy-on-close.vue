@@ -1,7 +1,7 @@
 <template>
   <te-button text @click="centerDialogVisible = true">
     Click to open Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog
     v-model="centerDialogVisible"
@@ -19,13 +19,13 @@
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="centerDialogVisible = false">Cancel</te-button>
+        <te-button @click="centerDialogVisible = false">Cancel</el-button>
         <te-button type="primary" @click="centerDialogVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>

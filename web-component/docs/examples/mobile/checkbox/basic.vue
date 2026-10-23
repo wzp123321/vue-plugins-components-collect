@@ -34,7 +34,7 @@ import { ref } from 'vue';
 // import {
 //   TemCheckboxGroup,
 //   TemCheckbox,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 
 const items = ref([
   {

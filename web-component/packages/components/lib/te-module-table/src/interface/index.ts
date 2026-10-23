@@ -6,7 +6,7 @@
  * @Description:
  */
 import { VNode } from 'vue';
-import { TableColumnCtx } from '@tiansu/element-plus/es/components/table/src/table-column/defaults';
+import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults';
 
 export type RenderScope<T> = {
   row: T;

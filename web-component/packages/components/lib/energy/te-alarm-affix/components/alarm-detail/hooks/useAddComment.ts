@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import { ref } from 'vue';
 import type { AxiosInstance } from 'axios';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 import { AddCommentModule } from '../alarm-detail.function';
 
 export const useAddComment = (axiosInstance: AxiosInstance) => {
@@ -15,7 +15,7 @@ export const useAddComment = (axiosInstance: AxiosInstance) => {
   ) => {
     // 新增备注不填无法确认逻辑
     if (addCommentForm.value.comment === '') {
-      TeMessage.error('请输入备注内容');
+      ElMessage.error('请输入备注内容');
       return;
     }
     const obj = {

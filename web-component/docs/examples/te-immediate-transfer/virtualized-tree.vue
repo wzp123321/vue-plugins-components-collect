@@ -50,7 +50,7 @@ import {
   TreeKey,
   TreeData,
   TreeNodeData,
-} from '@tiansu/element-plus/es/components/tree-v2/src/types';
+} from 'element-plus/es/components/tree-v2/src/types';
 import {
   TeImmediateTransfer,
   TeImmediateTransferTreeItem,

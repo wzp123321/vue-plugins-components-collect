@@ -10,7 +10,7 @@
       :maxlength="200"
       :show-word-limit="true"
     >
-    </te-input>
+    </el-input>
     <te-input
       v-else-if="item.componentType === FormComponentTypeEnum.TEXT_AREA"
       class="wf-item-value-noborder"
@@ -21,7 +21,7 @@
       :maxlength="200"
       :show-word-limit="true"
     >
-    </te-input>
+    </el-input>
     <!-- 数字输入框 -->
     <te-input-number
       v-else-if="item.componentType === FormComponentTypeEnum.NUMBER"
@@ -30,7 +30,7 @@
       :max="999999999999999"
       :placeholder="item.number?.placeholder"
       :disabled="item.permission === FormFieldPermissionEnum.READ_ONLY"
-    ></te-input-number>
+    ></el-input-number>
     <!-- 单选框 -->
     <te-select
       v-else-if="item.componentType === FormComponentTypeEnum.SELECT"
@@ -40,8 +40,8 @@
       :clearable="true"
       :disabled="item.permission === FormFieldPermissionEnum.READ_ONLY"
     >
-      <te-option v-for="option in item.select?.items" :label="option.label" :value="option.value || ''"></te-option>
-    </te-select>
+      <te-option v-for="option in item.select?.items" :label="option.label" :value="option.value || ''"></el-option>
+    </el-select>
     <!-- 多选框 -->
     <te-select
       v-else-if="item.componentType === FormComponentTypeEnum.MULTI_SELECT"
@@ -60,8 +60,8 @@
         v-for="option in item.multiSelect?.items"
         :label="option.label"
         :value="option.value || ''"
-      ></te-option>
-    </te-select>
+      ></el-option>
+    </el-select>
     <!-- 日期选择 -->
     <te-date-picker
       v-else-if="item.componentType === FormComponentTypeEnum.DATE_TIME"
@@ -77,7 +77,7 @@
       :model-value="(item.valueConver as number)"
       :disabled="item.permission === FormFieldPermissionEnum.READ_ONLY"
       @update:model-value="dateTimeChange($event, item)"
-    ></te-date-picker>
+    ></el-date-picker>
     <!-- 日期范围选择 -->
     <te-date-picker
       v-else-if="item.componentType === FormComponentTypeEnum.DATE_TIME_RANGE"
@@ -94,7 +94,7 @@
       start-placeholder="开始时间"
       end-placeholder="结束时间"
       @update:model-value="dateTimeRangeChange($event, item)"
-    ></te-date-picker>
+    ></el-date-picker>
     <!-- 人员选择/部门选择 -->
     <form-subject-select
       v-else-if="
@@ -200,7 +200,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { TeInput, TeInputNumber, TeSelect, TeOption, TeDatePicker } from '@tiansu/element-plus';
+import { ElInput, ElInputNumber, ElSelect, ElOption, ElDatePicker } from 'element-plus';
 import FormWidgetInstance from '../models/FormWidgetInstance_local';
 import { FormComponentTypeEnum } from '../../../models/FormComponentTypeEnum';
 import FormSubjectSelect from './form-subject-select.vue';

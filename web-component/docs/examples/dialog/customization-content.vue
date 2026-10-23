@@ -1,42 +1,42 @@
 <template>
   <te-button text @click="dialogTableVisible = true">
     open a Table nested Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog v-model="dialogTableVisible" title="Shipping address">
     <te-table :data="gridData">
       <te-table-column property="date" label="Date" width="150" />
       <te-table-column property="name" label="Name" width="200" />
       <te-table-column property="address" label="Address" />
-    </te-table>
-  </te-dialog>
+    </el-table>
+  </el-dialog>
 
   <!-- Form -->
   <te-button text @click="dialogFormVisible = true">
     open a Form nested Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog v-model="dialogFormVisible" title="Shipping address">
     <te-form :model="form">
       <te-form-item label="Promotion name" :label-width="formLabelWidth">
         <te-input v-model="form.name" autocomplete="off" />
-      </te-form-item>
+      </el-form-item>
       <te-form-item label="Zones" :label-width="formLabelWidth">
         <te-select v-model="form.region" placeholder="Please select a zone">
           <te-option label="Zone No.1" value="shanghai" />
           <te-option label="Zone No.2" value="beijing" />
-        </te-select>
-      </te-form-item>
-    </te-form>
+        </el-select>
+      </el-form-item>
+    </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="dialogFormVisible = false">Cancel</te-button>
+        <te-button @click="dialogFormVisible = false">Cancel</el-button>
         <te-button type="primary" @click="dialogFormVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>

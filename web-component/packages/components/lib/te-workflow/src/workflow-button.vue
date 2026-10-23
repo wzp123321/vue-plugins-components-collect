@@ -15,7 +15,7 @@
       @click="buttonClick(button, $event)"
     >
       {{ button.name }}
-    </te-button>
+    </el-button>
     <te-button
       class="wb-perbutton"
       v-else
@@ -25,25 +25,25 @@
       @click="buttonClick(button, $event)"
     >
       {{ button.name }}
-    </te-button>
+    </el-button>
     <te-dropdown v-if="moreButton.length > 0">
-      <te-button class="wb-dropdown-button" v-if="useScene === 'table'" link type="primary">更多</te-button>
+      <te-button class="wb-dropdown-button" v-if="useScene === 'table'" link type="primary">更多</el-button>
       <div class="wb-dropdown-button" v-else>更多</div>
       <template #dropdown>
-        <te-dropdown-menu>
+        <el-dropdown-menu>
           <te-dropdown-item v-for="button in moreButton">
             <span @click="buttonClick(button, $event)">
               {{ button.name }}
             </span>
-          </te-dropdown-item>
-        </te-dropdown-menu>
+          </el-dropdown-item>
+        </el-dropdown-menu>
       </template>
-    </te-dropdown>
+    </el-dropdown>
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue';
-import { TeButton, TeDropdown, TeDropdownMenu, TeDropdownItem, TeMessage } from '@tiansu/element-plus';
+import { ElButton, ElDropdown, ElDropdownMenu, ElDropdownItem, ElMessage } from 'element-plus';
 import WorkflowApi from './apis/WorkflowApi';
 import { ButtonStyle, TerminalType } from './models/enum/workflow';
 import ActionButton from '../../models/ActionButton';
@@ -283,7 +283,7 @@ const converTerminalType = (types: string[]) => {
 const buttonClick = (button: ActionButton & { isSupperted: boolean }, event: Event) => {
   if (button.isSupperted === false) {
     if (props.unSuppertedMode === 'tip') {
-      TeMessage.error('本终端不支持此操作');
+      ElMessage.error('本终端不支持此操作');
     } else if (props.unSuppertedMode === 'auto' || props.unSuppertedMode === 'visible') {
       let b1 = { ...button }
       delete b1.isSupperted;

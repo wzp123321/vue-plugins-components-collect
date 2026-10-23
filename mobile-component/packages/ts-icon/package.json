@@ -1,0 +1,32 @@
+{
+  "name": "@zpackage/mobile-package/ts-icon",
+  "version": "0.0.55",
+  "description": "Tiansu Icons",
+  "main": "dist/web/vue/index.js",
+  "types": "dist/web/vue/index.d.ts",
+  "files": [
+    "dist",
+    "scripts"
+  ],
+  "bin": {
+    "@zpackage/mobile-package/ts-icon": "./scripts/install.js"
+  },
+  "scripts": {
+    "build:svg": "node scripts/build.js"
+  },
+  "keywords": [
+    "icons",
+    "svg",
+    "vue",
+    "uni-app"
+  ],
+  "author": "Tiansu",
+  "license": "MIT",
+  "exports": {
+    "./web/vue": {
+      "types": "./dist/web/vue/index.d.ts",
+      "default": "./dist/web/vue/index.js"
+    },
+    "./mobile/*": "./dist/mobile/*"
+  }
+}

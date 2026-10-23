@@ -20,10 +20,10 @@
       @change="handleChange"
     >
       <template #left-footer>
-        <te-button class="transfer-footer" size="small">Operation</te-button>
+        <te-button class="transfer-footer" size="small">Operation</el-button>
       </template>
       <template #right-footer>
-        <te-button class="transfer-footer" size="small">Operation</te-button>
+        <te-button class="transfer-footer" size="small">Operation</el-button>
       </template>
     </te-transfer>
     <p style="text-align: center; margin: 50px 0 20px">
@@ -49,10 +49,10 @@
           <span>{{ option.key }} - {{ option.label }}</span>
         </template>
         <template #left-footer>
-          <te-button class="transfer-footer" size="small">Operation</te-button>
+          <te-button class="transfer-footer" size="small">Operation</el-button>
         </template>
         <template #right-footer>
-          <te-button class="transfer-footer" size="small">Operation</te-button>
+          <te-button class="transfer-footer" size="small">Operation</el-button>
         </template>
       </te-transfer>
     </div>

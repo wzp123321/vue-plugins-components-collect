@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-// import { TemAvatar, TemBadge } from '@tiansu/ts-mobile-package';
+// import { TemAvatar, TemBadge } from '@zpackage/mobile-package';
 </script>
 
 <style lang="scss" scoped>

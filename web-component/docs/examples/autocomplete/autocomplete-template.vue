@@ -9,7 +9,7 @@
     <template #suffix>
       <te-icon class="te-input__icon" @click="handleIconClick">
         <edit />
-      </te-icon>
+      </el-icon>
     </template>
     <template #default="{ item }">
       <div class="value">{{ item.value }}</div>

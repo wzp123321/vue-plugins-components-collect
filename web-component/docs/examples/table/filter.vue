@@ -1,6 +1,6 @@
 <template>
-  <te-button @click="resetDateFilter">reset date filter</te-button>
-  <te-button @click="clearFilter">reset all filters</te-button>
+  <te-button @click="resetDateFilter">reset date filter</el-button>
+  <te-button @click="clearFilter">reset all filters</el-button>
   <te-table ref="tableRef" row-key="date" :data="tableData" style="width: 100%">
     <te-table-column
       prop="date"
@@ -37,13 +37,13 @@
           >{{ scope.row.tag }}</te-tag
         >
       </template>
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import type { TableColumnCtx, TableInstance } from '@tiansu/element-plus'
+import type { TableColumnCtx, TableInstance } from 'element-plus'
 
 interface User {
   date: string

@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { TeImmediateTransfer } from '@ts-web-package/components/lib/te-immediate-transfer';
 import { onMounted, ref } from 'vue';
-import type Node from '@tiansu/element-plus/es/components/tree/src/model/node';
+import type Node from 'element-plus/es/components/tree/src/model/node';
 
 const checkedValue = ref();
 const treeNumber = ref(89);

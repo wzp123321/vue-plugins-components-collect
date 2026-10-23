@@ -14,11 +14,11 @@
 <script lang="tsx" setup>
 import { ref } from 'vue'
 import {
-  TeButton,
-  TeTag,
+  ElButton,
+  ElTag,
   TableV2FixedDir,
   TableV2SortOrder,
-} from '@tiansu/element-plus'
+} from 'element-plus'
 
 import type { Column, SortBy } from '@element-plus/components/table-v2'
 
@@ -55,7 +55,7 @@ const columns: Column<any>[] = [
     dataKey: 'name',
     width: 150,
     align: 'center',
-    cellRenderer: ({ cellData: name }) => <TeTag>{name}</TeTag>,
+    cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'description',
@@ -71,10 +71,10 @@ const columns: Column<any>[] = [
     title: 'Operations',
     cellRenderer: () => (
       <>
-        <TeButton size="small">Edit</TeButton>
-        <TeButton size="small" type="danger">
+        <ElButton size="small">Edit</ElButton>
+        <ElButton size="small" type="danger">
           Delete
-        </TeButton>
+        </ElButton>
       </>
     ),
     width: 150,

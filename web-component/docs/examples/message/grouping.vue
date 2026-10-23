@@ -1,12 +1,12 @@
 <template>
-  <te-button :plain="true" @click="open">Show message</te-button>
+  <te-button :plain="true" @click="open">Show message</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 
 const open = () => {
-  TeMessage({
+  ElMessage({
     message: 'this is a message.',
     grouping: true,
     type: 'success',

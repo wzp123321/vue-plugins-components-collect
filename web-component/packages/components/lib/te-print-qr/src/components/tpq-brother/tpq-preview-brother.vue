@@ -14,5 +14,5 @@ const props = withDefaults(
 );
 </script>
 <style scoped>
-/* @import '@tiansu/ts-web-package/dist/styles/index.css'; */
+/* @import '@zpackage/web-package/dist/styles/index.css'; */
 </style>

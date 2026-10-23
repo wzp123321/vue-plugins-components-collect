@@ -13,26 +13,26 @@
           <template #default="{ row }">
             {{ formatTime(row.generationTime) }}
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column prop="levelCode" label="告警等级" width="88">
           <template #default="{ row }">
             <te-tag :type="mapTagTypeByAlarmLevel(row.levelCode)" effect="dark">
               {{ mapAlarmLevelNameByLevel(row.levelCode) }}
-            </te-tag>
+            </el-tag>
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column prop="systemName" label="专业模块" width="120">
           <template #default="{ row }">
             {{ row?.systemName || '-' }}
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column
           prop="objectName"
           label="告警对象"
           min-width="200"
           show-overflow-tooltip
         >
-        </te-table-column>
+        </el-table-column>
         <te-table-column prop="drawLinkList" label="告警追踪" width="90px">
           <template #default="scope">
             <te-popover
@@ -45,7 +45,7 @@
               @hide="handleHide"
             >
               <template #reference>
-                <te-button link type="primary">电子地图</te-button>
+                <te-button link type="primary">电子地图</el-button>
               </template>
               <div class="adt-popover-body">
                 <div
@@ -64,9 +64,9 @@
                   {{ el.drawName }}
                 </div>
               </div>
-            </te-popover>
+            </el-popover>
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column
           v-if="showAlarmStatus"
           prop="statusName"
@@ -80,9 +80,9 @@
               :type="row.statusName === '已恢复' ? 'info' : 'danger'"
             >
               {{ row.statusName }}
-            </te-badge>
+            </el-badge>
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column
           prop="operationStatusName"
           label="处理状态"
@@ -103,17 +103,17 @@
               @click="emit('row-confirm', row)"
             >
               确认
-            </te-button>
+            </el-button>
           </template>
-        </te-table-column>
+        </el-table-column>
         <te-table-column label="查看" width="80">
           <template #default="{ row }">
             <te-button link type="primary" @click="emit('view', row)">
               查看
-            </te-button>
+            </el-button>
           </template>
-        </te-table-column>
-      </te-table>
+        </el-table-column>
+      </el-table>
     </div>
     <div class="alarm-data-table-pager">
       <te-pagination
@@ -133,14 +133,14 @@
 
 <script lang="ts" setup>
 import {
-  TeTable,
+  ElTable,
   TeTableColumn,
-  TeTag,
-  TeBadge,
-  TePopover,
-  TeButton,
+  ElTag,
+  ElBadge,
+  ElPopover,
+  ElButton,
   TePagination,
-} from '@tiansu/element-plus';
+} from 'element-plus';
 import { inject, ref } from 'vue';
 import { IAlarmLinkList, type AlarmInfo } from '../api/index.api';
 import { IMS_SYSTEM_PREFIX } from '../constant';

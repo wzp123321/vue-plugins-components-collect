@@ -1,31 +1,31 @@
 <template>
   <div class="flex flex-wrap items-center">
-    <te-dropdown>
+    <el-dropdown>
       <te-button type="primary">
-        Dropdown List<te-icon class="te-icon--right"><arrow-down /></te-icon>
-      </te-button>
+        Dropdown List<te-icon class="te-icon--right"><arrow-down /></el-icon>
+      </el-button>
       <template #dropdown>
-        <te-dropdown-menu>
-          <te-dropdown-item>Action 1</te-dropdown-item>
-          <te-dropdown-item>Action 2</te-dropdown-item>
-          <te-dropdown-item>Action 3</te-dropdown-item>
-          <te-dropdown-item>Action 4</te-dropdown-item>
-          <te-dropdown-item>Action 5</te-dropdown-item>
-        </te-dropdown-menu>
+        <el-dropdown-menu>
+          <el-dropdown-item>Action 1</el-dropdown-item>
+          <el-dropdown-item>Action 2</el-dropdown-item>
+          <el-dropdown-item>Action 3</el-dropdown-item>
+          <el-dropdown-item>Action 4</el-dropdown-item>
+          <el-dropdown-item>Action 5</el-dropdown-item>
+        </el-dropdown-menu>
       </template>
-    </te-dropdown>
+    </el-dropdown>
     <te-dropdown split-button type="primary" @click="handleClick">
       Dropdown List
       <template #dropdown>
-        <te-dropdown-menu>
-          <te-dropdown-item>Action 1</te-dropdown-item>
-          <te-dropdown-item>Action 2</te-dropdown-item>
-          <te-dropdown-item>Action 3</te-dropdown-item>
-          <te-dropdown-item>Action 4</te-dropdown-item>
-          <te-dropdown-item>Action 5</te-dropdown-item>
-        </te-dropdown-menu>
+        <el-dropdown-menu>
+          <el-dropdown-item>Action 1</el-dropdown-item>
+          <el-dropdown-item>Action 2</el-dropdown-item>
+          <el-dropdown-item>Action 3</el-dropdown-item>
+          <el-dropdown-item>Action 4</el-dropdown-item>
+          <el-dropdown-item>Action 5</el-dropdown-item>
+        </el-dropdown-menu>
       </template>
-    </te-dropdown>
+    </el-dropdown>
   </div>
 </template>
 

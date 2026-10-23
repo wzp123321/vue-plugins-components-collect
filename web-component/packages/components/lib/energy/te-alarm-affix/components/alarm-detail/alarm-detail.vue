@@ -47,23 +47,23 @@
                 "
               >
                 {{ detailData.levelName }}
-              </te-tag>
-              <te-divider direction="vertical" v-if="isAlarmType"></te-divider>
+              </el-tag>
+              <te-divider direction="vertical" v-if="isAlarmType"></el-divider>
               <te-badge
                 is-status
                 :type="detailData.statusName === '已恢复' ? 'info' : 'danger'"
                 v-if="isAlarmType"
               >
                 {{ detailData.statusName }}
-              </te-badge>
-              <te-divider direction="vertical" v-if="isAlarmType"></te-divider>
+              </el-badge>
+              <te-divider direction="vertical" v-if="isAlarmType"></el-divider>
               <div class="ad-label-list" v-if="isAlarmType">
                 <te-tag
                   v-for="label in detailData.labelList"
                   :type="(ALARM_LABEL_MAP as any)[label].type"
                 >
                   {{ (ALARM_LABEL_MAP as any)[label].name }}
-                </te-tag>
+                </el-tag>
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@
                           "
                         >
                           修改
-                        </te-link>
+                        </el-link>
                       </div>
                       <div class="ad-threshold-number">
                         {{ detailData.alarmChart?.overrunValue ?? '-' }}
@@ -187,7 +187,7 @@
                           @click="switchChart('low')"
                         >
                           <icon-left />
-                        </te-icon>
+                        </el-icon>
                         <span
                           class="ad-chart-cursor-pointer ad-chart-bold"
                           @click="switchChart('low')"
@@ -339,7 +339,7 @@
                     </template>
                   </div>
                 </div>
-              </te-tab-pane>
+              </el-tab-pane>
               <te-tab-pane label="备注" name="remarks" :key="1">
                 <te-form
                   :model="addCommentForm"
@@ -367,8 +367,8 @@
                       resize="none"
                       show-word-limit
                     />
-                  </te-form-item>
-                  <te-form-item>
+                  </el-form-item>
+                  <el-form-item>
                     <te-button
                       type="primary"
                       plain
@@ -376,8 +376,8 @@
                       @click="handleAddComment"
                       >提交</te-button
                     >
-                  </te-form-item>
-                </te-form>
+                  </el-form-item>
+                </el-form>
                 <div class="tabletitle">备注记录</div>
                 <alarm-no-data v-if="tableData.length === 0"></alarm-no-data>
                 <te-table
@@ -403,10 +403,10 @@
                     show-overflow-tooltip
                     :format="(row: any) => row.comment ?? '-'"
                     align="center"
-                  ></te-table-column>
-                </te-table>
-              </te-tab-pane>
-            </te-tabs>
+                  ></el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
             <div class="ad-remark" v-else>
               <te-form
                 :model="addCommentForm"
@@ -434,8 +434,8 @@
                     show-word-limit
                     @update:model-value="handleCommentInput"
                   />
-                </te-form-item>
-                <te-form-item>
+                </el-form-item>
+                <el-form-item>
                   <te-button
                     type="primary"
                     plain
@@ -443,8 +443,8 @@
                     @click="handleAddComment"
                     >提交</te-button
                   >
-                </te-form-item>
-              </te-form>
+                </el-form-item>
+              </el-form>
               <div class="tabletitle">备注记录</div>
               <alarm-no-data v-if="tableData.length === 0"></alarm-no-data>
               <te-table
@@ -470,8 +470,8 @@
                   show-overflow-tooltip
                   :format="(row: any) => row.comment ?? '-'"
                   align="center"
-                ></te-table-column>
-              </te-table>
+                ></el-table-column>
+              </el-table>
             </div>
           </div>
         </div>
@@ -563,7 +563,7 @@
                 }"
                 @change="handleSelectHistory"
               ></TeSelectSubContentV2>
-            </te-form-item>
+            </el-form-item>
             <div class="progress-chart">
               <div class="progress-item" v-for="item in progressList">
                 <div class="title">
@@ -579,8 +579,8 @@
         </div>
       </div>
       <template #footer v-if="isAsure">
-        <te-button @click="onCancel">取消</te-button>
-        <te-button type="primary" @click="onAsure">确认告警</te-button>
+        <te-button @click="onCancel">取消</el-button>
+        <te-button type="primary" @click="onAsure">确认告警</el-button>
       </template>
       <te-dialog
         :close-on-click-modal="false"
@@ -606,11 +606,11 @@
               :precision="4"
               v-model="updateCrossDataParams.overrunValue"
               class="ad-overrun-value-input"
-            ></te-input-number>
-          </te-form-item>
-        </te-form>
+            ></el-input-number>
+          </el-form-item>
+        </el-form>
         <template #footer>
-          <te-button @click="closeEditOverLimitDialog">取消</te-button>
+          <te-button @click="closeEditOverLimitDialog">取消</el-button>
           <te-button
             type="primary"
             @click="handleEditOverrunValue"
@@ -618,8 +618,8 @@
             >保存</te-button
           >
         </template>
-      </te-dialog>
-    </te-dialog>
+      </el-dialog>
+    </el-dialog>
     <TeAlarmRemarkDialog
       v-model="remarkDialogVisible"
       :saving="remarkSaving"
@@ -633,23 +633,23 @@ import type { AxiosInstance } from 'axios';
 import { QueryAlarmDetailModule } from './alarm-detail.function';
 import AlarmChartService from './alarm-chart/alarm-chart-service';
 import {
-  TeMessage,
-  TeTag,
-  TeDivider,
-  TeBadge,
-  TeDialog,
+  ElMessage,
+  ElTag,
+  ElDivider,
+  ElBadge,
+  ElDialog,
   TeLink,
-  TeInputNumber,
-  TeButton,
+  ElInputNumber,
+  ElButton,
   TeFormItem,
   TeForm,
-  TeInput,
-  TeTable,
+  ElInput,
+  ElTable,
   TeTableColumn,
-  TeTabs,
-  TeTabPane,
-  TeIcon,
-} from '@tiansu/element-plus';
+  ElTabs,
+  ElTabPane,
+  ElIcon,
+} from 'element-plus';
 import AlarmNoData from './alarm-no-data/alarm-no-data.vue';
 import { TeSelectSubContentV2 } from '../../../../te-select-sub-content-v2';
 import { IconTitleDecoration, IconLeft } from '@arco-iconbox/vue-te';
@@ -826,7 +826,7 @@ const handleRemarkConfirm = async (remark: string) => {
     });
     if (res) {
       emit('handleSure');
-      TeMessage.success('确认成功');
+      ElMessage.success('确认成功');
       remarkDialogVisible.value = false;
       visible.value = false;
     }

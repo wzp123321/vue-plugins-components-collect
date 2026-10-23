@@ -3,7 +3,7 @@
     <template #default="{ data: { label } }">
       {{ label }}<span style="color: gray">(suffix)</span></template
     >
-  </te-tree-select>
+  </el-tree-select>
   <te-divider />
   use render content:
   <te-tree-select

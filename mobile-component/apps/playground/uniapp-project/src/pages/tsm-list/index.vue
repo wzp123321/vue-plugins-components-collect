@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { markRaw, ref } from 'vue';
-import IconBuiltUpArea from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-built-up-area';
+import IconBuiltUpArea from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-built-up-area';
 
 const handleItemClicked = (item: any, index: number) => {
   console.log('Item clicked:', item, index);
@@ -63,7 +63,7 @@ const data = ref([
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   background: #f7f8fa;

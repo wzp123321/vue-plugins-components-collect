@@ -1,9 +1,9 @@
 <template>
   <div class="common-layout">
-    <te-container>
-      <te-header>Header</te-header>
-      <te-main>Main</te-main>
+    <el-container>
+      <el-header>Header</el-header>
+      <el-main>Main</el-main>
       <te-footer>Footer</te-footer>
-    </te-container>
+    </el-container>
   </div>
 </template>

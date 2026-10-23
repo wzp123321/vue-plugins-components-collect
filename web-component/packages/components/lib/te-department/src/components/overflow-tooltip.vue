@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, h } from 'vue';
-import { TeTooltip } from '@tiansu/element-plus';
+import { ElTooltip } from 'element-plus';
 
 // 文字溢出时，鼠标悬浮显示tooltip
 export default defineComponent({
@@ -35,7 +35,7 @@ export default defineComponent({
         },
       });
 
-      return h(TeTooltip, { disabled: tooltipDisabled.value, placement: 'top', ...attrs }, () => child);
+      return h(ElTooltip, { disabled: tooltipDisabled.value, placement: 'top', ...attrs }, () => child);
     };
   },
 });

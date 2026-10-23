@@ -1,8 +1,8 @@
 <template>
   <te-radio-group v-model="isCollapse" style="margin-bottom: 20px">
-    <te-radio-button :label="false">expand</te-radio-button>
-    <te-radio-button :label="true">collapse</te-radio-button>
-  </te-radio-group>
+    <te-radio-button :label="false">expand</el-radio-button>
+    <te-radio-button :label="true">collapse</el-radio-button>
+  </el-radio-group>
   <te-menu
     default-active="2"
     class="te-menu-vertical-demo"
@@ -12,35 +12,35 @@
   >
     <te-sub-menu index="1">
       <template #title>
-        <te-icon><location /></te-icon>
+        <el-icon><location /></el-icon>
         <span>Navigator One</span>
       </template>
-      <te-menu-item-group>
+      <el-menu-item-group>
         <template #title><span>Group One</span></template>
-        <te-menu-item index="1-1">item one</te-menu-item>
-        <te-menu-item index="1-2">item two</te-menu-item>
-      </te-menu-item-group>
+        <te-menu-item index="1-1">item one</el-menu-item>
+        <te-menu-item index="1-2">item two</el-menu-item>
+      </el-menu-item-group>
       <te-menu-item-group title="Group Two">
-        <te-menu-item index="1-3">item three</te-menu-item>
-      </te-menu-item-group>
+        <te-menu-item index="1-3">item three</el-menu-item>
+      </el-menu-item-group>
       <te-sub-menu index="1-4">
         <template #title><span>item four</span></template>
-        <te-menu-item index="1-4-1">item one</te-menu-item>
-      </te-sub-menu>
-    </te-sub-menu>
+        <te-menu-item index="1-4-1">item one</el-menu-item>
+      </el-sub-menu>
+    </el-sub-menu>
     <te-menu-item index="2">
-      <te-icon><icon-menu /></te-icon>
+      <el-icon><icon-menu /></el-icon>
       <template #title>Navigator Two</template>
-    </te-menu-item>
+    </el-menu-item>
     <te-menu-item index="3" disabled>
-      <te-icon><document /></te-icon>
+      <el-icon><document /></el-icon>
       <template #title>Navigator Three</template>
-    </te-menu-item>
+    </el-menu-item>
     <te-menu-item index="4">
-      <te-icon><setting /></te-icon>
+      <el-icon><setting /></el-icon>
       <template #title>Navigator Four</template>
-    </te-menu-item>
-  </te-menu>
+    </el-menu-item>
+  </el-menu>
 </template>
 
 <script lang="ts" setup>

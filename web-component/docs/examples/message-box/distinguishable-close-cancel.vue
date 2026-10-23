@@ -1,12 +1,12 @@
 <template>
-  <te-button text @click="open">Click to open Message Box</te-button>
+  <te-button text @click="open">Click to open Message Box</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessage, TeMessageBox } from '@tiansu/element-plus'
-import type { Action } from '@tiansu/element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { Action } from 'element-plus'
 const open = () => {
-  TeMessageBox.confirm(
+  ElMessageBox.confirm(
     'You have unsaved changes, save and proceed?',
     'Confirm',
     {
@@ -16,13 +16,13 @@ const open = () => {
     }
   )
     .then(() => {
-      TeMessage({
+      ElMessage({
         type: 'info',
         message: 'Changes saved. Proceeding to a new route.',
       })
     })
     .catch((action: Action) => {
-      TeMessage({
+      ElMessage({
         type: 'info',
         message:
           action === 'cancel'

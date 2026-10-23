@@ -1,21 +1,21 @@
 <template>
-  <te-button plain @click="open1"> Closes automatically </te-button>
-  <te-button plain @click="open2"> Won't close automatically </te-button>
+  <te-button plain @click="open1"> Closes automatically </el-button>
+  <te-button plain @click="open2"> Won't close automatically </el-button>
 </template>
 
 <script lang="ts" setup>
 import { h } from 'vue'
-import { TeNotification } from '@tiansu/element-plus'
+import { ElNotification } from 'element-plus'
 
 const open1 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Title',
     message: h('i', { style: 'color: teal' }, 'This is a reminder'),
   })
 }
 
 const open2 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Prompt',
     message: 'This is a message that does not automatically close',
     duration: 0,

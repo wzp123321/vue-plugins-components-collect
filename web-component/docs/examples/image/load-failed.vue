@@ -6,13 +6,13 @@
     </div>
     <div class="block">
       <span class="demonstration">Custom</span>
-      <te-image>
+      <el-image>
         <template #error>
           <div class="image-slot">
-            <te-icon><icon-picture /></te-icon>
+            <el-icon><icon-picture /></el-icon>
           </div>
         </template>
-      </te-image>
+      </el-image>
     </div>
   </div>
 </template>

@@ -6,7 +6,7 @@
       />
     </template>
     <template #extra>
-      <te-button type="primary">Back</te-button>
+      <te-button type="primary">Back</el-button>
     </template>
   </te-result>
 </template>

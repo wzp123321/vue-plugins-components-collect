@@ -16,10 +16,10 @@
 
 <script lang="tsx" setup>
 import { ref, unref } from 'vue'
-import { TeCheckbox } from '@tiansu/element-plus'
+import { ElCheckbox } from 'element-plus'
 
 import type { FunctionalComponent } from 'vue'
-import type { CheckboxValueType, Column } from '@tiansu/element-plus'
+import type { CheckboxValueType, Column } from 'element-plus'
 
 type SelectionCellProps = {
   value: boolean
@@ -33,7 +33,7 @@ const SelectionCell: FunctionalComponent<SelectionCellProps> = ({
   onChange,
 }) => {
   return (
-    <TeCheckbox
+    <ElCheckbox
       onChange={onChange}
       modelValue={value}
       indeterminate={intermediate}

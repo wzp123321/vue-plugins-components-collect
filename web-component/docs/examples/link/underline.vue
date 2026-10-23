@@ -1,7 +1,7 @@
 <template>
   <div>
-    <te-link :underline="false">Without Underline</te-link>
-    <te-link>With Underline</te-link>
+    <te-link :underline="false">Without Underline</el-link>
+    <el-link>With Underline</el-link>
   </div>
 </template>
 <style scoped>

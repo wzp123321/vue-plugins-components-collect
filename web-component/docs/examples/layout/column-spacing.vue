@@ -1,10 +1,10 @@
 <template>
   <te-row :gutter="20">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
 </template>
 
 <style>

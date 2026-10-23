@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M7.08 15.47a1 1 0 0 1-.065 1.999l-.88-.028a8 8 0 0 0 9.754 1.543 1 1 0 0 1 .973 1.748c-4.808 2.678-10.871.967-13.573-3.82l-.009-.015-.02-.035-.009-.018q-.012-.022-.022-.043a1 1 0 0 1-.04-.097l-.014-.044-.01-.04-.016-.07v-.007a1 1 0 0 1-.013-.12l-.002-.056v-.023l.002-.026q.001-.024.005-.05a1 1 0 0 1 .027-.148l.01-.039.021-.057q.005-.016.012-.034l.022-.049.013-.026a1 1 0 0 1 .194-.259l.02-.017a1 1 0 0 1 .083-.069l.035-.025.052-.032.016-.011.019-.009.044-.021a1 1 0 0 1 .097-.04l.033-.011.052-.014a1 1 0 0 1 .163-.027l.033-.001.056-.002.023-.001zM15.63 3.707a1 1 0 0 1 1.365-.366c4.766 2.752 6.41 8.835 3.689 13.61l-.01.016-.019.035-.01.017-.027.042-.03.044-.032.039a1 1 0 0 1-.06.064q-.025.026-.05.049-.004.001-.006.004a1 1 0 0 1-.098.073q-.023.016-.047.03l-.02.012-.022.01a1 1 0 0 1-.1.046l-.03.011q-.028.01-.058.018-.019.006-.039.01a1 1 0 0 1-.093.02l-.054.006-.03.002-.075.002-.04-.002a1 1 0 0 1-.206-.033l-.025-.008-.052-.018-.05-.018a1 1 0 0 1-.093-.045l-.018-.01-.018-.01-.04-.028-.045-.03-.038-.032-.027-.023-.038-.037a1 1 0 0 1-.156-.201q-.007-.01-.013-.02L17.5 14.437a1 1 0 0 1 1.749-.97l.428.77a8 8 0 0 0-3.682-9.164 1 1 0 0 1-.365-1.366M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8m0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4m.02-7.999a1 1 0 0 1 .198.023l.04.011q.035.009.068.02l.007.003q.042.014.082.033l.03.014.05.026.02.012.02.013a1 1 0 0 1 .227.198l.023.028.032.043.017.024a1 1 0 0 1 .132.295l.006.027.01.052.01.053.004.043.003.06L13 3l-.001.02q0 .025-.003.05l-.005.053-.008.05q-.002.017-.006.034-.005.025-.013.052a1 1 0 0 1-.056.156l-.014.03-.026.05-.01.02-1.5 2.5a1 1 0 0 1-1.715-1.03l.453-.756A8 8 0 0 0 4 12a1 1 0 1 1-2 0c0-5.504 4.446-9.968 9.942-9.999h.018L12 2z"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-one-third-rotation/one-third-rotation.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

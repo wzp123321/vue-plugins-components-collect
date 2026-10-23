@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M15.698 14.13a1 1 0 0 1 1.354.241l.064.098.335.58c.293-.054.59-.063.88-.03l.217.03.336-.58a1 1 0 0 1 1.784.896l-.052.104-.335.58c.2.234.362.498.482.782l.066.169h.671a1 1 0 0 1 .117 1.993L21.5 19h-.67c-.099.277-.237.54-.411.776l-.138.174.335.581a1 1 0 0 1-1.668 1.098l-.064-.098-.335-.58c-.293.054-.59.063-.88.03l-.217-.032-.336.582a1 1 0 0 1-1.784-.896l.052-.104.335-.58a3 3 0 0 1-.482-.781l-.066-.17H14.5a1 1 0 0 1-.117-1.993L14.5 17h.672c.098-.277.236-.54.41-.776l.137-.174-.335-.581a1 1 0 0 1 .314-1.338M19.5 3A1.5 1.5 0 0 1 21 4.5v2.086A2 2 0 0 1 20.414 8L15 13.414V14a1 1 0 1 1-2 0v-.793c0-.398.158-.78.44-1.06L19 6.586V5H5v1.586l5.56 5.56a1.5 1.5 0 0 1 .44 1.061v5.175l1.447.723a1 1 0 0 1-.894 1.79l-1.89-.946A1.2 1.2 0 0 1 9 18.876v-5.462L3.586 8A2 2 0 0 1 3 6.586V4.5A1.5 1.5 0 0 1 4.5 3zM18 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-filter-setting/filter_setting.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

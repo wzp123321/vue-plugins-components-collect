@@ -19,7 +19,7 @@
           effect="dark"
         >
           {{ mapAlarmLevelNameByLevel(props.alarm?.levelCode ?? '') }}
-        </te-tag>
+        </el-tag>
         <span
           :title="props.alarm?.deviceName ?? ''"
           class="alarm-notification-device"
@@ -59,7 +59,7 @@
 
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
-import { TeTag } from '@tiansu/element-plus';
+import { ElTag } from 'element-plus';
 import { IconClose } from '@arco-iconbox/vue-te';
 import { type AlarmNotifyItem } from '../api/index.api';
 import {

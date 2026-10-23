@@ -2,8 +2,8 @@
 	<te-carousel :interval="4000" type="card" height="200px">
 		<te-carousel-item v-for="item in 6" :key="item">
 			<h3 text="2xl" justify="center">{{ item }}</h3>
-		</te-carousel-item>
-	</te-carousel>
+		</el-carousel-item>
+	</el-carousel>
 </template>
 
 <style scoped>

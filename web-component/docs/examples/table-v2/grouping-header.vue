@@ -14,13 +14,13 @@
   </te-table-v2>
 </template>
 <script lang="tsx" setup>
-import { TableV2FixedDir, TableV2Placeholder } from '@tiansu/element-plus'
+import { TableV2FixedDir, TableV2Placeholder } from 'element-plus'
 
 import type { FunctionalComponent } from 'vue'
 import type {
   HeaderClassNameGetter,
   TableV2CustomizedHeaderSlotParam,
-} from '@tiansu/element-plus'
+} from 'element-plus'
 
 const generateColumns = (length = 10, prefix = 'column-', props?: any) =>
   Array.from({ length }).map((_, columnIndex) => ({

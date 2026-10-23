@@ -1,7 +1,7 @@
 <template>
   <div class="affix-container">
     <te-affix target=".affix-container" :offset="80">
-      <te-button type="primary">Target container</te-button>
+      <te-button type="primary">Target container</el-button>
     </te-affix>
   </div>
 </template>

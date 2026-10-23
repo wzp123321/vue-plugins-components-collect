@@ -1,7 +1,7 @@
 <template>
   <te-button text @click="dialogVisible = true">
     click to open the Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog
     v-model="dialogVisible"
@@ -12,23 +12,23 @@
     <span>This is a message</span>
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="dialogVisible = false">Cancel</te-button>
+        <te-button @click="dialogVisible = false">Cancel</el-button>
         <te-button type="primary" @click="dialogVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeMessageBox } from '@tiansu/element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const dialogVisible = ref(false)
 
 const handleClose = (done: () => void) => {
-  TeMessageBox.confirm('Are you sure to close this dialog?')
+  ElMessageBox.confirm('Are you sure to close this dialog?')
     .then(() => {
       done()
     })

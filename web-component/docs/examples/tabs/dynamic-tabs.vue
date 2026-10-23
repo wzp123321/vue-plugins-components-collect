@@ -13,12 +13,12 @@
       :name="item.name"
     >
       {{ item.content }}
-    </te-tab-pane>
-  </te-tabs>
+    </el-tab-pane>
+  </el-tabs>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import type { TabPaneName } from '@tiansu/element-plus'
+import type { TabPaneName } from 'element-plus'
 
 let tabIndex = 2
 const editableTabsValue = ref('2')

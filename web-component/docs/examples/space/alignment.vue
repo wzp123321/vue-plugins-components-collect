@@ -2,7 +2,7 @@
   <div class="alignment-container">
     <te-space>
       string
-      <te-button> button </te-button>
+      <el-button> button </el-button>
       <te-card>
         <template #header> header </template>
         body
@@ -12,7 +12,7 @@
   <div class="alignment-container">
     <te-space alignment="flex-start">
       string
-      <te-button> button </te-button>
+      <el-button> button </el-button>
       <te-card>
         <template #header> header </template>
         body
@@ -22,7 +22,7 @@
   <div class="alignment-container">
     <te-space alignment="flex-end">
       string
-      <te-button> button </te-button>
+      <el-button> button </el-button>
       <te-card>
         <template #header> header </template>
         body

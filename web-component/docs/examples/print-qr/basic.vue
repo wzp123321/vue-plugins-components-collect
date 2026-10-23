@@ -1,6 +1,6 @@
 <template>
   <div>
-    <te-button @click="handleShowDialog">打印二维码</te-button>
+    <te-button @click="handleShowDialog">打印二维码</el-button>
     <te-dialog v-model="dialogVisible">
       <te-print-qr
         ref="qrPrintRef"
@@ -13,17 +13,17 @@
       </te-print-qr>
       <template #footer>
         <div class="dialog-footer">
-          <te-button @click="handleShowDialog">Cancel</te-button>
-          <te-button type="primary" @click="handlePrint"> 打印 </te-button>
+          <te-button @click="handleShowDialog">Cancel</el-button>
+          <te-button type="primary" @click="handlePrint"> 打印 </el-button>
         </div>
       </template>
-    </te-dialog>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { TePrintQr } from '@ts-web-package/components/lib/te-print-qr';
-import { TeDialog, TeButton } from '@tiansu/element-plus';
+import { ElDialog, ElButton } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 
 const dialogVisible = ref(false);

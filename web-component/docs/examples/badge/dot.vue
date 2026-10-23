@@ -1,8 +1,8 @@
 <template>
-	<te-badge is-status class="item" type="data1">query</te-badge>
+	<te-badge is-status class="item" type="data1">query</el-badge>
 	<te-badge is-dot class="item">
 		<te-button class="share-button" :icon="Share" type="primary" />
-	</te-badge>
+	</el-badge>
 </template>
 
 <script lang="ts" setup>

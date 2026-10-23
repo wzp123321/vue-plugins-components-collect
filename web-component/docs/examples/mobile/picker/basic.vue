@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-// import { TemCell, TemPicker } from '@tiansu/ts-mobile-package';
+// import { TemCell, TemPicker } from '@zpackage/mobile-package';
 
 const getNext15MinuteInterval = (date: Date): Date => {
   const minutes = date.getMinutes();

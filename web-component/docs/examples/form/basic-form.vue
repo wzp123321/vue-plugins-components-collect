@@ -2,13 +2,13 @@
   <te-form :model="form" label-width="120px">
     <te-form-item label="Activity name">
       <te-input v-model="form.name" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity zone">
       <te-select v-model="form.region" placeholder="please select your zone">
         <te-option label="Zone one" value="shanghai" />
         <te-option label="Zone two" value="beijing" />
-      </te-select>
-    </te-form-item>
+      </el-select>
+    </el-form-item>
     <te-form-item label="Activity time">
       <te-col :span="11">
         <te-date-picker
@@ -17,43 +17,43 @@
           placeholder="Pick a date"
           style="width: 100%"
         />
-      </te-col>
+      </el-col>
       <te-col :span="2" class="text-center">
         <span class="text-gray-500">-</span>
-      </te-col>
+      </el-col>
       <te-col :span="11">
         <te-time-picker
           v-model="form.date2"
           placeholder="Pick a time"
           style="width: 100%"
         />
-      </te-col>
-    </te-form-item>
+      </el-col>
+    </el-form-item>
     <te-form-item label="Instant delivery">
       <te-switch v-model="form.delivery" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity type">
       <te-checkbox-group v-model="form.type">
         <te-checkbox label="Online activities" name="type" />
         <te-checkbox label="Promotion activities" name="type" />
         <te-checkbox label="Offline activities" name="type" />
         <te-checkbox label="Simple brand exposure" name="type" />
-      </te-checkbox-group>
-    </te-form-item>
+      </el-checkbox-group>
+    </el-form-item>
     <te-form-item label="Resources">
       <te-radio-group v-model="form.resource">
         <te-radio label="Sponsor" />
         <te-radio label="Venue" />
-      </te-radio-group>
-    </te-form-item>
+      </el-radio-group>
+    </el-form-item>
     <te-form-item label="Activity form">
       <te-input v-model="form.desc" type="textarea" />
-    </te-form-item>
-    <te-form-item>
-      <te-button type="primary" @click="onSubmit">Create</te-button>
-      <te-button>Cancel</te-button>
-    </te-form-item>
-  </te-form>
+    </el-form-item>
+    <el-form-item>
+      <te-button type="primary" @click="onSubmit">Create</el-button>
+      <el-button>Cancel</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>

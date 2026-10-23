@@ -13,14 +13,14 @@
   >
     <te-radio-group v-model="dimension" size="small" v-bind="$attrs">
       <te-radio-button :key="item.value" v-for="item in props.dimensionOptions" :label="item.value">
-        <te-icon v-if="props.showIcon"><Grid /></te-icon>
+        <te-icon v-if="props.showIcon"><Grid /></el-icon>
         {{ item.text }}</te-radio-button
       >
-    </te-radio-group>
+    </el-radio-group>
   </div>
 </template>
 <script lang="ts" setup>
-import { TeRadioGroup, TeRadioButton, TeIcon } from "@tiansu/element-plus";
+import { TeRadioGroup, TeRadioButton, ElIcon } from "element-plus";
 import { ref, watch } from "vue";
 import { Grid } from "@element-plus/icons-vue";
 

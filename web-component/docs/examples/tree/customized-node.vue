@@ -26,7 +26,7 @@
           </span>
         </span>
       </template>
-    </te-tree>
+    </el-tree>
   </div>
 </template>
 

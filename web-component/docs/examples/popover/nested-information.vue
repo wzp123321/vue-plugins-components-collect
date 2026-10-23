@@ -2,14 +2,14 @@
   <div style="display: flex; align-items: center">
     <te-popover placement="right" :width="400" trigger="click">
       <template #reference>
-        <te-button style="margin-right: 16px">Click to activate</te-button>
+        <te-button style="margin-right: 16px">Click to activate</el-button>
       </template>
       <te-table :data="gridData">
         <te-table-column width="150" property="date" label="date" />
         <te-table-column width="100" property="name" label="name" />
         <te-table-column width="300" property="address" label="address" />
-      </te-table>
-    </te-popover>
+      </el-table>
+    </el-popover>
 
     <te-popover
       :width="300"
@@ -49,7 +49,7 @@
           </p>
         </div>
       </template>
-    </te-popover>
+    </el-popover>
   </div>
 </template>
 

@@ -16,8 +16,7 @@
     "fix": "run-p \"lint:html -- --fix\" \"lint:css -- --fix\"",
     "prettier-format": "prettier  \"src/**/**.{vue,ts,js,html}\" --write",
     "prepare": "cd .. && husky install .husky",
-    "preview": "vite preview --port 8090",
-    "set-registry": "npm config set @tiansu:registry=http://192.168.20.200:7049/repository/npm-public/"
+    "preview": "vite preview --port 8090"
   },
   "dependencies": {
     "@antv/g6": "^4.8.24",

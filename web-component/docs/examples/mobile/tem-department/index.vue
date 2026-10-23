@@ -25,8 +25,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemEmployee } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import { TemEmployee } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
 // import Request from 'luch-request';
 
 const http = new Request({

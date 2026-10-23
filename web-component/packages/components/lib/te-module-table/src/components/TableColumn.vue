@@ -87,7 +87,7 @@ const RenderTableColumn = (item: ColumnProps) => {
               return null;
             },
           }}
-        </te-table-column>
+        </el-table-column>
       }
     </>
   );

@@ -1,29 +1,29 @@
 <template>
-  <te-button :plain="true" @click="open2">success</te-button>
-  <te-button :plain="true" @click="open3">warning</te-button>
-  <te-button :plain="true" @click="open1">message</te-button>
-  <te-button :plain="true" @click="open4">error</te-button>
+  <te-button :plain="true" @click="open2">success</el-button>
+  <te-button :plain="true" @click="open3">warning</el-button>
+  <te-button :plain="true" @click="open1">message</el-button>
+  <te-button :plain="true" @click="open4">error</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 
 const open1 = () => {
-  TeMessage('this is a message.')
+  ElMessage('this is a message.')
 }
 const open2 = () => {
-  TeMessage({
+  ElMessage({
     message: 'Congrats, this is a success message.',
     type: 'success',
   })
 }
 const open3 = () => {
-  TeMessage({
+  ElMessage({
     message: 'Warning, this is a warning message.',
     type: 'warning',
   })
 }
 const open4 = () => {
-  TeMessage.error('Oops, this is a error message.')
+  ElMessage.error('Oops, this is a error message.')
 }
 </script>

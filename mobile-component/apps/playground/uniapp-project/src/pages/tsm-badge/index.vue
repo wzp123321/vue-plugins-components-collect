@@ -216,7 +216,7 @@ const shape = ['circle', 'ribbon-right', 'ribbon-round', 'bubble'];
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   padding: 12px;

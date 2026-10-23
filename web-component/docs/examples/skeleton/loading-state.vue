@@ -33,7 +33,7 @@
             <span>Delicious hamburger</span>
             <div class="bottom card-header">
               <div class="time">{{ currentDate }}</div>
-              <te-button text class="button">Operation button</te-button>
+              <te-button text class="button">Operation button</el-button>
             </div>
           </div>
         </te-card>

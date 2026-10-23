@@ -9,7 +9,7 @@
       round
     >
       {{ item.label }}
-    </te-tag>
+    </el-tag>
   </div>
   <div class="flex flex-wrap gap-2">
     <te-tag
@@ -21,7 +21,7 @@
       round
     >
       {{ item.label }}
-    </te-tag>
+    </el-tag>
   </div>
   <div class="flex flex-wrap gap-2 my-2">
     <te-tag
@@ -33,14 +33,14 @@
       round
     >
       {{ item.label }}
-    </te-tag>
+    </el-tag>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 
-import type { TagProps } from '@tiansu/element-plus'
+import type { TagProps } from 'element-plus'
 
 type Item = { type: TagProps['type']; label: string }
 

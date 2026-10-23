@@ -3,10 +3,10 @@
     <te-space fill>
       <te-alert type="info" show-icon :closable="false">
         <p>"Full Name" label is automatically attached to the input:</p>
-      </te-alert>
+      </el-alert>
       <te-form-item label="Full Name">
         <te-input v-model="formAccessibility.fullName" />
-      </te-form-item>
+      </el-form-item>
     </te-space>
     <te-space fill>
       <te-alert type="info" show-icon :closable="false">
@@ -15,7 +15,7 @@
           You must specify labels on the individal inputs. Placeholders are not
           replacements for using the "label" attribute.
         </p>
-      </te-alert>
+      </el-alert>
       <te-form-item label="Your Information">
         <te-row :gutter="20">
           <te-col :span="12">
@@ -24,18 +24,18 @@
               label="First Name"
               placeholder="First Name"
             />
-          </te-col>
+          </el-col>
           <te-col :span="12">
             <te-input
               v-model="formAccessibility.lastName"
               label="Last Name"
               placeholder="Last Name"
             />
-          </te-col>
-        </te-row>
-      </te-form-item>
+          </el-col>
+        </el-row>
+      </el-form-item>
     </te-space>
-  </te-form>
+  </el-form>
 </template>
 
 <script lang="ts" setup>

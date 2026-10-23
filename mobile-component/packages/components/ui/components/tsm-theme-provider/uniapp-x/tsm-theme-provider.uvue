@@ -7,7 +7,7 @@
 <script setup lang="uts">
 	import { computed } from 'vue';
 	import type { ComputedRef } from 'vue';
-	import { useThemeClass } from '@/uni_modules/@tiansu/ts-mobile-token/index.uts';
+	import { useThemeClass } from '@/uni_modules/@zpackage/mobile-package/token/index.uts';
 	import type { ThemeProviderProps } from './props.uts';
 	import { defaultProps } from './props.uts';
 

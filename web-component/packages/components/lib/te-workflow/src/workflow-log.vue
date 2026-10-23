@@ -1,26 +1,26 @@
 <template>
   <div class="workflow-log">
     <div class="workflow-log-export">
-      <te-dropdown>
+      <el-dropdown>
         <te-button class="workflow-log-button" type="default" plain>
           导出图片
           <icon-down class="pl-header-dropdown-icon" />
-        </te-button>
+        </el-button>
         <template #dropdown>
-          <te-dropdown-menu>
-            <te-dropdown-item @click="handleExport('JPG')">JPG</te-dropdown-item>
-            <te-dropdown-item @click="handleExport('PNG')">PNG</te-dropdown-item>
+          <el-dropdown-menu>
+            <te-dropdown-item @click="handleExport('JPG')">JPG</el-dropdown-item>
+            <te-dropdown-item @click="handleExport('PNG')">PNG</el-dropdown-item>
             <te-dropdown-item @click="handleExport('SVG')">
               SVG&nbsp;&nbsp;
               <te-popover placement="top-start" trigger="hover" content="矢量图形格式，缩放不会变形，可用浏览器打开">
                 <template #reference>
                   <icon-explain></icon-explain>
                 </template>
-              </te-popover>
-            </te-dropdown-item>
-          </te-dropdown-menu>
+              </el-popover>
+            </el-dropdown-item>
+          </el-dropdown-menu>
         </template>
-      </te-dropdown>
+      </el-dropdown>
     </div>
     <te-table
       id="workflow-log-table"
@@ -29,7 +29,7 @@
       :cell-style="{ background: 'revert' }"
       header-cell-class-name="wl-table-header"
     >
-      <te-table-column label="节点名称" prop="nodeName" min-width="200"> </te-table-column>
+      <te-table-column label="节点名称" prop="nodeName" min-width="200"> </el-table-column>
       <te-table-column label="处理人" prop="handlerName" min-width="200">
         <template #default="{ row }">
           <workflow-log-handler
@@ -43,7 +43,7 @@
             :tenant-id="tenantId"
           />
         </template>
-      </te-table-column>
+      </el-table-column>
       <te-table-column label="处理动作" prop="actionName" min-width="100">
         <template #default="{ row }">
           <div class="wl-status-tag wl-status-inprogress" v-if="row.actionName === '处理中'">
@@ -56,7 +56,7 @@
             {{ row.actionName }}
           </div>
         </template>
-      </te-table-column>
+      </el-table-column>
       <te-table-column label="备注" class-name="wl-table-comment" prop="comment" min-width="100" max-width="320">
         <template #default="{ row, $index }">
           <div>{{ row.comment || '-' }}</div>
@@ -76,7 +76,7 @@
                   :preview-teleported="true"
                   :preview-src-list="getImgList(row.attachments)"
                 >
-                </te-image>
+                </el-image>
                 <span
                   class="wl-table-comment-item-actions"
                   :class="{ 'wl-table-comment-item-more': index === 3 && row.attachments.length > 4 }"
@@ -90,7 +90,7 @@
             </template>
           </div>
         </template>
-      </te-table-column>
+      </el-table-column>
       <te-table-column label="处理时间" prop="createTime" min-width="200">
         <template #default="{ row }">
           <div class="wl-time">
@@ -105,15 +105,15 @@
                 size="small"
                 class="wl-time-tag"
                 >超时
-              </te-tag>
+              </el-tag>
             </div>
             <div v-if="row.completeTime" class="wl-time-complete">
               {{ createTimeFormat(row.completeTime) }}
             </div>
           </div>
         </template>
-      </te-table-column>
-    </te-table>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 <script setup lang="ts">
@@ -121,16 +121,16 @@ import { onMounted, ref } from 'vue';
 import moment from 'moment';
 import { toPng, toSvg, toJpeg } from 'html-to-image';
 import {
-  TeTag,
-  TeTable,
+  ElTag,
+  ElTable,
   TeTableColumn,
-  TeButton,
-  TeDropdown,
-  TeDropdownItem,
-  TePopover,
+  ElButton,
+  ElDropdown,
+  ElDropdownItem,
+  ElPopover,
   TeImage,
-  TeDropdownMenu
-} from '@tiansu/element-plus';
+  ElDropdownMenu
+} from 'element-plus';
 import WorkflowLogHandler from './components/workflow-log-handler.vue';
 import WorkflowApi from './apis/WorkflowApi';
 import ProcessNodeActivityLogDTO from '../../models/ProcessNodeActivityLogDTO';

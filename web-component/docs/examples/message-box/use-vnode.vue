@@ -1,14 +1,14 @@
 <template>
-  <te-button plain @click="open">Common VNode</te-button>
-  <te-button plain @click="open1">Dynamic props</te-button>
+  <te-button plain @click="open">Common VNode</el-button>
+  <te-button plain @click="open1">Dynamic props</el-button>
 </template>
 
 <script lang="ts" setup>
 import { h, ref } from 'vue'
-import { TeMessageBox, TeSwitch } from '@tiansu/element-plus'
+import { ElMessageBox, ElSwitch } from 'element-plus'
 
 const open = () => {
-  TeMessageBox({
+  ElMessageBox({
     title: 'Message',
     message: h('p', null, [
       h('span', null, 'Message can be '),
@@ -19,11 +19,11 @@ const open = () => {
 
 const open1 = () => {
   const checked = ref<boolean | string | number>(false)
-  TeMessageBox({
+  ElMessageBox({
     title: 'Message',
     // Should pass a function if VNode contains dynamic props
     message: () =>
-      h(TeSwitch, {
+      h(ElSwitch, {
         modelValue: checked.value,
         'onUpdate:modelValue': (val: boolean | string | number) => {
           checked.value = val

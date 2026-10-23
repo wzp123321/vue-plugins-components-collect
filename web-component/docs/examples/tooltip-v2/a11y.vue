@@ -2,8 +2,8 @@
   <te-tooltip-v2 :aria-label="title">
     <template #trigger>
       <te-button
-        ><te-icon><Delete /></te-icon
-      ></te-button>
+        ><el-icon><Delete /></te-icon
+      ></el-button>
     </template>
     {{ content }}
   </te-tooltip-v2>

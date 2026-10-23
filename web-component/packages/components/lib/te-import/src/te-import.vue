@@ -31,9 +31,9 @@
           :on-error="excelUploadError"
         >
           <te-button v-if="uploadState === 'init'" type="primary">
-            <te-icon><icon-upload-filled /></te-icon>
+            <el-icon><icon-upload-filled /></el-icon>
             <span>上传文件</span>
-          </te-button>
+          </el-button>
 
           <div
             v-else-if="uploadState === 'success'"
@@ -42,7 +42,7 @@
             <div class="wrap-group-upload-success-info">
               <te-icon class="wrap-group-upload-success-info-icon">
                 <icon-file-type-excel />
-              </te-icon>
+              </el-icon>
               <span>{{ fileName }}</span>
             </div>
             <div class="wrap-group-upload-success-btn">重新上传</div>
@@ -55,7 +55,7 @@
             <div class="wrap-group-upload-fail-info">
               <te-icon class="wrap-group-upload-fail-info-icon"
                 ><icon-warning-filled
-              /></te-icon>
+              /></el-icon>
               <span>{{ uploadFailTip }}</span>
             </div>
             <div class="wrap-group-upload-fail-btn">重新上传</div>
@@ -69,7 +69,7 @@
               <div class="wrap-group-upload-success-info">
                 <te-icon class="wrap-group-upload-pending-info-icon"
                   ><icon-file-type-excel
-                /></te-icon>
+                /></el-icon>
                 <span>{{ fileName }}</span>
               </div>
               <div class="wrap-group-upload-pending-text">
@@ -82,7 +82,7 @@
               :show-text="false"
             />
           </div>
-        </te-upload>
+        </el-upload>
       </div>
 
       <div class="wrap-desc" v-if="!tips || tips.length === 0">
@@ -138,7 +138,7 @@
         <div class="wrap-group-import-success-info">
           <te-icon class="wrap-group-import-success-info-icon"
             ><icon-circle-check-filled
-          /></te-icon>
+          /></el-icon>
           <span>{{
             `导入完成，成功${importProgressResult.successCount}条，${
               importProgressResult.ignoreCount == undefined
@@ -146,7 +146,7 @@
                 : `忽略${importProgressResult.ignoreCount}条，`
             }失败${importProgressResult.failCount}条`
           }}</span>
-          <!-- <te-button link type="primary" @click="downloadImportResultFile"> 下载结果文件 </te-button> -->
+          <!-- <te-button link type="primary" @click="downloadImportResultFile"> 下载结果文件 </el-button> -->
         </div>
       </div>
       <div v-else class="wrap-group-import-warning">
@@ -154,7 +154,7 @@
           <div class="wrap-group-import-success-info">
             <te-icon class="wrap-group-import-success-info-icon"
               ><icon-warning-filled
-            /></te-icon>
+            /></el-icon>
             <te-text class="wrap-group-import-fail-text"
               >{{
                 `部分导入完成，成功${importProgressResult.successCount}条，${
@@ -165,7 +165,7 @@
               }}
               <!-- <te-text v-if="importProgressResult.fail > 0" class="wrap-group-import-fail-text">
               ，请下载错误文件并按照提示修改信息后再次上传
-          </te-text>   -->
+          </el-text>   -->
               <te-button
                 v-if="
                   importProgressResult.ignoreCount > 0 ||
@@ -176,11 +176,11 @@
                 @click="downloadImportResultFile"
               >
                 下载结果文件
-              </te-button>
+              </el-button>
               <!-- <te-button link type="primary" v-if="importProgressResult.fail > 0" class="wrap-group-import-fail-btn" @click="importFileStep = ImportStep.preparation">
               再次上传
-          </te-button>   -->
-            </te-text>
+          </el-button>   -->
+            </el-text>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@
         <div class="wrap-group-import-success-info">
           <te-icon class="wrap-group-import-success-info-icon"
             ><icon-warning-filled
-          /></te-icon>
+          /></el-icon>
           <te-text class="wrap-group-import-fail-text"
             >{{
               `导入中断，${
@@ -213,7 +213,7 @@
                   : ''
               }`}`
             }}
-          </te-text>
+          </el-text>
         </div>
       </div>
     </div>
@@ -223,7 +223,7 @@
         v-if="importFileStep === ImportStep.preparation"
         class="dialog-footer"
       >
-        <te-button @click="handleClose">取消</te-button>
+        <te-button @click="handleClose">取消</el-button>
         <te-button
           type="primary"
           @click="onConfirmImport"
@@ -231,7 +231,7 @@
           :loading="uploadState === 'pending'"
         >
           确定导入
-        </te-button>
+        </el-button>
       </span>
       <te-button
         v-else-if="importFileStep === ImportStep.importing"
@@ -244,28 +244,28 @@
         @click="importFileStep = ImportStep.preparation"
       >
         重新上传
-      </te-button>
+      </el-button>
       <te-button
         type="primary"
         v-if="importFileStep === ImportStep.interrupt"
         @click="downloadImportResultFile"
       >
         下载结果文件
-      </te-button>
+      </el-button>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref, defineEmits, reactive, watch } from 'vue';
 import {
-  TeIcon,
-  TeButton,
-  TeDialog,
+  ElIcon,
+  ElButton,
+  ElDialog,
   TeUpload,
-  TeText,
+  ElText,
   TeProgress,
-} from '@tiansu/element-plus';
+} from 'element-plus';
 import {
   IconDot,
   IconUploadFilled,
@@ -278,8 +278,8 @@ import type {
   UploadRawFile,
   UploadFile,
   UploadInstance,
-} from '@tiansu/element-plus';
-// import { UploadProgressEvent } from '@tiansu/element-plus/lib/components/upload';
+} from 'element-plus';
+// import { UploadProgressEvent } from 'element-plus/lib/components/upload';
 import { AxiosInstance } from 'axios';
 
 // 导入阶段
@@ -442,7 +442,7 @@ const beforeUpload: UploadProps['beforeUpload'] = (file: UploadRawFile) => {
   //   props.callBackBeforeUpload(resolve);
   // }
   // fileUploadSuccess.value = false;
-  // TeMessage.success('正在上传文件，请稍候...');
+  // ElMessage.success('正在上传文件，请稍候...');
 };
 
 // const handleUpload: UploadProps['httpRequest'] = (options: UploadRequestOptions) => {

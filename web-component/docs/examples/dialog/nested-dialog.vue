@@ -1,7 +1,7 @@
 <template>
   <te-button text @click="outerVisible = true">
     open the outer Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog v-model="outerVisible" title="Outer Dialog">
     <template #default>
@@ -14,13 +14,13 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <te-button @click="outerVisible = false">Cancel</te-button>
+        <te-button @click="outerVisible = false">Cancel</el-button>
         <te-button type="primary" @click="innerVisible = true">
           open the inner Dialog
-        </te-button>
+        </el-button>
       </div>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>

@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 	import { ref } from 'vue';
-	import IconAlarmFill from '@/uni_modules/@tiansu/ts-icon/mobile/uvue/icon-alarm-fill/icon-alarm-fill.uvue';
+	import IconAlarmFill from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-alarm-fill/icon-alarm-fill.uvue';
 	const activeIndex1 = ref(0);
 	const activeIndex2 = ref(1);
 	const activeIndex3 = ref(2);

@@ -165,9 +165,9 @@
 </template>
 
 <script>
-// import { TemNavBar } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
-// import UniCard from '@tiansu/ts-mobile-package/uni-card/components/uni-card/uni-card.vue';
+// import { TemNavBar } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import UniCard from '@zpackage/mobile-package/uni-card/components/uni-card/uni-card.vue';
 export default {
   // components: { TemNavBar, UniSection, UniCard },
   data() {

@@ -1,7 +1,7 @@
 <template>
   <div class="common-layout">
-    <te-container>
-      <te-header class="header"></te-header>
+    <el-container>
+      <te-header class="header"></el-header>
       <te-container class="inner-container">
           <te-sidenav
           sideNavLogo=""
@@ -13,16 +13,16 @@
           </te-sidenav>
         <te-main class="main">
           <div>内容区域</div>
-        </te-main>
-      </te-container>
-    </te-container>
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
 <script lang="ts">
   import { TeSidenav } from '@ts-web-package/components/lib/te-sidenav';
   import { reactive, ref } from 'vue';
-  import { TeContainer, TeHeader, TeMain } from '@tiansu/element-plus';
+  import { ElContainer, ElHeader, ElMain } from 'element-plus';
   import '@ts-web-package/components/styles/index.scss'
   import { IconMission, IconTask, IconEquipment, IconStandard } from "@arco-iconbox/vue-te-side";
   
@@ -30,9 +30,9 @@
     name:'te-layouts-aside-demo',
     components: {
       TeSidenav,
-      TeContainer,
-      TeHeader,
-      TeMain,
+      ElContainer,
+      ElHeader,
+      ElMain,
     },
     setup() {
       let collapse = ref(false)

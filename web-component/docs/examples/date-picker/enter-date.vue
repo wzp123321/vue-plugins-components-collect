@@ -1,9 +1,9 @@
 <template>
   <te-radio-group v-model="size" label="size control" size="small">
-    <te-radio-button label="large">large</te-radio-button>
-    <te-radio-button label="default">default</te-radio-button>
-    <te-radio-button label="small">small</te-radio-button>
-  </te-radio-group>
+    <te-radio-button label="large">large</el-radio-button>
+    <te-radio-button label="default">default</el-radio-button>
+    <te-radio-button label="small">small</el-radio-button>
+  </el-radio-group>
   <div class="demo-date-picker">
     <div class="block">
       <span class="demonstration">Default</span>

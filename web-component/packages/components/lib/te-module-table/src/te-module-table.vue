@@ -25,14 +25,14 @@
           width="20"
           class="table-fixed-left"
         >
-        </te-table-column>
+        </el-table-column>
         <te-table-column
           v-if="!hasTreeData"
           fixed="left"
           width="5"
           class="table-fixed-left"
         >
-        </te-table-column>
+        </el-table-column>
       </template>
 
       <!-- 1.传入showSelectColumn时展示选择列 -->
@@ -44,7 +44,7 @@
           type="selection"
           v-bind="$attrs"
         >
-        </te-table-column>
+        </el-table-column>
       </template>
 
       <template v-if="showExpandColumn">
@@ -67,7 +67,7 @@
               v-bind="scope"
             ></slot>
           </template>
-        </te-table-column>
+        </el-table-column>
         <!-- <TableColumn :column="expandColumnConfig" v-bind="$attrs">
           <template v-for="slot in Object.keys($slots)" #[slot]="scope">
             <slot :name="slot" v-bind="scope"></slot>
@@ -103,7 +103,7 @@
           <template #default="{ row }">
             <span v-if="row.isIndex">{{ row.parentIndex }}</span>
           </template>
-        </te-table-column>
+        </el-table-column>
       </template>
 
       <template v-if="!data && showIndexColumn && customIndex">
@@ -115,7 +115,7 @@
           prop="parentIndex"
           v-bind="$attrs"
         >
-        </te-table-column>
+        </el-table-column>
       </template>
 
       <template v-if="data && showIndexColumn">
@@ -244,7 +244,7 @@
           </div>
         </div>
       </template>
-    </te-table>
+    </el-table>
 
     <!-- 分页组件 -->
     <div
@@ -264,7 +264,7 @@
 </template>
 <script setup lang="tsx" name="TeModuleTable">
 import { onMounted, ref, computed, watch, h, useAttrs, reactive } from 'vue'
-import { TeTable } from '@tiansu/element-plus'
+import { ElTable } from 'element-plus'
 import { useTable } from './hooks/useTable'
 import { useTableColumn } from './hooks/useTableColumn'
 import { useSelection } from './hooks/useSelection'
@@ -338,7 +338,7 @@ const props = withDefaults(defineProps<ProTableProps>(), {
 // 表格的key
 const tableKey = ref()
 // 表格ref
-const tableRef = ref<InstanceType<typeof TeTable>>()
+const tableRef = ref<InstanceType<typeof ElTable>>()
 // 页面展示的列配置项
 const tableColumns = ref<ColumnProps[]>()
 // 操作列宽度

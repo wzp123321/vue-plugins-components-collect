@@ -1,9 +1,9 @@
 <template>
   <te-radio-group v-model="size">
-    <te-radio label="large">Large</te-radio>
-    <te-radio>Default</te-radio>
-    <te-radio label="small">Small</te-radio>
-  </te-radio-group>
+    <te-radio label="large">Large</el-radio>
+    <el-radio>Default</el-radio>
+    <te-radio label="small">Small</el-radio>
+  </el-radio-group>
 
   <te-descriptions
     class="margin-top"
@@ -13,14 +13,14 @@
     border
   >
     <template #extra>
-      <te-button type="primary">Operation</te-button>
+      <te-button type="primary">Operation</el-button>
     </template>
     <te-descriptions-item>
       <template #label>
         <div class="cell-item">
           <te-icon :style="iconStyle">
             <user />
-          </te-icon>
+          </el-icon>
           Username
         </div>
       </template>
@@ -31,7 +31,7 @@
         <div class="cell-item">
           <te-icon :style="iconStyle">
             <iphone />
-          </te-icon>
+          </el-icon>
           Telephone
         </div>
       </template>
@@ -42,7 +42,7 @@
         <div class="cell-item">
           <te-icon :style="iconStyle">
             <location />
-          </te-icon>
+          </el-icon>
           Place
         </div>
       </template>
@@ -53,18 +53,18 @@
         <div class="cell-item">
           <te-icon :style="iconStyle">
             <tickets />
-          </te-icon>
+          </el-icon>
           Remarks
         </div>
       </template>
-      <te-tag size="small">School</te-tag>
+      <te-tag size="small">School</el-tag>
     </te-descriptions-item>
     <te-descriptions-item>
       <template #label>
         <div class="cell-item">
           <te-icon :style="iconStyle">
             <office-building />
-          </te-icon>
+          </el-icon>
           Address
         </div>
       </template>
@@ -80,13 +80,13 @@
     :style="blockMargin"
   >
     <template #extra>
-      <te-button type="primary">Operation</te-button>
+      <te-button type="primary">Operation</el-button>
     </template>
     <te-descriptions-item label="Username">kooriookami</te-descriptions-item>
     <te-descriptions-item label="Telephone">18100000000</te-descriptions-item>
     <te-descriptions-item label="Place">Suzhou</te-descriptions-item>
     <te-descriptions-item label="Remarks">
-      <te-tag size="small">School</te-tag>
+      <te-tag size="small">School</el-tag>
     </te-descriptions-item>
     <te-descriptions-item label="Address"
       >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province

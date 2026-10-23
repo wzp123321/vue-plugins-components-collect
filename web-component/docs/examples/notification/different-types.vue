@@ -1,15 +1,15 @@
 <template>
-  <te-button plain @click="open1"> Success </te-button>
-  <te-button plain @click="open2"> Warning </te-button>
-  <te-button plain @click="open3"> Info </te-button>
-  <te-button plain @click="open4"> Error </te-button>
+  <te-button plain @click="open1"> Success </el-button>
+  <te-button plain @click="open2"> Warning </el-button>
+  <te-button plain @click="open3"> Info </el-button>
+  <te-button plain @click="open4"> Error </el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeNotification } from '@tiansu/element-plus'
+import { ElNotification } from 'element-plus'
 
 const open1 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Success',
     message: 'This is a success message',
     type: 'success',
@@ -17,7 +17,7 @@ const open1 = () => {
 }
 
 const open2 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Warning',
     message: 'This is a warning message',
     type: 'warning',
@@ -25,7 +25,7 @@ const open2 = () => {
 }
 
 const open3 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Info',
     message: 'This is an info message',
     type: 'info',
@@ -33,7 +33,7 @@ const open3 = () => {
 }
 
 const open4 = () => {
-  TeNotification({
+  ElNotification({
     title: 'Error',
     message: 'This is an error message',
     type: 'error',

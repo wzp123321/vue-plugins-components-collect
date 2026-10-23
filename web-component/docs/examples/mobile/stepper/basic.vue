@@ -60,9 +60,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemStepper } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
-// import UniCard from '@tiansu/ts-mobile-package/uni-card/components/uni-card/uni-card.vue';
+// import { TemStepper } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import UniCard from '@zpackage/mobile-package/uni-card/components/uni-card/uni-card.vue';
 // import { onLoad } from '@dcloudio/uni-app';
 
 const numberValue = ref(0);

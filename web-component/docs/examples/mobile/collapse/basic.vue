@@ -155,10 +155,10 @@
 // import {
 //   TemCollapseGroup,
 //   TemCollapse,
-// } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
-// import UniList from '@tiansu/ts-mobile-package/uni-list/components/uni-list/uni-list.vue';
-// import UniListItem from '@tiansu/ts-mobile-package/uni-list/components/uni-list-item/uni-list-item.vue';
+// } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import UniList from '@zpackage/mobile-package/uni-list/components/uni-list/uni-list.vue';
+// import UniListItem from '@zpackage/mobile-package/uni-list/components/uni-list-item/uni-list-item.vue';
 export default {
   components: {
     // TemCollapseGroup,

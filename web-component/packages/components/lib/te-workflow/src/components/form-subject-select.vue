@@ -16,8 +16,8 @@
       @close="() => removeSubject(item, subject)"
     >
       {{ subject.name }}
-    </te-tag>
-    <te-text type="info" v-else>请选择</te-text>
+    </el-tag>
+    <te-text type="info" v-else>请选择</el-text>
     <te-popover
       v-if="item.selectedSubjects && item.selectedSubjects.length > 3"
       placement="bottom"
@@ -28,7 +28,7 @@
       <template #reference>
         <te-tag type="info">
           {{ '+ ' + (item.selectedSubjects.length - 3) }}
-        </te-tag>
+        </el-tag>
       </template>
       <template #default>
         <div class="wf-item-value-employee-popcontent">
@@ -40,10 +40,10 @@
             :closable="item.permission !== FormFieldPermissionEnum.READ_ONLY && !isView"
             @close="() => removeSubject(item, subject)"
             >{{ subject.name }}
-          </te-tag>
+          </el-tag>
         </div>
       </template>
-    </te-popover>
+    </el-popover>
   </div>
   <te-employee
     v-if="item.componentType === FormComponentTypeEnum.EMPLOYEE && !isView"
@@ -68,7 +68,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { TeTag, TeText, TePopover } from '@tiansu/element-plus';
+import { ElTag, ElText, ElPopover } from 'element-plus';
 import { TeEmployee } from '../../../te-employee';
 import { TeDepartment } from '../../../te-department';
 import FormWidgetInstance from '../models/FormWidgetInstance_local';

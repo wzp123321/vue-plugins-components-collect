@@ -5,7 +5,7 @@
         <template #title>
           Consistency<te-icon class="header-icon">
             <info-filled />
-          </te-icon>
+          </el-icon>
         </template>
         <div>
           Consistent with real life: in line with the process and logic of real

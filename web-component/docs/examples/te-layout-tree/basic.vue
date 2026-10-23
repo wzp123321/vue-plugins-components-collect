@@ -17,13 +17,13 @@
           @node-click="handleClickTree"
         >
           <template #more-action="{ node, data }">
-            <te-dropdown-menu>
+            <el-dropdown-menu>
               <te-dropdown-item @click="handleRename(node, data)"
                 >重命名1</te-dropdown-item
               >
-              <te-dropdown-item>编辑1</te-dropdown-item>
-              <te-dropdown-item>删除</te-dropdown-item>
-            </te-dropdown-menu>
+              <el-dropdown-item>编辑1</el-dropdown-item>
+              <el-dropdown-item>删除</el-dropdown-item>
+            </el-dropdown-menu>
           </template>
           <template #item-icon="{ node }">
             <icon-folder-opened
@@ -44,7 +44,7 @@
 import { IconFolderOpened, IconFolder } from '@arco-iconbox/vue-te';
 import { TeLayoutTree } from '@ts-web-package/components/lib/te-layout-tree';
 import { TeTreeEdit } from '@ts-web-package/components/lib/te-tree-edit';
-import { TeDropdownMenu, TeDropdownItem } from '@tiansu/element-plus';
+import { ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { ref } from 'vue';
 interface Tree {
   name: string;

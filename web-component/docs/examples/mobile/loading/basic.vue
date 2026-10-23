@@ -41,7 +41,7 @@
 </template>
 
 <script>
-// import { TemLoading } from '@tiansu/ts-mobile-package';
+// import { TemLoading } from '@zpackage/mobile-package';
 export default {
   // components: { TemLoading },
   data() {

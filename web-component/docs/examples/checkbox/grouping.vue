@@ -5,7 +5,7 @@
     <te-checkbox label="Option C" />
     <te-checkbox label="disabled" disabled />
     <te-checkbox label="selected and disabled" disabled />
-  </te-checkbox-group>
+  </el-checkbox-group>
 </template>
 
 <script lang="ts" setup>

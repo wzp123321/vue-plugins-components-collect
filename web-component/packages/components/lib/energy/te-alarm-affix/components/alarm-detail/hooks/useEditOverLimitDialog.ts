@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import type { AxiosInstance } from 'axios';
 import alarmDetailService, { TUpdateCrosseDataParams } from '../alarm-deatil.service';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 
 export const useEditOverLimitDialog = (axiosInstance: AxiosInstance) => {
   const editOverLimitDialogVisible = ref(false);
@@ -21,7 +21,7 @@ export const useEditOverLimitDialog = (axiosInstance: AxiosInstance) => {
     if (res.success) {
       editOverLimitDialogVisible.value = false;
     } else {
-      TeMessage.error(res.message);
+      ElMessage.error(res.message);
     }
     updateCrossDataLoading.value = false;
     return res;

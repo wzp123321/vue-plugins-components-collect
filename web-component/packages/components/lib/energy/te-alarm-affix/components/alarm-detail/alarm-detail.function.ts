@@ -8,7 +8,7 @@ import {
   EAlarmLockoutFlag,
   EVoltageFlag,
 } from '../../api/index.api';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 import alarmDetailService from './alarm-deatil.service';
 
 interface commentList {
@@ -160,10 +160,10 @@ export class QueryAlarmDetailModule {
         if (res.data) {
           this._alarmDetailRes = res.data;
         } else {
-          TeMessage.error('返回数据为空!');
+          ElMessage.error('返回数据为空!');
         }
       } else {
-        TeMessage.error(res.message || '查询告警详情失败');
+        ElMessage.error(res.message || '查询告警详情失败');
       }
     } catch (error) {
       console.log(error);
@@ -209,10 +209,10 @@ export class AddCommentModule {
       );
 
       if (res && res.success) {
-        message && TeMessage.success('新增成功');
+        message && ElMessage.success('新增成功');
         return true;
       }
-      TeMessage.error(res?.errrmsg || '新增失败');
+      ElMessage.error(res?.errrmsg || '新增失败');
       return false;
     } catch (error) {
       console.log(error);

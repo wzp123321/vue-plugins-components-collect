@@ -2,7 +2,7 @@
   <div style="margin-bottom: 20px">
     <te-button size="small" @click="addTab(editableTabsValue)">
       add tab
-    </te-button>
+    </el-button>
   </div>
   <te-tabs
     v-model="editableTabsValue"
@@ -18,8 +18,8 @@
       :name="item.name"
     >
       {{ item.content }}
-    </te-tab-pane>
-  </te-tabs>
+    </el-tab-pane>
+  </el-tabs>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'

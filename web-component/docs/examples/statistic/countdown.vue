@@ -1,8 +1,8 @@
 <template>
-  <te-row>
+  <el-row>
     <te-col :span="8">
       <te-countdown title="Start to grab" :value="value" />
-    </te-col>
+    </el-col>
     <te-col :span="8">
       <te-countdown
         title="Remaining VIP time"
@@ -11,22 +11,22 @@
       />
       <te-button class="countdown-footer" type="primary" @click="reset"
         >Reset
-      </te-button>
-    </te-col>
+      </el-button>
+    </el-col>
     <te-col :span="8">
       <te-countdown format="DD [days] HH:mm:ss" :value="value2">
         <template #title>
           <div style="display: inline-flex; align-items: center">
             <te-icon style="margin-right: 4px" :size="12">
               <Calendar />
-            </te-icon>
+            </el-icon>
             Still to go until next month
           </div>
         </template>
       </te-countdown>
       <div class="countdown-footer">{{ value2.format('YYYY-MM-DD') }}</div>
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

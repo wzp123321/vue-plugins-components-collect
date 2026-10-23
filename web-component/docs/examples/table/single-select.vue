@@ -10,16 +10,16 @@
     <te-table-column property="date" label="Date" width="120" />
     <te-table-column property="name" label="Name" width="120" />
     <te-table-column property="address" label="Address" />
-  </te-table>
+  </el-table>
   <div style="margin-top: 20px">
-    <te-button @click="setCurrent(tableData[1])">Select second row</te-button>
-    <te-button @click="setCurrent()">Clear selection</te-button>
+    <te-button @click="setCurrent(tableData[1])">Select second row</el-button>
+    <te-button @click="setCurrent()">Clear selection</el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeTable } from '@tiansu/element-plus'
+import { ElTable } from 'element-plus'
 
 interface User {
   date: string
@@ -28,7 +28,7 @@ interface User {
 }
 
 const currentRow = ref()
-const singleTableRef = ref<InstanceType<typeof TeTable>>()
+const singleTableRef = ref<InstanceType<typeof ElTable>>()
 
 const setCurrent = (row?: User) => {
   singleTableRef.value!.setCurrentRow(row)

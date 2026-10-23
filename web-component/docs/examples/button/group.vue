@@ -1,9 +1,9 @@
 <template>
   <te-button-group>
-    <te-button type="primary" :icon="ArrowLeft">Previous Page</te-button>
+    <te-button type="primary" :icon="ArrowLeft">Previous Page</el-button>
     <te-button type="primary">
-      Next Page<te-icon class="te-icon--right"><ArrowRight /></te-icon>
-    </te-button>
+      Next Page<te-icon class="te-icon--right"><ArrowRight /></el-icon>
+    </el-button>
   </te-button-group>
 
   <te-button-group class="ml-4">

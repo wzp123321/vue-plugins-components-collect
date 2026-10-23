@@ -3,38 +3,38 @@
     <p>open(close) the Dropdown list2 will close(open) the Dropdown List1.</p>
   </div>
   <div style="margin: 15px">
-    <te-button @click="showClick">show</te-button>
+    <te-button @click="showClick">show</el-button>
   </div>
   <te-dropdown ref="dropdown1" trigger="contextmenu" style="margin-right: 30px">
     <span class="te-dropdown-link"> Dropdown List1 </span>
     <template #dropdown>
-      <te-dropdown-menu>
-        <te-dropdown-item>Action 1</te-dropdown-item>
-        <te-dropdown-item>Action 2</te-dropdown-item>
-        <te-dropdown-item>Action 3</te-dropdown-item>
-        <te-dropdown-item disabled>Action 4</te-dropdown-item>
-        <te-dropdown-item divided>Action 5</te-dropdown-item>
-      </te-dropdown-menu>
+      <el-dropdown-menu>
+        <el-dropdown-item>Action 1</el-dropdown-item>
+        <el-dropdown-item>Action 2</el-dropdown-item>
+        <el-dropdown-item>Action 3</el-dropdown-item>
+        <te-dropdown-item disabled>Action 4</el-dropdown-item>
+        <te-dropdown-item divided>Action 5</el-dropdown-item>
+      </el-dropdown-menu>
     </template>
-  </te-dropdown>
+  </el-dropdown>
 
   <te-dropdown trigger="contextmenu" @visible-change="handleVisible2">
     <span class="te-dropdown-link"> Dropdown List2 </span>
     <template #dropdown>
-      <te-dropdown-menu>
-        <te-dropdown-item>Action 1</te-dropdown-item>
-        <te-dropdown-item>Action 2</te-dropdown-item>
-        <te-dropdown-item>Action 3</te-dropdown-item>
-        <te-dropdown-item disabled>Action 4</te-dropdown-item>
-        <te-dropdown-item divided>Action 5</te-dropdown-item>
-      </te-dropdown-menu>
+      <el-dropdown-menu>
+        <el-dropdown-item>Action 1</el-dropdown-item>
+        <el-dropdown-item>Action 2</el-dropdown-item>
+        <el-dropdown-item>Action 3</el-dropdown-item>
+        <te-dropdown-item disabled>Action 4</el-dropdown-item>
+        <te-dropdown-item divided>Action 5</el-dropdown-item>
+      </el-dropdown-menu>
     </template>
-  </te-dropdown>
+  </el-dropdown>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { DropdownInstance } from '@tiansu/element-plus'
+import type { DropdownInstance } from 'element-plus'
 
 const dropdown1 = ref<DropdownInstance>()
 function handleVisible2(visible: any) {

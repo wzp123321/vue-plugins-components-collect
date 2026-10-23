@@ -18,7 +18,7 @@
           :label="item.label"
           :value="item.value"
         />
-      </te-select>
+      </el-select>
     </div>
     <div class="m-4">
       <p>use remote-show-suffix</p>
@@ -39,7 +39,7 @@
           :label="item.label"
           :value="item.value"
         />
-      </te-select>
+      </el-select>
     </div>
   </div>
 </template>

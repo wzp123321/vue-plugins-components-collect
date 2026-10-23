@@ -66,7 +66,7 @@
             <te-button :disabled="!speechSupported" @click="handleTestSound">
               <icon-setting />
               <span>点击进行声音播放测试</span>
-            </te-button>
+            </el-button>
           </div>
         </div>
       </section>
@@ -100,7 +100,7 @@
                 :label="opt.label"
                 :value="opt.value"
               />
-            </te-select>
+            </el-select>
           </div>
 
           <div class="asd-row">
@@ -201,31 +201,31 @@
       </section>
     </div>
     <template #footer>
-      <te-button @click="handleCancel">取消</te-button>
+      <te-button @click="handleCancel">取消</el-button>
       <te-button
         type="primary"
         :disabled="saving || loading"
         @click="handleSave"
       >
         确定
-      </te-button>
+      </el-button>
     </template>
-  </te-drawer>
+  </el-drawer>
 </template>
 
 <script lang="ts" setup>
 import { ref, inject } from 'vue';
 import { IconSetting } from '@arco-iconbox/vue-te';
 import {
-  TeDrawer,
-  TeCheckbox,
-  TeSwitch,
-  TeButton,
-  TeSelect,
-  TeOption,
+  ElDrawer,
+  ElCheckbox,
+  ElSwitch,
+  ElButton,
+  ElSelect,
+  ElOption,
   TeTimePicker,
-  TeMessage,
-} from '@tiansu/element-plus';
+  ElMessage,
+} from 'element-plus';
 import { TE_AL_SERVICES_KEY } from '../types/injection';
 import {
   NOTICE_DURATION_OPTIONS,
@@ -324,7 +324,7 @@ const handleOpen = async () => {
     const remoteDto = await fetchConfig();
     setAlarmSettingForm(remoteDto as AlarmNoticeConfigVO);
   } catch (err) {
-    TeMessage.error('配置加载失败');
+    ElMessage.error('配置加载失败');
     console.warn('[AlarmSettingDrawer] handleOpen failed:', err);
     setAlarmSettingForm();
   } finally {
@@ -341,7 +341,7 @@ const handleCancel = () => {
 const handleTestSound = () => {
   const played = speakText(TTS_TEST_CONTENT);
   if (!played) {
-    TeMessage.error('语音播报启动失败');
+    ElMessage.error('语音播报启动失败');
   }
 };
 
@@ -351,11 +351,11 @@ const validateDnd = (): boolean => {
   const { noDisturbanceStartTime, noDisturbanceEndTime } =
     alarmSettingForm.value;
   if (!noDisturbanceStartTime || !noDisturbanceEndTime) {
-    TeMessage.error('请选择免打扰时段');
+    ElMessage.error('请选择免打扰时段');
     return false;
   }
   if (noDisturbanceStartTime === noDisturbanceEndTime) {
-    TeMessage.error('起始时间不能等于结束时间');
+    ElMessage.error('起始时间不能等于结束时间');
     return false;
   }
   return true;
@@ -374,7 +374,7 @@ const handleSave = async () => {
   } catch (err) {
     // 抽屉不关,保留用户输入
     const errorMessage = err instanceof Error ? err.message : '保存失败';
-    TeMessage.error(errorMessage);
+    ElMessage.error(errorMessage);
   } finally {
     saving.value = false;
   }

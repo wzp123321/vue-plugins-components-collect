@@ -14,20 +14,20 @@
       <span>
         {{ muted ? '已静音' : '语音提示已开启' }}
       </span>
-    </te-button>
+    </el-button>
     <te-button @click="onOpenSetting">
       <icon-setting />
       设置
-    </te-button>
+    </el-button>
     <te-button v-if="props.showClose" link @click="handleClose">
       <icon-close />
-    </te-button>
+    </el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, inject, ref } from 'vue';
-import { TeButton, TeMessage } from '@tiansu/element-plus';
+import { ElButton, ElMessage } from 'element-plus';
 import {
   IconSetting,
   IconMicrophone,
@@ -107,7 +107,7 @@ const handleToggleMute = async () => {
     // 静音切换用独立事件,容器收到后不做 reset/refresh
     emit('mute-saved', savedConfig);
   } catch (err) {
-    TeMessage.error(err instanceof Error ? err.message : '保存失败');
+    ElMessage.error(err instanceof Error ? err.message : '保存失败');
   } finally {
     saving.value = false;
   }

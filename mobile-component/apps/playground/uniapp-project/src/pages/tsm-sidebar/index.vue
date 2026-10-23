@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import iconGrid3 from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-grid3.vue';
+import iconGrid3 from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-grid3.vue';
 import { markRaw } from 'vue';
 
 const onClick = (item: any, index: any) => {
@@ -49,7 +49,7 @@ const sidebarMenus = [
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   background: #f7f8fa;

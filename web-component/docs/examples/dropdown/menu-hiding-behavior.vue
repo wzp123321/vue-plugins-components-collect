@@ -1,19 +1,19 @@
 <template>
   <te-dropdown :hide-on-click="false">
     <span class="te-dropdown-link">
-      Dropdown List<te-icon class="te-icon--right"><arrow-down /></te-icon>
+      Dropdown List<te-icon class="te-icon--right"><arrow-down /></el-icon>
     </span>
     <template #dropdown>
-      <te-dropdown-menu>
-        <te-dropdown-item>Action 1</te-dropdown-item>
-        <te-dropdown-item>Action 2</te-dropdown-item>
-        <te-dropdown-item>Action 3</te-dropdown-item>
-        <te-dropdown-item disabled>Action 4</te-dropdown-item>
-        <te-dropdown-item divided>Action 5</te-dropdown-item>
-        <te-dropdown-item divided>Action 6</te-dropdown-item>
-      </te-dropdown-menu>
+      <el-dropdown-menu>
+        <el-dropdown-item>Action 1</el-dropdown-item>
+        <el-dropdown-item>Action 2</el-dropdown-item>
+        <el-dropdown-item>Action 3</el-dropdown-item>
+        <te-dropdown-item disabled>Action 4</el-dropdown-item>
+        <te-dropdown-item divided>Action 5</el-dropdown-item>
+        <te-dropdown-item divided>Action 6</el-dropdown-item>
+      </el-dropdown-menu>
     </template>
-  </te-dropdown>
+  </el-dropdown>
 </template>
 
 <script lang="ts" setup>

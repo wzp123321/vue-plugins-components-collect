@@ -18,8 +18,8 @@
             : '',
         }"
       />
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

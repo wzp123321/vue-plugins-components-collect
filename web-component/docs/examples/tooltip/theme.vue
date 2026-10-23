@@ -1,14 +1,14 @@
 <template>
   <te-tooltip content="Top center" placement="top">
-    <te-button>Dark</te-button>
-  </te-tooltip>
+    <el-button>Dark</el-button>
+  </el-tooltip>
   <te-tooltip content="Bottom center" placement="bottom" effect="light">
-    <te-button>Light</te-button>
-  </te-tooltip>
+    <el-button>Light</el-button>
+  </el-tooltip>
 
   <te-tooltip content="Bottom center" effect="customized">
-    <te-button>Customized theme</te-button>
-  </te-tooltip>
+    <el-button>Customized theme</el-button>
+  </el-tooltip>
 </template>
 
 <style>

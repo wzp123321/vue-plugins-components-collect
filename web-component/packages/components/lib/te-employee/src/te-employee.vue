@@ -44,7 +44,7 @@
                   </overflow-tooltip>
                 </div>
               </template>
-            </te-tree>
+            </el-tree>
           </div>
 
           <te-divider direction="vertical" class="te-employee-divider" />
@@ -75,7 +75,7 @@
                   @click="handleLeftItemClick(item, $event)"
                 >
                   {{ item.name }}
-                </te-checkbox>
+                </el-checkbox>
                 <te-radio
                   v-else
                   :model-value="selected[0]?.id"
@@ -83,7 +83,7 @@
                   @click="handleLeftItemClick(item, $event)"
                 >
                   {{ item.name }}
-                </te-radio>
+                </el-radio>
               </div>
             </div>
             <div v-if="empList.length > 0" class="te-employee-select-right-pagination">
@@ -98,8 +98,8 @@
               />
             </div>
           </div>
-        </te-tab-pane>
-      </te-tabs>
+        </el-tab-pane>
+      </el-tabs>
       <div class="te-employee-right">
         <div class="te-employee-right-header">
           <div v-if="multiple">
@@ -125,29 +125,29 @@
     </div>
     <template #footer>
       <div>
-        <te-button @click="modalVisible = false">取消</te-button>
-        <te-button type="primary" @click="handleConfirm">确定</te-button>
+        <te-button @click="modalVisible = false">取消</el-button>
+        <te-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup name="TeEmployee">
 import { ref, computed, watch, nextTick } from 'vue';
 import {
-  TeDialog,
-  TeTabs,
-  TeTabPane,
-  TeDivider,
-  TeButton,
-  TeCheckbox,
-  TeTree,
-  TeRadio,
+  ElDialog,
+  ElTabs,
+  ElTabPane,
+  ElDivider,
+  ElButton,
+  ElCheckbox,
+  ElTree,
+  ElRadio,
   TeEmpty,
-  TeMessage,
+  ElMessage,
   TePagination,
-} from '@tiansu/element-plus';
-import type { CheckboxValueType } from '@tiansu/element-plus';
+} from 'element-plus';
+import type { CheckboxValueType } from 'element-plus';
 import { TeSearch } from '../../te-search';
 import { IconClose, IconFolder, IconFolderOpened } from '@arco-iconbox/vue-te/esm';
 import { type AxiosInstance } from 'axios';
@@ -163,7 +163,7 @@ import DepartmentTreeNodeDTO from '../../models/DepartmentTreeNodeDTO';
 import { TreeNodeQueryStrategy } from '../../models/TreeNodeQueryStrategy';
 import DataPermissionCheck from '../../models/DataPermissionCheck';
 
-import type Node from '@tiansu/element-plus/es/components/tree/src/model/node';
+import type Node from 'element-plus/es/components/tree/src/model/node';
 interface Item {
   id: string;
   name?: string;
@@ -208,7 +208,7 @@ watch(
   (val) => val && init(tabs[0])
 );
 
-const treeRefs = ref<InstanceType<typeof TeTree>[]>([]);
+const treeRefs = ref<InstanceType<typeof ElTree>[]>([]);
 // 当前选中tab
 const activeTab = ref<string>(tabs[0]);
 // 部门树
@@ -389,7 +389,7 @@ const handleLeftItemClick = (item: Item, event: Event) => {
       if (selected.value.length < multipleLimitMax.value) {
         selected.value.push(item);
       } else {
-        TeMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
+        ElMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
       }
     }
   }
@@ -399,7 +399,7 @@ const handleLeftItemClick = (item: Item, event: Event) => {
 const handleCheckAllChange = async (val: CheckboxValueType) => {
   if (val) {
     if (selected.value.length >= multipleLimitMax.value) {
-      TeMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
+      ElMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
       return;
     }
 

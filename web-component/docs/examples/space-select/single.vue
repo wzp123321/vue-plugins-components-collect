@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { TeSpaceSelect } from '@ts-web-package/components/lib/te-space-select';
-import { TeButton } from '@tiansu/element-plus';
+import { ElButton } from 'element-plus';
 import { ref } from 'vue';
 </script>
 <script lang="ts">

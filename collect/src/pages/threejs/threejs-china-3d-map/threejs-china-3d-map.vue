@@ -45,9 +45,6 @@
       :show-ground-plane="showGroundPlane"
       :bg-preset="bgPreset"
       :bg-opacity="bgOpacity"
-      :flat="flat"
-      :initial-adcode="initialAdcode"
-      :initial-view="initialView"
       :timeline-playing="timelinePlaying"
       :timeline-month="timelineMonth"
       :timeline-speed="timelineSpeed"
@@ -80,7 +77,6 @@
         v-model:label-mode="labelMode"
         v-model:filter-threshold="filterThreshold"
         v-model:theme="theme"
-        v-model:flat="flat"
         v-model:show-bg-image="showBgImage"
         v-model:show-ground-plane="showGroundPlane"
         v-model:bg-preset="bgPreset"
@@ -121,13 +117,6 @@
     />
     <!-- 右下角交互说明：图标 + 悬浮说明框 -->
     <MapHintFab />
-    <!-- 分享按钮：把当前 层级+机位+视觉开关 编码成可还原的链接 -->
-    <button type="button" class="china3d-share" title="复制分享链接（含当前视角/层级/开关）" @click="shareLink">
-      🔗 分享
-    </button>
-    <transition name="china3d-toast">
-      <div v-if="shareMsg" class="china3d-share-toast">{{ shareMsg }}</div>
-    </transition>
     <div class="china3d-overlay">
       <div class="china3d-title">
         <span class="china3d-title__main">全国数据分布 · 3D 地图</span>
@@ -185,73 +174,6 @@ const showGroundPlane = ref(true);
 const bgPreset = ref<'builtin' | 'horizon' | 'topo' | 'hex' | 'cloud'>('topo');
 // 大屏底图强度（0~1）：canvas 上的地图/飞线会压暗底图，与三维底板同开时用它配平观感
 const bgOpacity = ref(1);
-// 2D 扁平模式：压薄板块厚度（下发到 ChinaMap3D，切换时重建几何）
-const flat = ref(false);
-
-// ---- URL 深链分享：进入时从 #m= 还原层级 / 机位 / 视觉开关 ----
-interface ShareState {
-  /** 当前层 adcode，'0' 表示全国 */
-  l?: string;
-  t?: 'dark' | 'light';
-  c?: number; // showColumn
-  f?: number; // fillByValue
-  flat?: number;
-  cam?: { position: number[]; target: number[] };
-}
-const parseShareHash = (): ShareState | null => {
-  const h = location.hash || '';
-  const i = h.indexOf('m=');
-  if (i < 0) return null;
-  try {
-    return JSON.parse(decodeURIComponent(h.slice(i + 2))) as ShareState;
-  } catch {
-    return null;
-  }
-};
-const shared = parseShareHash();
-// initialAdcode / initialView 必须在子组件挂载前设定（ChinaMap3D 在 onMounted 读取），
-// 故在 setup 同步解析 hash，而不是等到 onMounted。
-const initialAdcode = ref<string | undefined>(shared?.l && shared.l !== '0' ? shared.l : undefined);
-const initialView = ref<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
-if (shared?.cam?.position?.length === 3 && shared?.cam?.target?.length === 3) {
-  initialView.value = {
-    position: shared.cam.position as [number, number, number],
-    target: shared.cam.target as [number, number, number],
-  };
-}
-// 视觉开关按 hash 覆盖默认值（让"打开链接即还原演示态"成立）
-if (shared?.t) theme.value = shared.t;
-if (shared?.c != null) showColumn.value = !!shared.c;
-if (shared?.f != null) fillByValue.value = !!shared.f;
-if (shared?.flat != null) flat.value = !!shared.flat;
-
-// ---- 复制分享链接：把当前 层级+机位+开关 编码进 hash 并写入剪贴板 ----
-const shareMsg = ref<string | null>(null);
-let shareTimer: number | undefined;
-const shareLink = async () => {
-  const lvl = mapRef.value?.currentLevel?.() as any;
-  const cam = mapRef.value?.getViewState?.() as ShareState['cam'];
-  const state: ShareState = {
-    l: lvl?.adcode != null ? String(lvl.adcode) : '0',
-    t: theme.value,
-    c: showColumn.value ? 1 : 0,
-    f: fillByValue.value ? 1 : 0,
-    flat: flat.value ? 1 : 0,
-    cam,
-  };
-  const hash = 'm=' + encodeURIComponent(JSON.stringify(state));
-  const url = location.origin + location.pathname + location.search + '#' + hash;
-  try {
-    await navigator.clipboard.writeText(url);
-    shareMsg.value = '分享链接已复制到剪贴板';
-  } catch {
-    // 剪贴板不可用（非 HTTPS / 无权限）时退回：直接写地址栏并提示手动复制
-    location.hash = hash;
-    shareMsg.value = '已生成链接（见地址栏）';
-  }
-  if (shareTimer) clearTimeout(shareTimer);
-  shareTimer = window.setTimeout(() => (shareMsg.value = null), 2600);
-};
 
 // 演示数据：给每个省份一个随机"项目数"，驱动数据柱高度与配色。
 // 真实业务中应替换为后端按 adcode 返回的统计值。
@@ -459,50 +381,5 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
 }
 .china3d-page--light .china3d-title__sub {
   color: #4d7793;
-}
-/* 分享按钮：位于右侧栏左侧、顶部工具栏下方，不挡地图与右栏面板 */
-.china3d-share {
-  position: absolute;
-  top: 16px;
-  right: 332px;
-  z-index: 30;
-  padding: 7px 12px;
-  border-radius: 10px;
-  background: rgba(6, 16, 40, 0.78);
-  border: 1px solid rgba(95, 216, 255, 0.28);
-  backdrop-filter: blur(10px);
-  color: #dcefff;
-  font: 600 12px/1 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
-  transition: background 0.18s ease, box-shadow 0.18s ease;
-}
-.china3d-share:hover {
-  background: rgba(47, 192, 255, 0.22);
-  box-shadow: 0 0 14px rgba(47, 192, 255, 0.35);
-}
-.china3d-share-toast {
-  position: absolute;
-  left: 50%;
-  bottom: 92px;
-  transform: translateX(-50%);
-  z-index: 40;
-  padding: 9px 18px;
-  border-radius: 10px;
-  background: rgba(6, 16, 30, 0.92);
-  border: 1px solid rgba(95, 216, 255, 0.5);
-  color: #cfeaff;
-  font: 600 13px/1 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-}
-.china3d-toast-enter-active,
-.china3d-toast-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.china3d-toast-enter-from,
-.china3d-toast-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(8px);
 }
 </style>

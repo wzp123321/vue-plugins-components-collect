@@ -1,5 +1,5 @@
 {
-  "name": "@tiansu/ts-mobile-ui",
+  "name": "mobile-ui",
   "displayName": "ts-mobile-ui全面兼容uniapp-x、uniapp、鸿蒙组件库。",
   "version": "0.0.38",
   "description": "ts-mobile-ui全面兼容uni-app/uni-app-x/鸿蒙，全面的组件和便捷的工具会让您信手拈来，如鱼得水",
@@ -20,7 +20,7 @@
     "scripts"
   ],
   "bin": {
-    "@tiansu/ts-mobile-ui": "scripts/install.js"
+    "@zpackage/mobile-package/ui": "scripts/install.js"
   },
   "dcloudext": {
     "sale": {
@@ -104,8 +104,8 @@
     }
   },
   "uniPeerDependencies": {
-    "@tiansu/ts-mobile-token": "^0.0.21",
-    "@tiansu/ts-icon": "^0.0.63"
+    "@zpackage/mobile-package/token": "^0.0.21",
+    "@zpackage/mobile-package/ts-icon": "^0.0.63"
   },
   "dependencies": {
     "dayjs": "^1.11.3",

@@ -21,7 +21,7 @@
 //   TemSideBar,
 //   TemCheckboxGroup,
 //   TemCheckbox,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 
 const navList = [
   {

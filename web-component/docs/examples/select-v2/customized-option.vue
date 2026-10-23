@@ -13,7 +13,7 @@
         {{ item.value }}
       </span>
     </template>
-  </te-select-v2>
+  </el-select-v2>
 </template>
 
 <script lang="ts" setup>

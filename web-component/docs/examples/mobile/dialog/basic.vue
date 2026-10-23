@@ -46,8 +46,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemDialog, TemButton } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import { TemDialog, TemButton } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
 
 const messageText = ref('这是一条成功提示');
 const value = ref('');

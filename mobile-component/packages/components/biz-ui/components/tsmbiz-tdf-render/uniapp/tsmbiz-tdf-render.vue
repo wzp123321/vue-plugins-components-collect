@@ -50,20 +50,20 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch, type Component } from 'vue';
-import type { PickerOption } from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-picker/uniapp/props';
-import TsmInput from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-input/uniapp/tsm-input.vue';
-import TsmTextarea from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-textarea/uniapp/tsm-textarea.vue';
-import TsmRadio from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-radio/uniapp/tsm-radio.vue';
-import type { FormRule, Trigger } from '@/uni_modules/@tiansu/ts-mobile-ui/libs/uniapp/validators/types';
-import type { FormRules } from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-form/uniapp/types';
-import TsmRadioGroup from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-radio-group/uniapp/tsm-radio-group.vue';
-import tsmCheckboxGroup from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-checkbox-group/uniapp/tsm-checkbox-group.vue';
-import TsmRate from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-rate/uniapp/tsm-rate.vue';
-import TsmPicker from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-picker/uniapp/tsm-picker.vue';
+import type { PickerOption } from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-picker/uniapp/props';
+import TsmInput from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-input/uniapp/tsm-input.vue';
+import TsmTextarea from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-textarea/uniapp/tsm-textarea.vue';
+import TsmRadio from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-radio/uniapp/tsm-radio.vue';
+import type { FormRule, Trigger } from '@/uni_modules/@zpackage/mobile-package/ui/libs/uniapp/validators/types';
+import type { FormRules } from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-form/uniapp/types';
+import TsmRadioGroup from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-radio-group/uniapp/tsm-radio-group.vue';
+import tsmCheckboxGroup from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-checkbox-group/uniapp/tsm-checkbox-group.vue';
+import TsmRate from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-rate/uniapp/tsm-rate.vue';
+import TsmPicker from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-picker/uniapp/tsm-picker.vue';
 import type { Rule, TdfRenderProps } from './props';
 import { defaultProps } from './props';
-import TsmEsign from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-esign/uniapp/tsm-esign.vue';
-import TsmStepper from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-stepper/uniapp/tsm-stepper.vue';
+import TsmEsign from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-esign/uniapp/tsm-esign.vue';
+import TsmStepper from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-stepper/uniapp/tsm-stepper.vue';
 
 const props = withDefaults(defineProps<TdfRenderProps>(), defaultProps);
 const emit = defineEmits<{
@@ -221,7 +221,7 @@ defineExpose({ formRef, isLandscape });
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .tdf-container {
   padding: 12px;

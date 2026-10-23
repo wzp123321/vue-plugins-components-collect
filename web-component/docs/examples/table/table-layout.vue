@@ -2,12 +2,12 @@
   <te-radio-group v-model="tableLayout">
     <te-radio-button label="fixed" />
     <te-radio-button label="auto" />
-  </te-radio-group>
+  </el-radio-group>
   <te-table :data="tableData" :table-layout="tableLayout">
     <te-table-column prop="date" label="Date" />
     <te-table-column prop="name" label="Name" />
     <te-table-column prop="address" label="Address" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

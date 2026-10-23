@@ -20,13 +20,13 @@
       <div class="aif-cover">
         <img :src="currentIcon" alt="alarm" draggable="false" />
       </div>
-    </te-badge>
+    </el-badge>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, inject, watch } from 'vue';
-import { TeBadge } from '@tiansu/element-plus';
+import { ElBadge } from 'element-plus';
 import defaultIcon from '../assets/alarm-affix-none-icon.png';
 import seriousIcon from '../assets/alarm-affix-serious-icon.png';
 import normalIcon from '../assets/alarm-affix-normal-icon.png';

@@ -1,12 +1,12 @@
 <template>
-  <te-button plain @click="open"> Hide close button </te-button>
+  <te-button plain @click="open"> Hide close button </el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeNotification } from '@tiansu/element-plus'
+import { ElNotification } from 'element-plus'
 
 const open = () => {
-  TeNotification.success({
+  ElNotification.success({
     title: 'Info',
     message: 'This is a message without close button',
     showClose: false,

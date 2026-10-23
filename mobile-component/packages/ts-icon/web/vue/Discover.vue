@@ -1,0 +1,56 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2m0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16m4.95 3.05c.395.396.397.98.336 1.51l-.037.283c-.16 1.12-.605 2.775-1.242 4.156-.31.672-.7 1.351-1.179 1.83-.478.477-1.156.868-1.83 1.178-1.38.637-3.035 1.082-4.155 1.242l-.282.037c-.53.06-1.118.056-1.51-.336-.357-.357-.393-.875-.351-1.365l.032-.29.019-.138c.16-1.12.605-2.775 1.242-4.156.31-.672.7-1.351 1.179-1.83.478-.478 1.157-.868 1.83-1.178 1.38-.637 3.035-1.082 4.155-1.242l.282-.037c.53-.06 1.115-.06 1.51.336zm-1.712 1.712c-.908.155-2.323.55-3.4 1.047-.597.276-1.023.548-1.252.777s-.501.655-.777 1.252c-.496 1.077-.892 2.492-1.047 3.4.908-.155 2.323-.55 3.4-1.047.597-.276 1.023-.548 1.252-.777s.502-.655.777-1.252c.496-1.077.893-2.492 1.047-3.4M12 11a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+</style>

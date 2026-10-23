@@ -1,11 +1,11 @@
 <template>
 	<div class="no-auth-container">
-		<te-empty description="您的账号暂未开通此应用的相关权限" :image="ImgUrl"> </te-empty>
+		<te-empty description="您的账号暂未开通此应用的相关权限" :image="ImgUrl"> </el-empty>
 	</div>
 </template>
 
 <script lang="ts" setup>
-	import { TeEmpty } from "@tiansu/element-plus";
+	import { TeEmpty } from "element-plus";
 	import ImgUrl from "./img/empty.png";
 </script>
 

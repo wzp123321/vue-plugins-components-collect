@@ -9,18 +9,18 @@
 						<div @mouseenter="handleCellMouseEnter($event, node.data.$treeNodeId)" @mouseleave="handleCellMouseLeave($event, node.data.$treeNodeId)" class="tte-line-left-text">
 							{{ data[props.props.label] }}
 						</div>
-					</te-tooltip>
+					</el-tooltip>
 				</div>
 				<div class="tte-line-right" :class="node.data.$treeNodeId === mouseEnterNodeId && !data[props.props.notShowMore] ? '' : 'view-hidden'" @click.stop>
-					<te-dropdown>
-						<te-icon><icon-more-filled /></te-icon>
+					<el-dropdown>
+						<el-icon><icon-more-filled /></el-icon>
 						<template #dropdown>
 							<div @mouseenter="handleEnter($event, node)" @mouseleave="handleLeave($event)">
 								<!--  此处插槽为 te-dropdown-menu  -->
 								<slot name="more-action" v-bind="{ node, data }"></slot>
 							</div>
 						</template>
-					</te-dropdown>
+					</el-dropdown>
 				</div>
 			</div>
 		</template>
@@ -30,14 +30,14 @@
 				<div class="tte-empty-text">暂无内容</div>
 			</div>
 		</template>
-	</te-tree>
+	</el-tree>
 </template>
 <script lang="ts" setup>
 	import { ref, watch } from "vue";
-	import { TeTree, TeDropdown, TeIcon, TeTooltip } from "@tiansu/element-plus";
+	import { ElTree, ElDropdown, ElIcon, ElTooltip } from "element-plus";
 	import { IconMoreFilled } from "@arco-iconbox/vue-te";
-	import type Node from "@tiansu/element-plus/es/components/tree/src/model/node";
-	import type { TreeOptionProps } from "@tiansu/element-plus/es/components/tree/src/tree.type";
+	import type Node from "element-plus/es/components/tree/src/model/node";
+	import type { TreeOptionProps } from "element-plus/es/components/tree/src/tree.type";
 
 	interface TreeOptionPropsCustom extends TreeOptionProps {
 		label: string;
@@ -111,7 +111,7 @@
 		return data[name].includes(value);
 	};
 
-	const treeRef = ref<InstanceType<typeof TeTree>>();
+	const treeRef = ref<InstanceType<typeof ElTree>>();
 
 	watch(
 		() => props.searchValue,

@@ -8,7 +8,7 @@
     <te-button @click="disabled = !disabled"
       >click to {{ disabled ? 'active' : 'close' }} tooltip function</te-button
     >
-  </te-tooltip>
+  </el-tooltip>
 </template>
 
 <script lang="ts" setup>

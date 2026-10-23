@@ -2,10 +2,10 @@
   "easycom": {
     "autoscan": true,
     "custom": {
-      "^tsm-theme-provider$": "@/uni_modules/@tiansu/ts-mobile-token/theme-provider/uniapp/tsm-theme-provider.vue",
-      "^tsm-(.*)": "@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-$1/uniapp/tsm-$1.vue",
-      "^tsmbiz-(.*)": "@/uni_modules/@tiansu/ts-mobile-biz-ui/components/tsmbiz-$1/uniapp/tsmbiz-$1.vue",
-      "^icon-(.*)$": "@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-$1.vue"
+      "^tsm-theme-provider$": "@/uni_modules/@zpackage/mobile-package/token/theme-provider/uniapp/tsm-theme-provider.vue",
+      "^tsm-(.*)": "@/uni_modules/@zpackage/mobile-package/ui/components/tsm-$1/uniapp/tsm-$1.vue",
+      "^tsmbiz-(.*)": "@/uni_modules/@zpackage/mobile-package/biz-ui/components/tsmbiz-$1/uniapp/tsmbiz-$1.vue",
+      "^icon-(.*)$": "@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-$1.vue"
     }
   },
   "pages": [

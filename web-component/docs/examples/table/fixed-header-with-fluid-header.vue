@@ -15,10 +15,10 @@
           @click.prevent="deleteRow(scope.$index)"
         >
           Remove
-        </te-button>
+        </el-button>
       </template>
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
   <te-button class="mt-4" style="width: 100%" @click="onAddItem"
     >Add Item</te-button
   >

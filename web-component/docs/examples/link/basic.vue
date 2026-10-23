@@ -1,11 +1,11 @@
 <template>
   <div>
-    <te-link href="https://element-plus.org" target="_blank">default</te-link>
-    <te-link type="primary">primary</te-link>
-    <te-link type="success">success</te-link>
-    <te-link type="warning">warning</te-link>
-    <te-link type="danger">danger</te-link>
-    <te-link type="info">info</te-link>
+    <te-link href="https://element-plus.org" target="_blank">default</el-link>
+    <te-link type="primary">primary</el-link>
+    <te-link type="success">success</el-link>
+    <te-link type="warning">warning</el-link>
+    <te-link type="danger">danger</el-link>
+    <te-link type="info">info</el-link>
   </div>
 </template>
 <style scoped>

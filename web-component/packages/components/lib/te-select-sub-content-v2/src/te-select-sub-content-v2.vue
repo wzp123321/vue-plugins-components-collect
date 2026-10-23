@@ -49,13 +49,13 @@
 		  </div>
 		</div>
 	  </template>
-	</te-select-v2>
+	</el-select-v2>
   </template>
   <script lang="ts" setup>
   import { ref, watch, useAttrs, onUnmounted } from 'vue'
   import PinYinMatch from 'pinyin-match'
   import lodash from 'lodash'
-  import { TeSelectV2 } from '@tiansu/element-plus'
+  import { ElSelectV2 } from 'element-plus'
   
   const attrs = useAttrs()
   

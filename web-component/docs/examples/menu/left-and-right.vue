@@ -6,22 +6,22 @@
     :ellipsis="false"
     @select="handleSelect"
   >
-    <te-menu-item index="0">LOGO</te-menu-item>
+    <te-menu-item index="0">LOGO</el-menu-item>
     <div class="flex-grow" />
-    <te-menu-item index="1">Processing Center</te-menu-item>
+    <te-menu-item index="1">Processing Center</el-menu-item>
     <te-sub-menu index="2">
       <template #title>Workspace</template>
-      <te-menu-item index="2-1">item one</te-menu-item>
-      <te-menu-item index="2-2">item two</te-menu-item>
-      <te-menu-item index="2-3">item three</te-menu-item>
+      <te-menu-item index="2-1">item one</el-menu-item>
+      <te-menu-item index="2-2">item two</el-menu-item>
+      <te-menu-item index="2-3">item three</el-menu-item>
       <te-sub-menu index="2-4">
         <template #title>item four</template>
-        <te-menu-item index="2-4-1">item one</te-menu-item>
-        <te-menu-item index="2-4-2">item two</te-menu-item>
-        <te-menu-item index="2-4-3">item three</te-menu-item>
-      </te-sub-menu>
-    </te-sub-menu>
-  </te-menu>
+        <te-menu-item index="2-4-1">item one</el-menu-item>
+        <te-menu-item index="2-4-2">item two</el-menu-item>
+        <te-menu-item index="2-4-3">item three</el-menu-item>
+      </el-sub-menu>
+    </el-sub-menu>
+  </el-menu>
 </template>
 
 <script lang="ts" setup>

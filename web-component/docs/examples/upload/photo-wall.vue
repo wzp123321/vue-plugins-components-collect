@@ -6,19 +6,19 @@
     :on-preview="handlePictureCardPreview"
     :on-remove="handleRemove"
   >
-    <te-icon><Plus /></te-icon>
-  </te-upload>
+    <el-icon><Plus /></el-icon>
+  </el-upload>
 
   <te-dialog v-model="dialogVisible">
     <img w-full :src="dialogImageUrl" alt="Preview Image" />
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 
-import type { UploadProps, UploadUserFile } from '@tiansu/element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([
   {

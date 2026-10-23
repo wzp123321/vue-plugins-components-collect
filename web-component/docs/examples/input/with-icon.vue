@@ -16,7 +16,7 @@
         placeholder="Type something"
         :prefix-icon="Search"
       />
-    </te-row>
+    </el-row>
   </div>
   <div class="demo-input-suffix">
     <te-row :gutter="20">
@@ -25,15 +25,15 @@
       >
       <te-input v-model="input3" class="w-50 m-2" placeholder="Pick a date">
         <template #suffix>
-          <te-icon class="te-input__icon"><calendar /></te-icon>
+          <te-icon class="te-input__icon"><calendar /></el-icon>
         </template>
-      </te-input>
+      </el-input>
       <te-input v-model="input4" class="w-50 m-2" placeholder="Type something">
         <template #prefix>
-          <te-icon class="te-input__icon"><search /></te-icon>
+          <te-icon class="te-input__icon"><search /></el-icon>
         </template>
-      </te-input>
-    </te-row>
+      </el-input>
+    </el-row>
   </div>
 </template>
 

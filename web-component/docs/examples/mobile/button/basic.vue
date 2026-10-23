@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemButton } from '@tiansu/ts-mobile-package';
+// import { TemButton } from '@zpackage/mobile-package';
 // import { IconPlus } from '@arco-iconbox/vue-tem';
 </script>
 

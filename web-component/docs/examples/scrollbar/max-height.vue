@@ -1,11 +1,11 @@
 <template>
-  <te-button @click="add">Add Item</te-button>
-  <te-button @click="onDelete">Delete Item</te-button>
+  <te-button @click="add">Add Item</el-button>
+  <te-button @click="onDelete">Delete Item</el-button>
   <te-scrollbar max-height="400px">
     <p v-for="item in count" :key="item" class="scrollbar-demo-item">
       {{ item }}
     </p>
-  </te-scrollbar>
+  </el-scrollbar>
 </template>
 
 <script lang="ts" setup>

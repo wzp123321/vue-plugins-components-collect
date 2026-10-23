@@ -15,8 +15,8 @@
       <te-table-column property="date" label="Date" width="150" />
       <te-table-column property="name" label="Name" width="200" />
       <te-table-column property="address" label="Address" />
-    </te-table>
-  </te-drawer>
+    </el-table>
+  </el-drawer>
 
   <te-drawer
     ref="drawerRef"
@@ -30,7 +30,7 @@
       <te-form :model="form">
         <te-form-item label="Name" :label-width="formLabelWidth">
           <te-input v-model="form.name" autocomplete="off" />
-        </te-form-item>
+        </el-form-item>
         <te-form-item label="Area" :label-width="formLabelWidth">
           <te-select
             v-model="form.region"
@@ -38,22 +38,22 @@
           >
             <te-option label="Area1" value="shanghai" />
             <te-option label="Area2" value="beijing" />
-          </te-select>
-        </te-form-item>
-      </te-form>
+          </el-select>
+        </el-form-item>
+      </el-form>
       <div class="demo-drawer__footer">
-        <te-button @click="cancelForm">Cancel</te-button>
+        <te-button @click="cancelForm">Cancel</el-button>
         <te-button type="primary" :loading="loading" @click="onClick">{{
           loading ? 'Submitting ...' : 'Submit'
-        }}</te-button>
+        }}</el-button>
       </div>
     </div>
-  </te-drawer>
+  </el-drawer>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { TeDrawer, TeMessageBox } from '@tiansu/element-plus'
+import { ElDrawer, ElMessageBox } from 'element-plus'
 
 const formLabelWidth = '80px'
 let timer
@@ -96,7 +96,7 @@ const gridData = [
   },
 ]
 
-const drawerRef = ref<InstanceType<typeof TeDrawer>>()
+const drawerRef = ref<InstanceType<typeof ElDrawer>>()
 const onClick = () => {
   drawerRef.value!.close()
 }
@@ -105,7 +105,7 @@ const handleClose = (done) => {
   if (loading.value) {
     return
   }
-  TeMessageBox.confirm('Do you want to submit?')
+  ElMessageBox.confirm('Do you want to submit?')
     .then(() => {
       loading.value = true
       timer = setTimeout(() => {

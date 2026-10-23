@@ -12,11 +12,11 @@
         <slot></slot>
       </div>
     </div>
-  </te-tabs>
+  </el-tabs>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeTabs } from '@tiansu/element-plus'
+import { ElTabs } from 'element-plus'
 
 interface PropType {
   showTabTip: boolean

@@ -5,13 +5,13 @@
     @click="openFullScreen1"
   >
     As a directive
-  </te-button>
-  <te-button type="primary" @click="openFullScreen2"> As a service </te-button>
+  </el-button>
+  <te-button type="primary" @click="openFullScreen2"> As a service </el-button>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeLoading } from '@tiansu/element-plus'
+import { ElLoading } from 'element-plus'
 
 const fullscreenLoading = ref(false)
 const openFullScreen1 = () => {
@@ -22,7 +22,7 @@ const openFullScreen1 = () => {
 }
 
 const openFullScreen2 = () => {
-  const loading = TeLoading.service({
+  const loading = ElLoading.service({
     lock: true,
     text: 'Loading',
     background: 'rgba(0, 0, 0, 0.7)',

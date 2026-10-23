@@ -1,0 +1,56 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" fill-rule="evenodd" d="M11.5 2.134a1 1 0 0 1 1 0l2 1.155a1 1 0 0 1-1 1.732l-.5-.289V6a1 1 0 0 1-2 0V4.732l-.5.289a1 1 0 0 1-1-1.732zM7.072 5.845a1 1 0 0 1-.366 1.366l-.5.289 1.098.634a1 1 0 1 1-1 1.732l-1.098-.634v.577a1 1 0 0 1-2 0V7.5a1 1 0 0 1 .5-.865l2-1.155a1 1 0 0 1 1.366.366zm9.856 0a1 1 0 0 1 1.366-.366l2 1.155a1 1 0 0 1 .5.866v2.31a1 1 0 0 1-2 0v-.578l-1.098.634a1 1 0 0 1-1-1.732l1.098-.634-.5-.289a1 1 0 0 1-.366-1.366M8.536 10a1 1 0 0 1 1.366-.366L12 10.845l2.098-1.211a1 1 0 0 1 1 1.732L13 12.577V15a1 1 0 0 1-2 0v-2.423l-2.098-1.211A1 1 0 0 1 8.536 10m-4.33 3.19a1 1 0 0 1 1 1v.578l1.098-.634a1 1 0 0 1 1 1.732l-1.098.634.5.289a1 1 0 1 1-1 1.732l-2-1.155a1 1 0 0 1-.5-.866v-2.31a1 1 0 0 1 1-1m15.588 0a1 1 0 0 1 1 1v2.31a1 1 0 0 1-.5.866l-2 1.155a1.001 1.001 0 0 1-1.296-1.475 1 1 0 0 1 .296-.257l.5-.289-1.098-.634a.999.999 0 1 1 1-1.732l1.098.634v-.577a1 1 0 0 1 1-1zM12 17a1 1 0 0 1 1 1v1.268l.5-.289a.998.998 0 0 1 1.498.734 1 1 0 0 1-.498.998l-2 1.155a1 1 0 0 1-1 0l-2-1.155a1 1 0 1 1 1-1.732l.5.289V18a1 1 0 0 1 1-1" clip-rule="evenodd"/></svg>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+</style>

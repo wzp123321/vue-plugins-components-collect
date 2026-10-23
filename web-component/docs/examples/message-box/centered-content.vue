@@ -1,12 +1,12 @@
 <template>
-  <te-button text @click="open">Click to open Message Box</te-button>
+  <te-button text @click="open">Click to open Message Box</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessage, TeMessageBox } from '@tiansu/element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const open = () => {
-  TeMessageBox.confirm(
+  ElMessageBox.confirm(
     'proxy will permanently delete the file. Continue?',
     'Warning',
     {
@@ -17,13 +17,13 @@ const open = () => {
     }
   )
     .then(() => {
-      TeMessage({
+      ElMessage({
         type: 'success',
         message: 'Delete completed',
       })
     })
     .catch(() => {
-      TeMessage({
+      ElMessage({
         type: 'info',
         message: 'Delete canceled',
       })

@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="m11.197 2.75.138.072 7.794 4.5a2 2 0 0 1 .805 2.593l-.073.14-6 10.391a2 2 0 0 1-2.593.805l-.14-.073-7.793-4.5a2 2 0 0 1-.805-2.594l.073-.138 4.5-7.794-1.732-1a1 1 0 0 1 .896-1.785l.104.053 1.732 1 .5-.866a2 2 0 0 1 2.445-.87zm5.23 9.25H6.037l-1.7 2.946 7.793 4.5 4.3-7.446zm3.876-.77L20.5 11l.076.087.198.235.177.22.197.258.204.284c.338.49.648 1.04.648 1.416a1.5 1.5 0 1 1-3 0c0-.452.446-1.155.852-1.7l.197-.258zm-9.968-6.676-.5.866.866.5a1 1 0 1 1-1 1.732l-.866-.5L7.19 10h10.392l.546-.946z"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-highlight/highlight.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

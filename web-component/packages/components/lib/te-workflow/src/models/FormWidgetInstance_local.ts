@@ -5,7 +5,7 @@ import { Axios } from 'axios';
 import type { Ref } from 'vue';
 import DepartmentQd from '../../../models/DepartmentQd';
 import EmployeeQd from '../../../models/EmployeeQd';
-import { type UploadUserFile } from '@tiansu/element-plus';
+import { type UploadUserFile } from 'element-plus';
 export default class FormWidgetInstance_local extends FormWidgetInstance {
   axios: Axios | null = null;
   tenantId: string = '';

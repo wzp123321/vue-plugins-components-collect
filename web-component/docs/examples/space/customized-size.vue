@@ -5,7 +5,7 @@
       <template #header>
         <div class="card-header">
           <span>Card name</span>
-          <te-button class="button" text>Operation button</te-button>
+          <te-button class="button" text>Operation button</el-button>
         </div>
       </template>
       <div v-for="o in 4" :key="o" class="text item">

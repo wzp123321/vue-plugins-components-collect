@@ -54,14 +54,14 @@
               >
             </template>
           </div>
-        </te-option>
+        </el-option>
       </div>
-    </te-select>
+    </el-select>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, watch, computed, WritableComputedRef, onMounted } from 'vue';
-import { TeSelect, TeOption } from '@tiansu/element-plus';
+import { ElSelect, ElOption } from 'element-plus';
 import { cloneDeep } from 'lodash';
 
 // 抛出事件

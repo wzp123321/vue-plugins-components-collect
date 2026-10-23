@@ -5,13 +5,13 @@
       <span> 仅展示最近24小时内最新的1000条数据 </span>
       <te-button link type="primary" @click="handleViewMore">
         查看更多告警
-      </te-button>
+      </el-button>
     </div>
-  </te-alert>
+  </el-alert>
 </template>
 
 <script lang="ts" setup>
-import { TeAlert, TeButton } from '@tiansu/element-plus';
+import { ElAlert, ElButton } from 'element-plus';
 import { ALARM_QUERY_PAGE, IMS_SYSTEM_PREFIX } from '../constant';
 
 defineOptions({ name: 'TeAlarmHintBar' });

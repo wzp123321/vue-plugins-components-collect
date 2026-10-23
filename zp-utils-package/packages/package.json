@@ -1,5 +1,5 @@
 {
-  "name": "@tiansu/tools",
+  "name": "@zpackage/tools",
   "version": "2.0.0",
   "private": false,
   "type": "module",
@@ -37,9 +37,6 @@
     "minimist": "^1.2.8",
     "mkdirp": "^3.0.1",
     "sm-crypto-v2": "1.15.1"
-  },
-  "publishConfig": {
-    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
   },
   "devDependencies": {
     "@types/sm-crypto": "^0.3.4"

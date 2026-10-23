@@ -42,7 +42,7 @@
 //   TemPopupToast,
 //   TemButton,
 //   TemSwitch,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 import { ref } from 'vue';
 // import { IconPlus } from '@arco-iconbox/vue-tem';
 

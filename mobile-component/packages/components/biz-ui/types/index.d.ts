@@ -1,5 +1,5 @@
 /// <reference path="./comps.d.ts" />
-declare module '@tiansu/ts-mobile-biz-ui' {
+declare module '@zpackage/mobile-package/biz-ui' {
   export function install(): void;
 }
 

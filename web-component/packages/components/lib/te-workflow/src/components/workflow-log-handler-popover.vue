@@ -23,11 +23,11 @@
         </div>
       </te-employee-info>
     </div>
-  </te-popover>
+  </el-popover>
 </template>
 
 <script setup lang="ts">
-import { TePopover } from '@tiansu/element-plus';
+import { ElPopover } from 'element-plus';
 import { type AxiosInstance } from 'axios';
 import IdName from '../../../models/IdName';
 import { TeEmployeeInfo } from '../../../te-employee-info';

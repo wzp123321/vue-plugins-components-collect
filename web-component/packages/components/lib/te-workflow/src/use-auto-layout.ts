@@ -1,4 +1,4 @@
-import dagre from '@tiansu/custom-dagre';
+import dagre from 'dagre';
 import { NodeShapeType } from './models/enum/workflow';
 import { Cell, Graph, Node } from '@antv/x6';
 

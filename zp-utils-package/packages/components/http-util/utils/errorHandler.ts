@@ -2,7 +2,7 @@
  * HTTP 响应及错误处理工具
  */
 /* eslint-disable max-classes-per-file */
-import { TeMessageBox } from '@tiansu/element-plus';
+import { TeMessageBox } from 'element-plus';
 import type { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
 import { HTTP_STATUS, BUSINESS_CODE, ERROR_MESSAGE_MAP } from '../constant';

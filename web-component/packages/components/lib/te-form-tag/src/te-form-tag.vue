@@ -28,22 +28,22 @@
         @click="showInput"
       >
         + 添加标签
-      </te-button>
-    </te-form-item>
-  </te-form>
+      </el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
 import {
   TeForm,
   TeFormItem,
-  TeInput,
-  TeButton,
-  TeTag,
-} from "@tiansu/element-plus";
-// import { EpPropMergeType } from "@tiansu/element-plus/es/utils";
+  ElInput,
+  ElButton,
+  ElTag,
+} from "element-plus";
+// import { EpPropMergeType } from "element-plus/es/utils";
 import { ref, nextTick } from "vue";
-// import '../../../../../node_modules/@tiansu/ts-web-package/dist/styles/index.css'
+// import '../../../../../node_modules/@zpackage/web-package/dist/styles/index.css'
 
 const props = withDefaults(
   defineProps<{
@@ -60,7 +60,7 @@ const props = withDefaults(
 
 const inputVisible = ref(false);
 const inputValue = ref("");
-const InputRef = ref<InstanceType<typeof TeInput>>();
+const InputRef = ref<InstanceType<typeof ElInput>>();
 
 /**
  * emit事件

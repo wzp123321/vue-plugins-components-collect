@@ -14,7 +14,7 @@
         <template #prefix>
           <icon-search />
         </template>
-      </te-input>
+      </el-input>
     </div>
     <!-- 列表 -->
     <te-scrollbar class="common-transfer-list">
@@ -43,7 +43,7 @@
         <template #empty>
           <span class="custom-tree-empty">暂无内容</span>
         </template>
-      </te-tree>
+      </el-tree>
       <te-tree-v2
         v-else
         ref="treeRef"
@@ -63,8 +63,8 @@
           >
           </span>
         </template>
-      </te-tree-v2>
-    </te-scrollbar>
+      </el-tree-v2>
+    </el-scrollbar>
   </div>
 </template>
 
@@ -72,8 +72,8 @@
 import { isEmpty } from 'lodash';
 import { ref, watch } from 'vue';
 import { IconSearch } from '@arco-iconbox/vue-te';
-import { TeInput, TeTree, TeScrollbar, TeTreeV2 } from '@tiansu/element-plus';
-import type { TreeNode } from '@tiansu/element-plus/es/components/tree-v2/src/types';
+import { ElInput, ElTree, ElScrollbar, ElTreeV2 } from 'element-plus';
+import type { TreeNode } from 'element-plus/es/components/tree-v2/src/types';
 
 const treeRef = ref();
 const inputRef = ref();

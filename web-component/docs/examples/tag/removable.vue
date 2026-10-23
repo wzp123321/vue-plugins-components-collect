@@ -7,7 +7,7 @@
     :type="tag.type"
   >
     {{ tag.name }}
-  </te-tag>
+  </el-tag>
 </template>
 
 <script lang="ts" setup>

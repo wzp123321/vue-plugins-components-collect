@@ -1,21 +1,21 @@
 <template>
-  <te-dropdown>
+  <el-dropdown>
     <span class="te-dropdown-link">
       Dropdown List
       <te-icon class="te-icon--right">
         <arrow-down />
-      </te-icon>
+      </el-icon>
     </span>
     <template #dropdown>
-      <te-dropdown-menu>
-        <te-dropdown-item>Action 1</te-dropdown-item>
-        <te-dropdown-item>Action 2</te-dropdown-item>
-        <te-dropdown-item>Action 3</te-dropdown-item>
-        <te-dropdown-item disabled>Action 4</te-dropdown-item>
-        <te-dropdown-item divided>Action 5</te-dropdown-item>
-      </te-dropdown-menu>
+      <el-dropdown-menu>
+        <el-dropdown-item>Action 1</el-dropdown-item>
+        <el-dropdown-item>Action 2</el-dropdown-item>
+        <el-dropdown-item>Action 3</el-dropdown-item>
+        <te-dropdown-item disabled>Action 4</el-dropdown-item>
+        <te-dropdown-item divided>Action 5</el-dropdown-item>
+      </el-dropdown-menu>
     </template>
-  </te-dropdown>
+  </el-dropdown>
 </template>
 
 <script lang="ts" setup>

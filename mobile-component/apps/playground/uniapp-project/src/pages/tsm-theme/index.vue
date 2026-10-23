@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { getThemeMode, setThemeMode } from '@/uni_modules/@tiansu/ts-mobile-token/index';
+import { getThemeMode, setThemeMode } from '@/uni_modules/@zpackage/mobile-package/token/index';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -39,7 +39,7 @@ function setTheme(mode: ThemeMode) {
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   height: 100%;

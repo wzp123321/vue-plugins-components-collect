@@ -1,7 +1,7 @@
 <template>
 	<te-popconfirm confirm-button-text="Yes" cancle-button-text="No" :icon="InfoFilled" icon-color="#626AEF" title="Are you sure to delete this?" @confirm="confirmEvent" @cancel="cancelEvent">
 		<template #reference>
-			<te-button>Delete</te-button>
+			<el-button>Delete</el-button>
 		</template>
 	</te-popconfirm>
 </template>

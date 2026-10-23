@@ -17,8 +17,8 @@
           >Delete</te-button
         >
       </template>
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

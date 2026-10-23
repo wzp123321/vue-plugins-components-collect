@@ -2,14 +2,14 @@
   <div class="mb-4 flex items-center">
     <te-form-item label="Scroll pixels" class="mr-4">
       <te-input v-model="scrollDelta" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Scroll rows">
       <te-input v-model="scrollRows" />
-    </te-form-item>
+    </el-form-item>
   </div>
   <div class="mb-4 flex items-center">
-    <te-button @click="scrollByPixels"> Scroll by pixels </te-button>
-    <te-button @click="scrollByRows"> Scroll by rows </te-button>
+    <te-button @click="scrollByPixels"> Scroll by pixels </el-button>
+    <te-button @click="scrollByRows"> Scroll by rows </el-button>
   </div>
   <div style="height: 400px">
     <te-auto-resizer>
@@ -30,7 +30,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 
-import type { TableV2Instance } from '@tiansu/element-plus'
+import type { TableV2Instance } from 'element-plus'
 
 const generateColumns = (length = 10, prefix = 'column-', props?: any) =>
   Array.from({ length }).map((_, columnIndex) => ({

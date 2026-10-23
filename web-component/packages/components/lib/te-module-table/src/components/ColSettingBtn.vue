@@ -9,10 +9,10 @@
     >
       <template #reference>
         <te-button style="width: 34px; height: 32px">
-          <te-icon>
+          <el-icon>
             <Setting />
-          </te-icon>
-        </te-button>
+          </el-icon>
+        </el-button>
       </template>
 
       <TransitionGroup name="list" tag="div" class="container">
@@ -32,7 +32,7 @@
             :label="item.label"
             :disabled="item.disabled"
             @change="checkedChange"
-          ></te-checkbox>
+          ></el-checkbox>
           <div
             v-if="item._children && item._children.length > 0"
             class="children-container"
@@ -52,7 +52,7 @@
                 v-model="child.checked"
                 :label="child.label"
                 @change="childCheckedChange"
-              ></te-checkbox>
+              ></el-checkbox>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@
       <div class="noData" v-if="columns.length === 0">
         <span>暂无有效列</span>
       </div>
-    </te-popover>
+    </el-popover>
   </div>
 </template>
 <script lang="ts" setup name="ColSetting">

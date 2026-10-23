@@ -7,8 +7,8 @@
  * @Description: 编辑表格类型定义
  */
 
-import { TableColumnCtx } from "@tiansu/element-plus/es/components/table/src/table-column/defaults";
-import type { FormRules } from "@tiansu/element-plus";
+import { TableColumnCtx } from "element-plus/es/components/table/src/table-column/defaults";
+import type { FormRules } from "element-plus";
 
 // 常用的输入类型
 export enum EditType {

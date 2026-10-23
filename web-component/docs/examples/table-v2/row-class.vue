@@ -12,15 +12,15 @@
 import { ref } from 'vue'
 import dayjs from 'dayjs'
 import {
-  TeButton,
-  TeIcon,
-  TeTag,
-  TeTooltip,
+  ElButton,
+  ElIcon,
+  ElTag,
+  ElTooltip,
   TableV2FixedDir,
-} from '@tiansu/element-plus'
+} from 'element-plus'
 import { Timer } from '@element-plus/icons-vue'
 
-import type { Column, RowClassNameGetter } from '@tiansu/element-plus'
+import type { Column, RowClassNameGetter } from 'element-plus'
 
 let id = 0
 
@@ -38,16 +38,16 @@ const columns: Column<any>[] = [
     width: 150,
     fixed: TableV2FixedDir.LEFT,
     cellRenderer: ({ cellData: date }) => (
-      <TeTooltip content={dayjs(date).format('YYYY/MM/DD')}>
+      <ElTooltip content={dayjs(date).format('YYYY/MM/DD')}>
         {
           <span class="flex items-center">
-            <TeIcon class="mr-3">
+            <ElIcon class="mr-3">
               <Timer />
-            </TeIcon>
+            </ElIcon>
             {dayjs(date).format('YYYY/MM/DD')}
           </span>
         }
-      </TeTooltip>
+      </ElTooltip>
     ),
   },
   {
@@ -56,17 +56,17 @@ const columns: Column<any>[] = [
     dataKey: 'name',
     width: 150,
     align: 'center',
-    cellRenderer: ({ cellData: name }) => <TeTag>{name}</TeTag>,
+    cellRenderer: ({ cellData: name }) => <ElTag>{name}</ElTag>,
   },
   {
     key: 'operations',
     title: 'Operations',
     cellRenderer: () => (
       <>
-        <TeButton size="small">Edit</TeButton>
-        <TeButton size="small" type="danger">
+        <ElButton size="small">Edit</ElButton>
+        <ElButton size="small" type="danger">
           Delete
-        </TeButton>
+        </ElButton>
       </>
     ),
     width: 150,

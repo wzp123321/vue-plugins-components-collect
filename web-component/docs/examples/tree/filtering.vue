@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { TeTree } from '@tiansu/element-plus'
+import { ElTree } from 'element-plus'
 
 interface Tree {
   id: number
@@ -22,7 +22,7 @@ interface Tree {
 }
 
 const filterText = ref('')
-const treeRef = ref<InstanceType<typeof TeTree>>()
+const treeRef = ref<InstanceType<typeof ElTree>>()
 
 const defaultProps = {
   children: 'children',

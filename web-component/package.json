@@ -1,5 +1,5 @@
 {
-  "name": "ts-package-document",
+  "name": "@zpackage/web-package-docs",
   "version": "0.1.0",
   "description": "天溯组件库说明文档",
   "private": "true",
@@ -28,7 +28,7 @@
     "@element-plus/icons-vue": "^2.0.9",
     "@floating-ui/dom": "^1.0.1",
     "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7",
-    "@tiansu/element-plus": "2.3.7-beta.28",
+    "element-plus": "2.3.7",
     "@types/lodash": "^4.14.182",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.0",

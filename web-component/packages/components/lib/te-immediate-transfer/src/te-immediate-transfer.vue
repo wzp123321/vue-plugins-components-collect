@@ -31,8 +31,8 @@
               :defaultCheckedKeys="modelValue.map((item) => item[getNodeKey()])"
             >
             </te-immediate-transfer-tree-item>
-          </te-tab-pane>
-        </te-tabs>
+          </el-tab-pane>
+        </el-tabs>
         <div class="te-immediate-transfer-left-no-tabs-container" v-else>
           <div
             class="ct-content-left-tree-header"
@@ -47,7 +47,7 @@
               @change="handleCheckAllChange"
             >
               {{ '待选' + '(' + prepareCheckedCount + ')' }}
-            </te-checkbox>
+            </el-checkbox>
             <span v-else>{{
               showLeftCount ? '待选' + '(' + prepareCheckedCount + ')' : '待选'
             }}</span>
@@ -61,16 +61,16 @@
                 <icon-down />
               </span>
               <template #dropdown>
-                <te-dropdown-menu>
+                <el-dropdown-menu>
                   <te-dropdown-item :command="Common_EStrictlyStatus.联选"
                     >联选</te-dropdown-item
                   >
                   <te-dropdown-item :command="Common_EStrictlyStatus.任选"
                     >任选</te-dropdown-item
                   >
-                </te-dropdown-menu>
+                </el-dropdown-menu>
               </template>
-            </te-dropdown>
+            </el-dropdown>
           </div>
           <div class="left-tree-container">
             <te-immediate-transfer-tree-item
@@ -127,14 +127,14 @@ import {
 } from './constants';
 import CommonTransferChecked from './ctt-checked.vue';
 import {
-  TeMessage,
-  TeCheckbox,
-  TeDropdown,
-  TeDropdownMenu,
-  TeDropdownItem,
-  TeTabs,
-  TeTabPane,
-} from '@tiansu/element-plus';
+  ElMessage,
+  ElCheckbox,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem,
+  ElTabs,
+  ElTabPane,
+} from 'element-plus';
 import { IconDown } from '@arco-iconbox/vue-te';
 import { cloneDeep } from 'lodash';
 import TeImmediateTransferTreeItem from './components/left-tree-item.vue';
@@ -142,7 +142,7 @@ import {
   TreeData,
   TreeKey,
   TreeNodeData,
-} from '@tiansu/element-plus/es/components/tree-v2/src/types';
+} from 'element-plus/es/components/tree-v2/src/types';
 import { nextTick } from 'vue';
 
 defineOptions({
@@ -451,7 +451,7 @@ const onTreeV2Check = (
         treeItemRef.value.treeRef?.setChecked(item[getNodeKey()], true);
       });
     }
-    TeMessage({
+    ElMessage({
       type: 'error',
       message: `${props.namespace}最多可选择${props.maxLength}个`,
     });
@@ -505,7 +505,7 @@ const onCheck = (
       });
     }
     mapCheckedDataList();
-    TeMessage({
+    ElMessage({
       type: 'error',
       message: `${props.namespace}最多可选择${props.maxLength}个`,
     });
@@ -541,7 +541,7 @@ const handleCheckAllChange = (val: boolean) => {
       });
       updateCheckedNodes();
       // updateTabStateMap();
-      TeMessage({
+      ElMessage({
         type: 'error',
         message: `${props.namespace}最多可选择${props.maxLength}个`,
       });

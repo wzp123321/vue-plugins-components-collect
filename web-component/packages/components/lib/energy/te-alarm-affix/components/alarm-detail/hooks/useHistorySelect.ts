@@ -3,7 +3,7 @@ import type { AxiosInstance } from 'axios';
 import alarmDeatilService, {
   TQueryAlarmHistoryListRes,
 } from '../alarm-deatil.service';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 
 export const useHistorySelect = (axiosInstance: AxiosInstance) => {
   const selectedHistory = ref<any>(null);
@@ -18,7 +18,7 @@ export const useHistorySelect = (axiosInstance: AxiosInstance) => {
         label: item.generationTime,
       }));
     } else {
-      TeMessage.error(res.message);
+      ElMessage.error(res.message);
     }
   };
 

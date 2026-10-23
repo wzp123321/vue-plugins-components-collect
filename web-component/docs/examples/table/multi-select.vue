@@ -8,21 +8,21 @@
     <te-table-column type="selection" width="55" />
     <te-table-column label="Date" width="120">
       <template #default="scope">{{ scope.row.date }}</template>
-    </te-table-column>
+    </el-table-column>
     <te-table-column property="name" label="Name" width="120" />
     <te-table-column property="address" label="Address" show-overflow-tooltip />
-  </te-table>
+  </el-table>
   <div style="margin-top: 20px">
     <te-button @click="toggleSelection([tableData[1], tableData[2]])"
       >Toggle selection status of second and third rows</te-button
     >
-    <te-button @click="toggleSelection()">Clear selection</te-button>
+    <te-button @click="toggleSelection()">Clear selection</el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeTable } from '@tiansu/element-plus'
+import { ElTable } from 'element-plus'
 
 interface User {
   date: string
@@ -30,7 +30,7 @@ interface User {
   address: string
 }
 
-const multipleTableRef = ref<InstanceType<typeof TeTable>>()
+const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 const multipleSelection = ref<User[]>([])
 const toggleSelection = (rows?: User[]) => {
   if (rows) {

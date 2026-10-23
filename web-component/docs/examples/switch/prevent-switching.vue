@@ -13,7 +13,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 
 const value1 = ref(false)
 const value2 = ref(false)
@@ -25,7 +25,7 @@ const beforeChange1 = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       loading1.value = false
-      TeMessage.success('Switch success')
+      ElMessage.success('Switch success')
       return resolve(true)
     }, 1000)
   })
@@ -36,7 +36,7 @@ const beforeChange2 = () => {
   return new Promise((_, reject) => {
     setTimeout(() => {
       loading2.value = false
-      TeMessage.error('Switch failed')
+      ElMessage.error('Switch failed')
       return reject(new Error('Error'))
     }, 1000)
   })

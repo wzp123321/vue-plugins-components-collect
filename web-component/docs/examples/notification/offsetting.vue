@@ -1,12 +1,12 @@
 <template>
-  <te-button plain @click="open"> Notification with offset </te-button>
+  <te-button plain @click="open"> Notification with offset </el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeNotification } from '@tiansu/element-plus'
+import { ElNotification } from 'element-plus'
 
 const open = () => {
-  TeNotification.success({
+  ElNotification.success({
     title: 'Success',
     message: 'This is a success message',
     offset: 100,

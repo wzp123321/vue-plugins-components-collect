@@ -1,6 +1,6 @@
 <template>
   <te-upload action="#" list-type="picture-card" :auto-upload="false">
-    <te-icon><Plus /></te-icon>
+    <el-icon><Plus /></el-icon>
 
     <template #file="{ file }">
       <div>
@@ -10,36 +10,36 @@
             class="te-upload-list__item-preview"
             @click="handlePictureCardPreview(file)"
           >
-            <te-icon><zoom-in /></te-icon>
+            <el-icon><zoom-in /></el-icon>
           </span>
           <span
             v-if="!disabled"
             class="te-upload-list__item-delete"
             @click="handleDownload(file)"
           >
-            <te-icon><Download /></te-icon>
+            <el-icon><Download /></el-icon>
           </span>
           <span
             v-if="!disabled"
             class="te-upload-list__item-delete"
             @click="handleRemove(file)"
           >
-            <te-icon><Delete /></te-icon>
+            <el-icon><Delete /></el-icon>
           </span>
         </span>
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 
   <te-dialog v-model="dialogVisible">
     <img w-full :src="dialogImageUrl" alt="Preview Image" />
-  </te-dialog>
+  </el-dialog>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { Delete, Download, Plus, ZoomIn } from '@element-plus/icons-vue'
 
-import type { UploadFile } from '@tiansu/element-plus'
+import type { UploadFile } from 'element-plus'
 
 const dialogImageUrl = ref('')
 const dialogVisible = ref(false)

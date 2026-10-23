@@ -17,5 +17,5 @@
     "strictTemplates": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "exclude": ["src/uni_modules/@tiansu/ts-mobile-ui/dist/**", "src/uni_modules/@tiansu/ts-mobile-biz-ui/dist/**"]
+  "exclude": ["src/uni_modules/@zpackage/mobile-package/ui/dist/**", "src/uni_modules/@zpackage/mobile-package/biz-ui/dist/**"]
 }

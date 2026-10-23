@@ -1,10 +1,10 @@
 <template>
   <te-badge :value="200" :max="99" class="item">
-    <te-button>comments</te-button>
-  </te-badge>
+    <el-button>comments</el-button>
+  </el-badge>
   <te-badge :value="100" :max="10" class="item">
-    <te-button>replies</te-button>
-  </te-badge>
+    <el-button>replies</el-button>
+  </el-badge>
 </template>
 
 <style scoped>

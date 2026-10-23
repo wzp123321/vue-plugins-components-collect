@@ -58,32 +58,12 @@
 
     <!-- 框选矩形（Shift + 拖拽实时绘制） -->
     <div v-if="boxRect" class="map-box-select" :style="boxStyle"></div>
-    <!-- 批量统计浮层：框选 / 多选后展示合计与占比，并给出导出 / 差值高亮操作 -->
+    <!-- 批量统计浮层：框选 / 多选后展示合计与占比 -->
     <div v-if="selectionStats" class="map-sel-stats">
       <span class="map-sel-stats__item">已选 <b>{{ selectionStats.count }}</b> 区</span>
       <span class="map-sel-stats__item">合计 <b>{{ selectionStats.sum }}</b></span>
       <span class="map-sel-stats__item">占比 <b>{{ (selectionStats.ratio * 100).toFixed(1) }}%</b></span>
-      <span class="map-sel-stats__ops">
-        <button
-          type="button"
-          class="map-sel-stats__btn"
-          :class="{ 'map-sel-stats__btn--on': diffOn }"
-          :disabled="!selectionStats.count"
-          title="选中区相对全量均值着色（高于青绿 / 低于橙红）"
-          @click="setDiffHighlight(!diffOn)"
-        >
-          差值高亮
-        </button>
-        <button
-          type="button"
-          class="map-sel-stats__btn"
-          title="导出选中区域（无选中则整层）为 CSV"
-          @click="exportSelectionCsv()"
-        >
-          导出CSV
-        </button>
-        <button type="button" class="map-sel-stats__clear" @click="selectAdcode(null)">清空</button>
-      </span>
+      <button type="button" class="map-sel-stats__clear" @click="selectAdcode(null)">清空</button>
     </div>
 
     <!-- 测量提示条：进入测量模式或存在测点时出现 -->
@@ -174,7 +154,7 @@ import { useZoomDrill } from '../composables/useZoomDrill';
 import { LEVEL_TEXT, readCount } from '../utils/data';
 import { checkCountryCompliance } from '../utils/geo';
 import { prefetchDistrictGeoJson } from '../utils/amap-loader';
-import { mapConfig, setDepth, FLAT_DEPTH, BASE_DEPTH } from '../utils/mapConfig';
+import { mapConfig } from '../utils/mapConfig';
 import type { GeoJsonFeature } from '../types';
 import MapPieChart from './MapPieChart.vue';
 import MapToolbar from './MapToolbar.vue';
@@ -183,7 +163,7 @@ import MapScaleBar from './MapScaleBar.vue';
 import MapPerfPanel from './MapPerfPanel.vue';
 import MapBookmarkPanel from './MapBookmarkPanel.vue';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { updateRegionScan, setRegionScan, updateRegionDepth } from '../utils/drawRegion';
+import { updateRegionScan, setRegionScan } from '../utils/drawRegion';
 import { usePyramidMarkers } from '../composables/usePyramidMarkers';
 import { useOrbitRoutes } from '../composables/useOrbitRoutes';
 import { useHeatmap } from '../composables/useHeatmap';
@@ -280,16 +260,6 @@ const props = withDefaults(
      * 两者同开时往往需要把它调低或调高来配平观感。0 等价于关闭。
      */
     bgOpacity?: number;
-    /**
-     * 2D 扁平模式：把板块厚度压薄成薄板，便于读 choropleth / 标牌。
-     * 切换时重建当前层级几何并复位机位（depth 是全局耦合参数，无法只靠 CSS 解决）。
-     */
-    flat?: boolean;
-    /**
-     * 进入时直接还原的相机位姿（分享链接深链用）。与 initialAdcode 一起构成
-     * "层级 + 机位" 的完整还原；为 null 时走默认贴合取景。
-     */
-    initialView?: { position: [number, number, number]; target: [number, number, number] } | null;
   }>(),
   {
     maxDrillLevel: 'district',
@@ -956,7 +926,7 @@ const adcodeOf = (pick: PickResult | null): number | null => {
  */
 const drillProperties = (properties: GeoJsonFeature['properties']) => {
   emit('drill-down', properties);
-  return drill(properties);
+  drill(properties);
 };
 
 /**
@@ -966,7 +936,7 @@ const drillProperties = (properties: GeoJsonFeature['properties']) => {
 const handleDrill = (pick: PickResult) => {
   const info = pick.spot ?? pick.properties;
   if (!info) return;
-  return drillProperties(info as GeoJsonFeature['properties']);
+  drillProperties(info as GeoJsonFeature['properties']);
 };
 
 let lastHoverAdcode: number | null = null;
@@ -1123,124 +1093,6 @@ const selectionStats = computed(() => {
   return { count: list.length, sum, ratio: total > 0 ? sum / total : 0 }
 });
 
-/**
- * 重建当前层级：把 depth 等全局耦合参数改完后，重跑一遍"进入该层"的几何构建序列
- * （与 useMapLevels.onEnter 同款，只是不重新取景/不下沉）。扁平模式切换与将来任何
- * 需要"改全局参数后刷新几何"的场景都走这里，避免复制构建逻辑。
- */
-const rebuildCurrentLevel = async () => {
-  const level = current.value
-  if (!level || !layer.root()) return
-  const noop = () => {}
-  await layer.build(level, { rise: false, report: noop })
-  markers.build(level, false)
-  syncFill()
-  flies.build(level, 0)
-  pyramids.build(level)
-  orbits.build(level)
-  heat.build(level)
-  c2d.build(level)
-  syncLabels()
-  zoom.reset(viewport.camera(), viewport.controls())
-}
-
-/**
- * 2D 扁平模式：压薄板块厚度并重建几何，再贴合取景。
- * depth 是全局耦合参数（取景 / 测量 / 锚点 / 侧壁梯度都读它），只能重建，不能只改 CSS。
- */
-const applyFlat = async (flat: boolean) => {
-  const d = flat ? FLAT_DEPTH : BASE_DEPTH
-  setDepth(d)
-  updateRegionDepth(d)
-  await rebuildCurrentLevel()
-  const level = current.value
-  if (level) viewport.focus(level.fit, 0, new THREE.Vector3(0, 0, mapConfig.depth))
-}
-
-/** 扁平模式开关（props.flat 变更时触发重建） */
-watch(
-  () => props.flat,
-  (v) => {
-    applyFlat(!!v)
-  },
-)
-
-/** 当前选中区域（adcode + 名称 + 数值）列表：CSV 导出 / 差值高亮都从这里取数 */
-const selectionRows = () => {
-  const level = current.value
-  const data = props.projectData as Record<number, any> | undefined
-  if (!level) return [] as { adcode: number; name: string; level: string; value: number }[]
-  const feats: any[] = level.geo.features
-  return feats
-    .filter((f) => f?.properties?.adcode)
-    .map((f) => {
-      const adcode = Number(f.properties.adcode)
-      return {
-        adcode,
-        name: String(f.properties.name ?? ''),
-        level: String(f.properties.level ?? ''),
-        value: readCount(data?.[adcode]),
-      }
-    })
-}
-
-/** 导出选中区域（无选中则导出整层）为 CSV，带 BOM 防 Excel 中文乱码 */
-const exportSelectionCsv = () => {
-  const rows = selectionRows()
-  if (!rows.length) {
-    pushNotice('没有可导出的区域数据', 'info')
-    return
-  }
-  const sel = new Set(selectedAdcodes.value)
-  const out = sel.size ? rows.filter((r) => sel.has(r.adcode)) : rows
-  if (!out.length) {
-    pushNotice('选中区域无数据', 'info')
-    return
-  }
-  const header = 'adcode,name,level,value'
-  const body = out.map((r) => `${r.adcode},${r.name},${r.level},${r.value}`).join('\n')
-  const blob = new Blob(['\uFEFF' + [header, body].join('\n')], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `地图数据_${current.value?.name || '全国'}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-  pushNotice(`已导出 ${out.length} 条区域数据`, 'info')
-}
-
-/** 差值高亮开关：选中区相对全量均值着色（高于=青绿，低于=橙红），关闭则还原填色 */
-const diffOn = ref(false)
-const setDiffHighlight = (enabled: boolean) => {
-  diffOn.value = enabled
-  const level = current.value
-  if (!level) return
-  if (!enabled) {
-    syncFill()
-    return
-  }
-  const rows = selectionRows()
-  if (!rows.length) return
-  const mean = rows.reduce((s, r) => s + r.value, 0) / rows.length
-  const sel = new Set(selectedAdcodes.value)
-  const map = new Map<number, string>()
-  for (const r of rows) {
-    if (!sel.has(r.adcode)) continue
-    const ratio = mean > 0 ? r.value / mean : 1
-    if (ratio >= 1) {
-      const k = Math.min(1, (ratio - 1) * 0.8 + 0.3)
-      map.set(r.adcode, `rgb(${Math.round(40 + k * 60)},${Math.round(200 + k * 40)},${Math.round(150 + k * 60)})`)
-    } else {
-      const k = Math.min(1, (1 - ratio) * 0.8 + 0.3)
-      map.set(r.adcode, `rgb(${Math.round(230)},${Math.round(120 - k * 40)},${Math.round(70 - k * 30)})`)
-    }
-  }
-  layer.setValueFill(map)
-}
-
-/** 暴露当前相机位姿（分享链接深链用） */
-const getViewState = () => viewport.getViewState()
-
 /** 框选矩形样式 */
 const boxStyle = computed(() => {
   const r = boxRect.value
@@ -1323,13 +1175,13 @@ const handleJump = (index: number) => {
   jumpTo(index);
 };
 
-/** 外部 API：按 adcode 下钻（返回 drill 的 Promise，便于调用方 await 落地后再还原机位） */
+/** 外部 API：按 adcode 下钻 */
 const drillByAdcode = (adcode: string) => {
   const feature = findFeature(adcode);
   const camera = viewport.camera();
   if (!feature || !camera) return;
   // 没有真实鼠标事件，这里手工拼一个 PickResult（kind='region'），复用 handleDrill 下钻。
-  return handleDrill({ kind: 'region', properties: feature.properties, spot: null, point: camera.position.clone() });
+  handleDrill({ kind: 'region', properties: feature.properties, spot: null, point: camera.position.clone() });
 };
 
 /** 外部 API：按 adcode 跨层级定位（自动沿省→市路径下钻） */
@@ -1395,12 +1247,6 @@ defineExpose({
   saveBookmark,
   applyBookmark,
   deleteBookmark,
-  /** 导出选中区域（无选中则整层）CSV */
-  exportSelectionCsv,
-  /** 差值高亮：选中区相对全量均值着色（true=开 / false=关） */
-  setDiffHighlight: (enabled: boolean) => setDiffHighlight(enabled),
-  /** 读取当前相机位姿（分享链接深链用） */
-  getViewState,
 });
 
 // 数据 / 配色变化 → 重建标记层与依赖数据的装饰层。
@@ -1787,9 +1633,7 @@ onMounted(async () => {
   zoom.reset(viewport.camera(), viewport.controls());
   emit('ready');
 
-  // 深链还原：先落到目标层级（await 等 onEnter 建完几何），再瞬移机位。
-  if (props.initialAdcode) await drillByAdcode(props.initialAdcode);
-  if (props.initialView) viewport.setViewState(props.initialView);
+  if (props.initialAdcode) drillByAdcode(props.initialAdcode);
 });
 
 onUnmounted(() => {
@@ -2031,34 +1875,6 @@ onUnmounted(() => {
 }
 .map-sel-stats__clear:hover {
   background: rgba(95, 201, 238, 0.16);
-}
-.map-sel-stats__ops {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 4px;
-}
-.map-sel-stats__btn {
-  padding: 3px 9px;
-  background: rgba(120, 150, 180, 0.14);
-  border: 1px solid rgba(95, 201, 238, 0.4);
-  border-radius: 5px;
-  color: #bfe6f7;
-  cursor: pointer;
-  font: 600 12px/1 inherit;
-  transition: background 0.18s ease, box-shadow 0.18s ease;
-}
-.map-sel-stats__btn:hover:not(:disabled) {
-  background: rgba(47, 192, 255, 0.22);
-}
-.map-sel-stats__btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.map-sel-stats__btn--on {
-  background: rgba(47, 192, 255, 0.34);
-  border-color: rgba(95, 216, 255, 0.8);
-  box-shadow: 0 0 10px rgba(47, 192, 255, 0.4);
 }
 /* 测量提示条（左下角，位于批量统计浮层上方，两者可同时出现） */
 .map-measure {

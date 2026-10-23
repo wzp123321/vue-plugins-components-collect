@@ -6,7 +6,7 @@
       :label="item.label"
       :value="item.value"
     />
-  </te-select>
+  </el-select>
 </template>
 
 <script lang="ts" setup>

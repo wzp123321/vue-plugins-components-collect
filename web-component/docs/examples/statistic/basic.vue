@@ -1,8 +1,8 @@
 <template>
-  <te-row>
+  <el-row>
     <te-col :span="6">
       <te-statistic title="Daily active users" :value="268500" />
-    </te-col>
+    </el-col>
     <te-col :span="6">
       <te-statistic :value="138">
         <template #title>
@@ -10,25 +10,25 @@
             Ratio of men to women
             <te-icon style="margin-left: 4px" :size="12">
               <Male />
-            </te-icon>
+            </el-icon>
           </div>
         </template>
         <template #suffix>/100</template>
       </te-statistic>
-    </te-col>
+    </el-col>
     <te-col :span="6">
       <te-statistic title="Total Transactions" :value="172000" />
-    </te-col>
+    </el-col>
     <te-col :span="6">
       <te-statistic title="Feedback number" :value="562">
         <template #suffix>
           <te-icon style="vertical-align: -0.125em">
             <ChatLineRound />
-          </te-icon>
+          </el-icon>
         </template>
       </te-statistic>
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

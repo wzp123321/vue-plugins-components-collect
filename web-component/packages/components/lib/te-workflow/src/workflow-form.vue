@@ -53,7 +53,7 @@
               "
               placeholder="自动计算"
               @update:model-value="durationTimeChange($event, item)"
-            ></te-input-number>
+            ></el-input-number>
             <div v-else>{{ item.valueConverTime }}</div>
             <span class="wf-item-duriation-unit">{{
               item.dateTimeRange?.timeFormat === TimeFormatTypeEnum.DATE_TIME ? '小时' : '天'
@@ -67,13 +67,13 @@
         </div>
       </template>
     </div>
-  </te-config-provider>
+  </el-config-provider>
 </template>
 <script setup lang="ts">
 //@ts-ignore
-import zhCn from '@tiansu/element-plus/dist/locale/zh-cn.mjs';
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs';
 import { onMounted, ref } from 'vue';
-import { TeConfigProvider, TeInputNumber, TeMessage } from '@tiansu/element-plus';
+import { ElConfigProvider, ElInputNumber, ElMessage } from 'element-plus';
 import WorkflowApi from './apis/WorkflowApi';
 import GetTaskDetailRequestDTO from '../../models/GetTaskDetailRequestDTO';
 import TaskDetailDTO from '../../models/TaskDetailDTO';
@@ -185,7 +185,7 @@ const reload = () => {
 const validate = () => {
   let result = formWidgetInstanceList.value.some((item) => {
     if (item.required && item.permission === FormFieldPermissionEnum.EDIT && !item.value) {
-      TeMessage.error('请填写必填项');
+      ElMessage.error('请填写必填项');
       return true;
     }
   });

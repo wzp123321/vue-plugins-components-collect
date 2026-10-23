@@ -1,18 +1,18 @@
 <template>
   <te-tabs type="border-card" class="demo-tabs">
-    <te-tab-pane>
+    <el-tab-pane>
       <template #label>
         <span class="custom-tabs-label">
-          <te-icon><calendar /></te-icon>
+          <el-icon><calendar /></el-icon>
           <span>Route</span>
         </span>
       </template>
       Route
-    </te-tab-pane>
-    <te-tab-pane label="Config">Config</te-tab-pane>
-    <te-tab-pane label="Role">Role</te-tab-pane>
-    <te-tab-pane label="Task">Task</te-tab-pane>
-  </te-tabs>
+    </el-tab-pane>
+    <te-tab-pane label="Config">Config</el-tab-pane>
+    <te-tab-pane label="Role">Role</el-tab-pane>
+    <te-tab-pane label="Task">Task</el-tab-pane>
+  </el-tabs>
 </template>
 
 <script lang="ts" setup>

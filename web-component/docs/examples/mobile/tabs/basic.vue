@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemTabs, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemTabs, TemCell } from '@zpackage/mobile-package';
 const values = [
   { text: '待处理' },
   { text: '已处理' },

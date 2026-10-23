@@ -63,7 +63,7 @@ import { ref } from 'vue';
 //   TemButton,
 //   TemSwitch,
 //   TemCell,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 
 const messageText = ref('这是一条消息提示');
 const message = ref();
