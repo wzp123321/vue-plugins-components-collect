@@ -137,12 +137,16 @@ const INTENT_ALIASES: Record<string, string[]> = {
   '/utils-advance': ['工具函数', '高级工具'],
 };
 
-/** 画像全文：定位 + 需求结论 + 落地要点，检索权重最高的自然语言面 */
+/** 画像全文：定位 + 需求结论 + 落地要点 + 详细应用，检索权重最高的自然语言面 */
 function profileText(profile: CapabilityProfile): string {
+  const usage = profile.usage;
   return [
     profile.positioning,
     ...profile.needs.map((need) => `${need.text} ${need.comment ?? ''}`),
     ...(profile.notes ?? []),
+    usage?.install ?? '',
+    usage?.snippet ?? '',
+    ...(usage?.keyApi ?? []),
   ]
     .join(' ')
     .toLowerCase();

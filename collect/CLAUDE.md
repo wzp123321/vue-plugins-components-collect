@@ -62,6 +62,10 @@ types.ts  errors.ts  token-manager.ts  interceptors.ts  client.ts  index.ts
 什么要自己封装（partial）、什么别用（no）。**新示例进站必须同步补一条 profile**；
 `/capability-map` 能力地图页与命令面板检索都吃这份数据，需求句改动要同步更新。
 
+`usage` 字段（可选，但库类条目建议必填）把「怎么用」从 demo 源码里抽出来：
+`install`（pnpm 命令/原生填内置）、`snippet`（最小可用代码）、`keyApi`（关键 API 速记）、`demoPath`（指向 demo）。
+这些文本同时进入语义检索正文，搜包名（如 `exceljs`）也能命中对应能力；卡片里「安装 / 看 demo / 关键 API」常驻，最小代码展开后可见。
+
 ## 风格
 
 - 组件目录四件套：`index.ts`（带 `withInstall` 风格出口）/ `src/<name>.vue` / 类型 / composable

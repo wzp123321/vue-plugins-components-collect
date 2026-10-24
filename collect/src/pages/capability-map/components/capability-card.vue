@@ -16,6 +16,14 @@
 
     <p class="cap-card__positioning">{{ profile.positioning }}</p>
 
+    <div v-if="profile.usage" class="cap-card__usage">
+      <code v-if="profile.usage.install" class="cap-card__install">{{ profile.usage.install }}</code>
+      <router-link :to="demoTarget" class="cap-card__demo">看 demo ↗</router-link>
+      <ul v-if="profile.usage.keyApi?.length" class="cap-card__apis">
+        <li v-for="api in profile.usage.keyApi" :key="api" class="cap-card__api">{{ api }}</li>
+      </ul>
+    </div>
+
     <ul class="cap-card__needs">
       <li v-for="need in visibleNeeds" :key="need.text" class="cap-card__need" :data-level="need.level">
         <span class="cap-card__mark">{{ levelMark[need.level] }}</span>
@@ -29,6 +37,8 @@
     <ul v-if="profile.notes?.length && expanded" class="cap-card__notes">
       <li v-for="note in profile.notes" :key="note">{{ note }}</li>
     </ul>
+
+    <pre v-if="profile.usage?.snippet && expanded" class="cap-card__snippet"><code>{{ profile.usage.snippet }}</code></pre>
 
     <footer v-if="profile.alternatives?.length && expanded" class="cap-card__alts">
       <span class="cap-card__alts-label">同类方案</span>
@@ -79,6 +89,8 @@ const hiddenCount = computed(() => Math.max(0, props.profile.needs.length - DEFA
 const resolvableAlternatives = computed(
   () => props.profile.alternatives?.filter((alt) => alt !== props.profile.path) ?? [],
 );
+
+const demoTarget = computed(() => props.profile.usage?.demoPath ?? props.profile.path);
 
 function navTitleOf(path: string): string {
   return allNavItems.find((item) => item.path === path)?.label ?? path;
@@ -214,6 +226,73 @@ function navTitleOf(path: string): string {
       content: '· ';
       color: var(--ai-accent);
     }
+  }
+
+  /* ---------------- 详细应用（用法面） ---------------- */
+  &__usage {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--ai-radius-sm);
+    background: var(--ai-surface);
+    border: 1px solid var(--ai-hairline);
+  }
+
+  &__install {
+    align-self: flex-start;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--ai-code-bg, rgba(124, 92, 255, 0.1));
+    color: var(--ai-accent);
+    font-family: var(--ai-font-mono);
+    font-size: 11px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  &__demo {
+    align-self: flex-start;
+    color: var(--ai-text-dim);
+    font-size: 11.5px;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--ai-accent);
+    }
+  }
+
+  &__apis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__api {
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--ai-hairline);
+    background: var(--ai-surface-raised);
+    color: var(--ai-text-mute);
+    font-family: var(--ai-font-mono);
+    font-size: 10.5px;
+  }
+
+  &__snippet {
+    margin: 0;
+    padding: 12px;
+    border-radius: var(--ai-radius-sm);
+    background: var(--ai-code-bg, rgba(15, 18, 28, 0.6));
+    border: 1px solid var(--ai-hairline);
+    color: var(--ai-text-dim);
+    font-family: var(--ai-font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
   }
 
   &__alts {

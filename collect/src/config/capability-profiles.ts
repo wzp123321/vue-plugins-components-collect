@@ -20,6 +20,21 @@ export interface CapabilityNeed {
   comment?: string;
 }
 
+/**
+ * 详细应用（用法面）：把「怎么用」从 demo 源码里抽出来，发现即拿到用法。
+ * install 与 snippet/keyApi 同时进入语义检索正文，搜包名（如 exceljs）也能命中。
+ */
+export interface CapabilityUsage {
+  /** 安装命令；原生能力填 '内置（无需安装）' */
+  install?: string;
+  /** 最小可用代码片段（单段，含关键 import 与调用） */
+  snippet?: string;
+  /** 关键 API / 配置点（短句，速记与检索用） */
+  keyApi?: string[];
+  /** 指向站内 demo 页（默认用 profile.path，可覆盖更具体子路由） */
+  demoPath?: string;
+}
+
 export interface CapabilityProfile {
   /** 对应 navGroups / 路由中的 path（合集入口或独立示例） */
   path: string;
@@ -27,6 +42,8 @@ export interface CapabilityProfile {
   positioning: string;
   /** 需求结论清单 */
   needs: CapabilityNeed[];
+  /** 详细应用：安装 / 最小代码 / 关键 API / 指向 demo */
+  usage?: CapabilityUsage;
   /** 落地要点：从 demo 到生产要补什么、踩过什么坑 */
   notes?: string[];
   /** 同类方案互链（其他条目 path），选型对比用 */
@@ -69,6 +86,21 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/spark-upload',
+    usage: {
+      install: 'pnpm add spark-md5 axios',
+      keyApi: ['SparkMD5.ArrayBuffer 增量哈希', 'File.slice 分片', 'Web Worker 算哈希防卡 UI', '并发控制 + 断点续传'],
+      snippet: `import SparkMD5 from 'spark-md5';
+const CHUNK = 5 * 1024 * 1024;
+const file = input.files[0];
+const chunks = Math.ceil(file.size / CHUNK);
+const spark = new SparkMD5.ArrayBuffer();
+for (let i = 0; i < chunks; i++) {
+  const buf = await file.slice(i * CHUNK, (i + 1) * CHUNK).arrayBuffer();
+  spark.append(buf); // 全量哈希用于秒传判定
+}
+const hash = spark.end();
+// 逐片上传：POST /upload { chunk, index, hash }`,
+    },
     positioning: '大文件分片上传：SparkMD5 哈希 + 分片 + 断点续传',
     needs: [
       { text: '上传几百 MB 以上的文件', level: 'fits' },
@@ -81,6 +113,12 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/component-qr-code',
+    usage: {
+      install: 'pnpm add qrcode',
+      keyApi: ['QRCode.toCanvas / toDataURL', 'Canvas 渲染', 'errorCorrectionLevel 容错', '带 logo 需自绘'],
+      snippet: `import QRCode from 'qrcode';
+await QRCode.toCanvas(canvasEl, 'https://example.com', { width: 200 });`,
+    },
     positioning: '二维码生成组件：内容转二维码，Canvas 渲染',
     needs: [
       { text: '把链接/文本生成二维码展示', level: 'fits' },
@@ -237,6 +275,17 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/echarts-map',
+    usage: {
+      install: 'pnpm add echarts',
+      keyApi: ['echarts.init', 'registerMap 注册 geojson', 'series.type=map/scatter/lines', '省份下钻：切 map + setOption'],
+      snippet: `import * as echarts from 'echarts';
+import geoJson from './china.json';
+echarts.registerMap('china', geoJson);
+const chart = echarts.init(el);
+chart.setOption({
+  series: [{ type: 'map', map: 'china', data: [{ name: '广东', value: 100 }] }],
+});`,
+    },
     positioning: 'ECharts 地图可视化大屏：全国视角 + 省份下钻，2D 地图 + 散点 + 视觉映射',
     needs: [
       { text: '全国范围的数据分布大屏', level: 'fits' },
@@ -275,6 +324,18 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/data-vis-g6',
+    usage: {
+      install: 'pnpm add @antv/g6',
+      keyApi: ['new G6.Graph({ container, layout })', 'node/edge 数据驱动', '交互：drag-node/zoom-canvas', '大规模图需性能模式'],
+      snippet: `import G6 from '@antv/g6';
+const graph = new G6.Graph({
+  container: el,
+  layout: { type: 'force' },
+  defaultNode: { type: 'circle' },
+});
+graph.data({ nodes: [{ id: 'a' }, { id: 'b' }], edges: [{ source: 'a', target: 'b' }] });
+graph.render();`,
+    },
     positioning: 'G6 拓扑图：节点关系/流程图可视化',
     needs: [
       { text: '拓扑/依赖/流程关系图展示', level: 'fits' },
@@ -310,6 +371,16 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/threejs-china-3d-map',
+    usage: {
+      install: 'pnpm add three @types/three',
+      keyApi: ['camera.up.set(0,0,1) 立起来', 'OrbitControls 限幅防翻面', '下钻=重建地图（fitProjection）', '数据柱用竖直 billboard 而非 Cylinder'],
+      snippet: `import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+camera.up.set(0, 0, 1); // 地图躺在 XY 平面，Z 朝上
+const renderer = new THREE.WebGLRenderer({ antialias: true });`,
+    },
     positioning: 'Three.js 中国 3D 地图（重制版）：立体板块/飞线/下钻/书签/测量',
     needs: [
       { text: '指挥大屏的 3D 中国地图', level: 'fits' },
@@ -342,6 +413,14 @@ export const capabilityProfiles: CapabilityProfile[] = [
   /* ================= 工程能力 ================= */
   {
     path: '/network-axios',
+    usage: {
+      install: '内置（src/services/http 可整目录复制，仅依赖 axios）',
+      keyApi: ['拦截器双分类 BizError/HttpError', '401 重试一次（仅幂等）', 'getCode/getMessage/successCodes 适配后端', 'token-manager 自动刷新'],
+      snippet: `import { createHttpClient } from '@/services/http';
+const http = createHttpClient({ baseURL: '/api' });
+const { data } = await http.get('/user');
+// 业务码非 0 抛 BizError，网络/状态码问题抛 HttpError`,
+    },
     positioning: 'Axios 请求封装模板：拦截器/错误分类/401 重试，可整目录复制',
     needs: [
       { text: '新项目搭一套统一的请求层', level: 'fits', comment: 'src/services/http 可整目录复制，只依赖 axios' },
@@ -363,6 +442,15 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/network-sse',
+    usage: {
+      install: '内置（EventSource 原生，无需安装）',
+      keyApi: ['new EventSource(url) 单向下行', 'onmessage / addEventListener 事件名', 'AI 流式：逐块 append', '双向用 WebSocket'],
+      snippet: `const es = new EventSource('/api/stream');
+es.onmessage = (e) => {
+  if (e.data === '[DONE]') return es.close();
+  output.value += e.data; // 流式打字机
+};`,
+    },
     positioning: 'SSE 流式数据：服务端单向推送，AI 回复流式输出的标配',
     needs: [
       { text: 'AI 对话的流式打字机效果', level: 'fits' },
@@ -391,6 +479,17 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/form-rich-editor',
+    usage: {
+      install: 'pnpm add @tiptap/vue-3 @tiptap/starter-kit',
+      keyApi: ['useEditor({ extensions, content })', 'StarterKit 含基础节点', '扩展按需注册（图片/表格/字数）', 'EditorContent 渲染'],
+      snippet: `import { useEditor, EditorContent } from '@tiptap/vue-3';
+import StarterKit from '@tiptap/starter-kit';
+const editor = useEditor({
+  extensions: [StarterKit],
+  content: '<p>hello</p>',
+});
+// <editor-content :editor="editor" />`,
+    },
     positioning: 'Tiptap 富文本编辑器： ProseMirror 内核 + 定制扩展',
     needs: [
       { text: '公告/文章类富文本编辑', level: 'fits' },
@@ -419,6 +518,18 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/form-excel-data-entry-vxe',
+    usage: {
+      install: 'pnpm add vxe-table vxe-pc-ui xe-utils',
+      keyApi: ['app.use(VxeTable).use(VxeUI)', 'column type=seq/edit/render', 'edit-rules 校验', '单元格区域选取是 pro（OSS 需自研）'],
+      snippet: `import { VxeUI, VxeTable } from 'vxe-table';
+import 'vxe-table/lib/style.css';
+import 'vxe-pc-ui/lib/style.css';
+app.use(VxeTable).use(VxeUI);
+// <vxe-table :data="rows" :edit-rules="rules">
+//   <vxe-column type="seq" width="60" />
+//   <vxe-column field="name" title="名称" :edit-render="{}" />
+// </vxe-table>`,
+    },
     positioning: 'Excel 数据录入台（vxe-table）：单元格编辑/校验/序列填充/查找替换/历史',
     needs: [
       { text: '批量录入数据的 Excel 式体验（编辑+校验+标红）', level: 'fits' },
@@ -431,6 +542,18 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/form-export-to-excel',
+    usage: {
+      install: 'pnpm add exceljs file-saver',
+      keyApi: ['new ExcelJS.Workbook()', 'worksheet.columns / addRow', 'mergeCells 表头合并', 'workbook.xlsx.writeBuffer() + saveAs'],
+      snippet: `import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+const wb = new ExcelJS.Workbook();
+const ws = wb.addWorksheet('报表');
+ws.columns = [{ header: '名称', key: 'name', width: 20 }];
+ws.addRow({ name: '示例' });
+const buf = await wb.xlsx.writeBuffer();
+saveAs(new Blob([buf]), 'report.xlsx');`,
+    },
     positioning: 'Excel 导出（exceljs）：样式/合并/多 sheet 的纯前端导出',
     needs: [
       { text: '列表数据导出 Excel（含样式/表头合并）', level: 'fits' },
@@ -441,6 +564,13 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/plugin-word-pdf-preview',
+    usage: {
+      install: 'pnpm add @vue-office/docx @vue-office/excel @vue-office/pdf',
+      keyApi: ['VueOfficeDocx / Excel / Pdf 组件', ':src 传地址或 ArrayBuffer', '纯前端解析不上传第三方', '@vue-office/* 需 onlyBuiltDependencies'],
+      snippet: `import VueOfficePdf from '@vue-office/pdf';
+import '@vue-office/pdf/lib/index.css';
+// <vue-office-pdf :src="fileUrl" @rendered="onRendered" />`,
+    },
     positioning: 'Word/PDF/Excel 文件预览与下载（vue-office 全家桶）',
     needs: [
       { text: '在线预览 docx/xlsx/pdf，不上传第三方', level: 'fits' },
@@ -450,6 +580,16 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/plugins-jspreadsheet-ce',
+    usage: {
+      install: 'pnpm add jspreadsheet-ce jsuites',
+      keyApi: ['jspreadsheet(el, { data, columns })', '列类型/公式', 'CE 免费，高级功能在付费版', '与 vxe 二选一'],
+      snippet: `import jspreadsheet from 'jspreadsheet-ce';
+import 'jspreadsheet-ce/dist/jspreadsheet.css';
+jspreadsheet(el, {
+  data: [['A1', 'B1']],
+  columns: [{ type: 'text', title: '名称', width: 120 }],
+});`,
+    },
     positioning: 'jspreadsheet-ce 在线表格：轻量类 Excel 电子表格',
     needs: [
       { text: '页面内嵌轻量在线表格（公式/列类型）', level: 'fits' },
@@ -460,6 +600,12 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/vue3SlideVerify',
+    usage: {
+      install: 'pnpm add vue3-slide-verify',
+      keyApi: ['<slide-verify :l :r :w :h>', 'success/again/refresh 事件', '前端体验层，风控靠服务端'],
+      snippet: `import SlideVerify from 'vue3-slide-verify';
+// <slide-verify :l="42" :r="9" :w="320" :h="160" @success="onSuccess" />`,
+    },
     positioning: '滑块验证码：vue3-slide-verify 人机校验',
     needs: [
       { text: '登录/提交前的滑块人机验证', level: 'fits' },
@@ -468,6 +614,13 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/plugins-vueuse',
+    usage: {
+      install: 'pnpm add @vueuse/core',
+      keyApi: ['useDebounceFn / useThrottleFn', 'useClipboard / useLocalStorage', 'useElementSize / useIntersectionObserver', '先查 VueUse 再手写'],
+      snippet: `import { useClipboard, useDebounceFn } from '@vueuse/core';
+const { copy, copied } = useClipboard();
+const onResize = useDebounceFn(() => console.log('resized'), 200);`,
+    },
     positioning: 'VueUse 组合式函数集：常用 hooks 的速查与演示',
     needs: [
       { text: '防抖监听/元素尺寸/剪贴板/本地存储等常见 hook', level: 'fits', comment: '先查 VueUse 再手写' },
@@ -577,6 +730,14 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/workflow-designer',
+    usage: {
+      install: 'pnpm add @logicflow/core',
+      keyApi: ['new LogicFlow({ container, grid })', 'render 画布', 'getGraphData() 导出 JSON 协议', 'register 自定义节点'],
+      snippet: `import LogicFlow from '@logicflow/core';
+const lf = new LogicFlow({ container: el, grid: true });
+lf.render({ nodes: [{ id: '1', type: 'rect', x: 100, y: 100 }], edges: [] });
+const graph = lf.getGraphData(); // 设计结果即协议`,
+    },
     positioning: '审批流设计器（LogicFlow）：节点编排 + JSON 协议导入导出',
     needs: [
       { text: '可视化设计审批/工单流转流程', level: 'fits' },
@@ -587,6 +748,14 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/gantt-schedule',
+    usage: {
+      install: 'pnpm add frappe-gantt',
+      keyApi: ['new Gantt(selector, tasks, options)', 'task: { id, name, start, end }', 'view_mode: Day/Week/Month', 'on_click/on_date_change 回调'],
+      snippet: `import Gantt from 'frappe-gantt';
+new Gantt('#gantt', [
+  { id: '1', name: '排期', start: '2026-10-21', end: '2026-10-25' },
+], { view_mode: 'Week', on_click: (t) => console.log(t) });`,
+    },
     positioning: '甘特图排期（frappe-gantt）：任务条拖拽改期 + 进度',
     needs: [
       { text: '项目排期可视化、拖拽调整日期', level: 'fits' },
@@ -616,6 +785,13 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/screenshot-capture',
+    usage: {
+      install: 'pnpm add html2canvas',
+      keyApi: ['html2canvas(dom).then(canvas)', 'useCORS 跨域图', '平铺水印叠加', '与 /pdf-export 共用'],
+      snippet: `import html2canvas from 'html2canvas';
+const canvas = await html2canvas(cardEl, { useCORS: true, scale: 2 });
+const url = canvas.toDataURL('image/png'); // 生成分享图 / 留痕截图`,
+    },
     positioning: '页面截图（html2canvas）：DOM 转 PNG + 平铺水印',
     needs: [
       { text: '报表卡片生成分享图', level: 'fits' },
@@ -626,6 +802,13 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/pdf-export',
+    usage: {
+      install: 'pnpm add html2canvas',
+      keyApi: ['@media print 矢量打印方案零依赖', 'html2canvas(dom) 截图导出', '跨域图需 useCORS', '真矢量中文需 pdfmake 嵌字体'],
+      snippet: `import html2canvas from 'html2canvas';
+const canvas = await html2canvas(el, { useCORS: true });
+document.body.appendChild(canvas); // 截图导出 / 带水印`,
+    },
     positioning: 'PDF 生成双路线：@media print 矢量打印 + html2canvas 截图导出',
     needs: [
       { text: '回单/报告导出 PDF（中文无字体负担）', level: 'fits', comment: '打印样式方案矢量且零依赖' },
@@ -636,6 +819,17 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/code-editor',
+    usage: {
+      install: 'pnpm add codemirror @codemirror/state @codemirror/view @codemirror/lang-javascript',
+      keyApi: ['EditorState.create({ doc, extensions })', 'EditorView 挂载 DOM', 'updateListener 监听变更', '按扩展拼装（语言/主题）'],
+      snippet: `import { EditorState } from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
+import { javascript } from '@codemirror/lang-javascript';
+const view = new EditorView({
+  state: EditorState.create({ doc: 'const a = 1', extensions: [javascript(), keymap.of([])] }),
+  parent: el,
+});`,
+    },
     positioning: '代码编辑器（CodeMirror 6）：轻量、按扩展拼装',
     needs: [
       { text: '配置/脚本/SQL 在线编辑', level: 'fits' },
@@ -683,6 +877,16 @@ export const capabilityProfiles: CapabilityProfile[] = [
   },
   {
     path: '/i18n-demo',
+    usage: {
+      install: 'pnpm add vue-i18n',
+      keyApi: ['createI18n({ locale, messages })', 't() 插值/复数', '动态 import locale 控首包', 'fallbackLocale'],
+      snippet: `import { createI18n } from 'vue-i18n';
+const i18n = createI18n({
+  locale: 'zh',
+  fallbackLocale: 'en',
+  messages: { zh: {}, en: {} },
+});`,
+    },
     positioning: '国际化（vue-i18n）：插值/复数/fallback 与词表组织约定',
     needs: [
       { text: '多语言词条管理与语言切换', level: 'fits' },
