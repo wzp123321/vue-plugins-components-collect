@@ -1,16 +1,16 @@
 <template>
   <te-input v-bind="$attrs" @input="valueInput">
     <template #prefix>
-      <te-icon><icon-search /></te-icon>
+      <el-icon><icon-search /></el-icon>
     </template>
     <!-- 通过遍历实现插槽透传 -->
     <template v-for="(item, key, index) in $slots" :key="index" v-slot:[key]>
       <slot :name="key"></slot>
     </template>
-  </te-input>
+  </el-input>
 </template>
 <script lang="ts" setup name="TeSearch">
-import { TeInput, TeIcon } from '@tiansu/element-plus';
+import { ElInput, ElIcon } from 'element-plus';
 import { IconSearch } from '@arco-iconbox/vue-te';
 
 /**
@@ -49,5 +49,5 @@ const valueInput = debounce((value: any) => {
 }, props.duringTime);
 </script>
 <style scoped>
-/* @import '@tiansu/ts-web-package/dist/styles/index.css'; */
+/* @import '@zpackage/web-package/dist/styles/index.css'; */
 </style>

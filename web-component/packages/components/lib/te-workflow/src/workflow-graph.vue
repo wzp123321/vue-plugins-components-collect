@@ -19,31 +19,31 @@
       "
       @input="handleZoom"
     />
-    <te-dropdown>
+    <el-dropdown>
       <te-button class="pmg-graph-export" type="default" plain >
         导出图片
         <icon-down class="pl-header-dropdown-icon" />
-      </te-button>
+      </el-button>
       <template #dropdown>
-        <te-dropdown-menu>
-          <te-dropdown-item @click="handleExport('JPG')">JPG</te-dropdown-item>
-          <te-dropdown-item @click="handleExport('PNG')">PNG</te-dropdown-item>
+        <el-dropdown-menu>
+          <te-dropdown-item @click="handleExport('JPG')">JPG</el-dropdown-item>
+          <te-dropdown-item @click="handleExport('PNG')">PNG</el-dropdown-item>
           <te-dropdown-item @click="handleExport('SVG')">
             SVG&nbsp;&nbsp;
             <te-popover placement="top-start" trigger="hover" content="矢量图形格式，缩放不会变形，可用浏览器打开">
               <template #reference>
                 <icon-explain></icon-explain>
               </template>
-            </te-popover>
-          </te-dropdown-item>
-        </te-dropdown-menu>
+            </el-popover>
+          </el-dropdown-item>
+        </el-dropdown-menu>
       </template>
-    </te-dropdown>
+    </el-dropdown>
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, ref, type Ref } from 'vue';
-import { TeButton,TeSlider,TeDropdown,TeDropdownItem,TePopover ,TeDropdownMenu} from '@tiansu/element-plus';
+import { ElButton,ElSlider,ElDropdown,ElDropdownItem,ElPopover ,ElDropdownMenu} from 'element-plus';
 import { toSvg,toPng,toJpeg } from 'html-to-image';
 import moment from 'moment';
 import { debounce } from 'lodash';

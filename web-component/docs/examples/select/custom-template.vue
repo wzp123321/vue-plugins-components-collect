@@ -15,8 +15,8 @@
         "
         >{{ item.value }}</span
       >
-    </te-option>
-  </te-select>
+    </el-option>
+  </el-select>
 </template>
 
 <script lang="ts" setup>

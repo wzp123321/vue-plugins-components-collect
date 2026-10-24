@@ -40,26 +40,15 @@
         </div>
       </div>
 
-      <!-- 区域排行：悬浮联动地图高亮（图表 → 地图），点击下钻；条数可切 TOP6/10/全部 -->
+      <!-- 区域排行 TOP6：悬浮联动地图高亮（图表 → 地图），点击下钻 -->
       <div class="map-dash__section">
         <div class="map-dash__secHead">
-          <span class="map-dash__secTitle">区域排行 · TOP{{ topN || '全部' }}</span>
-          <span class="map-dash__seg">
-            <button
-              v-for="n in [6, 10, 0]"
-              :key="n"
-              type="button"
-              class="map-dash__segBtn"
-              :class="{ 'map-dash__segBtn--on': topN === n }"
-              @click="topN = n"
-            >
-              {{ n === 0 ? '全部' : 'TOP' + n }}
-            </button>
-          </span>
+          <span class="map-dash__secTitle">区域排行 · TOP6</span>
+          <span class="map-dash__secNote">悬浮高亮 / 点击下钻</span>
         </div>
         <div class="map-dash__ranks">
           <button
-            v-for="(r, i) in ranks"
+            v-for="(r, i) in top6"
             :key="r.adcode"
             type="button"
             class="map-dash__rankRow"
@@ -78,7 +67,7 @@
             <span v-if="r.drillable" class="map-dash__rankDrill">›</span>
           </button>
         </div>
-        <div v-if="!ranks.length" class="map-dash__empty">当前层级无下级区域</div>
+        <div v-if="!top6.length" class="map-dash__empty">当前层级无下级区域</div>
       </div>
 
       <!-- 近 12 月趋势：跟随地图选中/悬停切换口径（地图 → 图表） -->
@@ -207,11 +196,8 @@ const collapsed = ref(true);
 // ---- KPI 与 TOP6 ----
 const total = computed(() => props.subRegions.reduce((s, r) => s + r.value, 0));
 const avg = computed(() => (props.subRegions.length ? Math.round(total.value / props.subRegions.length) : 0));
-/** subRegions 由页面按 value 降序传入；排行条数可切 6 / 10 / 全部（0=全部） */
-const topN = ref(6);
-const ranks = computed(() =>
-  topN.value > 0 ? props.subRegions.slice(0, topN.value) : props.subRegions,
-);
+/** subRegions 由页面按 value 降序传入，TOP6 直接取前 6 条 */
+const top6 = computed(() => props.subRegions.slice(0, 6));
 const maxValue = computed(() => props.subRegions.reduce((m, r) => Math.max(m, r.value), 0));
 
 /** 条宽：相对当前层级最大值归一化，最小 4% 保证可见 */
@@ -413,30 +399,6 @@ const tipStyle = computed(() => {
   font-size: 10px;
   color: #6f9fc4;
   text-align: right;
-}
-/* 排行条数切换：TOP6 / TOP10 / 全部，复用控制台段按钮的小号版 */
-.map-dash__seg {
-  display: flex;
-  padding: 1px;
-  border-radius: 6px;
-  background: rgba(120, 150, 180, 0.16);
-  border: 1px solid rgba(95, 216, 255, 0.14);
-}
-.map-dash__segBtn {
-  padding: 2px 7px;
-  border: none;
-  border-radius: 5px;
-  background: none;
-  color: #8fb8d6;
-  font-size: 10px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
-}
-.map-dash__segBtn--on {
-  background: rgba(47, 192, 255, 0.34);
-  color: #eaf6ff;
-  box-shadow: 0 0 8px rgba(47, 192, 255, 0.3);
 }
 /* ---- 区域排行 TOP6 ---- */
 .map-dash__ranks {

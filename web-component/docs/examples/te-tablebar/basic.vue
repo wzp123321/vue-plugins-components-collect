@@ -2,7 +2,7 @@
   <te-tablebar placeholder="Please input" v-model="input" :hiddenMoreSearch="false" @onReset="input = ''">
       <template #header> header </template>
       <template #suffix>
-        <te-button>suffix</te-button>
+        <el-button>suffix</el-button>
       </template>
       <template #searchList>
         <div>searchForm1</div>
@@ -16,7 +16,7 @@
 
 <script lang="ts" setup>
   import { TeTablebar } from '@ts-web-package/components/lib/te-tablebar';
-  import { TeButton } from "@tiansu/element-plus"
+  import { ElButton } from "element-plus"
   import { ref } from "vue";
 
   const input = ref("")

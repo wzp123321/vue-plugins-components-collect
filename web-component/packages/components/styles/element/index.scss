@@ -1,6 +1,6 @@
-@use '../../../../node_modules/@tiansu/element-plus/theme-chalk/src/mixins/function' as *;
+@use '../../../../node_modules/element-plus/theme-chalk/src/mixins/function' as *;
 
-@forward "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/common/var.scss" with (
+@forward "../../../../node_modules/element-plus/theme-chalk/src/common/var.scss" with (
   $colors: (
     "primary": ("base": #0e6dfa),
     "success": ("base": #21b534),
@@ -114,11 +114,11 @@
   )
   );
 
-@forward "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/form.scss" with ($form-item-label-top-margin-bottom: ("default": 5px));
+@forward "../../../../node_modules/element-plus/theme-chalk/src/form.scss" with ($form-item-label-top-margin-bottom: ("default": 5px));
 
 // 如果只是按需导入，则可以忽略以下内容。
 // 如果你想导入所有样式:
-@use "../../../../node_modules/@tiansu/element-plus/theme-chalk/src/index.scss" as *;
+@use "../../../../node_modules/element-plus/theme-chalk/src/index.scss" as *;
 
 :root {
   --te-space-4: 4px;

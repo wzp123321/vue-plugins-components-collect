@@ -217,7 +217,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { DatetimePickerMode } from '@/uni_modules/@tiansu/ts-mobile-ui/components/ui/components/tsm-datetime-picker/uniapp/props';
+import type { DatetimePickerMode } from '@/uni_modules/@zpackage/mobile-package/ui/components/ui/components/tsm-datetime-picker/uniapp/props';
 
 type DateValue = string | number | [string | number, string | number];
 type DemoModeKey =
@@ -501,7 +501,7 @@ const onRangeMinMaxConfirm = (value: DateValue) => {
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   padding: 12px;

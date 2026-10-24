@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemSwitch, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemSwitch, TemCell } from '@zpackage/mobile-package';
 
 const switch1Change = (e) => {
   console.log('switch1 发生 change 事件，携带值为', e.detail.value);

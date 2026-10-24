@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-// import { TemActionSheet, TemButton, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemActionSheet, TemButton, TemCell } from '@zpackage/mobile-package';
 import { ref } from 'vue';
 
 const popup = ref();

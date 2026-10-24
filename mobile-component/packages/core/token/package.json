@@ -1,5 +1,5 @@
 {
-  "name": "@tiansu/ts-mobile-token",
+  "name": "mobile-token",
   "version": "0.0.21",
   "description": "Design tokens for ts-mobile-ui components",
   "main": "dist/index.ts",
@@ -19,12 +19,9 @@
     "scripts"
   ],
   "bin": {
-    "@tiansu/ts-mobile-token": "scripts/install.js"
-  },
-  "publishConfig": {
-    "registry": "http://192.168.20.200:7049/repository/npm-tiansu/"
-  },
-  "keywords": [
+    "@zpackage/mobile-package/token": "scripts/install.js"
+    },
+    "keywords": [
     "tokens",
     "design-tokens",
     "phillUI"

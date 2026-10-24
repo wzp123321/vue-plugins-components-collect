@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemScrollView, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemScrollView, TemCell } from '@zpackage/mobile-package';
 
 const refreshStatus = ref<boolean>(false);
 const onRefresh = () => {

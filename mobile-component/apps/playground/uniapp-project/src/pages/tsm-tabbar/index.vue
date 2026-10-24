@@ -36,10 +36,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import IconCollection from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-collection';
-import IconAlarmFill from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-alarm-fill';
-import IconArithmetic from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-arithmetic';
-import IconBuiltUpArea from '@/uni_modules/@tiansu/ts-icon/mobile/vue/icon-built-up-area';
+import IconCollection from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-collection';
+import IconAlarmFill from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-alarm-fill';
+import IconArithmetic from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-arithmetic';
+import IconBuiltUpArea from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/vue/icon-built-up-area';
 const activeIndex1 = ref(0);
 const activeIndex2 = ref(1);
 const activeIndex3 = ref(2);

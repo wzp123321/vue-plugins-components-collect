@@ -1,23 +1,23 @@
 <template>
   <te-space direction="vertical">
-    <te-text>
-      <te-icon>
+    <el-text>
+      <el-icon>
         <ElementPlus />
-      </te-icon>
+      </el-icon>
       Element-Plus
-    </te-text>
-    <te-row>
-      <te-text>Rate</te-text>
+    </el-text>
+    <el-row>
+      <el-text>Rate</el-text>
       <te-rate class="ml-1" />
-    </te-row>
-    <te-text>
+    </el-row>
+    <el-text>
       This is text mixed icon
-      <te-icon>
+      <el-icon>
         <Bell />
-      </te-icon>
+      </el-icon>
       and component
-      <te-button>Button</te-button>
-    </te-text>
+      <el-button>Button</el-button>
+    </el-text>
   </te-space>
 </template>
 

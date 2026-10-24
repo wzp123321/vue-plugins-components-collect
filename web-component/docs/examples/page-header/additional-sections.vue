@@ -11,13 +11,13 @@
         <span class="text-sm mr-2" style="color: var(--te-text-color-regular)">
           Sub title
         </span>
-        <te-tag>Default</te-tag>
+        <el-tag>Default</el-tag>
       </div>
     </template>
     <template #extra>
       <div class="flex items-center">
-        <te-button>Print</te-button>
-        <te-button type="primary" class="ml-2">Edit</te-button>
+        <el-button>Print</el-button>
+        <te-button type="primary" class="ml-2">Edit</el-button>
       </div>
     </template>
   </te-page-header>

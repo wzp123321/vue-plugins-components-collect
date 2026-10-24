@@ -2,8 +2,8 @@
   <div>
     <div style="margin-bottom: 15px">
       direction:
-      <te-radio v-model="direction" label="horizontal">horizontal</te-radio>
-      <te-radio v-model="direction" label="vertical">vertical</te-radio>
+      <te-radio v-model="direction" label="horizontal">horizontal</el-radio>
+      <te-radio v-model="direction" label="vertical">vertical</el-radio>
     </div>
     <div style="margin-bottom: 15px">
       fillRatio:<te-slider v-model="fillRatio" />
@@ -19,7 +19,7 @@
         <template #header>
           <div class="card-header">
             <span>Card name</span>
-            <te-button class="button" text>Operation button</te-button>
+            <te-button class="button" text>Operation button</el-button>
           </div>
         </template>
         <div v-for="o in 4" :key="o" class="text item">

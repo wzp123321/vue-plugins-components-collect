@@ -13,7 +13,7 @@
       >
         <te-icon class="is-loading" color="var(--te-color-primary)" :size="26">
           <loading-icon />
-        </te-icon>
+        </el-icon>
       </div>
     </template>
   </te-table-v2>

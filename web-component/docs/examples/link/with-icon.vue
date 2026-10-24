@@ -1,9 +1,9 @@
 <template>
   <div>
-    <te-link :icon="Edit">Edit</te-link>
-    <te-link>
-      Check<te-icon class="te-icon--right"><icon-view /></te-icon>
-    </te-link>
+    <te-link :icon="Edit">Edit</el-link>
+    <el-link>
+      Check<te-icon class="te-icon--right"><icon-view /></el-icon>
+    </el-link>
   </div>
 </template>
 

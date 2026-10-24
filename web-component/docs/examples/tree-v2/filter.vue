@@ -14,7 +14,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeTreeV2 } from '@tiansu/element-plus'
+import { ElTreeV2 } from 'element-plus'
 import type { TreeNode } from 'element-plus/es/components/tree-v2/src/types'
 
 interface Tree {
@@ -52,7 +52,7 @@ const createData = (
 }
 
 const query = ref('')
-const treeRef = ref<InstanceType<typeof TeTreeV2>>()
+const treeRef = ref<InstanceType<typeof ElTreeV2>>()
 const data = createData(4, 30, 5)
 const props = {
   value: 'id',

@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useThemeClass } from '@/uni_modules/@tiansu/ts-mobile-token/index';
+import { useThemeClass } from '@/uni_modules/@zpackage/mobile-package/token/index';
 import type { ThemeProviderProps } from './props';
 import { defaultProps } from './props';
 

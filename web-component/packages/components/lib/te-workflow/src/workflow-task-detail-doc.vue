@@ -35,7 +35,7 @@
             :tenant-id="tenantId"
           ></workflow-baseinfo>
           <div class="hwdb-remark">
-            <te-input placeholder="请输入备注" v-model="remark"></te-input>
+            <te-input placeholder="请输入备注" v-model="remark"></el-input>
           </div>
         </div>
         <workflow-log
@@ -56,7 +56,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { TeInput } from '@tiansu/element-plus';
+import { ElInput } from 'element-plus';
 import WorkflowLog from './workflow-log.vue';
 import WorkflowButton from './workflow-button.vue';
 import WorkflowBaseinfo from './workflow-baseinfo.vue';

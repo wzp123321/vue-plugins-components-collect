@@ -22,7 +22,7 @@
       ]"
     >
       <te-input v-model="dynamicValidateForm.email" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item
       v-for="(domain, index) in dynamicValidateForm.domains"
       :key="domain.key"
@@ -38,18 +38,18 @@
       <te-button class="mt-2" @click.prevent="removeDomain(domain)"
         >Delete</te-button
       >
-    </te-form-item>
-    <te-form-item>
-      <te-button type="primary" @click="submitForm(formRef)">Submit</te-button>
-      <te-button @click="addDomain">New domain</te-button>
-      <te-button @click="resetForm(formRef)">Reset</te-button>
-    </te-form-item>
-  </te-form>
+    </el-form-item>
+    <el-form-item>
+      <te-button type="primary" @click="submitForm(formRef)">Submit</el-button>
+      <te-button @click="addDomain">New domain</el-button>
+      <te-button @click="resetForm(formRef)">Reset</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import type { FormInstance } from '@tiansu/element-plus'
+import type { FormInstance } from 'element-plus'
 
 const formRef = ref<FormInstance>()
 const dynamicValidateForm = reactive<{

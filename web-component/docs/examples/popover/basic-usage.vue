@@ -7,9 +7,9 @@
     content="this is content, this is content, this is content"
   >
     <template #reference>
-      <te-button class="m-2">Hover to activate</te-button>
+      <te-button class="m-2">Hover to activate</el-button>
     </template>
-  </te-popover>
+  </el-popover>
 
   <te-popover
     placement="bottom"
@@ -19,9 +19,9 @@
     content="this is content, this is content, this is content"
   >
     <template #reference>
-      <te-button class="m-2">Click to activate</te-button>
+      <te-button class="m-2">Click to activate</el-button>
     </template>
-  </te-popover>
+  </el-popover>
 
   <te-popover
     ref="popover"
@@ -32,9 +32,9 @@
     content="this is content, this is content, this is content"
   >
     <template #reference>
-      <te-button class="m-2">Focus to activate</te-button>
+      <te-button class="m-2">Focus to activate</el-button>
     </template>
-  </te-popover>
+  </el-popover>
 
   <te-popover
     ref="popover"
@@ -44,9 +44,9 @@
     content="this is content, this is content, this is content"
   >
     <template #reference>
-      <te-button class="m-2">contextmenu to activate</te-button>
+      <te-button class="m-2">contextmenu to activate</el-button>
     </template>
-  </te-popover>
+  </el-popover>
 
   <te-popover
     :visible="visible"
@@ -60,7 +60,7 @@
         >Manual to activate</te-button
       >
     </template>
-  </te-popover>
+  </el-popover>
 </template>
 
 <script lang="ts" setup>

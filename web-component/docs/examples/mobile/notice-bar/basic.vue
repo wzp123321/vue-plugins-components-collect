@@ -33,7 +33,7 @@
 //   TemNoticeBar,
 //   TemCell,
 //   TemPopupToast,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 import { ref } from 'vue';
 
 const types = ['default', 'success', 'warning', 'danger', 'customize'];

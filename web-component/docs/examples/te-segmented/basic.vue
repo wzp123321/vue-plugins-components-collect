@@ -16,29 +16,29 @@
   <te-form size="small">
     <te-form-item label="主题" required>
       <te-radio-group v-model="theme">
-        <te-radio label="light">浅色</te-radio>
-        <te-radio label="dark">深色</te-radio>
-      </te-radio-group>
-    </te-form-item>
+        <te-radio label="light">浅色</el-radio>
+        <te-radio label="dark">深色</el-radio>
+      </el-radio-group>
+    </el-form-item>
     <te-form-item label="尺寸" required>
       <te-radio-group v-model="size">
-        <te-radio label="small">小</te-radio>
-        <te-radio label="medium">中</te-radio>
-        <te-radio label="large">大</te-radio>
-      </te-radio-group>
-    </te-form-item>
+        <te-radio label="small">小</el-radio>
+        <te-radio label="medium">中</el-radio>
+        <te-radio label="large">大</el-radio>
+      </el-radio-group>
+    </el-form-item>
     <te-form-item label="图标" required>
       <te-radio-group v-model="showIcon">
-        <te-radio :label="true">显示</te-radio>
-        <te-radio :label="false">不显示</te-radio>
-      </te-radio-group>
-    </te-form-item>
-  </te-form>
+        <te-radio :label="true">显示</el-radio>
+        <te-radio :label="false">不显示</el-radio>
+      </el-radio-group>
+    </el-form-item>
+  </el-form>
 </template>
 <script lang="ts" setup>
 import { ref, watch } from "vue";
 import { TeSegmented } from "@ts-web-package/components/lib/te-segmented";
-import { TeForm, TeFormItem, TeRadioGroup, TeRadio } from "@tiansu/element-plus";
+import { TeForm, TeFormItem, TeRadioGroup, ElRadio } from "element-plus";
 const analysisDimension = ref(0);
 const theme = ref<"light" | "dark">("light");
 const size = ref<"small" | "medium" | "large">("medium");

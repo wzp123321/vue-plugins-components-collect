@@ -11,16 +11,16 @@
       <template #tip>
         <div style="padding: 8px;">lalallalallalala</div>
       </template>
-      <te-tab-pane label="User" name="first">User</te-tab-pane>
-      <te-tab-pane label="Config" name="second">Config</te-tab-pane>
-      <te-tab-pane label="Role" name="third">Role</te-tab-pane>
-      <te-tab-pane label="Task" name="fourth">Task</te-tab-pane>
+      <te-tab-pane label="User" name="first">User</el-tab-pane>
+      <te-tab-pane label="Config" name="second">Config</el-tab-pane>
+      <te-tab-pane label="Role" name="third">Role</el-tab-pane>
+      <te-tab-pane label="Task" name="fourth">Task</el-tab-pane>
     </te-module-pagetab>
   </div>
 </template>
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
-import { TeTabPane } from '@tiansu/element-plus';
+import { ElTabPane } from 'element-plus';
 import { TeModulePagetab } from '@ts-web-package/components/lib/te-module-pagetab';
 
 onMounted(() => {});

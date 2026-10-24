@@ -1,0 +1,78 @@
+<template>
+  <view
+    class="icon"
+    <!-- #ifdef H5 -->
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    :style="[iconStyle]"
+    <!-- #endif -->
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><g filter="url(#filter0_ii_16434_6461)"><path fill="url(#paint0_linear_16434_6461)" d="M4.5 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.433 3.958a3 3 0 0 1 .734 1.966V20.4a3 3 0 0 1-3 3H7.5a3 3 0 0 1-3-3z"/><path fill="url(#paint1_linear_16434_6461)" fill-opacity=".4" d="M4.5 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.433 3.958a3 3 0 0 1 .734 1.966V20.4a3 3 0 0 1-3 3H7.5a3 3 0 0 1-3-3z"/><path fill="url(#paint2_linear_16434_6461)" fill-opacity=".96" d="M4.5 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.433 3.958a3 3 0 0 1 .734 1.966V20.4a3 3 0 0 1-3 3H7.5a3 3 0 0 1-3-3z"/></g><path fill="#000037" fill-opacity=".129" fill-rule="evenodd" d="M18.3 22.56H7.5a2.16 2.16 0 0 1-2.16-2.16V3.6A2.16 2.16 0 0 1 7.5 1.44h7.366q.317 0 .614.09v1.776a2.82 2.82 0 0 0 1.83 2.64l3.103 1.164q.046.22.046.448V20.4a2.16 2.16 0 0 1-2.16 2.16m1.49-16.58-3.293-3.796a2 2 0 0 0-.177-.181v1.303a1.98 1.98 0 0 0 1.285 1.854zM4.5 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.433 3.958a3 3 0 0 1 .734 1.966V20.4a3 3 0 0 1-3 3H7.5a3 3 0 0 1-3-3z" clip-rule="evenodd"/><g filter="url(#filter1_dii_16434_6461)"><path fill="#EF544F" d="M2.7 9a3 3 0 0 1 3-3h8.4a3 3 0 0 1 3 3v8.4a3 3 0 0 1-3 3H5.7a3 3 0 0 1-3-3z"/></g><path fill="#000037" fill-opacity=".129" fill-rule="evenodd" d="M14.1 6.72H5.7A2.28 2.28 0 0 0 3.42 9v8.4a2.28 2.28 0 0 0 2.28 2.28h8.4a2.28 2.28 0 0 0 2.28-2.28V9a2.28 2.28 0 0 0-2.28-2.28M5.7 6a3 3 0 0 0-3 3v8.4a3 3 0 0 0 3 3h8.4a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3z" clip-rule="evenodd"/><path fill="white" fill-rule="evenodd" d="M8.68 8.579c.216-.256.517-.372.821-.372.215 0 .447.04.655.168.216.133.361.332.445.568.155.433.119 1.028-.03 1.76q-.112.553-.26 1.063l.01.015c.372.558.966 1.172 1.593 1.68.645-.12 1.251-.175 1.736-.122.296.033.604.112.845.295a.99.99 0 0 1 .395.858c-.012.278-.098.558-.322.76-.22.2-.497.25-.738.241-.458-.017-.992-.256-1.488-.554a9 9 0 0 1-.668-.448l-.016.003c-.948.214-2.01.562-2.964.955a41 41 0 0 1-.559.927c-.392.645-.864 1.166-1.319 1.48-.225.155-.474.28-.727.322-.263.044-.57 0-.805-.235-.246-.246-.4-.547-.373-.89.025-.321.201-.576.377-.76.318-.335.819-.622 1.196-.838l.078-.044c.423-.243.922-.488 1.46-.72.427-.758.886-1.683 1.242-2.782-.604-.99-.875-1.79-.878-2.402-.002-.353.085-.68.295-.928m.944 1.965.007-.032c.144-.715.126-1.08.067-1.246-.022-.06-.042-.072-.045-.073-.01-.006-.049-.026-.152-.026-.056 0-.074.016-.087.031-.02.023-.07.104-.068.303.001.236.075.58.278 1.043m.319 2.328c-.176.463-.365.892-.557 1.286.458-.16.922-.306 1.374-.429a10 10 0 0 1-.817-.857m-2.85 3.34-.053.031-.019.011c-.43.247-.82.471-1.038.7-.106.112-.115.168-.115.173v.004l.006.017a.3.3 0 0 0 .057.083.9.9 0 0 0 .34-.165c.25-.173.543-.464.823-.853m6.037-1.931c.325.168.578.247.736.253q.037 0 .055-.002a.4.4 0 0 0 .01-.083c.002-.037-.002-.04-.012-.047l-.005-.003c-.04-.031-.149-.081-.37-.106a3 3 0 0 0-.414-.012" clip-rule="evenodd"/><defs><linearGradient id="paint0_linear_16434_6461" x1="12.677" x2="12.677" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity=".9"/><stop offset="1" stop-color="white" stop-opacity=".9"/></linearGradient><linearGradient id="paint1_linear_16434_6461" x1="12.677" x2="12.677" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="#02062B" stop-opacity=".4"/><stop offset="1" stop-color="#02062B"/></linearGradient><linearGradient id="paint2_linear_16434_6461" x1="12.677" x2="12.677" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="#F8F8F8" stop-opacity=".9"/></linearGradient><filter id="filter0_ii_16434_6461" x="4.5" y=".12" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="-.48"/><feGaussianBlur stdDeviation=".24"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.00784314 0 0 0 0 0.0235294 0 0 0 0 0.168627 0 0 0 0.04 0"/><feBlend in2="shape" result="effect1_innerShadow_16434_6461"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="-.72"/><feGaussianBlur stdDeviation=".06"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.00784314 0 0 0 0 0.0235294 0 0 0 0 0.168627 0 0 0 0.02 0"/><feBlend in2="effect1_innerShadow_16434_6461" result="effect2_innerShadow_16434_6461"/></filter><filter id="filter1_dii_16434_6461" width="18" height="18" x="2.1" y="4.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dx="1.2" dy=".6"/><feGaussianBlur stdDeviation=".9"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix values="0 0 0 0 0.984314 0 0 0 0 0.215686 0 0 0 0 0.215686 0 0 0 0.1 0"/><feBlend in2="BackgroundImageFix" result="effect1_dropShadow_16434_6461"/><feBlend in="SourceGraphic" in2="effect1_dropShadow_16434_6461" result="shape"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dx="-.6" dy="-.6"/><feGaussianBlur stdDeviation="1.2"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.336198 0 0 0 0 0.336198 0 0 0 0 0.336198 0 0 0 0.25 0"/><feBlend in2="shape" result="effect2_innerShadow_16434_6461"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dx=".6" dy="1.2"/><feGaussianBlur stdDeviation="1.8"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.3 0"/><feBlend in2="effect2_innerShadow_16434_6461" result="effect3_innerShadow_16434_6461"/></filter></defs></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-file-type-pdf/file_type_pdf.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color ?? 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  /* #ifdef H5 */
+  color: var(--icon-color, currentColor);
+  /* #endif */
+}
+/* #ifdef H5 */
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+/* #endif */
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

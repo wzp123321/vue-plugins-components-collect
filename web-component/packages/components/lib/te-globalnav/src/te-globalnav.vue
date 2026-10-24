@@ -24,17 +24,17 @@
 						<span class="te-globalnav-button-warn">{{ menu.count > 99 ? "99+" : menu.count }}</span>
 					</div>
 					<template #dropdown>
-						<te-dropdown-menu>
+						<el-dropdown-menu>
 							<te-dropdown-item v-for="(item, index) in menu.list" @click="emit('menuChanged', item)">
 								<div class="te-globalnav-button-item">
 									<span :class="`te-globalnav-button-item-point${index + 1}`"></span>
 									<span>{{ item.title }}</span>
 									<span>{{ item.count > 99 ? "99+" : item.count }}</span>
 								</div>
-							</te-dropdown-item>
-						</te-dropdown-menu>
+							</el-dropdown-item>
+						</el-dropdown-menu>
 					</template>
-				</te-dropdown>
+				</el-dropdown>
 
 				<div v-else @click="emit('menuChanged', menu)" class="te-globalnav-button">
 					<component :is="menu.icon" />
@@ -62,8 +62,8 @@
 					<icon-caret-bottom></icon-caret-bottom>
 				</div>
 				<template #dropdown>
-					<te-dropdown-menu>
-						<te-dropdown-item disabled><div>院区选择</div></te-dropdown-item>
+					<el-dropdown-menu>
+						<te-dropdown-item disabled><div>院区选择</div></el-dropdown-item>
 						<te-dropdown-item v-for="item in hospitalConfig?.list">
 							<te-checkbox
 								class="te-globalnav-user-item"
@@ -73,7 +73,7 @@
 								@change="(value: boolean) => {
                   if (hospitalConfig?.chooseMode == globalnavChooseMode.multiple || !hospitalConfig?.chooseMode) {
                     if (!value && hospitalConfig.list?.filter(el => el.checked).length <= 0) {
-                      TeMessage.warning('至少选中一个院区');
+                      ElMessage.warning('至少选中一个院区');
                       item.checked = true;
                       return
                     }
@@ -86,10 +86,10 @@
                   
                   hospitalCheckChanged = true
                 }" />
-						</te-dropdown-item>
-					</te-dropdown-menu>
+						</el-dropdown-item>
+					</el-dropdown-menu>
 				</template>
-			</te-dropdown>
+			</el-dropdown>
 			<div class="te-globalnav-user te-globalnav-hospital" v-else-if="hospitalConfig">
 				<icon-yuanqu class="te-globalnav-user-img"></icon-yuanqu>
 				<span class="te-globalnav-hospital-count">{{ hospitalConfig.count > 99 ? "99+" : hospitalConfig.count }}</span>
@@ -107,20 +107,20 @@
 					<icon-caret-bottom></icon-caret-bottom>
 				</div>
 				<template #dropdown>
-					<te-dropdown-menu>
-						<te-dropdown-item v-if="userinfoConfig.organizationList" disabled><div>组织</div></te-dropdown-item>
+					<el-dropdown-menu>
+						<te-dropdown-item v-if="userinfoConfig.organizationList" disabled><div>组织</div></el-dropdown-item>
 						<te-dropdown-item v-for="item in userinfoConfig.organizationList" :icon="item.icon" @click="organizationMenuClick(item)">
 							<div :class="item.checked ? 'te-globalnav-user-check' : ''">
 								<span>{{ item.title }}</span>
 								<icon-check v-if="item.checked" class="te-globalnav-user-check-icon"></icon-check>
 							</div>
-						</te-dropdown-item>
+						</el-dropdown-item>
 						<te-dropdown-item v-for="item in userinfoConfig.configList" :divided="item.divided" :icon="item.icon" @click="emit('menuChanged', item)">
 							<div>{{ item.title }}</div>
-						</te-dropdown-item>
-					</te-dropdown-menu>
+						</el-dropdown-item>
+					</el-dropdown-menu>
 				</template>
-			</te-dropdown>
+			</el-dropdown>
 			<!-- 用户信息插槽 -->
 			<div class="te-globalnav-user" v-else-if="$slots['globalnav-user-custom']">
 				<slot name="globalnav-user-custom"></slot>
@@ -130,9 +130,9 @@
 </template>
 
 <script setup lang="ts">
-	import { TeCheckbox, TeDropdown, TeDropdownItem, TeDropdownMenu, TeMessage } from "@tiansu/element-plus";
+	import { ElCheckbox, ElDropdown, ElDropdownItem, ElDropdownMenu, ElMessage } from "element-plus";
 	import { navProps, globalnavMenuItem, globalnavChooseMode } from "./constants";
-	import "@tiansu/element-plus/theme-chalk/dark/css-vars.css";
+	import "element-plus/theme-chalk/dark/css-vars.css";
 	import { IconCaretBottom, IconCheck, IconYuanqu } from "@arco-iconbox/vue-te/esm";
 
 	const props = withDefaults(defineProps<navProps>(), {

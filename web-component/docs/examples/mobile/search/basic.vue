@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemSearch, TemCell, TemPopupToast } from '@tiansu/ts-mobile-package';
+// import { TemSearch, TemCell, TemPopupToast } from '@zpackage/mobile-package';
 import { ref } from 'vue';
 
 const searchValue = ref<string>(''); // 搜索框的值

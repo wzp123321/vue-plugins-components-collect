@@ -6,7 +6,7 @@
     <te-table-column prop="city" label="City" width="320" />
     <te-table-column prop="address" label="Address" width="600" />
     <te-table-column prop="zip" label="Zip" width="120" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

@@ -24,7 +24,7 @@ import { ref } from 'vue';
 //   TemRadio,
 //   TemRadioGroup,
 //   TemCell,
-// } from '@tiansu/ts-mobile-package';
+// } from '@zpackage/mobile-package';
 const items = [
   {
     value: 'USA',

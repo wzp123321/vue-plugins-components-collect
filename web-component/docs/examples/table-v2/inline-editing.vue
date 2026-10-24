@@ -16,10 +16,10 @@
 
 <script lang="tsx" setup>
 import { ref } from 'vue'
-import { TeInput } from '@tiansu/element-plus'
+import { ElInput } from 'element-plus'
 
 import type { FunctionalComponent } from 'vue'
-import type { Column, InputInstance } from '@tiansu/element-plus'
+import type { Column, InputInstance } from 'element-plus'
 
 type SelectionCellProps = {
   value: string
@@ -34,7 +34,7 @@ const InputCell: FunctionalComponent<SelectionCellProps> = ({
   forwardRef,
 }) => {
   return (
-    <TeInput ref={forwardRef as any} onInput={onChange} modelValue={value} />
+    <ElInput ref={forwardRef as any} onInput={onChange} modelValue={value} />
   )
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <te-text class="mx-1" size="large">Large</te-text>
-  <te-text class="mx-1">Default</te-text>
-  <te-text class="mx-1" size="small">Small</te-text>
+  <te-text class="mx-1" size="large">Large</el-text>
+  <te-text class="mx-1">Default</el-text>
+  <te-text class="mx-1" size="small">Small</el-text>
 </template>

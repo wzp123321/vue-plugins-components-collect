@@ -1,0 +1,56 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M18 3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm-6 3c-2.08 0-3.716.448-4.628.77-.947.336-1.377 1.303-1.203 2.175l.722 3.61c.196.977 1.232 1.45 2.079 1.112.645-.258 1.699-.604 2.748-.66l.3-.007c1.134.004 2.313.388 3.012.667.847.338 1.883-.135 2.079-1.113l.722-3.609c.174-.872-.256-1.839-1.203-2.174A14 14 0 0 0 12 6m0 2c1.604 0 2.897.309 3.693.566l.163.054-.6 2.997a12 12 0 0 0-1.394-.4l-.32-.065.352-.705a1 1 0 0 0-1.73-.996l-.058.102-.738 1.474c-.89.075-1.731.293-2.388.509l-.237.08-.6-2.996A12.1 12.1 0 0 1 12 8"/></svg>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+</style>

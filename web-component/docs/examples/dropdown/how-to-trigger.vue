@@ -2,62 +2,62 @@
   <te-row class="block-col-2">
     <te-col :span="8">
       <span class="demonstration">hover to trigger</span>
-      <te-dropdown>
+      <el-dropdown>
         <span class="te-dropdown-link">
-          Dropdown List<te-icon class="te-icon--right"><arrow-down /></te-icon>
+          Dropdown List<te-icon class="te-icon--right"><arrow-down /></el-icon>
         </span>
         <template #dropdown>
-          <te-dropdown-menu>
-            <te-dropdown-item :icon="Plus">Action 1</te-dropdown-item>
+          <el-dropdown-menu>
+            <te-dropdown-item :icon="Plus">Action 1</el-dropdown-item>
             <te-dropdown-item :icon="CirclePlusFilled">
               Action 2
-            </te-dropdown-item>
-            <te-dropdown-item :icon="CirclePlus">Action 3</te-dropdown-item>
-            <te-dropdown-item :icon="Check">Action 4</te-dropdown-item>
-            <te-dropdown-item :icon="CircleCheck">Action 5</te-dropdown-item>
-          </te-dropdown-menu>
+            </el-dropdown-item>
+            <te-dropdown-item :icon="CirclePlus">Action 3</el-dropdown-item>
+            <te-dropdown-item :icon="Check">Action 4</el-dropdown-item>
+            <te-dropdown-item :icon="CircleCheck">Action 5</el-dropdown-item>
+          </el-dropdown-menu>
         </template>
-      </te-dropdown>
-    </te-col>
+      </el-dropdown>
+    </el-col>
     <te-col :span="8">
       <span class="demonstration">click to trigger</span>
       <te-dropdown trigger="click">
         <span class="te-dropdown-link">
-          Dropdown List<te-icon class="te-icon--right"><arrow-down /></te-icon>
+          Dropdown List<te-icon class="te-icon--right"><arrow-down /></el-icon>
         </span>
         <template #dropdown>
-          <te-dropdown-menu>
-            <te-dropdown-item :icon="Plus">Action 1</te-dropdown-item>
+          <el-dropdown-menu>
+            <te-dropdown-item :icon="Plus">Action 1</el-dropdown-item>
             <te-dropdown-item :icon="CirclePlusFilled">
               Action 2
-            </te-dropdown-item>
-            <te-dropdown-item :icon="CirclePlus">Action 3</te-dropdown-item>
-            <te-dropdown-item :icon="Check">Action 4</te-dropdown-item>
-            <te-dropdown-item :icon="CircleCheck">Action 5</te-dropdown-item>
-          </te-dropdown-menu>
+            </el-dropdown-item>
+            <te-dropdown-item :icon="CirclePlus">Action 3</el-dropdown-item>
+            <te-dropdown-item :icon="Check">Action 4</el-dropdown-item>
+            <te-dropdown-item :icon="CircleCheck">Action 5</el-dropdown-item>
+          </el-dropdown-menu>
         </template>
-      </te-dropdown>
-    </te-col>
+      </el-dropdown>
+    </el-col>
     <te-col :span="8">
       <span class="demonstration">right click to trigger</span>
       <te-dropdown trigger="contextmenu">
         <span class="te-dropdown-link">
-          Dropdown List<te-icon class="te-icon--right"><arrow-down /></te-icon>
+          Dropdown List<te-icon class="te-icon--right"><arrow-down /></el-icon>
         </span>
         <template #dropdown>
-          <te-dropdown-menu>
-            <te-dropdown-item :icon="Plus">Action 1</te-dropdown-item>
+          <el-dropdown-menu>
+            <te-dropdown-item :icon="Plus">Action 1</el-dropdown-item>
             <te-dropdown-item :icon="CirclePlusFilled">
               Action 2
-            </te-dropdown-item>
-            <te-dropdown-item :icon="CirclePlus">Action 3</te-dropdown-item>
-            <te-dropdown-item :icon="Check">Action 4</te-dropdown-item>
-            <te-dropdown-item :icon="CircleCheck">Action 5</te-dropdown-item>
-          </te-dropdown-menu>
+            </el-dropdown-item>
+            <te-dropdown-item :icon="CirclePlus">Action 3</el-dropdown-item>
+            <te-dropdown-item :icon="Check">Action 4</el-dropdown-item>
+            <te-dropdown-item :icon="CircleCheck">Action 5</el-dropdown-item>
+          </el-dropdown-menu>
         </template>
-      </te-dropdown>
-    </te-col>
-  </te-row>
+      </el-dropdown>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@tiansu/ts-mobile-installer": "^0.0.8",
+    "@zpackage/mobile-package/installer": "^0.0.8",
     "dayjs": "^1.11.21",
     "lodash": "^4.18.1"
   }

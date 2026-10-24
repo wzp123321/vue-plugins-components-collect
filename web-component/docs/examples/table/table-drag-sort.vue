@@ -4,7 +4,7 @@
     <te-table-column prop="date" label="Date" />
     <te-table-column prop="name" label="Name" />
     <te-table-column prop="address" label="Address" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

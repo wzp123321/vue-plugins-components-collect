@@ -36,7 +36,7 @@ function main() {
   const uniModulesBase = fs.existsSync(srcDir)
     ? path.join(srcDir, 'uni_modules')
     : path.join(projectRoot, 'uni_modules');
-  const targetPkgDir = path.join(uniModulesBase, '@tiansu/ts-mobile-token');
+  const targetPkgDir = path.join(uniModulesBase, '@zpackage/mobile-package/token');
   const pkgRoot = path.resolve(__dirname, '..');
   const distDir = path.join(pkgRoot, 'dist');
   const pkgJsonPath = path.join(pkgRoot, 'package.json');

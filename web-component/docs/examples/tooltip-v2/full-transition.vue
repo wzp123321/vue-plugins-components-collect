@@ -2,8 +2,8 @@
   <te-tooltip-v2 full-transition :transition-props="transitionProps">
     <template #trigger>
       <te-button circle
-        ><te-icon><Plus /></te-icon
-      ></te-button>
+        ><el-icon><Plus /></te-icon
+      ></el-button>
     </template>
     <div>content</div>
   </te-tooltip-v2>

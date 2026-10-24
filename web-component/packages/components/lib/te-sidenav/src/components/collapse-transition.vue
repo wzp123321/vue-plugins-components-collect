@@ -5,7 +5,7 @@
 </template>
 <script lang="ts">
 	import { defineComponent } from "vue";
-	import { useNamespace } from "@tiansu/element-plus";
+	import { useNamespace } from "element-plus";
 	import { addClass, hasClass, removeClass } from "../utils";
 
 	import type { BaseTransitionProps, TransitionProps } from "vue";

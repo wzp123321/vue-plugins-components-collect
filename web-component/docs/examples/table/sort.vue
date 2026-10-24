@@ -7,11 +7,11 @@
     <te-table-column prop="date" label="Date" sortable width="180" />
     <te-table-column prop="name" label="Name" width="180" />
     <te-table-column prop="address" label="Address" :formatter="formatter" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>
-import type { TableColumnCtx } from '@tiansu/element-plus'
+import type { TableColumnCtx } from 'element-plus'
 
 interface User {
   date: string

@@ -72,31 +72,6 @@
         </div>
         <div class="map-ctrl__note">切换板块底色/侧壁/描边配色，可随时切回</div>
       </div>
-      <!-- 立体 / 平面：压薄板块厚度，便于读 choropleth / 标牌 -->
-      <div class="map-ctrl__group">
-        <div class="map-ctrl__groupHead">
-          <span class="map-ctrl__groupTitle">立体 / 平面</span>
-        </div>
-        <div class="map-ctrl__seg">
-          <button
-            type="button"
-            class="map-ctrl__segBtn"
-            :class="{ 'map-ctrl__segBtn--on': !flat }"
-            @click="flat = false"
-          >
-            立体
-          </button>
-          <button
-            type="button"
-            class="map-ctrl__segBtn"
-            :class="{ 'map-ctrl__segBtn--on': flat }"
-            @click="flat = true"
-          >
-            平面
-          </button>
-        </div>
-        <div class="map-ctrl__note">平面模式压薄板块，读数据更清晰（切换会重建几何）</div>
-      </div>
       <!-- 地图背景：A 大屏底图（2D 贴屏幕）/ B 三维底板（3D 随视角透视），可独立开关也可叠加 -->
       <div class="map-ctrl__group">
         <div class="map-ctrl__groupHead">
@@ -263,8 +238,6 @@ import { ref } from 'vue';
 
 // 双向绑定控制参数（与 ChinaMap3D 的 props 一一对应）
 const dragMode = defineModel<'pan' | 'rotate'>('dragMode', { default: 'pan' });
-// 2D 扁平模式：压薄板块厚度（false=立体 / true=平面）
-const flat = defineModel<boolean>('flat', { default: false });
 const showColumn = defineModel<boolean>('showColumn', { default: true });
 /** 板块填色模式：按数值给行政区顶面着色（与柱体/图例同一套分档） */
 const fillByValue = defineModel<boolean>('fillByValue', { default: false });

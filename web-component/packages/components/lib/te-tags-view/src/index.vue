@@ -20,9 +20,9 @@
 							]">
 							<span>{{ item.meta && item.meta.title ? item.meta.title : item.name }}</span>
 							<span class="icon" v-show="tags.length > 1 && item.meta.closeAble !== false" @click.stop="closeTag(item, index)">
-								<te-icon>
+								<el-icon>
 									<Close />
-								</te-icon>
+								</el-icon>
 							</span>
 						</li>
 						<li key="last-p" :class="['tag-placeholder', currentIndex > -1 && currentIndex === tags.length - 1 ? 'borderBottomLeftRadius' : '']"></li>
@@ -32,23 +32,23 @@
 		</ResizeObserver>
 		<te-dropdown max-height="200" v-if="hiddenTabs.length">
 			<div class="expand-more flex-justify-center flex-align-center">
-				<te-icon>
+				<el-icon>
 					<MoreFilled />
-				</te-icon>
+				</el-icon>
 			</div>
 			<template #dropdown>
-				<te-dropdown-menu>
+				<el-dropdown-menu>
 					<te-dropdown-item @click="changeTag(tab, index)" v-for="(tab, index) in hiddenTabs" :key="tab.name">
 						<span class="dropdown-menu-title">{{ tab.meta && tab.meta.title ? tab.meta.title : tab.name }}</span>
 						<span class="dropdown-menu-icon" @click.stop="closeTag(tab, index)">
-							<te-icon>
+							<el-icon>
 								<Close />
-							</te-icon>
+							</el-icon>
 						</span>
-					</te-dropdown-item>
-				</te-dropdown-menu>
+					</el-dropdown-item>
+				</el-dropdown-menu>
 			</template>
-		</te-dropdown>
+		</el-dropdown>
 		<!-- 下拉菜单 -->
 		<transition name="te-zoom-in-top">
 			<ul v-if="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
@@ -64,7 +64,7 @@
 	import type { PropType, ShallowRef } from "vue";
 	import ResizeObserver from "./resize-observer";
 	import { Close, MoreFilled } from "@element-plus/icons-vue";
-	import { TeIcon, TeDropdownMenu, TeDropdownItem, TeDropdown } from "@tiansu/element-plus";
+	import { ElIcon, ElDropdownMenu, ElDropdownItem, ElDropdown } from "element-plus";
 	import type { RouteLocationNormalizedLoaded } from "vue-router";
 	import { useRoute } from "vue-router";
 	import useMenu from "./hooks/useMenu";
@@ -85,10 +85,10 @@
 			Close,
 			MoreFilled,
 			ResizeObserver,
-			TeIcon,
-			TeDropdownMenu,
-			TeDropdownItem,
-			TeDropdown,
+			ElIcon,
+			ElDropdownMenu,
+			ElDropdownItem,
+			ElDropdown,
 		},
 		props: {
 			tags: {

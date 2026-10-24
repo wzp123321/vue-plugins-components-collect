@@ -24,7 +24,7 @@
         <template #prefix>
           <icon-search />
         </template>
-      </te-input>
+      </el-input>
     </div>
     <!-- 列表 -->
     <div class="ctc-list">
@@ -70,7 +70,7 @@ import { PropType, computed, ref, watch } from 'vue';
 import { IconSearch, IconClose } from '@arco-iconbox/vue-te';
 import { ITCheckListItem, TransferTabsItem } from './constants';
 import { cloneDeep } from 'lodash';
-import { TeInput, TeButton } from '@tiansu/element-plus';
+import { ElInput, ElButton } from 'element-plus';
 //虚拟列表
 // vue virtual scroller
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'; // 引入虚拟列表的 css

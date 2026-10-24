@@ -21,8 +21,8 @@ import { ref } from 'vue';
 // import {
 //   TemEmployeeInfo,
 //   TemEmployeeInfoUtil,
-// } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
+// } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
 // import Request from 'luch-request';
 
 const http = new Request({

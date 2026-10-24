@@ -15,7 +15,7 @@ import {
   ActionTypeEnum,
   dateSwitchEmits,
 } from './type';
-import { TeButton, TeDatePicker, TeIcon } from '@tiansu/element-plus';
+import { ElButton, ElDatePicker, ElIcon } from 'element-plus';
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 
 // 默认为年份选择器
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<DateSwitchProps>(), {
 
 // 添加v-model便于使用
 const emits = defineEmits(dateSwitchEmits);
-const pickerRef = ref<InstanceType<typeof TeDatePicker>>();
+const pickerRef = ref<InstanceType<typeof ElDatePicker>>();
 
 const { type, format, valueFormat, forwardLimit } = toRefs(props);
 
@@ -54,10 +54,10 @@ defineExpose({
       class="arrow-button"
       @click="() => handleDateChange(ActionTypeEnum.BACKWARD)"
     >
-      <te-icon>
+      <el-icon>
         <ArrowLeft />
-      </te-icon>
-    </te-button>
+      </el-icon>
+    </el-button>
     <te-date-picker
       popper-class="custom-date-picker"
       ref="pickerRef"
@@ -73,16 +73,16 @@ defineExpose({
       <template v-for="k in Object.keys($slots)" #[k]="scope" :key="k">
         <slot :name="k" v-bind="scope"></slot>
       </template>
-    </te-date-picker>
+    </el-date-picker>
     <te-button
       class="arrow-button"
       @click="() => handleDateChange(ActionTypeEnum.FORWARD)"
       :disabled="!canForward"
     >
-      <te-icon>
+      <el-icon>
         <ArrowRight />
-      </te-icon>
-    </te-button>
+      </el-icon>
+    </el-button>
   </section>
 </template>
 

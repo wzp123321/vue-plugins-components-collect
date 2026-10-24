@@ -16,13 +16,13 @@
             <te-table-column label="City" prop="city" />
             <te-table-column label="Address" prop="address" />
             <te-table-column label="Zip" prop="zip" />
-          </te-table>
+          </el-table>
         </div>
       </template>
-    </te-table-column>
+    </el-table-column>
     <te-table-column label="Date" prop="date" />
     <te-table-column label="Name" prop="name" />
-  </te-table>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

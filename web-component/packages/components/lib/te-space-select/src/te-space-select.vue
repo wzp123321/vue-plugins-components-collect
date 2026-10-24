@@ -26,11 +26,11 @@
       </span>
       <span v-else class="tss-tree-parent">{{ data.label }}</span>
     </template>
-  </te-cascader>
+  </el-cascader>
 </template>
 <script setup lang="ts">
-import { TeCascader, TeMessage } from '@tiansu/element-plus';
-import type { CascaderProps, TeCascaderPanelContext } from '@tiansu/element-plus';
+import { ElCascader, ElMessage } from 'element-plus';
+import type { CascaderProps, CascaderPanelContext } from 'element-plus';
 import { ref, h, render, nextTick, watch, computed, onMounted } from 'vue';
 import TssDropdownTitle from './tss-dropdown-title.vue';
 import LocationV2ApiApi from './apis/LocationV2ApiApi';
@@ -51,7 +51,7 @@ interface MenuList {
     value: string;
     data: { disabled: boolean; initialDisabled: boolean; parentId?: string };
   }[];
-  panel: TeCascaderPanelContext;
+  panel: CascaderPanelContext;
 }
 
 // 允许选择的层级类型声明
@@ -195,7 +195,7 @@ const handleChangeSelected = (value: string[] | string[][] | null) => {
       const childChecked = getChildChecked(newId);
       const parentChecked = getParentChecked(newId);
       if (childChecked || parentChecked) {
-        TeMessage.warning(
+        ElMessage.warning(
           childChecked ? '下级空间已被选中，请先取消选中再进行操作' : '上级空间已被选中，请先取消选中再进行操作'
         );
         // 还原value

@@ -1,12 +1,12 @@
 <template>
   <div>
-    <te-button mb-2 @click="toggle">Switch Language</te-button>
+    <te-button mb-2 @click="toggle">Switch Language</el-button>
     <br />
 
     <te-config-provider :locale="locale">
       <te-table mb-1 :data="[]" />
       <te-pagination :total="100" />
-    </te-config-provider>
+    </el-config-provider>
   </div>
 </template>
 

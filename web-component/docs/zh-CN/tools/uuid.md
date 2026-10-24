@@ -6,7 +6,7 @@ lang: zh-CN
 ### 导入
 
 ```typescript
-import { UuidUtil } from "@tiansu/tools";
+import { UuidUtil } from "@zpackage/tools";
 ```
 
 ### 生成一串随机的 uuid 字符串

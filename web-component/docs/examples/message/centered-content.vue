@@ -1,12 +1,12 @@
 <template>
-  <te-button plain @click="openCenter">Centered text</te-button>
+  <te-button plain @click="openCenter">Centered text</el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 
 const openCenter = () => {
-  TeMessage({
+  ElMessage({
     showClose: true,
     message: 'Centered text',
     center: true,

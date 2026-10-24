@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><g filter="url(#filter0_ii_16434_6687)"><path fill="url(#paint0_linear_16434_6687)" d="M3.6 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.434 3.958a3 3 0 0 1 .733 1.966V20.4a3 3 0 0 1-3 3H6.602a3 3 0 0 1-3-3z"/><path fill="url(#paint1_linear_16434_6687)" fill-opacity=".4" d="M3.6 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.434 3.958a3 3 0 0 1 .733 1.966V20.4a3 3 0 0 1-3 3H6.602a3 3 0 0 1-3-3z"/><path fill="url(#paint2_linear_16434_6687)" fill-opacity=".96" d="M3.6 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.434 3.958a3 3 0 0 1 .733 1.966V20.4a3 3 0 0 1-3 3H6.602a3 3 0 0 1-3-3z"/></g><path fill="#000037" fill-opacity=".129" fill-rule="evenodd" d="M17.4 22.56H6.6a2.16 2.16 0 0 1-2.16-2.16V3.6A2.16 2.16 0 0 1 6.6 1.44h7.366q.317 0 .614.09v1.776a2.82 2.82 0 0 0 1.83 2.64l3.103 1.164q.046.22.046.448V20.4a2.16 2.16 0 0 1-2.16 2.16m1.49-16.58-3.293-3.796a2 2 0 0 0-.177-.181v1.303a1.98 1.98 0 0 0 1.285 1.854zM3.6 3.6a3 3 0 0 1 3-3h7.366a3 3 0 0 1 2.266 1.034l3.434 3.958a3 3 0 0 1 .733 1.966V20.4a3 3 0 0 1-3 3H6.602a3 3 0 0 1-3-3z" clip-rule="evenodd"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M8.182 8.782c.26-.26.682-.26.943 0l1.037 1.037a.667.667 0 1 1-.943.942L8.182 9.724a.667.667 0 0 1 0-.942" clip-rule="evenodd" opacity=".7"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M13.839 14.438c.26-.26.682-.26.942 0l1.037 1.037a.667.667 0 0 1-.942.943l-1.037-1.037a.667.667 0 0 1 0-.943" clip-rule="evenodd" opacity=".3"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M8.182 16.418a.667.667 0 0 1 0-.943l1.037-1.037a.667.667 0 1 1 .943.943l-1.037 1.037a.667.667 0 0 1-.943 0" clip-rule="evenodd" opacity=".5"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M13.839 10.761a.667.667 0 0 1 0-.942l1.037-1.038a.667.667 0 1 1 .942.943l-1.037 1.037a.667.667 0 0 1-.943 0" clip-rule="evenodd"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M6.6 12.6c0-.368.299-.667.667-.667h1.466a.667.667 0 1 1 0 1.334H7.267A.667.667 0 0 1 6.6 12.6" clip-rule="evenodd" opacity=".6"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M14.6 12.6c0-.368.299-.667.667-.667h1.466a.667.667 0 1 1 0 1.334h-1.466a.667.667 0 0 1-.667-.667" clip-rule="evenodd"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M12 7.2c.368 0 .667.298.667.667v1.466a.667.667 0 0 1-1.333 0V7.867c0-.369.298-.667.666-.667" clip-rule="evenodd" opacity=".8"/><path fill="#02062B" fill-opacity=".431" fill-rule="evenodd" d="M12 15.2c.368 0 .667.299.667.667v1.466a.667.667 0 1 1-1.333 0v-1.466c0-.369.298-.667.666-.667" clip-rule="evenodd" opacity=".4"/><defs><linearGradient id="paint0_linear_16434_6687" x1="11.777" x2="11.777" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity=".9"/><stop offset="1" stop-color="white" stop-opacity=".9"/></linearGradient><linearGradient id="paint1_linear_16434_6687" x1="11.777" x2="11.777" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="#02062B" stop-opacity=".4"/><stop offset="1" stop-color="#02062B"/></linearGradient><linearGradient id="paint2_linear_16434_6687" x1="11.777" x2="11.777" y1=".6" y2="23.4" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="#F8F8F8" stop-opacity=".9"/></linearGradient><filter id="filter0_ii_16434_6687" x="3.6" y=".12" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="-.48"/><feGaussianBlur stdDeviation=".24"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.00784314 0 0 0 0 0.0235294 0 0 0 0 0.168627 0 0 0 0.04 0"/><feBlend in2="shape" result="effect1_innerShadow_16434_6687"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="-.72"/><feGaussianBlur stdDeviation=".06"/><feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.00784314 0 0 0 0 0.0235294 0 0 0 0 0.168627 0 0 0 0.02 0"/><feBlend in2="effect1_innerShadow_16434_6687" result="effect2_innerShadow_16434_6687"/></filter></defs></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-file-waiting/file_waiting.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

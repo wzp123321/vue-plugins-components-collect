@@ -10,20 +10,20 @@
   >
     <te-form-item label="Activity name" prop="name">
       <te-input v-model="ruleForm.name" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity zone" prop="region">
       <te-select v-model="ruleForm.region" placeholder="Activity zone">
         <te-option label="Zone one" value="shanghai" />
         <te-option label="Zone two" value="beijing" />
-      </te-select>
-    </te-form-item>
+      </el-select>
+    </el-form-item>
     <te-form-item label="Activity count" prop="count">
       <te-select-v2
         v-model="ruleForm.count"
         placeholder="Activity count"
         :options="options"
       />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity time" required>
       <te-col :span="11">
         <te-form-item prop="date1">
@@ -34,11 +34,11 @@
             placeholder="Pick a date"
             style="width: 100%"
           />
-        </te-form-item>
-      </te-col>
+        </el-form-item>
+      </el-col>
       <te-col class="text-center" :span="2">
         <span class="text-gray-500">-</span>
-      </te-col>
+      </el-col>
       <te-col :span="11">
         <te-form-item prop="date2">
           <te-time-picker
@@ -47,41 +47,41 @@
             placeholder="Pick a time"
             style="width: 100%"
           />
-        </te-form-item>
-      </te-col>
-    </te-form-item>
+        </el-form-item>
+      </el-col>
+    </el-form-item>
     <te-form-item label="Instant delivery" prop="delivery">
       <te-switch v-model="ruleForm.delivery" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity type" prop="type">
       <te-checkbox-group v-model="ruleForm.type">
         <te-checkbox label="Online activities" name="type" />
         <te-checkbox label="Promotion activities" name="type" />
         <te-checkbox label="Offline activities" name="type" />
         <te-checkbox label="Simple brand exposure" name="type" />
-      </te-checkbox-group>
-    </te-form-item>
+      </el-checkbox-group>
+    </el-form-item>
     <te-form-item label="Resources" prop="resource">
       <te-radio-group v-model="ruleForm.resource">
         <te-radio label="Sponsorship" />
         <te-radio label="Venue" />
-      </te-radio-group>
-    </te-form-item>
+      </el-radio-group>
+    </el-form-item>
     <te-form-item label="Activity form" prop="desc">
       <te-input v-model="ruleForm.desc" type="textarea" />
-    </te-form-item>
-    <te-form-item>
+    </el-form-item>
+    <el-form-item>
       <te-button type="primary" @click="submitForm(ruleFormRef)">
         Create
-      </te-button>
-      <te-button @click="resetForm(ruleFormRef)">Reset</te-button>
-    </te-form-item>
-  </te-form>
+      </el-button>
+      <te-button @click="resetForm(ruleFormRef)">Reset</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import type { FormInstance, FormRules } from '@tiansu/element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const formSize = ref('default')
 const ruleFormRef = ref<FormInstance>()

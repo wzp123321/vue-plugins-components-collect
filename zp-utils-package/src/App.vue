@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { defineComponent, provide } from "vue";
 	import { createStorage, TENANT_INFO_KEY, webScoketInit, messageSend } from "ts-tools";
-	// import { createStorage, TENANT_INFO_KEY } from "@tiansu/tools";
+	// import { createStorage, TENANT_INFO_KEY } from "@zpackage/tools";
 	import { stoageKey } from "./utils";
 	const stoage = createStorage("sessionStorage");
 	console.log(TENANT_INFO_KEY);

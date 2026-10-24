@@ -1,5 +1,5 @@
 {
-	"name": "ts-web-tools",
+	"name": "@zpackage/tools",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -23,7 +23,7 @@
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-typescript": "^11.1.6",
-		"@tiansu/ts-web-package": "^1.2.26-beta.9",
+		"@zpackage/web-package": "workspace:*",
 		"axios": "^1.5.1",
 		"babel-loader": "^9.1.3",
 		"core-js": "^3.8.3",

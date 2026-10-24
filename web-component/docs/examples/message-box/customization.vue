@@ -1,12 +1,12 @@
 <template>
-  <te-button text @click="open">Click to open Message Box</te-button>
+  <te-button text @click="open">Click to open Message Box</el-button>
 </template>
 
 <script lang="ts" setup>
 import { h } from 'vue'
-import { TeMessage, TeMessageBox } from '@tiansu/element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 const open = () => {
-  TeMessageBox({
+  ElMessageBox({
     title: 'Message',
     message: h('p', null, [
       h('span', null, 'Message can be '),
@@ -30,7 +30,7 @@ const open = () => {
       }
     },
   }).then((action) => {
-    TeMessage({
+    ElMessage({
       type: 'info',
       message: `action: ${action}`,
     })

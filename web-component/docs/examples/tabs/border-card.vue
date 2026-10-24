@@ -1,8 +1,8 @@
 <template>
   <te-tabs type="border-card">
-    <te-tab-pane label="User">User</te-tab-pane>
-    <te-tab-pane label="Config">Config</te-tab-pane>
-    <te-tab-pane label="Role">Role</te-tab-pane>
-    <te-tab-pane label="Task">Task</te-tab-pane>
-  </te-tabs>
+    <te-tab-pane label="User">User</el-tab-pane>
+    <te-tab-pane label="Config">Config</el-tab-pane>
+    <te-tab-pane label="Role">Role</el-tab-pane>
+    <te-tab-pane label="Task">Task</el-tab-pane>
+  </el-tabs>
 </template>

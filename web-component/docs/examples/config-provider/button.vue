@@ -7,8 +7,8 @@
     </div>
 
     <te-config-provider :button="config">
-      <te-button>中文</te-button>
-    </te-config-provider>
+      <el-button>中文</el-button>
+    </el-config-provider>
   </div>
 </template>
 

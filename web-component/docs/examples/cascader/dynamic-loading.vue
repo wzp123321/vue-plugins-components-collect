@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { CascaderProps } from '@tiansu/element-plus'
+import type { CascaderProps } from 'element-plus'
 
 let id = 0
 const props: CascaderProps = {

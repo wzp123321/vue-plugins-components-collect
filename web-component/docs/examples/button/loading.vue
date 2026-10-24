@@ -1,6 +1,6 @@
 <template>
-  <te-button type="primary" loading>Loading</te-button>
-  <te-button type="primary" :loading-icon="Eleme" loading>Loading</te-button>
+  <te-button type="primary" loading>Loading</el-button>
+  <te-button type="primary" :loading-icon="Eleme" loading>Loading</el-button>
   <te-button type="primary" loading>
     <template #loading>
       <div class="custom-loading">
@@ -21,7 +21,7 @@
       </div>
     </template>
     Loading
-  </te-button>
+  </el-button>
 </template>
 
 <script lang="ts" setup>

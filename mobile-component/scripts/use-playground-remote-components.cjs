@@ -10,8 +10,8 @@ const projects = [
 ]
 
 const installCommands = [
-  'npx -y @tiansu/ts-mobile-ui',
-  'npx -y @tiansu/ts-mobile-biz-ui'
+  'npx -y @zpackage/mobile-package/ui',
+  'npx -y @zpackage/mobile-package/biz-ui'
 ]
 
 function run(command, cwd) {

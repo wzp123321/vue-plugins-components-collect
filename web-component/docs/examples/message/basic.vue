@@ -1,18 +1,18 @@
 <template>
-  <te-button :plain="true" @click="open">Show message</te-button>
-  <te-button :plain="true" @click="openVn">VNode</te-button>
+  <te-button :plain="true" @click="open">Show message</el-button>
+  <te-button :plain="true" @click="openVn">VNode</el-button>
 </template>
 
 <script lang="ts" setup>
 import { h } from 'vue'
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 
 const open = () => {
-  TeMessage('this is a message.')
+  ElMessage('this is a message.')
 }
 
 const openVn = () => {
-  TeMessage({
+  ElMessage({
     message: h('p', null, [
       h('span', null, 'Message can be '),
       h('i', { style: 'color: teal' }, 'VNode'),

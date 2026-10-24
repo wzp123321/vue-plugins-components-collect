@@ -1,6 +1,6 @@
 <template>
-  <te-button>button</te-button>
-  <te-button tag="div" role="button" tabindex="0">div</te-button>
+  <el-button>button</el-button>
+  <te-button tag="div" role="button" tabindex="0">div</el-button>
   <te-button
     type="primary"
     tag="a"
@@ -9,5 +9,5 @@
     rel="noopener noreferrer"
   >
     a
-  </te-button>
+  </el-button>
 </template>

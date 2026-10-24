@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemSegmented, TemCell, TemSwitch } from '@tiansu/ts-mobile-package';
+// import { TemSegmented, TemCell, TemSwitch } from '@zpackage/mobile-package';
 import { ref } from 'vue';
 
 const sizes = ['large', 'default', 'small'];

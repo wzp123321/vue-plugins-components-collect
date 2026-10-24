@@ -15,7 +15,7 @@
                   @click="addItem"
                 >
                   <icon-plus />
-                </te-icon>
+                </el-icon>
               </slot>
             </div>
             <slot name="header"></slot>
@@ -30,19 +30,19 @@
               />
               <div class="tlt-content-header-expand" v-if="allExpandBtn">
                 <te-button @click="handleExpand()">
-                  <te-icon v-if="allExpand"><icon-catalog-expand /></te-icon>
-                  <te-icon v-else><icon-catalog-fold /></te-icon>
-                </te-button>
+                  <te-icon v-if="allExpand"><icon-catalog-expand /></el-icon>
+                  <te-icon v-else><icon-catalog-fold /></el-icon>
+                </el-button>
               </div>
 
               <div v-if="levelExpandBtn">
                 <te-dropdown @command="handleCommand">
                   <te-button class="tlt-content-header-btn">
-                    <te-icon><icon-tree-level /></te-icon>
+                    <el-icon><icon-tree-level /></el-icon>
                     <te-icon class="tlt-content-header-btn-left"
                       ><icon-down
-                    /></te-icon>
-                  </te-button>
+                    /></el-icon>
+                  </el-button>
 
                   <template #dropdown>
                     <te-dropdown-menu v-if="levelNum >= 1">
@@ -54,9 +54,9 @@
                           >第{{ index + 1 }}级</te-dropdown-item
                         >
                       </template>
-                    </te-dropdown-menu>
+                    </el-dropdown-menu>
                   </template>
-                </te-dropdown>
+                </el-dropdown>
               </div>
             </div>
             <div class="tlt-content-list">
@@ -88,12 +88,12 @@ import {
   IconCaretLeft,
 } from '@arco-iconbox/vue-te';
 import {
-  TeIcon,
-  TeButton,
-  TeDropdown,
-  TeDropdownMenu,
-  TeDropdownItem,
-} from '@tiansu/element-plus';
+  ElIcon,
+  ElButton,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem,
+} from 'element-plus';
 
 interface Tree {
   [key: string]: any;

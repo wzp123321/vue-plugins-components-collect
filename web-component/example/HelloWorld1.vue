@@ -4,11 +4,11 @@
 			<template #content="{ searchValue, allExpand, levelExpand }">
 				<te-tree-edit :data="data" :props="defaultProps" :search-value="searchValue" :all-expand="allExpand" :level-expand="levelExpand" :check-on-click-node="true" @node-click="handleClickTree">
 					<template #more-action="{ node, data }">
-						<te-dropdown-menu>
-							<te-dropdown-item @click="handleRename(node, data)">重命名1</te-dropdown-item>
-							<te-dropdown-item>编辑1</te-dropdown-item>
-							<te-dropdown-item>删除</te-dropdown-item>
-						</te-dropdown-menu>
+						<el-dropdown-menu>
+							<te-dropdown-item @click="handleRename(node, data)">重命名1</el-dropdown-item>
+							<el-dropdown-item>编辑1</el-dropdown-item>
+							<el-dropdown-item>删除</el-dropdown-item>
+						</el-dropdown-menu>
 					</template>
 					<template #item-icon="{ node }">
 						<icon-folder-opened v-if="node.expanded" class="tree-line-left-icon" />
@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 	import { IconFolderOpened, IconFolder } from "@arco-iconbox/vue-te";
 	import { TeLayoutTree, TeTreeEdit, DELAYER_KEY } from "@/components/lib";
-	import { TeDropdownMenu, TeDropdownItem, TeTag } from "@tiansu/element-plus";
+	import { ElDropdownMenu, ElDropdownItem, ElTag } from "element-plus";
 	import { onBeforeRouteLeave } from "vue-router";
 	import { defineComponent, reactive, toRefs, ref, inject } from "vue";
 	interface Tree {

@@ -1,9 +1,9 @@
 <template>
   <te-radio-group v-model="radio">
-    <te-radio :label="3">Option A</te-radio>
-    <te-radio :label="6">Option B</te-radio>
-    <te-radio :label="9">Option C</te-radio>
-  </te-radio-group>
+    <te-radio :label="3">Option A</el-radio>
+    <te-radio :label="6">Option B</el-radio>
+    <te-radio :label="9">Option C</el-radio>
+  </el-radio-group>
 </template>
 
 <script lang="ts" setup>

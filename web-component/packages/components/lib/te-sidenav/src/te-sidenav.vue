@@ -16,13 +16,13 @@
 							<template #error>
 								<img src="./img/logo.png" alt="加载失败" />
 							</template>
-						</te-image>
+						</el-image>
 						<span v-show="!collapse">{{ sideNavName }}</span>
 					</div>
 				</CollapseTransition>
 			</slot>
 			<te-row class="aside-con" @mouseenter="onMouseEnterMenu" @mouseleave="onMouseLeaveMenu">
-				<te-col>
+				<el-col>
 					<te-menu :collapse="collapse" :default-active="defaultActive" @open="groupOpen" @close="groupClose" v-bind="$attrs">
 						<template v-for="(item, index) in menuList" :key="item.name">
 							<te-sub-menu v-if="item.children && item.children.length > 0" :index="item.name">
@@ -34,7 +34,7 @@
 											'menu-group-img-active': selectedParentMenuName.indexOf(item.name) >= 0 && (!spreadingGroupMenuName.has(item.name) || collapse),
 										}">
 										<component :is="getIconComponent(item.meta.icon ?? '')" />
-									</te-icon>
+									</el-icon>
 									<span
 										v-show="!collapse"
 										:class="{
@@ -66,8 +66,8 @@
 													{{ subSubMenu.meta.title }}
 												</span>
 											</div>
-										</te-menu-item>
-									</te-sub-menu>
+										</el-menu-item>
+									</el-sub-menu>
 
 									<!-- 无三级元素 -->
 									<te-menu-item-group v-else>
@@ -80,43 +80,43 @@
 													{{ subMenu.meta.title }}
 												</span>
 											</div>
-										</te-menu-item>
-									</te-menu-item-group>
+										</el-menu-item>
+									</el-menu-item-group>
 								</template>
-							</te-sub-menu>
+							</el-sub-menu>
 
 							<template v-else>
 								<te-menu-item v-if="!item.meta.floatEnable" class="single-menu" @click="goPage(item)">
 									<te-icon v-if="iconList && iconList.length" class="menu-group-img" :class="{ 'menu-group-img-active': activeMenuName == item.name }">
 										<component :is="getIconComponent(item.meta.icon ?? '')" />
-									</te-icon>
+									</el-icon>
 									<span v-if="!collapse" :class="{ 'menu-item-title-active': activeMenuName === item.name }">{{ item.meta.title }}</span>
-								</te-menu-item>
+								</el-menu-item>
 
 								<!-- 可触发悬浮操作的一级菜单 -->
 								<div v-else class="te-menu-item single-menu" @mouseenter="onMouseEnterFloatMenuItem($event, item)" @mouseleave="onMouseLeaveFloatMenuItem(item)">
 									<te-icon v-if="iconList && iconList.length" class="menu-group-img" :class="{ 'menu-group-img-collapse': collapse }">
 										<component :is="getIconComponent(item.meta.icon ?? '')" />
-									</te-icon>
+									</el-icon>
 									<span v-if="!collapse">{{ item.meta.title }}</span>
 								</div>
 							</template>
 						</template>
-					</te-menu>
-				</te-col>
-			</te-row>
+					</el-menu>
+				</el-col>
+			</el-row>
 			<div class="aside-btn" @click="onClickSpread">
 				<img v-show="collapse" src="../../../assets/images/zhankai.svg" alt="展开" />
 				<img v-show="!collapse" src="../../../assets/images/shousuo.svg" alt="收起" />
 			</div>
-		</te-aside>
+		</el-aside>
 		<div class="float-container" v-show="isFloat"></div>
 	</div>
 </template>
 
 <script lang="ts">
 	import { PropType, defineComponent, onMounted, onUnmounted, reactive, toRefs, watch, inject, Ref, ref, Component } from "vue";
-	import { TeAside, TeCol, TeRow, TeMenu, TeMenuItem, TeSubMenu, TeMenuItemGroup, TeIcon, TeImage } from "@tiansu/element-plus";
+	import { TeAside, TeCol, TeRow, TeMenu, TeMenuItem, TeSubMenu, TeMenuItemGroup, ElIcon, TeImage } from "element-plus";
 	import logoUrl from "./img/logo.png";
 	import { DELAYER_KEY } from "../../constant";
 	import { useRoute } from "vue-router";
@@ -185,7 +185,7 @@
 			TeMenuItem,
 			TeSubMenu,
 			TeMenuItemGroup,
-			TeIcon,
+			ElIcon,
 			TeImage,
 			CollapseTransition,
 		},

@@ -16,7 +16,7 @@
       <div class="tei-row">
         <div class="tei-label">联系电话</div>
         <div>{{ empInfo.phone }}</div>
-        <te-button class="tei-copy" text @click="copyPhone(empInfo.phone)"><icon-copy-document /></te-button>
+        <te-button class="tei-copy" text @click="copyPhone(empInfo.phone)"><icon-copy-document /></el-button>
       </div>
       <div class="tei-row">
         <div class="tei-label">岗位</div>
@@ -31,11 +31,11 @@
         <div>{{ empInfo.labelName }}</div>
       </div>
     </div>
-  </te-popover>
+  </el-popover>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { TePopover, TeButton, TeMessage } from '@tiansu/element-plus';
+import { ElPopover, ElButton, ElMessage } from 'element-plus';
 import { IconCopyDocument } from '@arco-iconbox/vue-te/esm';
 import { type AxiosInstance } from 'axios';
 
@@ -81,7 +81,7 @@ const copyPhone = (phone: string) => {
   el.select();
   document.execCommand('copy');
   document.body.removeChild(el);
-  TeMessage.success('复制成功');
+  ElMessage.success('复制成功');
 };
 </script>
 

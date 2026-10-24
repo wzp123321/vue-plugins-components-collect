@@ -10,17 +10,17 @@
   />
 
   <div class="buttons">
-    <te-button @click="getCheckedNodes">get by node</te-button>
-    <te-button @click="getCheckedKeys">get by key</te-button>
-    <te-button @click="setCheckedNodes">set by node</te-button>
-    <te-button @click="setCheckedKeys">set by key</te-button>
-    <te-button @click="resetChecked">reset</te-button>
+    <te-button @click="getCheckedNodes">get by node</el-button>
+    <te-button @click="getCheckedKeys">get by key</el-button>
+    <te-button @click="setCheckedNodes">set by node</el-button>
+    <te-button @click="setCheckedKeys">set by key</el-button>
+    <te-button @click="resetChecked">reset</el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeTree } from '@tiansu/element-plus'
+import { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 
 interface Tree {
@@ -29,7 +29,7 @@ interface Tree {
   children?: Tree[]
 }
 
-const treeRef = ref<InstanceType<typeof TeTree>>()
+const treeRef = ref<InstanceType<typeof ElTree>>()
 
 const getCheckedNodes = () => {
   console.log(treeRef.value!.getCheckedNodes(false, false))

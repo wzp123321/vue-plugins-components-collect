@@ -3,8 +3,8 @@
   <te-tooltip-v2 aria-label="content" placement="top" content-class="scale-in">
     <template #trigger>
       <te-button circle
-        ><te-icon><Plus /></te-icon
-      ></te-button>
+        ><el-icon><Plus /></te-icon
+      ></el-button>
     </template>
     <div>content</div>
   </te-tooltip-v2>

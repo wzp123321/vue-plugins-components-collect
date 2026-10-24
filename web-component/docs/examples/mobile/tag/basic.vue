@@ -135,9 +135,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemTag } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
-// import UniCard from '@tiansu/ts-mobile-package/uni-card/components/uni-card/uni-card.vue';
+// import { TemTag } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import UniCard from '@zpackage/mobile-package/uni-card/components/uni-card/uni-card.vue';
 
 const types = [
   'default',

@@ -7,16 +7,16 @@
     :before-upload="beforeAvatarUpload"
   >
     <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-    <te-icon v-else class="avatar-uploader-icon"><Plus /></te-icon>
-  </te-upload>
+    <te-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+  </el-upload>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeMessage } from '@tiansu/element-plus'
+import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-import type { UploadProps } from '@tiansu/element-plus'
+import type { UploadProps } from 'element-plus'
 
 const imageUrl = ref('')
 
@@ -29,10 +29,10 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg') {
-    TeMessage.error('Avatar picture must be JPG format!')
+    ElMessage.error('Avatar picture must be JPG format!')
     return false
   } else if (rawFile.size / 1024 / 1024 > 2) {
-    TeMessage.error('Avatar picture size can not exceed 2MB!')
+    ElMessage.error('Avatar picture size can not exceed 2MB!')
     return false
   }
   return true

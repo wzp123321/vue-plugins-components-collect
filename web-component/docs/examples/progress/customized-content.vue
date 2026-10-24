@@ -1,8 +1,8 @@
 <template>
   <div class="demo-progress">
     <te-progress :percentage="50">
-      <te-button text>Content</te-button>
-    </te-progress>
+      <te-button text>Content</el-button>
+    </el-progress>
     <te-progress
       :text-inside="true"
       :stroke-width="20"
@@ -10,16 +10,16 @@
       status="exception"
     >
       <span>Content</span>
-    </te-progress>
+    </el-progress>
     <te-progress type="circle" :percentage="100" status="success">
       <te-button type="success" :icon="Check" circle />
-    </te-progress>
+    </el-progress>
     <te-progress type="dashboard" :percentage="80">
       <template #default="{ percentage }">
         <span class="percentage-value">{{ percentage }}%</span>
         <span class="percentage-label">Progressing</span>
       </template>
-    </te-progress>
+    </el-progress>
   </div>
 </template>
 

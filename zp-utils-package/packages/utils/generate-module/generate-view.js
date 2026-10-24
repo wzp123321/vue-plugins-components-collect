@@ -175,10 +175,10 @@ export function generateUseBtnHandles(moduleName, moduleTitle, pageConfig = {}, 
     pageConfig.edit && (pageConfig.edit === 'dialog' || pageConfig.edit === 'drawer') ? `import EditForm from '../modules/editForm.vue';` : '',
     pageConfig.detail && (pageConfig.detail === 'dialog' || pageConfig.detail === 'drawer') ? `import Detail from '../modules/detail.vue';` : '',
     `import { Ref, ref } from 'vue';`,
-    `import { TeModuleTable } from '@tiansu/ts-web-package';`,
+    `import { TeModuleTable } from '@zpackage/web-package';`,
     (pageConfig.add === 'page' || pageConfig.edit === 'page' || pageConfig.detail === 'page') ? `import { useRouter } from 'vue-router';` : '',
     `import { SUCCESS_CODE } from '@/constant';`,
-    `import { TeMessage } from '@tiansu/element-plus';`,
+    `import { TeMessage } from 'element-plus';`,
     `import { deleteData } from '@/apis/${moduleName}';`,
     `import { ListRow } from '@/apis/${moduleName}/index.api';`,
   ].filter(Boolean)
@@ -319,7 +319,7 @@ export function generateListView(
 
   const imports = [
     `import { ref, watch } from 'vue'`,
-    `import { TeTableButtonGroup, TeModuleTable, ColSettingBtn } from '@tiansu/ts-web-package'`,
+    `import { TeTableButtonGroup, TeModuleTable, ColSettingBtn } from '@zpackage/web-package'`,
     `import { SEARCH_PARAMS, TABLE_PARAMS${otherFeatures.enableImport ? ', IMPORT_TEMP_CODE' : ''} } from './constant.ts'`,
     `import { updateTableColumns } from '@/apis/common'`,
     `import { getList, getTableColumns } from '@/apis/${moduleName}/index.ts'`,
@@ -897,7 +897,7 @@ export function generateEditForm(moduleName, moduleTitle, interactionType) {
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { FormInstance } from '@tiansu/element-plus'
+import { FormInstance } from 'element-plus'
 import { getDetail, editData } from '@/apis/${moduleName}'
 import { message } from '@/utils/message'
 
@@ -1116,7 +1116,7 @@ export function generateAddPage(moduleName, moduleTitle) {
 import { ref } from 'vue'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { FormInstance } from '@tiansu/element-plus'
+import { FormInstance } from 'element-plus'
 import { createData } from '@/apis/${moduleName}'
 import type { FormData } from '@/apis/${moduleName}/index.api'
 import { message } from '@/utils/message'
@@ -1272,7 +1272,7 @@ export function generateEditPage(moduleName, moduleTitle) {
 import { ref, onMounted } from 'vue'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FormInstance } from '@tiansu/element-plus'
+import { FormInstance } from 'element-plus'
 import { getDetail, editData } from '@/apis/${moduleName}'
 import type { FormData } from '@/apis/${moduleName}/index.api'
 import { message } from '@/utils/message'

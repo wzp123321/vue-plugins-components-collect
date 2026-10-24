@@ -1,14 +1,14 @@
 import ElementPlus from 'element-plus';
-import TsElementPlus from '@tiansu/element-plus';
+import TsElementPlus from 'element-plus';
 
 import VPApp, { NotFound, globals } from '../vitepress';
 import { define } from '../utils/types';
 import 'uno.css';
 import './style.css';
 import type { Theme } from 'vitepress';
-import '@tiansu/ts-web-package/dist/styles/index.css';
-import '@tiansu/ts-web-package/dist/styles/element/dark.css';
-import zhCn from '@tiansu/element-plus/dist/locale/zh-cn.mjs';
+import '@zpackage/web-package/dist/styles/index.css';
+import '@zpackage/web-package/dist/styles/element/dark.css';
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs';
 
 // import router from "../router";
 export default define<Theme>({

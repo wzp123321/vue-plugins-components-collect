@@ -1,6 +1,6 @@
 <template>
   <div>
-    <te-button @click="show = !show">Click Me</te-button>
+    <te-button @click="show = !show">Click Me</el-button>
 
     <div style="display: flex; margin-top: 20px; height: 100px">
       <transition name="te-fade-in-linear">

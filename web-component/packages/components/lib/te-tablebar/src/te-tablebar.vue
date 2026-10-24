@@ -15,13 +15,13 @@
 					<span class="tit">更多搜索</span>
 					<te-icon :style="{ transform: isSpread ? 'rotate(90deg)' : 'rotate(-90deg)' }">
 						<d-arrow-left />
-					</te-icon>
+					</el-icon>
 				</div>
 				<div class="tlws-header-more-divider" v-if="isSpread"></div>
 			</div>
 			<slot name="suffix"></slot>
 			<div class="tlws-header-refresh" @click="onRefresh">
-				<te-icon><refresh-right /></te-icon>
+				<el-icon><refresh-right /></el-icon>
 			</div>
 		</div>
 		<transition>
@@ -31,8 +31,8 @@
 				</div>
 				<div class="tlws-form-divider"></div>
 				<div :class="tlwsFormBtnsIsColumn ? 'tlws-form-btns-column' : 'tlws-form-btns-row'">
-					<te-button type="primary" @click="onQuery">查询</te-button>
-					<te-button @click="onReset">重置</te-button>
+					<te-button type="primary" @click="onQuery">查询</el-button>
+					<te-button @click="onReset">重置</el-button>
 				</div>
 			</div>
 		</transition>
@@ -44,7 +44,7 @@
 </template>
 <script lang="ts" setup>
 	import { ref, Ref, nextTick, onUpdated, watch } from "vue";
-	import { TeIcon, TeButton } from "@tiansu/element-plus";
+	import { ElIcon, ElButton } from "element-plus";
 	import { DArrowLeft, RefreshRight } from "@element-plus/icons-vue";
 	import { TeSearch } from "../../te-search";
 

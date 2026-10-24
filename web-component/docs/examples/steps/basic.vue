@@ -5,7 +5,7 @@
     <te-step title="Step 3" />
   </te-steps>
 
-  <te-button style="margin-top: 12px" @click="next">Next step</te-button>
+  <te-button style="margin-top: 12px" @click="next">Next step</el-button>
 </template>
 
 <script lang="ts" setup>

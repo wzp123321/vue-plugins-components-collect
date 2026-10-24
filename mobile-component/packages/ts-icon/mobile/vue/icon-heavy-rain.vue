@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M11.5 2A6.5 6.5 0 0 0 5 8.416a5 5 0 0 0-.5 8.915 1 1 0 0 0 1-1.732 3.002 3.002 0 0 1 .768-5.51A1.01 1.01 0 0 0 7.029 9a4.5 4.5 0 0 1 8.817-1.679c.103.383.42.67.81.733A4.001 4.001 0 0 1 18.4 15.2a1 1 0 1 0 1.202 1.6 6.002 6.002 0 0 0-2.015-10.588A6.5 6.5 0 0 0 11.5 2"/><path fill="currentColor" d="M9 13a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1M16 14a1 1 0 1 0-2 0v1a1 1 0 1 0 2 0zM12 15a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1M12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1M16 18a1 1 0 1 0-2 0v1a1 1 0 1 0 2 0zM9 17a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-heavy-rain/heavy_rain.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

@@ -18,17 +18,17 @@
         type="text"
         autocomplete="off"
       />
-    </te-form-item>
-    <te-form-item>
-      <te-button type="primary" @click="submitForm(formRef)">Submit</te-button>
-      <te-button @click="resetForm(formRef)">Reset</te-button>
-    </te-form-item>
-  </te-form>
+    </el-form-item>
+    <el-form-item>
+      <te-button type="primary" @click="submitForm(formRef)">Submit</el-button>
+      <te-button @click="resetForm(formRef)">Reset</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import type { FormInstance } from '@tiansu/element-plus'
+import type { FormInstance } from 'element-plus'
 
 const formRef = ref<FormInstance>()
 

@@ -10,19 +10,19 @@
     :limit="3"
     :on-exceed="handleExceed"
   >
-    <te-button type="primary">Click to upload</te-button>
+    <te-button type="primary">Click to upload</el-button>
     <template #tip>
       <div class="te-upload__tip">
         jpg/png files with a size less than 500KB.
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeMessage, TeMessageBox } from '@tiansu/element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
-import type { UploadProps, UploadUserFile } from '@tiansu/element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([
   {
@@ -44,7 +44,7 @@ const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
 }
 
 const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
-  TeMessage.warning(
+  ElMessage.warning(
     `The limit is 3, you selected ${files.length} files this time, add up to ${
       files.length + uploadFiles.length
     } totally`
@@ -52,7 +52,7 @@ const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
 }
 
 const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
-  return TeMessageBox.confirm(
+  return ElMessageBox.confirm(
     `Cancel the transfer of ${uploadFile.name} ?`
   ).then(
     () => true,

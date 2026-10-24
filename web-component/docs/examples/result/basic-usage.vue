@@ -1,5 +1,5 @@
 <template>
-  <te-row>
+  <el-row>
     <te-col :sm="12" :lg="6">
       <te-result
         icon="success"
@@ -7,10 +7,10 @@
         sub-title="Please follow the instructions"
       >
         <template #extra>
-          <te-button type="primary">Back</te-button>
+          <te-button type="primary">Back</el-button>
         </template>
       </te-result>
-    </te-col>
+    </el-col>
     <te-col :sm="12" :lg="6">
       <te-result
         icon="warning"
@@ -18,10 +18,10 @@
         sub-title="Please follow the instructions"
       >
         <template #extra>
-          <te-button type="primary">Back</te-button>
+          <te-button type="primary">Back</el-button>
         </template>
       </te-result>
-    </te-col>
+    </el-col>
     <te-col :sm="12" :lg="6">
       <te-result
         icon="error"
@@ -29,19 +29,19 @@
         sub-title="Please follow the instructions"
       >
         <template #extra>
-          <te-button type="primary">Back</te-button>
+          <te-button type="primary">Back</el-button>
         </template>
       </te-result>
-    </te-col>
+    </el-col>
     <te-col :sm="12" :lg="6">
       <te-result icon="info" title="Info Tip">
         <template #sub-title>
           <p>Using slot as subtitle</p>
         </template>
         <template #extra>
-          <te-button type="primary">Back</te-button>
+          <te-button type="primary">Back</el-button>
         </template>
       </te-result>
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>

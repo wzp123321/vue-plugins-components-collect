@@ -4,7 +4,7 @@ declare module 'vue' {
   }
 }
 
-declare module '@tiansu/ts-mobile-token' {
+declare module '@zpackage/mobile-package/token' {
   export type ThemeMode = 'light' | 'dark'
 
   export function getThemeMode(): ThemeMode

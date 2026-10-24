@@ -5,22 +5,22 @@
     mode="horizontal"
     @select="handleSelect"
   >
-    <te-menu-item index="1">Processing Center</te-menu-item>
+    <te-menu-item index="1">Processing Center</el-menu-item>
     <te-sub-menu index="2">
       <template #title>Workspace</template>
-      <te-menu-item index="2-1">item one</te-menu-item>
-      <te-menu-item index="2-2">item two</te-menu-item>
-      <te-menu-item index="2-3">item three</te-menu-item>
+      <te-menu-item index="2-1">item one</el-menu-item>
+      <te-menu-item index="2-2">item two</el-menu-item>
+      <te-menu-item index="2-3">item three</el-menu-item>
       <te-sub-menu index="2-4">
         <template #title>item four</template>
-        <te-menu-item index="2-4-1">item one</te-menu-item>
-        <te-menu-item index="2-4-2">item two</te-menu-item>
-        <te-menu-item index="2-4-3">item three</te-menu-item>
-      </te-sub-menu>
-    </te-sub-menu>
-    <te-menu-item index="3" disabled>Info</te-menu-item>
-    <te-menu-item index="4">Orders</te-menu-item>
-  </te-menu>
+        <te-menu-item index="2-4-1">item one</el-menu-item>
+        <te-menu-item index="2-4-2">item two</el-menu-item>
+        <te-menu-item index="2-4-3">item three</el-menu-item>
+      </el-sub-menu>
+    </el-sub-menu>
+    <te-menu-item index="3" disabled>Info</el-menu-item>
+    <te-menu-item index="4">Orders</el-menu-item>
+  </el-menu>
   <div class="h-6" />
   <te-menu
     :default-active="activeIndex2"
@@ -31,22 +31,22 @@
     active-text-color="#ffd04b"
     @select="handleSelect"
   >
-    <te-menu-item index="1">Processing Center</te-menu-item>
+    <te-menu-item index="1">Processing Center</el-menu-item>
     <te-sub-menu index="2">
       <template #title>Workspace</template>
-      <te-menu-item index="2-1">item one</te-menu-item>
-      <te-menu-item index="2-2">item two</te-menu-item>
-      <te-menu-item index="2-3">item three</te-menu-item>
+      <te-menu-item index="2-1">item one</el-menu-item>
+      <te-menu-item index="2-2">item two</el-menu-item>
+      <te-menu-item index="2-3">item three</el-menu-item>
       <te-sub-menu index="2-4">
         <template #title>item four</template>
-        <te-menu-item index="2-4-1">item one</te-menu-item>
-        <te-menu-item index="2-4-2">item two</te-menu-item>
-        <te-menu-item index="2-4-3">item three</te-menu-item>
-      </te-sub-menu>
-    </te-sub-menu>
-    <te-menu-item index="3" disabled>Info</te-menu-item>
-    <te-menu-item index="4">Orders</te-menu-item>
-  </te-menu>
+        <te-menu-item index="2-4-1">item one</el-menu-item>
+        <te-menu-item index="2-4-2">item two</el-menu-item>
+        <te-menu-item index="2-4-3">item three</el-menu-item>
+      </el-sub-menu>
+    </el-sub-menu>
+    <te-menu-item index="3" disabled>Info</el-menu-item>
+    <te-menu-item index="4">Orders</el-menu-item>
+  </el-menu>
 </template>
 
 <script lang="ts" setup>

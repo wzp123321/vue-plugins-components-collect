@@ -1,5 +1,5 @@
 <template>
-  <te-radio v-model="radio" disabled label="disabled">Option A</te-radio>
+  <te-radio v-model="radio" disabled label="disabled">Option A</el-radio>
   <te-radio v-model="radio" disabled label="selected and disabled"
     >Option B</te-radio
   >

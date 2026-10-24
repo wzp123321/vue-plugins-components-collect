@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {
-  TeConfigProvider,
-  TeMessageBox,
-  TeDialog,
-  TeButton,
+  ElConfigProvider,
+  ElMessageBox,
+  ElDialog,
+  ElButton,
   dayjs,
-} from "@tiansu/element-plus";
+} from "element-plus";
 import { TeDateSwitch } from "@ts-web-package/components/lib/te-date-switch";
 // import "@/components/styles/index.scss";
 import { ref } from "vue";
@@ -52,7 +52,7 @@ const backward = (date: string) => {
 
 // 关闭弹窗
 const handleClose = (done: () => void) => {
-  TeMessageBox.confirm("Are you sure to close this dialog?")
+  ElMessageBox.confirm("Are you sure to close this dialog?")
     .then(() => {
       done();
     })
@@ -75,7 +75,7 @@ const handleClose = (done: () => void) => {
         :forwardLimit="false"
       >
       </te-date-switch>
-    </te-config-provider>
+    </el-config-provider>
     <te-dialog
       v-model="dialogVisible"
       title="Tips"
@@ -85,13 +85,13 @@ const handleClose = (done: () => void) => {
       <span>This is a message</span>
       <template #footer>
         <span class="dialog-footer">
-          <te-button @click="dialogVisible = false">Cancel</te-button>
+          <te-button @click="dialogVisible = false">Cancel</el-button>
           <te-button type="primary" @click="dialogVisible = false">
             Confirm
-          </te-button>
+          </el-button>
         </span>
       </template>
-    </te-dialog>
+    </el-dialog>
   </section>
 </template>
 <style lang="scss" scoped>

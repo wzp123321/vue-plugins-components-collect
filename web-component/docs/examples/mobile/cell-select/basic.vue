@@ -29,7 +29,7 @@
 </template>
 
 <script>
-// import { TemCellSelect, TemAvatar } from '@tiansu/ts-mobile-package';
+// import { TemCellSelect, TemAvatar } from '@zpackage/mobile-package';
 // import {
 //   IconWarning,
 //   IconCircleCheck,

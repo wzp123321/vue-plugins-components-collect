@@ -12,8 +12,8 @@ pnpm build
 # 进入打包产物目录
 cd packages/
 
-# 天溯npm私服源
-tiansuSource="http://192.168.20.200:7049/repository/npm-tiansu/"
+# npm 公共源
+publishRegistry="https://registry.npmjs.org/"
 
 # 账户
 # sourceAccount="tongao"
@@ -23,19 +23,19 @@ tiansuSource="http://192.168.20.200:7049/repository/npm-tiansu/"
 npmSource=`pnpm get registry`
 echo "当前npm镜像源是: $npmSource"
 
-if [ "$npmSource" = "$tiansuSource" ];
+if [ "$npmSource" = "$publishRegistry" ];
 then
     echo "当前npm源设置正确"
 else
-    echo "请切换npm源为 $tiansuSource"
-    pnpm set registry $tiansuSource
+    echo "请切换npm源为 $publishRegistry"
+    pnpm set registry $publishRegistry
     # pnpm login
 fi
 
 version_type=$1
 
 # 版本类型
-echo "正在发布到产研组件库${version_type}...."
+echo "正在发布到组件库${version_type}...."
 
 publishTag="latest"
 if [ ${version_type} = "主版本" ]; then
@@ -49,55 +49,21 @@ elif [ ${version_type} = "alpha版本" ]; then
     publishTag="alpha"
 elif [ ${version_type} = "beta版本" ]; then
     npm version prerelease --preid=beta
-    publishTag="beta"
 fi
 
 # 发布
-npm config set registry=$npmSource
-npm publish --registry $npmSource --tag $publishTag
+npm config set registry=$publishRegistry
+npm publish --registry $publishRegistry --tag $publishTag
 
 if [ $? -eq 0 ]; then
-    echo "公司组件库发布成功...."
+    echo "组件库发布成功...."
     git add package.json
     
     if [ "$2" ]; then
         # git仓库打tag
         git commit -m $2
         git push
-        # git tag $releaseVersion
-        # git push origin $releaseVersion
     fi  
 else
-    echo "公司组件库发布失败...."
+    echo "组件库发布失败...."
 fi
-
-# 设置版本号
-# if [ "$releaseVersion" ]; then
-#     # sed -i "" "s/\"version\":.*$/\"version\":\"$releaseVersion\",/" package.json
-#     git add package.json
-    
-#     # 发布到天溯组件库
-#     if [[ $releaseVersion =~ "-" ]]; then
-#         echo "正在发布到公司组件库beta版...."
-#         npm publish --registry $tiansuSource --tag beta
-#     else
-#         echo "正在发布到公司组件库latest版...."
-#         npm publish --registry $tiansuSource
-#     fi
-
-#     if [ $? -eq 0 ]; then
-#         echo "公司组件库发布成功...."
-
-#         if [ "$2" ]; then
-#             # git仓库打tag
-#             git commit -m $2
-#             git push
-#             git tag $releaseVersion
-#             git push origin $releaseVersion
-#         fi  
-#     else
-#         echo "公司组件库发布失败...."
-#     fi
-# else
-#     echo "请先设置版本号。。。"
-# fi

@@ -18,7 +18,7 @@
           <div class="btns">
             <te-button size="small" @click="closePop(index)">{{
               item?.pop?.cancel
-            }}</te-button>
+            }}</el-button>
             <te-button
               size="small"
               type="primary"
@@ -37,7 +37,7 @@
             {{ item.buttonName }}</te-button
           >
         </template>
-      </te-popover>
+      </el-popover>
       <template v-if="!item.showBtnPop">
         <te-button
           link
@@ -47,7 +47,7 @@
           @click="operate(row, item.value)"
         >
           {{ item.buttonName }}
-        </te-button>
+        </el-button>
       </template>
     </template>
 
@@ -60,7 +60,7 @@
           link
         >
           <img src="../assets/img/more-btn.svg" alt="more" />
-        </te-button>
+        </el-button>
       </template>
       <div class="popBtn">
         <te-button
@@ -73,9 +73,9 @@
           @click="operate(row, item.value)"
         >
           {{ item.buttonName }}&nbsp;&nbsp;
-        </te-button>
+        </el-button>
       </div>
-    </te-popover>
+    </el-popover>
   </div>
 </template>
 

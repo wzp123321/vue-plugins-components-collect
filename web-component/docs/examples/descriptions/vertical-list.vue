@@ -1,9 +1,9 @@
 <template>
   <te-radio-group v-model="size">
-    <te-radio label="large">Large</te-radio>
-    <te-radio>Default</te-radio>
-    <te-radio label="small">Small</te-radio>
-  </te-radio-group>
+    <te-radio label="large">Large</el-radio>
+    <el-radio>Default</el-radio>
+    <te-radio label="small">Small</el-radio>
+  </el-radio-group>
 
   <te-descriptions
     title="Vertical list with border"
@@ -16,7 +16,7 @@
     <te-descriptions-item label="Telephone">18100000000</te-descriptions-item>
     <te-descriptions-item label="Place" :span="2">Suzhou</te-descriptions-item>
     <te-descriptions-item label="Remarks">
-      <te-tag size="small">School</te-tag>
+      <te-tag size="small">School</el-tag>
     </te-descriptions-item>
     <te-descriptions-item label="Address"
       >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province
@@ -34,7 +34,7 @@
     <te-descriptions-item label="Telephone">18100000000</te-descriptions-item>
     <te-descriptions-item label="Place" :span="2">Suzhou</te-descriptions-item>
     <te-descriptions-item label="Remarks">
-      <te-tag size="small">School</te-tag>
+      <te-tag size="small">School</el-tag>
     </te-descriptions-item>
     <te-descriptions-item label="Address"
       >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province

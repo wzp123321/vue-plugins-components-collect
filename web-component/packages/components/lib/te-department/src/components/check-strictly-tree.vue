@@ -19,7 +19,7 @@
       />
       <component
         v-else
-        :is="multiple ? TeCheckbox : TeRadio"
+        :is="multiple ? ElCheckbox : ElRadio"
         :="
           multiple
             ? { modelValue: modelValue.findIndex((ele) => ele.id === data.id) > -1 }
@@ -36,13 +36,13 @@
         </div>
       </component>
     </template>
-  </te-tree>
+  </el-tree>
 </template>
 
 <script lang="ts" setup>
 import { ref, nextTick } from 'vue';
-import { TeTree, TeCheckbox, TeRadio, TeMessage } from '@tiansu/element-plus';
-import type Node from '@tiansu/element-plus/es/components/tree/src/model/node';
+import { ElTree, ElCheckbox, ElRadio, ElMessage } from 'element-plus';
+import type Node from 'element-plus/es/components/tree/src/model/node';
 import { IconFolder, IconFolderOpened } from '@arco-iconbox/vue-te/esm';
 import OverflowTooltip from './overflow-tooltip.vue';
 import LoadingNode from './loading-node.vue';
@@ -69,7 +69,7 @@ const treeData = ref<DepartmentTreeNodeDTO[]>([]);
 const deptSearchReqId = ref(0);
 const defaultExpandKeys = ref<string[]>([]);
 
-const treeRef = ref<InstanceType<typeof TeTree>>();
+const treeRef = ref<InstanceType<typeof ElTree>>();
 // 节点分页信息
 const pageInfoMap: Record<string, { list: DepartmentTreeNodeDTO[]; pageNum: number }> = {};
 const PAGE_SIZE = 100;
@@ -119,7 +119,7 @@ const handleNodeClick = (data: Item) => {
       emit('update:modelValue', [data]);
     } else {
       if (props.modelValue.length >= props.max) {
-        TeMessage.warning(`超过${props.max}个无法继续添加`);
+        ElMessage.warning(`超过${props.max}个无法继续添加`);
         return;
       }
       props.modelValue.push(data);

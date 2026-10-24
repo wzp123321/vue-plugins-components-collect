@@ -13,7 +13,7 @@
         :label="item.label"
         :value="item.value"
       />
-    </te-select>
+    </el-select>
   </div>
   <div class="m-4">
     <p>use collapse-tags</p>
@@ -30,7 +30,7 @@
         :label="item.label"
         :value="item.value"
       />
-    </te-select>
+    </el-select>
   </div>
   <div class="m-4">
     <p>use collapse-tags-tooltip</p>
@@ -48,7 +48,7 @@
         :label="item.label"
         :value="item.value"
       />
-    </te-select>
+    </el-select>
   </div>
   <div class="m-4">
     <p>use max-collapse-tags</p>
@@ -67,7 +67,7 @@
         :label="item.label"
         :value="item.value"
       />
-    </te-select>
+    </el-select>
   </div>
 </template>
 

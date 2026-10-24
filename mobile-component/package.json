@@ -1,11 +1,39 @@
 {
-  "name": "ts-mobile-ui",
+  "name": "@zpackage/mobile-package",
   "version": "0.0.0",
   "private": true,
   "description": "A uView-like component library for UniApp & UniApp X",
-  "main": "index.js",
-  "module": "index.js",
-  "types": "index.d.ts",
+  "main": "./packages/components/ui/uniapp/index.ts",
+  "exports": {
+    ".": {
+      "types": "./packages/components/ui/uniapp/index.ts",
+      "default": "./packages/components/ui/uniapp/index.ts"
+    },
+    "./ui": {
+      "types": "./packages/components/ui/uniapp/index.ts",
+      "default": "./packages/components/ui/uniapp/index.ts"
+    },
+    "./ui/*": "./packages/components/ui/*",
+    "./biz-ui": {
+      "types": "./packages/components/biz-ui/uniapp/index.ts",
+      "default": "./packages/components/biz-ui/uniapp/index.ts"
+    },
+    "./biz-ui/*": "./packages/components/biz-ui/*",
+    "./token": {
+      "types": "./packages/core/token/dist/types/index.d.ts",
+      "default": "./packages/core/token/dist/index.ts"
+    },
+    "./token/*": "./packages/core/token/*",
+    "./installer": {
+      "default": "./packages/installer/bin.js"
+    },
+    "./installer/*": "./packages/installer/*",
+    "./ts-icon": {
+      "types": "./packages/ts-icon/web/vue/index.d.ts",
+      "default": "./packages/ts-icon/web/vue/index.js"
+    },
+    "./ts-icon/*": "./packages/ts-icon/*"
+  },
   "scripts": {
     "docs:dev": "npm run playground:use-source-components && vitepress dev apps/docs",
     "docs:build": "vitepress build apps/docs",

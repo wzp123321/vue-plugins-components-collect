@@ -11,12 +11,12 @@
     persistent
   >
     <span> Some content </span>
-  </te-popover>
+  </el-popover>
 </template>
 
 <script setup lang="ts">
 import { ref, unref } from 'vue'
-import { ClickOutside as vClickOutside } from '@tiansu/element-plus'
+import { ClickOutside as vClickOutside } from 'element-plus'
 const buttonRef = ref()
 const popoverRef = ref()
 const onClickOutside = () => {

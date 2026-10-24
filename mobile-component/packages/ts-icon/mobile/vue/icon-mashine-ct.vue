@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" d="M9.45 2.402A2 2 0 0 1 12 4.326V6h2.5a1 1 0 0 1 1 1v6H22a1 1 0 1 1 0 2h-.882l-2.723 5.447A1 1 0 0 1 17.5 21H11a1 1 0 0 1-.411-.089A2 2 0 0 1 10 21H5a2 2 0 0 1-2-2V5.754A2 2 0 0 1 4.45 3.83zM5 19h5v-1.5H5zm7 0h4.882l2-4H12zM5 5.754V15.5h5V4.326zM12 13h1.5V8H12zM7 7a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-mashine-ct/mashine_ct.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

@@ -5,18 +5,18 @@
     action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
     :on-change="handleChange"
   >
-    <te-button type="primary">Click to upload</te-button>
+    <te-button type="primary">Click to upload</el-button>
     <template #tip>
       <div class="te-upload__tip">
         jpg/png files with a size less than 500kb
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
 
-import type { UploadProps, UploadUserFile } from '@tiansu/element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([
   {

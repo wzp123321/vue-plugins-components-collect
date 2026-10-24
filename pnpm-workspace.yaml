@@ -1,0 +1,8 @@
+packages:
+  - 'collect'
+  - 'terminal'
+  - 'web-component'
+  - 'web-component/packages'
+  - 'mobile-component'
+  - 'zp-utils-package'
+  - 'web-component-verify'

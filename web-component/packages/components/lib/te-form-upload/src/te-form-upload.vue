@@ -6,16 +6,16 @@
         v-bind="$attrs"
         style="line-height: 24px; width: 360px"
       >
-        <te-button type="primary">{{ uploadBtnTitle }}</te-button>
-      </te-upload>
-    </te-form-item>
-  </te-form>
+        <te-button type="primary">{{ uploadBtnTitle }}</el-button>
+      </el-upload>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
-import { TeForm, TeFormItem, TeUpload, TeButton } from "@tiansu/element-plus";
-// import { EpPropMergeType } from "@tiansu/element-plus/es/utils";
-// import '../../../../../node_modules/@tiansu/ts-web-package/dist/styles/index.css'
+import { TeForm, TeFormItem, TeUpload, ElButton } from "element-plus";
+// import { EpPropMergeType } from "element-plus/es/utils";
+// import '../../../../../node_modules/@zpackage/web-package/dist/styles/index.css'
 
 withDefaults(
   defineProps<{

@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-// import { TemIcon, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemIcon, TemCell } from '@zpackage/mobile-package';
 const names = ['checkbox_indeterminate', 'avatar', 'circle_close_fill'];
 </script>
 

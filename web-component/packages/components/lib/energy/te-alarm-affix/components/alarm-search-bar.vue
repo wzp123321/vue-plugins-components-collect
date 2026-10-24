@@ -13,7 +13,7 @@
       <template #header>
         <te-button type="primary" :disabled="!hasSelection" @click="onBatch">
           批量确认
-        </te-button>
+        </el-button>
       </template>
       <template #input>
         <div class="asb-filters">
@@ -32,7 +32,7 @@
               :label="opt.name"
               :value="opt.code"
             />
-          </te-select>
+          </el-select>
           <te-select
             :model-value="filters.systemIdList"
             multiple
@@ -48,7 +48,7 @@
               :label="m.name"
               :value="m.id"
             />
-          </te-select>
+          </el-select>
           <te-select
             placeholder="请选择处理状态"
             clearable
@@ -62,7 +62,7 @@
               :label="opt.name"
               :value="opt.code"
             />
-          </te-select>
+          </el-select>
           <te-select
             v-if="type === AlarmType.ALARM"
             placeholder="请选择告警状态"
@@ -77,7 +77,7 @@
               :label="opt.name"
               :value="opt.code"
             />
-          </te-select>
+          </el-select>
           <te-search
             :model-value="filters.keyword"
             placeholder="告警描述/告警对象"
@@ -96,7 +96,7 @@
 <script lang="ts" setup>
 import { onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash';
-import { TeSelect, TeOption, TeButton } from '@tiansu/element-plus';
+import { ElSelect, ElOption, ElButton } from 'element-plus';
 import { TeTablebar } from '../../../te-tablebar';
 import { TeSearch } from '../../../te-search';
 import {

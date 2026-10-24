@@ -11,10 +11,10 @@
         <te-button link type="primary" size="small" @click="handleClick"
           >Detail</te-button
         >
-        <te-button link type="primary" size="small">Edit</te-button>
+        <te-button link type="primary" size="small">Edit</el-button>
       </template>
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

@@ -6,7 +6,7 @@
       :label="item.label"
       :value="item.value"
     />
-  </te-select>
+  </el-select>
   <te-select v-model="value" class="m-2" placeholder="Select">
     <te-option
       v-for="item in options"
@@ -14,7 +14,7 @@
       :label="item.label"
       :value="item.value"
     />
-  </te-select>
+  </el-select>
   <te-select v-model="value" class="m-2" placeholder="Select" size="small">
     <te-option
       v-for="item in options"
@@ -22,7 +22,7 @@
       :label="item.label"
       :value="item.value"
     />
-  </te-select>
+  </el-select>
 </template>
 
 <script lang="ts" setup>

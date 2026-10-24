@@ -10,7 +10,7 @@
           <slot :name="key"></slot>
         </template>
       </TeGlobalnav>
-    </te-header>
+    </el-header>
     <te-container
       class="layout-one-bottom-container"
       :class="{ resetHeight: includesComs.includes('topNav') }"
@@ -24,7 +24,7 @@
           <slot name="head"></slot>
         </template>
       </te-sidenav>
-      <te-container>
+      <el-container>
         <te-header
           key="tagsView"
           class="layout-one-header"
@@ -37,7 +37,7 @@
             @tag-change="tagChange"
           >
           </TeTagsView>
-        </te-header>
+        </el-header>
         <te-main class="layout-one-main">
           <template v-if="isShowContent">
             <layoutContent
@@ -47,20 +47,20 @@
               <slot></slot>
             </layoutContent>
           </template>
-        </te-main>
-      </te-container>
-    </te-container>
-  </te-container>
+        </el-main>
+      </el-container>
+    </el-container>
+  </el-container>
 </template>
 <script lang="ts">
 import { defineComponent, computed, provide, ref } from 'vue';
 import {
-  TeContainer,
+  ElContainer,
   TeAside,
-  TeHeader,
-  TeMain,
-  TeScrollbar,
-} from '@tiansu/element-plus';
+  ElHeader,
+  ElMain,
+  ElScrollbar,
+} from 'element-plus';
 import { TeGlobalnav } from '../../te-globalnav';
 import { TeTagsView } from '../../te-tags-view';
 import { TeSidenav } from '../../te-sidenav';
@@ -84,15 +84,15 @@ export default defineComponent({
     },
   },
   components: {
-    TeContainer,
+    ElContainer,
     TeAside,
-    TeHeader,
-    TeMain,
+    ElHeader,
+    ElMain,
     TeGlobalnav,
     TeTagsView,
     TeSidenav,
     layoutContent,
-    TeScrollbar,
+    ElScrollbar,
   },
   setup(props) {
     provide(DELAYER_KEY, ref(null));

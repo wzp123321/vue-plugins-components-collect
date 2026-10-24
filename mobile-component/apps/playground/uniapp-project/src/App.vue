@@ -11,5 +11,5 @@ onHide(() => {
 });
 </script>
 <style lang="scss">
-@import './uni_modules/@tiansu/ts-mobile-token/tokens.scss';
+@import './uni_modules/@zpackage/mobile-package/token/tokens.scss';
 </style>

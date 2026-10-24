@@ -110,7 +110,7 @@
 </template>
 
 <script>
-// import { TemBadge } from '@tiansu/ts-mobile-package';
+// import { TemBadge } from '@zpackage/mobile-package';
 export default {
   data() {
     return {

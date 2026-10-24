@@ -1,7 +1,7 @@
 <template>
   <te-button text @click="centerDialogVisible = true">
     Click to open the Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
@@ -10,13 +10,13 @@
     </span>
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="centerDialogVisible = false">Cancel</te-button>
+        <te-button @click="centerDialogVisible = false">Cancel</el-button>
         <te-button type="primary" @click="centerDialogVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'

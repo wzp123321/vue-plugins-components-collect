@@ -5,7 +5,7 @@
       <te-radio-button label="Washington" />
       <te-radio-button label="Los Angeles" />
       <te-radio-button label="Chicago" />
-    </te-radio-group>
+    </el-radio-group>
   </div>
   <div style="margin-top: 20px">
     <te-radio-group v-model="radio2">
@@ -13,7 +13,7 @@
       <te-radio-button label="Washington" />
       <te-radio-button label="Los Angeles" />
       <te-radio-button label="Chicago" />
-    </te-radio-group>
+    </el-radio-group>
   </div>
   <div style="margin-top: 20px">
     <te-radio-group v-model="radio3" size="small">
@@ -21,7 +21,7 @@
       <te-radio-button label="Washington" disabled />
       <te-radio-button label="Los Angeles" />
       <te-radio-button label="Chicago" />
-    </te-radio-group>
+    </el-radio-group>
   </div>
 </template>
 

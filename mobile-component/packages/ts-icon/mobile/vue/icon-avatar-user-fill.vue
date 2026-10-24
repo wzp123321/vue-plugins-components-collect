@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 26"><g filter="url(#filter0_d_16843_6343)" shape-rendering="crispEdges"><path fill="white" fill-opacity=".6" d="M12 3.135a5 5 0 1 1 0 10 5 5 0 0 1 0-10"/><path stroke="url(#paint0_radial_16843_6343)" stroke-opacity=".5" stroke- d="M12 3.331a4.805 4.805 0 1 1 .002 9.61A4.805 4.805 0 0 1 12 3.33Z"/></g><path fill="white" d="M16 15.135a5 5 0 0 1 4.995 4.783l.005.217v1a2 2 0 0 1-1.85 1.995l-.15.005H5a2 2 0 0 1-1.995-1.85L3 21.135v-1a5 5 0 0 1 4.783-4.995L8 15.135z"/><defs><radialGradient id="paint0_radial_16843_6343" cx="0" cy="0" r="1" gradientTransform="matrix(0 4.47495 -4.63519 0 14.504 9.03)" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient><filter id="filter0_d_16843_6343" width="19.405" x="2.297" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="1.568"/><feGaussianBlur stdDeviation="2.351"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.266667 0 0 0 0.0784314 0"/><feBlend in2="BackgroundImageFix" result="effect1_dropShadow_16843_6343"/><feBlend in="SourceGraphic" in2="effect1_dropShadow_16843_6343" result="shape"/></filter></defs></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-avatar-user-fill/avatar_user_fill.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

@@ -18,7 +18,7 @@
     layout="total, sizes, prev, pager, next, jumper"
     @size-change="handleSizeChange"
     @current-change="handleCurrentChange"
-  ></te-pagination>
+  ></el-pagination>
 </template>
 
 <script setup lang="ts" name="Pagination">

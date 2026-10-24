@@ -13,8 +13,8 @@
               >
                 <te-icon style="margin-left: 4px" :size="12">
                   <Warning />
-                </te-icon>
-              </te-tooltip>
+                </el-icon>
+              </el-tooltip>
             </div>
           </template>
         </te-statistic>
@@ -23,14 +23,14 @@
             <span>than yesterday</span>
             <span class="green">
               24%
-              <te-icon>
+              <el-icon>
                 <CaretTop />
-              </te-icon>
+              </el-icon>
             </span>
           </div>
         </div>
       </div>
-    </te-col>
+    </el-col>
     <te-col :span="8">
       <div class="statistic-card">
         <te-statistic :value="693700">
@@ -44,8 +44,8 @@
               >
                 <te-icon style="margin-left: 4px" :size="12">
                   <Warning />
-                </te-icon>
-              </te-tooltip>
+                </el-icon>
+              </el-tooltip>
             </div>
           </template>
         </te-statistic>
@@ -54,14 +54,14 @@
             <span>month on month</span>
             <span class="red">
               12%
-              <te-icon>
+              <el-icon>
                 <CaretBottom />
-              </te-icon>
+              </el-icon>
             </span>
           </div>
         </div>
       </div>
-    </te-col>
+    </el-col>
     <te-col :span="8">
       <div class="statistic-card">
         <te-statistic :value="72000" title="New transactions today">
@@ -76,20 +76,20 @@
             <span>than yesterday</span>
             <span class="green">
               16%
-              <te-icon>
+              <el-icon>
                 <CaretTop />
-              </te-icon>
+              </el-icon>
             </span>
           </div>
           <div class="footer-item">
             <te-icon :size="14">
               <ArrowRight />
-            </te-icon>
+            </el-icon>
           </div>
         </div>
       </div>
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>

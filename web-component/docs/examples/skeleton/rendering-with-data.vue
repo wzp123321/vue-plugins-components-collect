@@ -1,6 +1,6 @@
 <template>
   <te-space direction="vertical" alignment="flex-start">
-    <te-button @click="setLoading">Click me to reload</te-button>
+    <te-button @click="setLoading">Click me to reload</el-button>
     <te-skeleton style="width: 240px" :loading="loading" animated :count="3">
       <template #template>
         <te-skeleton-item variant="image" style="width: 400px; height: 267px" />
@@ -31,7 +31,7 @@
             <span>{{ item.name }}</span>
             <div class="bottom card-header">
               <div class="time">{{ currentDate }}</div>
-              <te-button text class="button">Operation button</te-button>
+              <te-button text class="button">Operation button</el-button>
             </div>
           </div>
         </te-card>

@@ -12,22 +12,22 @@ const packages = [
     label: 'ts-mobile-ui',
     source: path.join(repoRoot, 'packages', 'components', 'ui'),
     dist: path.join(repoRoot, 'packages', 'components', 'ui', 'dist'),
-    scope: '@tiansu',
-    packageName: 'ts-mobile-ui'
+    scope: '@zpackage',
+    packageName: 'mobile-package/ui'
   },
   {
     label: 'ts-mobile-biz-ui',
     source: path.join(repoRoot, 'packages', 'components', 'biz-ui'),
     dist: path.join(repoRoot, 'packages', 'components', 'biz-ui', 'dist'),
-    scope: '@tiansu',
-    packageName: 'ts-mobile-biz-ui'
+    scope: '@zpackage',
+    packageName: 'mobile-package/biz-ui'
   },
   {
     label: 'ts-mobile-token',
     source: path.join(repoRoot, 'packages', 'core', 'token', 'dist'),
     dist: path.join(repoRoot, 'packages', 'core', 'token', 'dist'),
-    scope: '@tiansu',
-    packageName: 'ts-mobile-token'
+    scope: '@zpackage',
+    packageName: 'mobile-package/token'
   }
 ]
 
@@ -88,7 +88,7 @@ function copyDir(src, dest) {
 
 for (const project of projects) {
   if (mode === 'link') {
-    const scopeDir = path.join(project.uniModulesRoot, '@tiansu')
+    const scopeDir = path.join(project.uniModulesRoot, '@zpackage')
     removeTarget(scopeDir)
   }
 
@@ -119,9 +119,9 @@ for (const project of projects) {
 
 projects.forEach(project => {
   if (mode === 'remote') {
-    console.log(`[remote] ${project.name}: pnpm rebuild @tiansu/ts-mobile-installer...`)
+    console.log(`[remote] ${project.name}: pnpm rebuild @zpackage/mobile-package/installer...`)
     try {
-      execSync(`cd "${project.projectRoot}" && pnpm rebuild @tiansu/ts-mobile-installer`, { stdio: 'inherit' })
+      execSync(`cd "${project.projectRoot}" && pnpm rebuild @zpackage/mobile-package/installer`, { stdio: 'inherit' })
     } catch (error) {
       console.error(`[remote] ${project.name}: failed: ${error.message}`)
     }
@@ -130,18 +130,18 @@ projects.forEach(project => {
     let tsIconVersion = 'latest'
     if (fs.existsSync(projectDepsPath)) {
       const projectDeps = JSON.parse(fs.readFileSync(projectDepsPath, 'utf-8'))
-      const versionRange = projectDeps['@tiansu/ts-icon']
+      const versionRange = projectDeps['@zpackage/mobile-package/ts-icon']
       if (versionRange) {
         try {
-          tsIconVersion = execSync(`npm view @tiansu/ts-icon@${versionRange} version`, { stdio: 'pipe' }).toString().trim()
+          tsIconVersion = execSync(`npm view @zpackage/mobile-package/ts-icon@${versionRange} version`, { stdio: 'pipe' }).toString().trim()
         } catch (_) {
-          console.error(`[ts-icon] Failed to resolve version for @tiansu/ts-icon@${versionRange}, falling back to latest`)
+          console.error(`[ts-icon] Failed to resolve version for @zpackage/mobile-package/ts-icon@${versionRange}, falling back to latest`)
         }
       }
     }
-    console.log(`[ts-icon] Installing @tiansu/ts-icon@${tsIconVersion} to ${project.name}...`)
+    console.log(`[ts-icon] Installing @zpackage/mobile-package/ts-icon@${tsIconVersion} to ${project.name}...`)
     try {
-      const tarballUrl = execSync(`npm view @tiansu/ts-icon@${tsIconVersion} dist.tarball`, { stdio: 'pipe' }).toString().trim()
+      const tarballUrl = execSync(`npm view @zpackage/mobile-package/ts-icon@${tsIconVersion} dist.tarball`, { stdio: 'pipe' }).toString().trim()
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ts-icon-'))
       const tgzPath = path.join(tmpDir, 'package.tgz')
       const curlCmd = isWindows ? 'curl.exe' : 'curl'

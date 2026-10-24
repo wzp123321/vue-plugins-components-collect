@@ -5,8 +5,8 @@
     </template>
     <te-button @mouseenter="visible = true" @mouseleave="visible = false">
       Hover me
-    </te-button>
-  </te-tooltip>
+    </el-button>
+  </el-tooltip>
 </template>
 
 <script setup lang="ts">

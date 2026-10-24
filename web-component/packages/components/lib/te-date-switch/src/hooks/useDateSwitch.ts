@@ -17,7 +17,7 @@ import {
   DateTypeEnum,
   MethodTypeEnum,
 } from "../type";
-import { dayjs } from "@tiansu/element-plus";
+import { dayjs } from "element-plus";
 import { isFunction } from "lodash";
 
 interface UseDateSwitchProps {

@@ -147,7 +147,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import { TemInput, TemCell } from '@tiansu/ts-mobile-package';
+// import { TemInput, TemCell } from '@zpackage/mobile-package';
 
 const inputValue = ref('');
 const changeValue = ref('');

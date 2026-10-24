@@ -1,0 +1,69 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <!-- #ifdef H5 -->
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" fill-rule="evenodd" d="M4.929 12.01a1 1 0 0 1 1.131.848A6 6 0 0 0 12 17.992q.629-.001 1.235-.13l1.613 1.613a8 8 0 0 1-1.848.463V21a1 1 0 0 1-2 0v-1.061a8.01 8.01 0 0 1-6.919-6.797 1 1 0 0 1 .848-1.132M11.999 2a5 5 0 0 1 5 5v5c0 .988-.293 1.944-.83 2.756l.717.716a6 6 0 0 0 1.052-2.614 1.002 1.002 0 0 1 1.982.284 8 8 0 0 1-1.602 3.762l1.889 1.889a1 1 0 0 1-1.414 1.414l-14.5-14.5a1 1 0 1 1 1.414-1.414L7.16 5.746A5 5 0 0 1 12 2m.36 14.985A5.003 5.003 0 0 1 7 12v-.373zM11.998 4a3.003 3.003 0 0 0-3 3v.586l5.705 5.704c.19-.4.296-.839.296-1.29V7a3 3 0 0 0-3-3" clip-rule="evenodd"/></svg>
+    <!-- #endif -->
+    <!-- #ifndef H5 -->
+    <image :src="imgSrc" class="icon-image" />
+    <!-- #endif -->
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+<!-- #ifndef H5 -->
+import imgSrc from '@/uni_modules/@zpackage/mobile-package/ts-icon/mobile/uvue/icon-turn-off-microphone/turn_off_microphone.png'
+<!-- #endif -->
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+}
+</style>

@@ -4,14 +4,14 @@
       <te-checkbox-button v-for="city in cities" :key="city" :label="city">
         {{ city }}
       </te-checkbox-button>
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
   <div class="demo-button-style">
     <te-checkbox-group v-model="checkboxGroup2">
       <te-checkbox-button v-for="city in cities" :key="city" :label="city">{{
         city
       }}</te-checkbox-button>
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
   <div class="demo-button-style">
     <te-checkbox-group v-model="checkboxGroup3" size="small">
@@ -22,14 +22,14 @@
         :disabled="city === 'Beijing'"
         >{{ city }}</te-checkbox-button
       >
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
   <div class="demo-button-style">
     <te-checkbox-group v-model="checkboxGroup4" size="small" disabled>
       <te-checkbox-button v-for="city in cities" :key="city" :label="city">{{
         city
       }}</te-checkbox-button>
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
 </template>
 

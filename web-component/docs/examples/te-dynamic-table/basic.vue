@@ -11,19 +11,19 @@
     >
       <template #notify="scope">
         <te-radio-group v-model="scope.row.notify">
-          <te-radio label="1">是</te-radio>
-          <te-radio label="2">否</te-radio>
-        </te-radio-group>
+          <te-radio label="1">是</el-radio>
+          <te-radio label="2">否</el-radio>
+        </el-radio-group>
       </template>
     </te-dynamic-table>
     <section class="submit-button">
-      <te-button type="primary" @click="handleSubmit">提交</te-button>
-      <te-button type="danger" @click="reset">重置</te-button>  
+      <te-button type="primary" @click="handleSubmit">提交</el-button>
+      <te-button type="danger" @click="reset">重置</el-button>  
     </section>
   </section>
 </template>
 <script setup lang="ts">
-import { TeRadioGroup, TeRadio, TeTag, TeButton } from "@tiansu/element-plus";
+import { TeRadioGroup, ElRadio, ElTag, ElButton } from "element-plus";
 import {
   TeDynamicTable,
   Columns,

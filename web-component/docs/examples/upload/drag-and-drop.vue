@@ -5,7 +5,7 @@
     action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
     multiple
   >
-    <te-icon class="te-icon--upload"><upload-filled /></te-icon>
+    <te-icon class="te-icon--upload"><upload-filled /></el-icon>
     <div class="te-upload__text">
       Drop file here or <em>click to upload</em>
     </div>
@@ -14,7 +14,7 @@
         jpg/png files with a size less than 500kb
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 
 <script setup lang="ts">

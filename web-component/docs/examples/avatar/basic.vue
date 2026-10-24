@@ -10,7 +10,7 @@
           <te-avatar :size="size" :src="circleUrl" />
         </div>
       </div>
-    </te-col>
+    </el-col>
     <te-col :span="12">
       <div class="sub-title">square</div>
       <div class="demo-basic--circle">
@@ -21,8 +21,8 @@
           <te-avatar shape="square" :size="size" :src="squareUrl" />
         </div>
       </div>
-    </te-col>
-  </te-row>
+    </el-col>
+  </el-row>
 </template>
 <script lang="ts" setup>
 import { reactive, toRefs } from 'vue'

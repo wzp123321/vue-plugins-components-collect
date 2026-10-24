@@ -1,12 +1,12 @@
 <template>
-  <te-button plain @click="open"> Use HTML String </te-button>
+  <te-button plain @click="open"> Use HTML String </el-button>
 </template>
 
 <script lang="ts" setup>
-import { TeNotification } from '@tiansu/element-plus'
+import { ElNotification } from 'element-plus'
 
 const open = () => {
-  TeNotification({
+  ElNotification({
     title: 'HTML String',
     dangerouslyUseHTMLString: true,
     message: '<strong>This is <i>HTML</i> string</strong>',

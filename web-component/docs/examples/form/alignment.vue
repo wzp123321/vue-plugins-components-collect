@@ -1,9 +1,9 @@
 <template>
   <te-radio-group v-model="labelPosition" label="label position">
-    <te-radio-button label="left">Left</te-radio-button>
-    <te-radio-button label="right">Right</te-radio-button>
-    <te-radio-button label="top">Top</te-radio-button>
-  </te-radio-group>
+    <te-radio-button label="left">Left</el-radio-button>
+    <te-radio-button label="right">Right</el-radio-button>
+    <te-radio-button label="top">Top</el-radio-button>
+  </el-radio-group>
   <div style="margin: 20px" />
   <te-form
     :label-position="labelPosition"
@@ -13,14 +13,14 @@
   >
     <te-form-item label="Name">
       <te-input v-model="formLabelAlign.name" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity zone">
       <te-input v-model="formLabelAlign.region" />
-    </te-form-item>
+    </el-form-item>
     <te-form-item label="Activity form">
       <te-input v-model="formLabelAlign.type" />
-    </te-form-item>
-  </te-form>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script lang="ts" setup>

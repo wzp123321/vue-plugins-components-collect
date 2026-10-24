@@ -7,19 +7,19 @@
     :on-remove="handleRemove"
     list-type="picture"
   >
-    <te-button type="primary">Click to upload</te-button>
+    <te-button type="primary">Click to upload</el-button>
     <template #tip>
       <div class="te-upload__tip">
         jpg/png files with a size less than 500kb
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 
-import type { UploadProps, UploadUserFile } from '@tiansu/element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([
   {

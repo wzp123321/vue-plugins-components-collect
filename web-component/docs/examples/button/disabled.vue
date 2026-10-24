@@ -1,19 +1,19 @@
 <template>
   <te-row class="mb-4">
-    <te-button disabled>Default</te-button>
-    <te-button type="primary" disabled>Primary</te-button>
-    <te-button type="success" disabled>Success</te-button>
-    <te-button type="info" disabled>Info</te-button>
-    <te-button type="warning" disabled>Warning</te-button>
-    <te-button type="danger" disabled>Danger</te-button>
-  </te-row>
+    <te-button disabled>Default</el-button>
+    <te-button type="primary" disabled>Primary</el-button>
+    <te-button type="success" disabled>Success</el-button>
+    <te-button type="info" disabled>Info</el-button>
+    <te-button type="warning" disabled>Warning</el-button>
+    <te-button type="danger" disabled>Danger</el-button>
+  </el-row>
 
-  <te-row>
-    <te-button plain disabled>Plain</te-button>
-    <te-button type="primary" plain disabled>Primary</te-button>
-    <te-button type="success" plain disabled>Success</te-button>
-    <te-button type="info" plain disabled>Info</te-button>
-    <te-button type="warning" plain disabled>Warning</te-button>
-    <te-button type="danger" plain disabled>Danger</te-button>
-  </te-row>
+  <el-row>
+    <te-button plain disabled>Plain</el-button>
+    <te-button type="primary" plain disabled>Primary</el-button>
+    <te-button type="success" plain disabled>Success</el-button>
+    <te-button type="info" plain disabled>Info</el-button>
+    <te-button type="warning" plain disabled>Warning</el-button>
+    <te-button type="danger" plain disabled>Danger</el-button>
+  </el-row>
 </template>

@@ -1,9 +1,9 @@
 <template>
   <div class="flex items-center mb-4">
     <te-radio-group v-model="small" class="mr-4">
-      <te-radio-button :label="false">default</te-radio-button>
-      <te-radio-button :label="true">small</te-radio-button>
-    </te-radio-group>
+      <te-radio-button :label="false">default</el-radio-button>
+      <te-radio-button :label="true">small</el-radio-button>
+    </el-radio-group>
     <div>
       background:
       <te-switch v-model="background" class="ml-2" />

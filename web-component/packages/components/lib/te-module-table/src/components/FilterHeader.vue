@@ -16,26 +16,26 @@
 			</template>
 
 			<div v-if="filterList.length > 0">
-				<te-checkbox v-if="filterList.length > 5" v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">全选</te-checkbox>
+				<te-checkbox v-if="filterList.length > 5" v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
 
 				<div class="divider" v-if="filterList.length > 9"></div>
 
 				<div class="wrap-div" :class="filterList.length > 5 ? 'wrap1' : 'wrap2'">
 					<te-checkbox-group v-model="checkedFilterItem" @change="handlecheckedFilterItemChange">
-						<te-checkbox v-for="item in filterList" :key="item.id" :label="item.id">{{ item.name }}</te-checkbox>
-					</te-checkbox-group>
+						<te-checkbox v-for="item in filterList" :key="item.id" :label="item.id">{{ item.name }}</el-checkbox>
+					</el-checkbox-group>
 				</div>
 
 				<div class="filter-action" v-if="filterList.length > 0">
 					<!-- 添加动态class用于重置时清除筛选条件 -->
-					<te-button @click="reset" text>重置</te-button>
-					<te-button @click="confirm" :disabled="checkedFilterItem.length === 0" type="primary" text>确定</te-button>
+					<te-button @click="reset" text>重置</el-button>
+					<te-button @click="confirm" :disabled="checkedFilterItem.length === 0" type="primary" text>确定</el-button>
 				</div>
 			</div>
 			<div class="noData" v-else>
 				<span>暂无筛选项</span>
 			</div>
-		</te-popover>
+		</el-popover>
 	</div>
 </template>
 <script lang="tsx" setup name="FilterHeader">

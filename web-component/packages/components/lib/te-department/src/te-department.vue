@@ -10,12 +10,12 @@
               <icon-down />
             </div>
             <template #dropdown>
-              <te-dropdown-menu>
-                <te-dropdown-item @click="handleStrictlyChange(true)">任选</te-dropdown-item>
-                <te-dropdown-item @click="handleStrictlyChange(false)">联选</te-dropdown-item>
-              </te-dropdown-menu>
+              <el-dropdown-menu>
+                <te-dropdown-item @click="handleStrictlyChange(true)">任选</el-dropdown-item>
+                <te-dropdown-item @click="handleStrictlyChange(false)">联选</el-dropdown-item>
+              </el-dropdown-menu>
             </template>
-          </te-dropdown>
+          </el-dropdown>
         </div>
         <div class="te-department-content-left">
           <te-search
@@ -65,16 +65,16 @@
     </div>
     <template #footer>
       <div>
-        <te-button @click="modalVisible = false">取消</te-button>
-        <te-button type="primary" @click="handleConfirm">确定</te-button>
+        <te-button @click="modalVisible = false">取消</el-button>
+        <te-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup name="Tedepartment">
 import { ref, computed, watch } from 'vue';
-import { TeDialog, TeButton, TeDropdown, TeDropdownMenu, TeDropdownItem } from '@tiansu/element-plus';
+import { ElDialog, ElButton, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus';
 import { TeSearch } from '../../te-search';
 import { IconClose, IconDown } from '@arco-iconbox/vue-te/esm';
 import { type AxiosInstance } from 'axios';

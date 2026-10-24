@@ -14,7 +14,7 @@
       :accept="accept"
     >
       <icon-plus class="tui-set-icon" v-if="imgList.length < limit && !isView" />
-    </te-upload>
+    </el-upload>
     <te-dialog
       v-model="options.dialogVisible"
       title="上传登录背景"
@@ -40,18 +40,18 @@
       </componentKey>
       <template #footer>
         <span>
-          <te-button @click="previewImgCancle()">取消</te-button>
-          <te-button type="primary" @click="previewImgConfirm()"> 确认 </te-button>
+          <te-button @click="previewImgCancle()">取消</el-button>
+          <te-button type="primary" @click="previewImgConfirm()"> 确认 </el-button>
         </span>
       </template>
-    </te-dialog>
+    </el-dialog>
     <te-dialog v-model="imageVisible" title="图片预览" :destroy-on-close="true">
       <te-carousel class="tui-image-preview" :autoplay="false" arrow="always" height="500px" :initial-index="1">
         <te-carousel-item v-for="item in imgList" :key="item.url">
           <img class="tui-image-preview-img" :src="item.url" text="2xl" justify="center" />
-        </te-carousel-item>
-      </te-carousel>
-    </te-dialog>
+        </el-carousel-item>
+      </el-carousel>
+    </el-dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -65,13 +65,13 @@ import {
   type UploadRawFile,
   type UploadRequestOptions,
   type UploadUserFile,
-  TeDialog,
-  TeButton,
-  TeMessage,
+  ElDialog,
+  ElButton,
+  ElMessage,
   TeCarousel,
   TeCarouselItem,
-} from '@tiansu/element-plus';
-import { UuidUtil } from '@tiansu/tools';
+} from 'element-plus';
+import { UuidUtil } from '@zpackage/tools';
 const emits = defineEmits(['update:fileList']);
 const props = withDefaults(
   defineProps<{
@@ -153,7 +153,7 @@ const beforeUpload = (rawFile: UploadRawFile): Promise<File> | boolean => {
       });
     } else {
       if (props.limitSize && rawFile.size / 1024 / 1024 > props.limitSize) {
-        TeMessage.error('图片不能大于' + props.limitSize + 'MB!');
+        ElMessage.error('图片不能大于' + props.limitSize + 'MB!');
         return false;
       }
       if (props.onBeforeUpload && !props.onBeforeUpload(rawFile)) {
@@ -171,7 +171,7 @@ const beforeUpload = (rawFile: UploadRawFile): Promise<File> | boolean => {
       return true;
     }
   } else {
-    TeMessage.error('必须是图片!');
+    ElMessage.error('必须是图片!');
     return false;
   }
 };
@@ -250,7 +250,7 @@ const sueecss = (data: { errcode: string; errmsg: string; data: { addrUrl: strin
     } else {
       //上传失败
       imgList.value.splice(imgList.value.length - 1, 1);
-      TeMessage.error(data.errmsg);
+      ElMessage.error(data.errmsg);
       props.onError && props.onError(error, props.fileList);
     }
   }
@@ -269,7 +269,7 @@ const remove = () => {
  *上传失败
  */
 const error = (error: Error) => {
-  TeMessage.error('上传失败!');
+  ElMessage.error('上传失败!');
   props.onError && props.onError(error, props.fileList);
 };
 //图片大图弹出框是否显示
@@ -309,7 +309,7 @@ const previewImgConfirm = () => {
   cropper.value.getCropBlob((data: Blob) => {
     const file = new File([data], UuidUtil.uuid32() + '.' + data.type.split('/')[1], { type: data.type });
     if (props.limitSize && file.size / 1024 / 1024 > props.limitSize) {
-      TeMessage.error('图片不能大于' + props.limitSize + 'MB!');
+      ElMessage.error('图片不能大于' + props.limitSize + 'MB!');
       //取消上传图片
       cropperReject && cropperReject(file);
     } else if (props.onBeforeUpload && !props.onBeforeUpload(file)) {
@@ -339,7 +339,7 @@ const croperDialogClose = () => {
 /**********************裁剪图片 end*************/
 </script>
 <style scoped lang="less">
-// @import '@tiansu/ts-web-package/dist/styles/index.css';
+// @import '@zpackage/web-package/dist/styles/index.css';
 .te-upload-imagecropping {
   :deep(.tui-upload) {
     .te-upload {

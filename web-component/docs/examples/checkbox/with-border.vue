@@ -11,13 +11,13 @@
     <te-checkbox-group v-model="checkboxGroup1" size="small">
       <te-checkbox label="Option1" border />
       <te-checkbox label="Option2" border />
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
   <div class="mt-4">
     <te-checkbox-group v-model="checkboxGroup1" size="small">
       <te-checkbox label="Option1" border disabled />
       <te-checkbox label="Option2" border disabled />
-    </te-checkbox-group>
+    </el-checkbox-group>
   </div>
 </template>
 

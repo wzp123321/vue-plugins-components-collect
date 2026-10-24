@@ -13,7 +13,7 @@
           <span v-if="isHoliday(cell)" class="holiday" />
         </div>
       </template>
-    </te-date-picker>
+    </el-date-picker>
   </div>
 </template>
 

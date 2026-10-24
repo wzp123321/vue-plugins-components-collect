@@ -39,7 +39,7 @@
             <template #content>
               <span class="wpmnct-wrap-center-label"> {{ data.conditionZhStr }} </span>
             </template>
-          </te-tooltip>
+          </el-tooltip>
           <span class="wpmnct-wrap-center-label" v-else>
             {{
               pre.data.type === ProcessNodeTypeEnum.EXCLUSIVE_GATEWAY
@@ -63,7 +63,7 @@
 import { inject, onMounted, ref } from 'vue';
 import { Graph, Node } from '@antv/x6';
 import { ProcessNodeTypeEnum } from '../../../models/ProcessNodeTypeEnum';
-import { TeTooltip } from '@tiansu/element-plus';
+import { ElTooltip } from 'element-plus';
 
 const getNode: Function | undefined = inject<Function>('getNode');
 const getGraph: Function | undefined = inject<Function>('getGraph');

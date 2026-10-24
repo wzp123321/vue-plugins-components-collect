@@ -1,0 +1,84 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_16840_6269)">
+<path d="M10.0635 11.1694C10.5888 11.3938 10.9297 11.9093 10.9297 12.4789V21.7162C10.7204 21.6624 10.5137 21.5923 10.3125 21.5063L4.59766 19.0649C3.0218 18.3917 2 16.8471 2 15.1381V9.38031C2 8.84612 2.09977 8.32758 2.28516 7.84711L10.0635 11.1694ZM21.7139 7.84711C21.8993 8.32768 22 8.84599 22 9.38031V15.1391C21.9998 16.8479 20.978 18.3927 19.4023 19.0659L13.6865 21.5063C13.4854 21.5922 13.2795 21.6623 13.0703 21.7162V12.4789C13.0703 11.9093 13.4102 11.3938 13.9355 11.1694L21.7139 7.84711Z" fill="white"/>
+<g filter="url(#filter0_d_16840_6269)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M19.4071 5.4534L13.6921 3.01212C12.6139 2.55154 11.3934 2.55154 10.3152 3.01212L4.60023 5.4534C4.22495 5.61371 3.88107 5.82343 3.57495 6.07303L11.4407 9.43306C11.8001 9.58659 12.2069 9.58659 12.5663 9.43306L20.4323 6.07295C20.1261 5.82339 19.7823 5.61369 19.4071 5.4534Z" fill="white" fill-opacity="0.6" shape-rendering="crispEdges"/>
+<path d="M10.4304 3.28192C11.4349 2.85285 12.5725 2.85285 13.5769 3.28192L19.2917 5.72333C19.4819 5.80458 19.6629 5.90049 19.8347 6.00751L12.4509 9.16278C12.1653 9.28478 11.842 9.28472 11.5564 9.16278L4.17163 6.00751C4.34369 5.90032 4.52512 5.80469 4.71558 5.72333L10.4304 3.28192Z" stroke="url(#paint0_radial_16840_6269)" stroke-opacity="0.5" stroke-width="0.587832" shape-rendering="crispEdges"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_16840_6269" x="-3.47903" y="-2.03597" width="30.9654" height="20.9895" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="2.35133"/>
+<feGaussianBlur stdDeviation="3.52699"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.266667 0 0 0 0.0784314 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_16840_6269"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_16840_6269" result="shape"/>
+</filter>
+<radialGradient id="paint0_radial_16840_6269" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(16.224 6.72388) rotate(90) scale(3.07944 7.81369)">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<clipPath id="clip0_16840_6269">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+</style>

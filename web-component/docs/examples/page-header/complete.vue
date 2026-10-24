@@ -26,13 +26,13 @@
           >
             Sub title
           </span>
-          <te-tag>Default</te-tag>
+          <el-tag>Default</el-tag>
         </div>
       </template>
       <template #extra>
         <div class="flex items-center">
-          <te-button>Print</te-button>
-          <te-button type="primary" class="ml-2">Edit</te-button>
+          <el-button>Print</el-button>
+          <te-button type="primary" class="ml-2">Edit</el-button>
         </div>
       </template>
 
@@ -45,7 +45,7 @@
         >
         <te-descriptions-item label="Place">Suzhou</te-descriptions-item>
         <te-descriptions-item label="Remarks">
-          <te-tag size="small">School</te-tag>
+          <te-tag size="small">School</el-tag>
         </te-descriptions-item>
         <te-descriptions-item label="Address"
           >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { TeNotification as notify } from '@tiansu/element-plus'
+import { ElNotification as notify } from 'element-plus'
 
 const onBack = () => {
   notify('Back')

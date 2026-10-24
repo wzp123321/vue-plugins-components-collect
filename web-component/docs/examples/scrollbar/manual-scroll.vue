@@ -5,7 +5,7 @@
         {{ item }}
       </p>
     </div>
-  </te-scrollbar>
+  </el-scrollbar>
 
   <te-slider
     v-model="value"
@@ -17,12 +17,12 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { TeScrollbar } from '@tiansu/element-plus'
+import { ElScrollbar } from 'element-plus'
 
 const max = ref(0)
 const value = ref(0)
 const innerRef = ref<HTMLDivElement>()
-const scrollbarRef = ref<InstanceType<typeof TeScrollbar>>()
+const scrollbarRef = ref<InstanceType<typeof ElScrollbar>>()
 
 onMounted(() => {
   max.value = innerRef.value!.clientHeight - 380

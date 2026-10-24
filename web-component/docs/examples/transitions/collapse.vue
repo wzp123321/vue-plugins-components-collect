@@ -1,6 +1,6 @@
 <template>
   <div>
-    <te-button @click="show = !show">Click Me</te-button>
+    <te-button @click="show = !show">Click Me</el-button>
 
     <div style="margin-top: 20px; height: 200px">
       <te-collapse-transition>

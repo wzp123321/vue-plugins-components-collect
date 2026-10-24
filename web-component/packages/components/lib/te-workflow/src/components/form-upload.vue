@@ -30,26 +30,26 @@
         "
       >
         选择文件
-      </te-button>
-    </te-upload>
+      </el-button>
+    </el-upload>
     <div class="wf-upload-desc">{{ getDesc }}</div>
     <te-dialog v-model="imagePreviewVisible">
       <div class="wf-upload-preview"><img w-full :src="dialogImageUrl" alt="Preview Image" /></div>
-    </te-dialog>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue';
 import {
   TeUpload,
-  TeButton,
-  TeMessage,
+  ElButton,
+  ElMessage,
   type UploadRawFile,
-  TeLoading,
+  ElLoading,
   type UploadRequestOptions,
   type UploadUserFile,
-  TeDialog,
-} from '@tiansu/element-plus';
+  ElDialog,
+} from 'element-plus';
 import { IconPlus } from '@arco-iconbox/vue-te/esm';
 import FormWidgetInstance from '../models/FormWidgetInstance_local';
 import { FormComponentTypeEnum } from '../../../models/FormComponentTypeEnum';
@@ -112,11 +112,11 @@ const beforeUpload = (rawFile: UploadRawFile): Promise<File> | boolean => {
   }
 
   if (!fileTypes.includes(suffix)) {
-    TeMessage.error('不支持的文件类型!');
+    ElMessage.error('不支持的文件类型!');
     return false;
   }
   if (rawFile.size / 1024 / 1024 > limitSize) {
-    TeMessage.error('文件不能大于' + limitSize + 'MB!');
+    ElMessage.error('文件不能大于' + limitSize + 'MB!');
     return false;
   }
   if (props.item.componentType === FormComponentTypeEnum.IMAGE) {
@@ -148,7 +148,7 @@ const upload = (options: UploadRequestOptions) => {
   );
   params.append('isCovered', '1');
   params.append('tenantId', props.tenantId);
-  let loading = TeLoading.service({
+  let loading = ElLoading.service({
     lock: true,
     text: '',
     background: 'rgba(0, 0, 0, 0.0)',

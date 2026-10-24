@@ -2,7 +2,7 @@
  * HTTP 客户端全局配置
  */
 import { mergeWith, isNil } from "lodash-es";
-import { TeMessage } from "@tiansu/element-plus";
+import { TeMessage } from "element-plus";
 import { Access } from "../../gate-way/initAccess";
 import type { AxiosError, AxiosResponse } from "axios";
 import type {

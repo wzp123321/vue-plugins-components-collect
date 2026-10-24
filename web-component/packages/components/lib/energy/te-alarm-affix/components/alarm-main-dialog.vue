@@ -59,7 +59,7 @@
         @page-change="onPageChange"
       />
     </div>
-  </te-dialog>
+  </el-dialog>
 
   <TeAlarmSettingDrawer
     v-model="settingVisible"
@@ -75,7 +75,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue';
-import { TeDialog } from '@tiansu/element-plus';
+import { ElDialog } from 'element-plus';
 import {
   TeAlarmTabWithBadge,
   TeAlarmActionBar,

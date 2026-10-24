@@ -10,7 +10,7 @@
     >
       <te-badge :value="alarmCountText" :max="99">
         <span> 实时告警 </span>
-      </te-badge>
+      </el-badge>
     </div>
     <div
       :class="[
@@ -21,14 +21,14 @@
     >
       <te-badge :value="eventCountText" :max="99">
         <span> 实时事件 </span>
-      </te-badge>
+      </el-badge>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
-import { TeBadge } from '@tiansu/element-plus';
+import { ElBadge } from 'element-plus';
 import { AlarmType } from '../api/index.api';
 import { TE_AL_SERVICES_KEY } from '../types/injection';
 import { formatBadge } from '../utils';

@@ -10,7 +10,7 @@
         <template #placeholder>
           <div class="image-slot">Loading<span class="dot">...</span></div>
         </template>
-      </te-image>
+      </el-image>
     </div>
   </div>
 </template>

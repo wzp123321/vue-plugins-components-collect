@@ -8,7 +8,7 @@
     @close="handleClose(tag)"
   >
     {{ tag }}
-  </te-tag>
+  </el-tag>
   <te-input
     v-if="inputVisible"
     ref="InputRef"
@@ -20,17 +20,17 @@
   />
   <te-button v-else class="button-new-tag ml-1" size="small" @click="showInput">
     + New Tag
-  </te-button>
+  </el-button>
 </template>
 
 <script lang="ts" setup>
 import { nextTick, ref } from 'vue'
-import { TeInput } from '@tiansu/element-plus'
+import { ElInput } from 'element-plus'
 
 const inputValue = ref('')
 const dynamicTags = ref(['Tag 1', 'Tag 2', 'Tag 3'])
 const inputVisible = ref(false)
-const InputRef = ref<InstanceType<typeof TeInput>>()
+const InputRef = ref<InstanceType<typeof ElInput>>()
 
 const handleClose = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)

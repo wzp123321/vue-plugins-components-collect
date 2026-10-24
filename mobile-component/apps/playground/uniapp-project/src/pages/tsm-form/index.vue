@@ -158,10 +158,10 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import type { FormRules } from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-form/uniapp/types';
-import type { Trigger, CustomValidateResult } from '@/uni_modules/@tiansu/ts-mobile-ui/libs/uniapp/validators/types';
-import type { PickerOption } from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-picker/uniapp/props';
-import type { CascaderOption } from '@/uni_modules/@tiansu/ts-mobile-ui/components/tsm-cascader/uniapp/props';
+import type { FormRules } from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-form/uniapp/types';
+import type { Trigger, CustomValidateResult } from '@/uni_modules/@zpackage/mobile-package/ui/libs/uniapp/validators/types';
+import type { PickerOption } from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-picker/uniapp/props';
+import type { CascaderOption } from '@/uni_modules/@zpackage/mobile-package/ui/components/tsm-cascader/uniapp/props';
 
 const formRef = ref();
 
@@ -391,7 +391,7 @@ function handleClearValidate() {
 </script>
 
 <style scoped lang="scss">
-@import '@/uni_modules/@tiansu/ts-mobile-ui/libs/scss/platform-style.scss';
+@import '@/uni_modules/@zpackage/mobile-package/ui/libs/scss/platform-style.scss';
 
 .container {
   padding: 12px;

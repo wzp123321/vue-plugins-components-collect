@@ -7,7 +7,7 @@
  * @Description: 动态编辑表格组件
 -->
 <script setup lang="ts">
-	import { TeForm, TeTable, TeTableColumn, TeFormItem, TeInput, TeInputNumber, TeDatePicker, TeSelect, TeOption, TeButton, TeIcon, TeTooltip, TeText } from "@tiansu/element-plus";
+	import { TeForm, ElTable, TeTableColumn, TeFormItem, ElInput, ElInputNumber, ElDatePicker, ElSelect, ElOption, ElButton, ElIcon, ElTooltip, ElText } from "element-plus";
 	import { Plus } from "@element-plus/icons-vue";
 	import { ref, toRefs, watchSyncEffect, watch, watchEffect, watchPostEffect } from "vue";
 	import { MODE, DynamicTableProps, TABLE_SIZE, EditType } from "./type";
@@ -95,7 +95,7 @@
 								<!-- 下拉框 -->
 								<te-select v-else-if="item.type === EditType.SELECT" class="cell-item" v-model="scope.row[item.prop]" v-bind="item?.elementAttrs">
 									<te-option v-for="data in item?.dataSource" :key="data.value" :value="data.value" :label="data.label" />
-								</te-select>
+								</el-select>
 
 								<!-- slot方式自定义渲染 -->
 								<slot v-else-if="item.type === EditType.SLOT" :name="item.prop" v-bind="scope" :key="item.prop"> </slot>
@@ -103,17 +103,17 @@
 								<!-- 其他类型的type，直接渲染文字 -->
 								<te-text v-else>
 									{{ scope.row[item.prop] }}
-								</te-text>
-							</te-form-item>
+								</el-text>
+							</el-form-item>
 						</template>
-					</te-table-column>
+					</el-table-column>
 
 					<!-- 操作列 -->
 					<te-table-column width="76" label="操作" fixed="right">
 						<template #default="scope">
-							<te-button link type="primary" @click="handleDelete(scope)" :disabled="formData.tableData.length === 1 && required"> 删除 </te-button>
+							<te-button link type="primary" @click="handleDelete(scope)" :disabled="formData.tableData.length === 1 && required"> 删除 </el-button>
 						</template>
-					</te-table-column>
+					</el-table-column>
 				</template>
 
 				<!-- 预览模式可自定义渲染内容 -->
@@ -124,7 +124,7 @@
 								{{ scope.row[item.prop] }}
 							</slot>
 						</template>
-					</te-table-column>
+					</el-table-column>
 				</template>
 
 				<!-- 6、空数据文本默认插槽 -->
@@ -136,27 +136,27 @@
 						</slot>
 					</div>
 				</template>
-			</te-table>
-		</te-form>
+			</el-table>
+		</el-form>
 		<!-- 达到最大添加限制时不允许添加并提示 -->
 		<template v-if="reachedMaxCount">
 			<te-tooltip placement="top">
 				<template #content v-if="reachedMaxCount"> 「最多添加{{ maxCount }}条数据」 </template>
 				<te-button v-if="mode === MODE.EDIT" class="add-button" :size="tableSize ?? TABLE_SIZE.LARGE" disabled>
-					<te-icon>
+					<el-icon>
 						<Plus />
-					</te-icon>
+					</el-icon>
 					<span class="add-button-text">添加</span>
-				</te-button>
-			</te-tooltip>
+				</el-button>
+			</el-tooltip>
 		</template>
 		<template v-else>
 			<te-button v-if="mode === MODE.EDIT" @click="handleAdd" class="add-button" :size="tableSize ?? TABLE_SIZE.LARGE" :disabled="reachedMaxCount">
-				<te-icon>
+				<el-icon>
 					<Plus />
-				</te-icon>
+				</el-icon>
 				<span class="add-button-text">添加</span>
-			</te-button>
+			</el-button>
 		</template>
 	</section>
 </template>

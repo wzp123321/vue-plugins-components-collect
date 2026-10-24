@@ -52,7 +52,7 @@
     "@dcloudio/uni-mp-weixin": "3.0.0-4080420251103001",
     "@dcloudio/uni-mp-xhs": "3.0.0-4080420251103001",
     "@dcloudio/uni-quickapp-webview": "3.0.0-4080420251103001",
-    "@tiansu/ts-mobile-installer": "^0.0.8",
+    "@zpackage/mobile-package/installer": "^0.0.8",
     "asmcrypto.js": "^2.3.2",
     "dayjs": "^1.11.21",
     "lodash": "^4.18.1",

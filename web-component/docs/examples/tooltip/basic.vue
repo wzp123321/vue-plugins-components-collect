@@ -7,24 +7,24 @@
         content="Top Left prompts info"
         placement="top-start"
       >
-        <te-button>top-start</te-button>
-      </te-tooltip>
+        <el-button>top-start</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Top Center prompts info"
         placement="top"
       >
-        <te-button>top</te-button>
-      </te-tooltip>
+        <el-button>top</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Top Right prompts info"
         placement="top-end"
       >
-        <te-button>top-end</te-button>
-      </te-tooltip>
+        <el-button>top-end</el-button>
+      </el-tooltip>
     </div>
     <div class="row">
       <te-tooltip
@@ -33,16 +33,16 @@
         content="Left Top prompts info"
         placement="left-start"
       >
-        <te-button>left-start</te-button>
-      </te-tooltip>
+        <el-button>left-start</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Right Top prompts info"
         placement="right-start"
       >
-        <te-button>right-start</te-button>
-      </te-tooltip>
+        <el-button>right-start</el-button>
+      </el-tooltip>
     </div>
     <div class="row">
       <te-tooltip
@@ -51,16 +51,16 @@
         content="Left Center prompts info"
         placement="left"
       >
-        <te-button class="mt-3 mb-3">left</te-button>
-      </te-tooltip>
+        <te-button class="mt-3 mb-3">left</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Right Center prompts info"
         placement="right"
       >
-        <te-button>right</te-button>
-      </te-tooltip>
+        <el-button>right</el-button>
+      </el-tooltip>
     </div>
     <div class="row">
       <te-tooltip
@@ -69,16 +69,16 @@
         content="Left Bottom prompts info"
         placement="left-end"
       >
-        <te-button>left-end</te-button>
-      </te-tooltip>
+        <el-button>left-end</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Right Bottom prompts info"
         placement="right-end"
       >
-        <te-button>right-end</te-button>
-      </te-tooltip>
+        <el-button>right-end</el-button>
+      </el-tooltip>
     </div>
     <div class="row center">
       <te-tooltip
@@ -87,24 +87,24 @@
         content="Bottom Left prompts info"
         placement="bottom-start"
       >
-        <te-button>bottom-start</te-button>
-      </te-tooltip>
+        <el-button>bottom-start</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Bottom Center prompts info"
         placement="bottom"
       >
-        <te-button>bottom</te-button>
-      </te-tooltip>
+        <el-button>bottom</el-button>
+      </el-tooltip>
       <te-tooltip
         class="box-item"
         effect="dark"
         content="Bottom Right prompts info"
         placement="bottom-end"
       >
-        <te-button>bottom-end</te-button>
-      </te-tooltip>
+        <el-button>bottom-end</el-button>
+      </el-tooltip>
     </div>
   </div>
 </template>

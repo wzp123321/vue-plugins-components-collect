@@ -20,10 +20,6 @@
 
 /** 板块拉伸厚度（世界单位），同时作为线框 / 锚点的高度基准 */
 const DEPTH = 6
-/** 2D 扁平模式下的厚度（薄板，便于读 choropleth / 标牌） */
-export const FLAT_DEPTH = 1.2
-/** 常规 3D 厚度（与历史 DEPTH 一致，扁平模式关闭时还原） */
-export const BASE_DEPTH = 6
 
 export const mapConfig = {
   /** 板块拉伸厚度 */
@@ -186,18 +182,4 @@ export function applyTheme(name: ThemeName): void {
   anyMap.sideColorBottom = p.sideColorBottom
   anyMap.innerLineColor = p.innerLineColor
   anyMap.outlineColor = p.outlineColor
-}
-
-/**
- * 动态切换板块厚度：2D 扁平模式把 depth 压薄，并把依赖它的线框层级 lineZ、
- * 标记锚点 spotZ 同步重算。几何会在调用方处重建（drawRegion 重新按新 depth
- * 拉伸），侧壁共享材质的 depth uniform 由 drawRegion.updateRegionDepth 同步。
- * 所有消费方（viewport 取景 / 测量 / 热力 / 轨道 / 拾取地面）都在运行时读
- * mapConfig.depth，故这里改值即可全局生效，无需逐处传参。
- */
-export function setDepth(d: number): void {
-  const m = mapConfig as Record<string, unknown>
-  m.depth = d
-  m.lineZ = d + 0.06
-  m.spotZ = d + 0.35
 }

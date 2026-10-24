@@ -5,7 +5,7 @@ import { MD5Util } from './md5-util';
 import RestResult from '../../models/RestResult';
 import UiActionDefinition from '../../models/UiActionDefinition';
 import { MyTaskTypeEnum } from '../../models/MyTaskTypeEnum';
-import { TeMessage } from '@tiansu/element-plus';
+import { ElMessage } from 'element-plus';
 import CustomPageDefinition from '../../models/CustomPageDefinition';
 import CustomPageAddress from '../../models/CustomPageAddress';
 import { PageTypeEnum } from '../../models/PageTypeEnum';
@@ -86,7 +86,7 @@ export class TeWorkflowUtil {
       console.log('customPageDefinition', customPageDefinition);
       identityType = identityType || [MyTaskTypeEnum.TODO];
       if (!customPageDefinition) {
-        TeMessage.error('暂不支持处理，请前往App处理');
+        ElMessage.error('暂不支持处理，请前往App处理');
       } else if (customPageDefinition.pageType || customPageDefinition.customPageId) {
         let customPageAddress = customPageDefinition as CustomPageAddress;
         if (customPageAddress.pageType === PageTypeEnum.DEFAULT) {
@@ -139,7 +139,7 @@ export class TeWorkflowUtil {
                     });
                   }
                 } else {
-                  TeMessage.error('暂不支持处理，请前往App处理');
+                  ElMessage.error('暂不支持处理，请前往App处理');
                 }
               }
             }
@@ -183,7 +183,7 @@ export class TeWorkflowUtil {
             }
           }
         } else {
-          TeMessage.error('暂不支持处理，请前往App处理');
+          ElMessage.error('暂不支持处理，请前往App处理');
         }
       } else {
         ///兼容3.4.0

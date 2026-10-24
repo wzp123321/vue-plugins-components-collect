@@ -41,8 +41,8 @@
 </template>
 
 <script setup lang="ts">
-// import { TemWorkflowButton } from '@tiansu/ts-mobile-package';
-// import UniSection from '@tiansu/ts-mobile-package/uni-section/components/uni-section/uni-section.vue';
+// import { TemWorkflowButton } from '@zpackage/mobile-package';
+// import UniSection from '@zpackage/mobile-package/uni-section/components/uni-section/uni-section.vue';
 // import Request from 'luch-request';
 const http = new Request({
   baseURL: 'http://192.168.50.174:7300/mock/661e5f340c741600205e68c7/example',

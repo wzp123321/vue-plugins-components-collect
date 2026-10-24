@@ -46,7 +46,7 @@ module.exports = {
             commonjs2: 'vue',
             amd: 'vue'
           },
-        //   '@tiansu/element-plus': '@tiansu/element-plus'
+        //   'element-plus': 'element-plus'
     },
     plugins: [
         new VueLoaderPlugin()

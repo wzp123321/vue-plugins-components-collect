@@ -2,8 +2,8 @@ import App from './App.uvue'
 
 import { createSSRApp } from 'vue'
 
-import UI from '@/uni_modules/@tiansu/ts-mobile-ui/components/index.uts'
-import { initThemeMode } from '@/uni_modules/@tiansu/ts-mobile-token/index.uts'
+import UI from '@/uni_modules/@zpackage/mobile-package/ui/components/index.uts'
+import { initThemeMode } from '@/uni_modules/@zpackage/mobile-package/token/index.uts'
 
 export function createApp() {
 	const app = createSSRApp(App)

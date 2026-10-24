@@ -8,9 +8,9 @@
         <te-table-column prop="city" label="City" width="120" />
         <te-table-column prop="address" label="Address" />
         <te-table-column prop="zip" label="Zip" width="120" />
-      </te-table-column>
-    </te-table-column>
-  </te-table>
+      </el-table-column>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

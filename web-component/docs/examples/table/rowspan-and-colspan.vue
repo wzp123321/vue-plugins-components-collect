@@ -11,7 +11,7 @@
       <te-table-column prop="amount1" sortable label="Amount 1" />
       <te-table-column prop="amount2" sortable label="Amount 2" />
       <te-table-column prop="amount3" sortable label="Amount 3" />
-    </te-table>
+    </el-table>
 
     <te-table
       :data="tableData"
@@ -24,12 +24,12 @@
       <te-table-column prop="amount1" label="Amount 1" />
       <te-table-column prop="amount2" label="Amount 2" />
       <te-table-column prop="amount3" label="Amount 3" />
-    </te-table>
+    </el-table>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { TableColumnCtx } from '@tiansu/element-plus'
+import type { TableColumnCtx } from 'element-plus'
 
 interface User {
   id: string

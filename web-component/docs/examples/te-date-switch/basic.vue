@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TeConfigProvider } from '@tiansu/element-plus';
+import { ElConfigProvider } from 'element-plus';
 import { TeDateSwitch } from '@ts-web-package/components/lib/te-date-switch';
 // import "@/components/styles/index.scss";
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs';
@@ -50,7 +50,7 @@ watch(yearValue, (value) => {
         @dateChange="handleDateChange"
       >
       </te-date-switch>
-    </te-config-provider>
+    </el-config-provider>
   </section>
 </template>
 <style lang="scss" scoped>

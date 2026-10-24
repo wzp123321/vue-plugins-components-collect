@@ -12,7 +12,7 @@
         :value="item.value"
       />
     </te-option-group>
-  </te-select>
+  </el-select>
 </template>
 
 <script lang="ts" setup>

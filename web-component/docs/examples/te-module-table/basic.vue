@@ -4,9 +4,9 @@
       <te-input
         v-model="tableListParams.searchValue"
         placeholder="请输入设备名称11"
-      ></te-input>
-      <te-button type="primary" @click="query()">查询</te-button>
-      <te-button type="info" @click="reset()">重置</te-button>
+      ></el-input>
+      <te-button type="primary" @click="query()">查询</el-button>
+      <te-button type="info" @click="reset()">重置</el-button>
       <ColSettingBtn
         class="btn"
         v-model="tableColumnData"
@@ -66,7 +66,7 @@ import { defineComponent, reactive, toRefs, ref } from 'vue';
 import { TeModuleTable } from '@ts-web-package/components/lib/te-module-table';
 import ColSettingBtn from '@ts-web-package/components/lib/te-module-table/src/components/ColSettingBtn.vue';
 import TeTableButtonGroup from '@ts-web-package/components/lib/te-module-table/src/components/TeTableButtonGroup.vue';
-import { TeButton } from '@tiansu/element-plus';
+import { ElButton } from 'element-plus';
 import { IconFolder } from '@arco-iconbox/vue-te';
 import axios from 'axios';
 
@@ -83,7 +83,7 @@ interface DataType {
 export default defineComponent({
   name: 'table-demo',
   components: {
-    TeButton,
+    ElButton,
     TeModuleTable,
     ColSettingBtn,
     TeTableButtonGroup,

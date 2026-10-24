@@ -8,23 +8,23 @@
     :auto-upload="false"
   >
     <template #trigger>
-      <te-button type="primary">select file</te-button>
+      <te-button type="primary">select file</el-button>
     </template>
     <te-button class="ml-3" type="success" @click="submitUpload">
       upload to server
-    </te-button>
+    </el-button>
     <template #tip>
       <div class="te-upload__tip text-red">
         limit 1 file, new file will cover the old file
       </div>
     </template>
-  </te-upload>
+  </el-upload>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { genFileId } from '@tiansu/element-plus'
-import type { UploadInstance, UploadProps, UploadRawFile } from '@tiansu/element-plus'
+import { genFileId } from 'element-plus'
+import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
 
 const upload = ref<UploadInstance>()
 

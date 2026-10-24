@@ -7,7 +7,7 @@
       :value="item.value"
       :disabled="item.disabled"
     />
-  </te-select>
+  </el-select>
 </template>
 
 <script lang="ts" setup>

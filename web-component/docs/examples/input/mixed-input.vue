@@ -2,12 +2,12 @@
   <div>
     <te-input v-model="input1" placeholder="Please input">
       <template #prepend>Http://</template>
-    </te-input>
+    </el-input>
   </div>
   <div class="mt-4">
     <te-input v-model="input2" placeholder="Please input">
       <template #append>.com</template>
-    </te-input>
+    </el-input>
   </div>
   <div class="mt-4">
     <te-input
@@ -20,12 +20,12 @@
           <te-option label="Restaurant" value="1" />
           <te-option label="Order No." value="2" />
           <te-option label="Tel" value="3" />
-        </te-select>
+        </el-select>
       </template>
       <template #append>
         <te-button :icon="Search" />
       </template>
-    </te-input>
+    </el-input>
   </div>
   <div class="mt-4">
     <te-input
@@ -41,9 +41,9 @@
           <te-option label="Restaurant" value="1" />
           <te-option label="Order No." value="2" />
           <te-option label="Tel" value="3" />
-        </te-select>
+        </el-select>
       </template>
-    </te-input>
+    </el-input>
   </div>
 </template>
 

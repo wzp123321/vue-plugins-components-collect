@@ -33,10 +33,10 @@
           :rows="3"
           :autofocus="true"
         />
-      </te-form-item>
-    </te-form>
+      </el-form-item>
+    </el-form>
     <template #footer>
-      <te-button :disabled="saving" @click="handleCancel">取消</te-button>
+      <te-button :disabled="saving" @click="handleCancel">取消</el-button>
       <te-button
         type="primary"
         :loading="saving"
@@ -44,21 +44,21 @@
         @click="handleConfirm"
       >
         确定
-      </te-button>
+      </el-button>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 import {
-  TeDialog,
-  TeMessage,
+  ElDialog,
+  ElMessage,
   TeForm,
   TeFormItem,
-  TeInput,
-  TeButton,
-} from '@tiansu/element-plus';
+  ElInput,
+  ElButton,
+} from 'element-plus';
 import { filterText } from '../utils';
 
 defineOptions({ name: 'TeAlarmRemarkDialog' });
@@ -126,7 +126,7 @@ const handleConfirm = async () => {
       }
     });
   } catch {
-    TeMessage.error('请输入告警备注');
+    ElMessage.error('请输入告警备注');
   }
 };
 </script>

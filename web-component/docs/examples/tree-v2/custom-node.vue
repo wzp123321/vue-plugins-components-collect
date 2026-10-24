@@ -6,7 +6,7 @@
       >
       <span>{{ node.label }}</span>
     </template>
-  </te-tree-v2>
+  </el-tree-v2>
 </template>
 <script lang="ts" setup>
 interface Tree {

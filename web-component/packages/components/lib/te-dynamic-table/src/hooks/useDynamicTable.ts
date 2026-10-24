@@ -1,4 +1,4 @@
-import type { FormInstance, TableInstance } from '@tiansu/element-plus';
+import type { FormInstance, TableInstance } from 'element-plus';
 import { cloneDeep, isFunction, reduce, some } from 'lodash';
 import { computed, onMounted, reactive, ref, toRaw, watch } from 'vue';
 import { DynamicTableProps } from '../type';

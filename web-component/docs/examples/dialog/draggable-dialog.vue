@@ -1,19 +1,19 @@
 <template>
   <te-button text @click="dialogVisible = true">
     Click to open Dialog
-  </te-button>
+  </el-button>
 
   <te-dialog v-model="dialogVisible" title="Tips" width="30%" draggable>
     <span>It's a draggable Dialog</span>
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="dialogVisible = false">Cancel</te-button>
+        <te-button @click="dialogVisible = false">Cancel</el-button>
         <te-button type="primary" @click="dialogVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>

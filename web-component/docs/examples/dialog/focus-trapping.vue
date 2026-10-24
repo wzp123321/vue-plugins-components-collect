@@ -1,7 +1,7 @@
 <template>
   <te-button text @click="dialogVisible = true">
     click to open the Dialog
-  </te-button>
+  </el-button>
 
   <div>
     <p>Close dialog and the input will be focused</p>
@@ -20,21 +20,21 @@
     <te-input placeholder="Initially focused" />
     <template #footer>
       <span class="dialog-footer">
-        <te-button @click="dialogVisible = false">Cancel</te-button>
+        <te-button @click="dialogVisible = false">Cancel</el-button>
         <te-button type="primary" @click="dialogVisible = false">
           Confirm
-        </te-button>
+        </el-button>
       </span>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeInput } from '@tiansu/element-plus'
+import { ElInput } from 'element-plus'
 
 const dialogVisible = ref(false)
-const inputRef = ref<InstanceType<typeof TeInput>>()
+const inputRef = ref<InstanceType<typeof ElInput>>()
 
 const handleCloseAutoFocus = () => {
   inputRef.value?.focus()

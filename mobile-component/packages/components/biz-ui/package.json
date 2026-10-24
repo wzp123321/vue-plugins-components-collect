@@ -1,5 +1,5 @@
 {
-  "name": "@tiansu/ts-mobile-biz-ui",
+  "name": "mobile-biz-ui",
   "displayName": "ts-mobile-biz-ui全面兼容uniapp-x、uniapp、鸿蒙业务组件库。",
   "version": "0.0.25",
   "description": "ts-mobile-biz-ui全面兼容uni-app/uni-app-x/鸿蒙，全面的组件和便捷的工具会让您信手拈来，如鱼得水",
@@ -16,7 +16,7 @@
     "uni-app-x": "^4.87"
   },
   "bin": {
-    "@tiansu/ts-mobile-biz-ui": "scripts/install.js"
+    "@zpackage/mobile-package/biz-ui": "scripts/install.js"
   },
   "files": [
     "dist",
@@ -111,7 +111,7 @@
     "asmcrypto.js": "^2.3.2"
   },
   "uniPeerDependencies": {
-    "@tiansu/ts-mobile-ui": "^0.0.27"
+    "@zpackage/mobile-package/ui": "^0.0.27"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.29",

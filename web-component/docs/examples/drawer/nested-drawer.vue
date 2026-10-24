@@ -1,11 +1,11 @@
 <template>
   <te-button type="primary" style="margin-left: 16px" @click="drawer = true">
     open
-  </te-button>
+  </el-button>
 
   <te-drawer v-model="drawer" title="I'm outer Drawer" size="50%">
     <div>
-      <te-button @click="innerDrawer = true">Click me!</te-button>
+      <te-button @click="innerDrawer = true">Click me!</el-button>
       <te-drawer
         v-model="innerDrawer"
         title="I'm inner Drawer"
@@ -13,20 +13,20 @@
         :before-close="handleClose"
       >
         <p>_(:зゝ∠)_</p>
-      </te-drawer>
+      </el-drawer>
     </div>
-  </te-drawer>
+  </el-drawer>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { TeMessageBox } from '@tiansu/element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const drawer = ref(false)
 const innerDrawer = ref(false)
 
 const handleClose = (done: () => void) => {
-  TeMessageBox.confirm('You still have unsaved data, proceed?')
+  ElMessageBox.confirm('You still have unsaved data, proceed?')
     .then(() => {
       done()
     })

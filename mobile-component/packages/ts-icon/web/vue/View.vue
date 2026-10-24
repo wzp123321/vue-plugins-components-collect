@@ -1,0 +1,56 @@
+<template>
+  <view
+    class="icon"
+    :class="$attrs.class"
+    :style="[iconStyle, $attrs.style]"
+    :hover-class="hoverClass"
+    @tap="onTap"
+  >
+    <svg class="icon-svg" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet"><path fill="currentColor" fill-rule="evenodd" d="M4 12.001c.003-.016.017-.104.095-.277.086-.191.225-.431.424-.708.398-.553.993-1.192 1.745-1.798C7.777 7.996 9.812 7 12 7s4.223.996 5.736 2.216c.752.606 1.347 1.245 1.745 1.798.2.277.338.517.424.708.078.173.092.261.095.277V12c-.003.016-.017.104-.095.277q-.178.375-.424.708c-.398.553-.993 1.192-1.745 1.798C16.224 16.004 14.189 17 12 17s-4.223-.996-5.736-2.216c-.752-.606-1.347-1.245-1.745-1.798a4.2 4.2 0 0 1-.424-.708A1.1 1.1 0 0 1 4 12.001M12 5C9.217 5 6.752 6.254 5.009 7.659c-.877.706-1.6 1.474-2.113 2.187q-.365.496-.625 1.055C2.123 11.23 2 11.611 2 12c0 .388.123.771.27 1.099.155.342.37.7.626 1.055.513.713 1.236 1.48 2.113 2.187C6.752 17.746 9.217 19 12 19s5.248-1.254 6.991-2.659c.877-.706 1.6-1.474 2.113-2.187.257-.356.471-.713.625-1.055.148-.328.271-.71.271-1.099 0-.388-.123-.771-.27-1.099a6.2 6.2 0 0 0-.626-1.055c-.513-.713-1.236-1.48-2.113-2.187C17.248 6.254 14.783 5 12 5m-1 7a1 1 0 1 1 2 0 1 1 0 0 1-2 0m1-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6" clip-rule="evenodd"/></svg>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  size: { type: [String, Number], default: 22 },
+  color: { type: String, default: '' },
+  hoverClass: { type: String, default: '' }
+})
+
+const iconSize = computed(() => {
+  const size = props.size
+  if (typeof size === 'number') return size + 'px'
+  return size.endsWith('px') ? size : size + 'px'
+})
+
+const iconColor = computed(() => props.color || 'currentColor')
+
+const iconStyle = computed(() => ({
+  '--icon-size': iconSize.value,
+  '--icon-color': iconColor.value
+}))
+
+const emit = defineEmits(['click'])
+function onTap() {
+  emit('click')
+}
+</script>
+
+<style scoped lang="scss">
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size, 22px);
+  height: var(--icon-size, 22px);
+  color: var(--icon-color, currentColor);
+}
+.icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+</style>

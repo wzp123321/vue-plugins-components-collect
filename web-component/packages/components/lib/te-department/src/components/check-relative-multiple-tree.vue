@@ -32,14 +32,14 @@
             <div class="te-department-tree-node-text">{{ node.label }}</div>
           </overflow-tooltip>
         </div>
-      </te-checkbox>
+      </el-checkbox>
     </template>
-  </te-tree>
+  </el-tree>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, nextTick, computed } from 'vue';
-import { TeTree, TeCheckbox, TeMessage } from '@tiansu/element-plus';
+import { ElTree, ElCheckbox, ElMessage } from 'element-plus';
 import { IconFolder, IconFolderOpened } from '@arco-iconbox/vue-te/esm';
 import OverflowTooltip from './overflow-tooltip.vue';
 import LoadingNode from './loading-node.vue';
@@ -74,7 +74,7 @@ onMounted(() => {
 });
 
 const treeKey = ref(0);
-const treeRef = ref<InstanceType<typeof TeTree>>();
+const treeRef = ref<InstanceType<typeof ElTree>>();
 const fullTreeData = ref<TreeNode[]>([]);
 // 第一层只有一个节点且有子节点时才默认展开
 const defaultExpandKeys = computed(() =>
@@ -90,7 +90,7 @@ const handleNodeClick = (data: TreeNode) => {
     handleUncheck(data);
   } else {
     if (valueIds.length >= props.max) {
-      TeMessage.warning(`超过${props.max}个无法继续添加`);
+      ElMessage.warning(`超过${props.max}个无法继续添加`);
       return;
     }
 
@@ -98,7 +98,7 @@ const handleNodeClick = (data: TreeNode) => {
     const shouldCheckedPIds = getShouldCheckedPIds(data, [...valueIds, data.id!]);
     valueIds = [...new Set([...valueIds, ...shouldCheckedPIds, ...childrenIds])];
     if (valueIds.length > props.max) {
-      TeMessage.warning(`联选添加后数量会超出${props.max}个，无法选择当前部门`);
+      ElMessage.warning(`联选添加后数量会超出${props.max}个，无法选择当前部门`);
       return;
     }
 

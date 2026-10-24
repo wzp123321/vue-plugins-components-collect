@@ -31,7 +31,7 @@
     <template #content>
       <span> Some content </span>
     </template>
-  </te-tooltip>
+  </el-tooltip>
 </template>
 
 <script setup lang="ts">

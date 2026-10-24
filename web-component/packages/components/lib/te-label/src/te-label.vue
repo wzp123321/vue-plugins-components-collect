@@ -41,7 +41,7 @@
                   >
                 </div>
               </template>
-            </te-tree>
+            </el-tree>
           </div>
 
           <te-divider direction="vertical" class="te-label-select-divider" />
@@ -64,7 +64,7 @@
                   @click="handleLeftItemClick(item, $event)"
                 >
                   {{ item.name }}
-                </te-checkbox>
+                </el-checkbox>
                 <te-radio
                   v-else
                   :model-value="selected[0]?.id"
@@ -72,7 +72,7 @@
                   @click="handleLeftItemClick(item, $event)"
                 >
                   {{ item.name }}
-                </te-radio>
+                </el-radio>
               </div>
             </div>
             <div v-if="labelList.length > 0" class="te-label-select-right-pagination">
@@ -116,29 +116,29 @@
 
     <template #footer>
       <div>
-        <te-button @click="modalVisible = false">取消</te-button>
-        <te-button type="primary" @click="handleConfirm">确定</te-button>
+        <te-button @click="modalVisible = false">取消</el-button>
+        <te-button type="primary" @click="handleConfirm">确定</el-button>
       </div>
     </template>
-  </te-dialog>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick } from 'vue';
 import {
-  TeDialog,
-  TeDivider,
-  TeButton,
-  TeCheckbox,
-  TeTree,
-  TeRadio,
+  ElDialog,
+  ElDivider,
+  ElButton,
+  ElCheckbox,
+  ElTree,
+  ElRadio,
   TeEmpty,
-  TeTooltip,
-  TeMessage,
+  ElTooltip,
+  ElMessage,
   TePagination,
-} from '@tiansu/element-plus';
+} from 'element-plus';
 import { IconClose, IconFolder, IconFolderOpened } from '@arco-iconbox/vue-te/esm';
-import type { CheckboxValueType } from '@tiansu/element-plus/es/components/checkbox/src/checkbox';
+import type { CheckboxValueType } from 'element-plus/es/components/checkbox/src/checkbox';
 import { type AxiosInstance } from 'axios';
 
 import getAllResultForPage from '../../te-employee/src/get-all-result-for-page';
@@ -343,7 +343,7 @@ const handleLeftItemClick = (item: LabelDTO, event: Event) => {
       if (selected.value.length < multipleLimitMax.value) {
         selected.value.push(item);
       } else {
-        TeMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
+        ElMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
       }
     }
   }
@@ -353,7 +353,7 @@ const handleLeftItemClick = (item: LabelDTO, event: Event) => {
 const handleCheckAllChange = async (val: CheckboxValueType) => {
   if (val) {
     if (selected.value.length >= multipleLimitMax.value) {
-      TeMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
+      ElMessage.warning(`超过${multipleLimitMax.value}个无法继续添加`);
       return;
     }
 

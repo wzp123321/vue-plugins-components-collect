@@ -25,12 +25,12 @@
         <span> {{ node.label }} </span>
       </div>
     </template>
-  </te-tree-select>
+  </el-tree-select>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
-import { TeTreeSelect, TeCheckbox } from '@tiansu/element-plus';
+import { ElTreeSelect, ElCheckbox } from 'element-plus';
 import { useSpaceAttribute, type TreeNode } from './use-space-attribute';
 import { type AxiosInstance } from 'axios';
 
@@ -44,7 +44,7 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(['update:modelValue']);
 
-const treeRef = ref<InstanceType<typeof TeTreeSelect>>();
+const treeRef = ref<InstanceType<typeof ElTreeSelect>>();
 const { treeData, getChildrenIds, getParentIds, getCheckedPIds, getIsChecked, getIsHalfChecked } =
   useSpaceAttribute(props);
 

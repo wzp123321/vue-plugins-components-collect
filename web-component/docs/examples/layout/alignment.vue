@@ -1,34 +1,34 @@
 <template>
   <te-row class="row-bg">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
   <te-row class="row-bg" justify="center">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
   <te-row class="row-bg" justify="end">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
   <te-row class="row-bg" justify="space-between">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
   <te-row class="row-bg" justify="space-around">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
   <te-row class="row-bg" justify="space-evenly">
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></te-col>
-    <te-col :span="6"><div class="grid-content ep-bg-purple" /></te-col>
-  </te-row>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple-light" /></el-col>
+    <te-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+  </el-row>
 </template>
 
 <style>

@@ -3,11 +3,11 @@
     <te-table-column label="Date" width="180">
       <template #default="scope">
         <div style="display: flex; align-items: center">
-          <te-icon><timer /></te-icon>
+          <el-icon><timer /></el-icon>
           <span style="margin-left: 10px">{{ scope.row.date }}</span>
         </div>
       </template>
-    </te-table-column>
+    </el-table-column>
     <te-table-column label="Name" width="180">
       <template #default="scope">
         <te-popover effect="light" trigger="hover" placement="top" width="auto">
@@ -16,11 +16,11 @@
             <div>address: {{ scope.row.address }}</div>
           </template>
           <template #reference>
-            <te-tag>{{ scope.row.name }}</te-tag>
+            <el-tag>{{ scope.row.name }}</el-tag>
           </template>
-        </te-popover>
+        </el-popover>
       </template>
-    </te-table-column>
+    </el-table-column>
     <te-table-column label="Operations">
       <template #default="scope">
         <te-button size="small" @click="handleEdit(scope.$index, scope.row)"
@@ -33,8 +33,8 @@
           >Delete</te-button
         >
       </template>
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

@@ -7,8 +7,8 @@
       <te-table-column prop="state" label="State" width="100" />
       <te-table-column prop="city" label="City" width="120" />
       <te-table-column prop="address" label="Address" width="250" />
-    </te-table-column>
-  </te-table>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script lang="ts" setup>

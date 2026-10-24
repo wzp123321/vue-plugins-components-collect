@@ -16,7 +16,7 @@
       >Suzhou</te-descriptions-item
     >
     <te-descriptions-item label="Remarks" label-align="right" align="center">
-      <te-tag size="small">School</te-tag>
+      <te-tag size="small">School</el-tag>
     </te-descriptions-item>
     <te-descriptions-item label="Address" label-align="right" align="center"
       >No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu
