@@ -62,7 +62,7 @@ const groups = navGroups;
 const total = navTotal;
 
 /** 交给外壳统一处理命令面板，避免首页再实现一份搜索 */
-function openPalette() {
+const openPalette = () => {
   window.dispatchEvent(new CustomEvent('ai-open-palette'));
 }
 </script>

@@ -14,8 +14,7 @@ const chartRef = ref<HTMLElement>();
 const isDark = ref(false);
 let chart: VChart | null = null;
 
-function buildSpec(): VChartSpec {
-  return {
+const buildSpec = (): VChartSpec => ({
     type: 'bar',
     autoFit: true,
     theme: isDark.value ? 'dark' : 'light',
@@ -31,13 +30,12 @@ function buildSpec(): VChartSpec {
     xField: 'type',
     yField: 'value',
     bar: { style: { cornerRadius: [4, 4, 0, 0] } },
-  };
-}
+  });
 
-function toggle() {
+const toggle = () => {
   isDark.value = !isDark.value;
   chart?.updateSpec(buildSpec());
-}
+};
 
 onMounted(() => {
   chart = new VChart(buildSpec(), { dom: chartRef.value });

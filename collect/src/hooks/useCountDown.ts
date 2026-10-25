@@ -10,13 +10,13 @@ export interface UseCountDownOptions {
   onFinish?: () => void
 }
 
-export function useCountDown(options: UseCountDownOptions) {
+export const useCountDown = (options: UseCountDownOptions) => {
   const countDownData = ref<CountDownUnit[]>([])
   const finished = ref(false)
   let timer: ReturnType<typeof setInterval> | null = null
   let remaining = options.leftTime
 
-  function updateDisplay() {
+  const updateDisplay = () => {
     const seconds = Math.floor(remaining / 1000)
     const date = new Date()
     date.setHours(0, 0, seconds, 0)
@@ -27,7 +27,7 @@ export function useCountDown(options: UseCountDownOptions) {
     ]
   }
 
-  function start() {
+  const start = () => {
     if (timer) clearInterval(timer)
     remaining = options.leftTime
     finished.value = false
@@ -48,7 +48,7 @@ export function useCountDown(options: UseCountDownOptions) {
     }, 1000)
   }
 
-  function stop() {
+  const stop = () => {
     if (timer) {
       clearInterval(timer)
       timer = null

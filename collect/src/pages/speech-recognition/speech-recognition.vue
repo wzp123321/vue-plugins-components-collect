@@ -66,7 +66,7 @@ let recognition: any = null;
 let recorder: MediaRecorder | null = null;
 let chunks: Blob[] = [];
 
-function toggleListen() {
+const toggleListen = () => {
   if (listening.value) {
     recognition?.stop();
     return;
@@ -103,7 +103,7 @@ function toggleListen() {
   listening.value = true;
 }
 
-async function toggleRecord() {
+const toggleRecord = async () => {
   if (recording.value) {
     recorder?.stop();
     return;

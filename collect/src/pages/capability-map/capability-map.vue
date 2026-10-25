@@ -86,6 +86,8 @@ const needTotal = capabilityProfiles.reduce((sum, profile) => sum + profile.need
 /** path → 导航信息（分组/标题），画像本身不重复存这些 */
 const navByKey = new Map(allNavItems.map((item) => [item.path, item]));
 
+const visibleInGroup = (groupKey: string): boolean => activeFilter.value === 'all' || activeFilter.value === groupKey;
+
 const hits = computed(() =>
   searchProfiles(query.value)
     .map((hit) => hit.profile)
@@ -94,10 +96,6 @@ const hits = computed(() =>
       return nav ? visibleInGroup(nav.groupKey) : false;
     }),
 );
-
-function visibleInGroup(groupKey: string): boolean {
-  return activeFilter.value === 'all' || activeFilter.value === groupKey;
-}
 
 const filterOptions = computed(() => [
   { key: 'all', label: '全部', count: profileTotal },

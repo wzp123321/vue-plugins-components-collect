@@ -15,11 +15,9 @@ export interface DeviceInstance {
 
 type Kind = 'motor' | 'pump' | 'valve' | 'tank' | 'conveyor' | 'sensor';
 
-function std(color: number, metalness = 0.6, roughness = 0.45): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, metalness, roughness });
-}
+const std = (color: number, metalness = 0.6, roughness = 0.45): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color, metalness, roughness });
 
-function box(w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0, z = 0, shadow = true) {
+const box = (w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0, z = 0, shadow = true) => {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z);
   m.castShadow = shadow;
@@ -27,7 +25,7 @@ function box(w: number, h: number, d: number, mat: THREE.Material, x = 0, y = 0,
   return m;
 }
 
-function cyl(rt: number, rb: number, h: number, mat: THREE.Material, seg = 24): THREE.Mesh {
+const cyl = (rt: number, rb: number, h: number, mat: THREE.Material, seg = 24): THREE.Mesh => {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
   m.castShadow = true;
   m.receiveShadow = true;
@@ -45,7 +43,7 @@ export const DEVICE_POSITIONS: Record<Kind, [number, number, number]> = {
 };
 
 // ───────────────────────── 电机 ─────────────────────────
-function buildMotor(): DeviceInstance {
+const buildMotor = (): DeviceInstance => {
   const g = new THREE.Group();
   const bodyMat = std(0x3b4a63, 0.55, 0.5);
   g.add(box(1.7, 0.22, 2.4, std(0x222a38), 0, 0.11, 0));
@@ -94,7 +92,7 @@ function buildMotor(): DeviceInstance {
 }
 
 // ───────────────────────── 离心泵 ─────────────────────────
-function buildPump(): DeviceInstance {
+const buildPump = (): DeviceInstance => {
   const g = new THREE.Group();
   g.add(box(1.7, 0.22, 1.5, std(0x222a38), 0, 0.11, 0));
   const voluteMat = std(0x46566f, 0.55, 0.5);
@@ -153,7 +151,7 @@ function buildPump(): DeviceInstance {
 }
 
 // ───────────────────────── 电动阀 ─────────────────────────
-function buildValve(): DeviceInstance {
+const buildValve = (): DeviceInstance => {
   const g = new THREE.Group();
   const pipeMat = std(0x3a4a60, 0.5, 0.5);
   const left = cyl(0.22, 0.22, 1.4, pipeMat);
@@ -207,7 +205,7 @@ function buildValve(): DeviceInstance {
 }
 
 // ───────────────────────── 储液罐 ─────────────────────────
-function buildTank(): DeviceInstance {
+const buildTank = (): DeviceInstance => {
   const g = new THREE.Group();
   const base = cyl(1.0, 1.0, 0.15, std(0x2b3445));
   base.position.y = 0.075;
@@ -250,7 +248,7 @@ function buildTank(): DeviceInstance {
 }
 
 // ───────────────────────── 输送带 ─────────────────────────
-function buildConveyor(): DeviceInstance {
+const buildConveyor = (): DeviceInstance => {
   const g = new THREE.Group();
   const frameMat = std(0x36404f, 0.4, 0.6);
   [-2.3, 2.3].forEach((x) => g.add(box(0.18, 0.7, 1.4, std(0x222a38), x, 0.35, 0)));
@@ -295,7 +293,7 @@ function buildConveyor(): DeviceInstance {
 }
 
 // ───────────────────────── 振动传感器 ─────────────────────────
-function buildSensor(): DeviceInstance {
+const buildSensor = (): DeviceInstance => {
   const g = new THREE.Group();
   g.add(box(0.3, 0.12, 0.3, std(0x222a38), 0, 0.06, 0));
   const post = cyl(0.05, 0.05, 1.0, std(0x55607a));
@@ -329,6 +327,4 @@ const BUILDERS: Record<Kind, () => DeviceInstance> = {
   sensor: buildSensor,
 };
 
-export function buildDevice(kind: Kind): DeviceInstance {
-  return BUILDERS[kind]();
-}
+export const buildDevice = (kind: Kind): DeviceInstance => BUILDERS[kind]();

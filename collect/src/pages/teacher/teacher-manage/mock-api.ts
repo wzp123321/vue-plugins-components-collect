@@ -47,7 +47,7 @@ interface Row extends Teacher {
 }
 
 /** 50 条种子数据，用于验证 AC-1（3 页，每页 20 条） */
-function seed(): Row[] {
+const seed = (): Row[] => {
   const list: Row[] = [];
   for (let i = 0; i < 50; i += 1) {
     const id = `t-${String(i + 1).padStart(3, '0')}`;
@@ -82,11 +82,11 @@ const toTeacher = (r: Row): Teacher => ({
   version: r.version,
 });
 
-function assertEdit() {
+const assertEdit = () => {
   if (!mockPerms.edit) throw new ContractError('E_NO_PERM', '无操作权限');
 }
 
-function validate(payload: Partial<TeacherCreatePayload>) {
+const validate = (payload: Partial<TeacherCreatePayload>) => {
   const name = (payload.name ?? '').trim();
   if (!name || name.length > 32) throw new ContractError('E_PARAM', '姓名为 1-32 个字符');
   const code = (payload.code ?? '').trim();
@@ -97,7 +97,7 @@ function validate(payload: Partial<TeacherCreatePayload>) {
 }
 
 /** IF-1 列表（分页 + 姓名模糊 + 学科/状态筛选） */
-export async function fetchTeachers(q: TeacherListQuery): Promise<TeacherListResult> {
+export const fetchTeachers = async (q: TeacherListQuery): Promise<TeacherListResult> => {
   await sleep();
   const page = Math.max(1, q.page ?? 1);
   const size = Math.min(100, Math.max(1, q.size ?? 20));
@@ -116,7 +116,7 @@ export async function fetchTeachers(q: TeacherListQuery): Promise<TeacherListRes
 }
 
 /** IF-2 详情 */
-export async function fetchTeacher(id: string): Promise<Teacher> {
+export const fetchTeacher = async (id: string): Promise<Teacher> => {
   await sleep(80);
   const row = db.find((r) => r.id === id && r.isDeleted === 0);
   if (!row) throw new ContractError('E_NOT_FOUND', '记录不存在或已删除');
@@ -124,7 +124,7 @@ export async function fetchTeacher(id: string): Promise<Teacher> {
 }
 
 /** IF-3 新增 */
-export async function createTeacher(payload: TeacherCreatePayload): Promise<Teacher> {
+export const createTeacher = async (payload: TeacherCreatePayload): Promise<Teacher> => {
   await sleep();
   assertEdit();
   const v = validate(payload);
@@ -145,7 +145,7 @@ export async function createTeacher(payload: TeacherCreatePayload): Promise<Teac
 }
 
 /** IF-4 编辑（version 乐观锁：不一致返回 E_VERSION_CONFLICT，不覆盖） */
-export async function updateTeacher(id: string, payload: TeacherUpdatePayload): Promise<Teacher> {
+export const updateTeacher = async (id: string, payload: TeacherUpdatePayload): Promise<Teacher> => {
   await sleep();
   assertEdit();
   const row = db.find((r) => r.id === id && r.isDeleted === 0);
@@ -162,7 +162,7 @@ export async function updateTeacher(id: string, payload: TeacherUpdatePayload): 
 }
 
 /** IF-5 逻辑删除（置 is_deleted=1，不做物理删除） */
-export async function deleteTeacher(id: string): Promise<{ id: string; deleted: boolean }> {
+export const deleteTeacher = async (id: string): Promise<{ id: string; deleted: boolean }> => {
   await sleep();
   assertEdit();
   const row = db.find((r) => r.id === id);
@@ -172,7 +172,7 @@ export async function deleteTeacher(id: string): Promise<{ id: string; deleted: 
 }
 
 /** IF-5a 删除前引用检查；排课模块不可用时返回 -1（前端降级为通用确认框） */
-export async function fetchReferences(id: string): Promise<TeacherReferences> {
+export const fetchReferences = async (id: string): Promise<TeacherReferences> => {
   await sleep(80);
   const row = db.find((r) => r.id === id && r.isDeleted === 0);
   if (!row) throw new ContractError('E_NOT_FOUND', '记录不存在或已删除');
@@ -182,7 +182,7 @@ export async function fetchReferences(id: string): Promise<TeacherReferences> {
 }
 
 /** IF-6 工号查重（excludeId 用于编辑时排除自身） */
-export async function checkCode(code: string, excludeId?: string): Promise<{ exists: boolean }> {
+export const checkCode = async (code: string, excludeId?: string): Promise<{ exists: boolean }> => {
   await sleep(60);
   const c = code.trim();
   if (!c) return { exists: false };
@@ -190,7 +190,7 @@ export async function checkCode(code: string, excludeId?: string): Promise<{ exi
 }
 
 /** 演练辅助：模拟他人修改了某条记录，用于验证 AC-10 并发冲突 */
-export async function simulateConcurrentEdit(id: string): Promise<void> {
+export const simulateConcurrentEdit = async (id: string): Promise<void> => {
   const row = db.find((r) => r.id === id && r.isDeleted === 0);
   if (row) {
     row.name = `${row.name}（他人已改）`;

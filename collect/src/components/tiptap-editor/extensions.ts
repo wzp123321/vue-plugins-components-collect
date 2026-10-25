@@ -47,7 +47,7 @@ export interface BuildExtensionsOptions {
  * @description StarterKit(v3) 已内置 link / underline，这里关闭后用带配置的版本替换，
  * 保证链接新窗口打开、下划线可被工具栏切换
  */
-export function buildExtensions(options: BuildExtensionsOptions = {}): AnyExtension[] {
+export const buildExtensions = (options: BuildExtensionsOptions = {}): AnyExtension[] => {
   const { placeholder = '开始编辑你的文档...', disableHistory = false, slashCommand, uploadImage } = options;
 
   const starterKitConfig: Record<string, unknown> = {

@@ -70,7 +70,7 @@ onMounted(() => {
   });
 });
 
-function addNode(type: string, text: string) {
+const addNode = (type: string, text: string) => {
   if (!lf) return;
   nodeSeq += 1;
   lf.addNode({
@@ -83,12 +83,12 @@ function addNode(type: string, text: string) {
   });
 }
 
-async function exportJson() {
+const exportJson = async () => {
   if (!lf) return;
   jsonView.value = JSON.stringify(lf.getGraphData(), null, 2);
 }
 
-async function importJson() {
+const importJson = async () => {
   if (!lf || !jsonView.value) {
     exportJson();
     return;
@@ -100,7 +100,7 @@ async function importJson() {
   }
 }
 
-function resetDemo() {
+const resetDemo = () => {
   lf?.render(DEMO_DATA);
   jsonView.value = '';
 }

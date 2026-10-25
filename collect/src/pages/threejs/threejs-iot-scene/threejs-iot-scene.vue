@@ -125,11 +125,11 @@ const scenarios: { key: Scenario; label: string }[] = [
   { key: 'stop', label: '停机' },
 ]
 
-function onScenario(s: Scenario) {
+const onScenario = (s: Scenario) => {
   setScenario(s)
   handle.value?.setScenario(s)
 }
-function toggleRotate() {
+const toggleRotate = () => {
   autoRotate.value = !autoRotate.value
   handle.value?.setAutoRotate(autoRotate.value)
 }
@@ -138,12 +138,8 @@ const stColorMap: Record<string, string> = { 运行: '#37e07a', 告警: '#ff5a3c
 const stColor = (s: string) => stColorMap[s] || '#9aa7bd'
 const tempColor = computed(() => (kpis.value.avgTemp > 68 ? '#ff5a3c' : '#39e0ff'))
 
-function devName(id: string) {
-  return DEVICES.find((d) => d.id === id)?.name || id
-}
-function tagLabel(key: string) {
-  return TAGS.find((t) => t.key === key)?.label || key
-}
+const devName = (id: string) => DEVICES.find((d) => d.id === id)?.name || id
+const tagLabel = (key: string) => TAGS.find((t) => t.key === key)?.label || key
 
 // KPI 环形仪表（轻量 SVG，避免引入额外依赖）
 const Ring = defineComponent({

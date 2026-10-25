@@ -16,15 +16,13 @@ interface LiveRow {
   value: number;
 }
 
-function makeRows(base: number): LiveRow[] {
-  return Array.from({ length: 8 }, (_, index) => ({
+const makeRows = (base: number): LiveRow[] =>
+  Array.from({ length: 8 }, (_, index) => ({
     time: `T${index + 1}`,
     value: Math.max(5, Math.round(base + Math.random() * 40 - 20)),
   }));
-}
 
-function buildSpec(): VChartSpec {
-  return {
+const buildSpec = (): VChartSpec => ({
     type: 'area',
     autoFit: true,
     data: { values: makeRows(50) },
@@ -33,8 +31,7 @@ function buildSpec(): VChartSpec {
     line: { style: { curveType: 'monotone' } },
     area: { style: { fillOpacity: 0.15 } },
     axes: [{ orient: 'left', range: { min: 0 } }],
-  };
-}
+  });
 
 onMounted(() => {
   chart = new VChart(buildSpec(), { dom: chartRef.value });

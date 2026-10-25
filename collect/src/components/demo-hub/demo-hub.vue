@@ -51,11 +51,9 @@ const props = defineProps<{
 const route = useRoute();
 const router = useRouter();
 
-function storedKey(): string {
-  return route.path;
-}
+const storedKey = (): string => route.path;
 
-function readStoredTab(): string {
+const readStoredTab = (): string => {
   try {
     return sessionStorage.getItem(`demo-hub-tab:${storedKey()}`) ?? '';
   } catch {
@@ -63,7 +61,7 @@ function readStoredTab(): string {
   }
 }
 
-function persistTab(key: string) {
+const persistTab = (key: string) => {
   try {
     sessionStorage.setItem(`demo-hub-tab:${storedKey()}`, key);
   } catch {
@@ -71,7 +69,7 @@ function persistTab(key: string) {
   }
 }
 
-function initialKey(): string {
+const initialKey = (): string => {
   const fromQuery = route.query[props.queryKey ?? 'tab'];
   if (typeof fromQuery === 'string' && props.tabs.some((tab) => tab.key === fromQuery)) {
     return fromQuery;
@@ -97,7 +95,7 @@ watch(
   },
 );
 
-function switchTab(key: string) {
+const switchTab = (key: string) => {
   activeKey.value = key;
   persistTab(key);
   // 同步地址栏，保证合集页内的示例可收藏、可分享

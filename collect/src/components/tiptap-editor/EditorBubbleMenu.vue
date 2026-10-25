@@ -108,16 +108,16 @@ const presetColors = [
 // ===== 颜色 =====
 const textColorVisible = ref(false);
 
-function chooseTextColor(color: string) {
+const chooseTextColor = (color: string) => {
   exec((chain) => chain.setColor(color));
   textColorVisible.value = false;
 }
 
-function onTextColorPickerChange(color: string | null) {
+const onTextColorPickerChange = (color: string | null) => {
   if (color) exec((chain) => chain.setColor(color));
 }
 
-function clearTextColor() {
+const clearTextColor = () => {
   exec((chain) => chain.unsetColor());
   textColorVisible.value = false;
 }
@@ -131,13 +131,13 @@ watch(linkVisible, (visible) => {
   if (visible) linkUrl.value = props.snapshot.linkHref;
 });
 
-function applyLink() {
+const applyLink = () => {
   if (!linkUrl.value) return;
   exec((chain) => chain.setLink({ href: linkUrl.value }));
   linkVisible.value = false;
 }
 
-function removeLink() {
+const removeLink = () => {
   exec((chain) => chain.unsetLink());
   linkVisible.value = false;
 }

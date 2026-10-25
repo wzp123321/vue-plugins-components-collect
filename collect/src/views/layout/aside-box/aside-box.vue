@@ -141,14 +141,9 @@ const totalCount = computed(() => props.menuList.reduce((sum, group) => sum + co
 const results = computed(() => searchNav(query.value));
 
 /** 合集页内的子示例为 searchOnly，只进搜索索引，不在菜单里重复铺开 */
-function visibleItems(section: NavSection) {
-  return section.items.filter((item) => !item.searchOnly);
-}
+const visibleItems = (section: NavSection) => section.items.filter((item) => !item.searchOnly);
 
-/** 分组展开状态：首次进入只展开当前路由所在分组 */
-const openMap = ref<Record<string, boolean>>(loadOpenState());
-
-function loadOpenState(): Record<string, boolean> {
+const loadOpenState = (): Record<string, boolean> => {
   try {
     const raw = localStorage.getItem(OPEN_STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Record<string, boolean>;
@@ -163,9 +158,12 @@ function loadOpenState(): Record<string, boolean> {
     initial[group.key] = group.key === activeGroup?.key;
   });
   return initial;
-}
+};
 
-function persistOpenState() {
+/** 分组展开状态：首次进入只展开当前路由所在分组 */
+const openMap = ref<Record<string, boolean>>(loadOpenState());
+
+const persistOpenState = () => {
   try {
     localStorage.setItem(OPEN_STORAGE_KEY, JSON.stringify(openMap.value));
   } catch {
@@ -173,21 +171,19 @@ function persistOpenState() {
   }
 }
 
-function isOpen(key: string) {
-  return openMap.value[key] === true;
-}
+const isOpen = (key: string) => openMap.value[key] === true;
 
-function toggleGroup(key: string) {
+const toggleGroup = (key: string) => {
   openMap.value = { ...openMap.value, [key]: !isOpen(key) };
   persistOpenState();
 }
 
-function go(path: string) {
+const go = (path: string) => {
   query.value = '';
   if (path !== activePath.value) router.push({ path });
 }
 
-function goFirst() {
+const goFirst = () => {
   const first = results.value[0];
   if (first) go(first.path);
 }

@@ -27,7 +27,7 @@ interface Draft {
  *
  * @param core 核心状态实例
  */
-export function useGridDraft(core: GridCore) {
+export const useGridDraft = (core: GridCore) => {
   const hasDraft = ref(false);
   const savedAt = ref(0);
   const autoSave = ref(true);

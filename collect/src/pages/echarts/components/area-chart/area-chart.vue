@@ -100,7 +100,7 @@ const mapEChartsOptions = () => ({
   ],
 });
 
-function initCharts() {
+const initCharts = () => {
   const ele = document.getElementById(customChartId.value);
   if (!ele) {
     return;
@@ -108,7 +108,7 @@ function initCharts() {
   echartIns = init(ele);
   echartIns.clear();
   echartIns.setOption(mapEChartsOptions());
-}
+};
 
 onMounted(() => {
   initCharts();

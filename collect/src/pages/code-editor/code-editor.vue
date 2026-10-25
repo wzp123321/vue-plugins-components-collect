@@ -77,11 +77,11 @@ onMounted(() => {
   lineCount.value = view.state.doc.lines;
 });
 
-function showValue() {
+const showValue = () => {
   output.value = view?.state.doc.toString() ?? '';
 }
 
-function insertSnippet() {
+const insertSnippet = () => {
   if (!view) return;
   const pos = view.state.doc.length;
   view.dispatch({

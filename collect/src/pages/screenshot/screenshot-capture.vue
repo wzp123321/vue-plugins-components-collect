@@ -57,25 +57,8 @@ const withWatermark = ref(true);
 const busy = ref(false);
 const shotUrl = ref('');
 
-async function capture() {
-  const target = document.getElementById('shot-target');
-  if (!target) return;
-  busy.value = true;
-  try {
-    const canvas = await html2canvas(target, {
-      scale: 2, // 2 倍采样，文字不糊
-      backgroundColor: '#151721',
-      useCORS: true,
-    });
-    if (withWatermark.value) stampWatermark(canvas);
-    shotUrl.value = canvas.toDataURL('image/png');
-  } finally {
-    busy.value = false;
-  }
-}
-
 /** 在 canvas 上平铺站名水印后再导出 */
-function stampWatermark(canvas: HTMLCanvasElement) {
+const stampWatermark = (canvas: HTMLCanvasElement) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.save();
@@ -92,7 +75,24 @@ function stampWatermark(canvas: HTMLCanvasElement) {
   ctx.restore();
 }
 
-function download() {
+const capture = async () => {
+  const target = document.getElementById('shot-target');
+  if (!target) return;
+  busy.value = true;
+  try {
+    const canvas = await html2canvas(target, {
+      scale: 2, // 2 倍采样，文字不糊
+      backgroundColor: '#151721',
+      useCORS: true,
+    });
+    if (withWatermark.value) stampWatermark(canvas);
+    shotUrl.value = canvas.toDataURL('image/png');
+  } finally {
+    busy.value = false;
+  }
+}
+
+const download = () => {
   if (!shotUrl.value) return;
   const link = document.createElement('a');
   link.download = `report-${Date.now()}.png`;

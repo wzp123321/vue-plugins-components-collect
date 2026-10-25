@@ -993,6 +993,4 @@ const i18n = createI18n({
 /** path → 画像 快速索引 */
 const profileMap = new Map(capabilityProfiles.map((profile) => [profile.path, profile]));
 
-export function getProfile(path: string): CapabilityProfile | undefined {
-  return profileMap.get(path);
-}
+export const getProfile = (path: string): CapabilityProfile | undefined => profileMap.get(path);

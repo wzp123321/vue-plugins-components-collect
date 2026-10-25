@@ -20,11 +20,11 @@ export interface UseExcelExportOptions<T = Record<string, unknown>> {
   getRowValue: (item: T) => (string | number)[];
 }
 
-export function useExcelExport<T = Record<string, unknown>>(options: UseExcelExportOptions<T>) {
+export const useExcelExport = <T = Record<string, unknown>>(options: UseExcelExportOptions<T>) => {
   const { getRowValue } = options;
   const exporting = ref(false);
 
-  async function doExport(data: T[], config: ExcelExportConfig) {
+  const doExport = async (data: T[], config: ExcelExportConfig) => {
     exporting.value = true;
     try {
       const { workbook, worksheet } = createWorkbook(config.sheetName);

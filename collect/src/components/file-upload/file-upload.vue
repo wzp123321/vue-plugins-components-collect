@@ -123,22 +123,20 @@ const showProgress = computed(() => props.uploading || props.uploadProgress > 0)
 
 const uploadPercentage = computed(() => Math.round(props.uploadProgress * 100) / 100);
 
-function onFileChange(file: any) {
+const onFileChange = (file: any) => {
   if (file.raw) {
     (props as any).$emit('fileChange', file.raw);
   }
 }
 
-function getChunkStatusClass(status: string) {
-  return {
-    'status-pending': status === 'pending',
-    'status-uploading': status === 'uploading',
-    'status-success': status === 'success',
-    'status-error': status === 'error',
-  };
-}
+const getChunkStatusClass = (status: string) => ({
+  'status-pending': status === 'pending',
+  'status-uploading': status === 'uploading',
+  'status-success': status === 'success',
+  'status-error': status === 'error',
+});
 
-function getChunkStatusText(status: string) {
+const getChunkStatusText = (status: string) => {
   const statusMap: Record<string, string> = {
     pending: '等待中',
     uploading: '上传中',

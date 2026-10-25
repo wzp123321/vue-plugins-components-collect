@@ -16,7 +16,7 @@ export interface PasteImageOptions {
 }
 
 /** 将图片文件转为 URL（上传或 base64） */
-function fileToUrl(file: File, uploadImage?: (file: File) => Promise<string>): Promise<string> {
+const fileToUrl = (file: File, uploadImage?: (file: File) => Promise<string>): Promise<string> => {
   if (uploadImage) {
     return uploadImage(file);
   }
@@ -28,7 +28,7 @@ function fileToUrl(file: File, uploadImage?: (file: File) => Promise<string>): P
 }
 
 /** 解析 HTML 字符串为 ProseMirror slice 并替换当前选区 */
-function insertHtmlAtSelection(view: EditorView, html: string) {
+const insertHtmlAtSelection = (view: EditorView, html: string) => {
   const dom = new window.DOMParser().parseFromString(html, 'text/html');
   const pmParser = PMDOMParser.fromSchema(view.state.schema);
   const slice = pmParser.parseSlice(dom.body);

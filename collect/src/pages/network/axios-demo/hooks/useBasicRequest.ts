@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 /** 基础 GET/POST 请求 hook */
-export function useBasicRequest() {
+export const useBasicRequest = () => {
   const getLoading = ref(false);
   const postLoading = ref(false);
   const result = ref('');

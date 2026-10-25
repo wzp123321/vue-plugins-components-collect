@@ -190,13 +190,13 @@ const rules: FormRules = {
   hireDate: [{ required: true, message: '请选择入职日期', trigger: 'change' }],
 };
 
-function msgOf(e: unknown): string {
+const msgOf = (e: unknown): string => {
   if (e instanceof ContractError) return e.message;
   return e instanceof Error ? e.message : '未知错误';
 }
 
 /** IF-1 列表 */
-async function load() {
+const load = async () => {
   loading.value = true;
   errorMsg.value = '';
   const query: TeacherListQuery = {
@@ -219,7 +219,7 @@ async function load() {
   }
 }
 
-function syncFromUrl() {
+const syncFromUrl = () => {
   const q = route.query;
   keywordInput.value = (q.keyword as string) ?? '';
   keyword.value = keywordInput.value;
@@ -229,7 +229,7 @@ function syncFromUrl() {
   size.value = Number(q.size) || 20;
 }
 
-function pushUrl() {
+const pushUrl = () => {
   router.replace({
     query: {
       keyword: keyword.value || undefined,
@@ -267,7 +267,7 @@ watch(
   },
 );
 
-function resetForm() {
+const resetForm = () => {
   form.name = '';
   form.code = '';
   form.phone = '';
@@ -277,7 +277,7 @@ function resetForm() {
   formRef.value?.clearValidate();
 }
 
-function openCreate() {
+const openCreate = () => {
   mode.value = 'create';
   editingId.value = '';
   resetForm();
@@ -287,7 +287,7 @@ function openCreate() {
 const versionRef = ref(0);
 
 /** 打开编辑前先拉详情，拿到最新 version（AC-10 乐观锁前提） */
-async function openEdit(row: Teacher) {
+const openEdit = async (row: Teacher) => {
   mode.value = 'edit';
   editingId.value = row.id;
   resetForm();
@@ -307,7 +307,7 @@ async function openEdit(row: Teacher) {
 }
 
 /** IF-6 工号失焦实时查重 */
-async function onCodeBlur() {
+const onCodeBlur = async () => {
   codeError.value = '';
   if (!form.code.trim()) return;
   try {
@@ -318,7 +318,7 @@ async function onCodeBlur() {
   }
 }
 
-async function submit() {
+const submit = async () => {
   const ok = await formRef.value?.validate().catch(() => false);
   if (!ok) return;
   if (codeError.value) {
@@ -347,7 +347,7 @@ async function submit() {
 }
 
 /** 点删除 → IF-5a 引用检查 → 确认框带引用数 → IF-5 逻辑删除（AC-5） */
-async function onDelete(row: Teacher) {
+const onDelete = async (row: Teacher) => {
   let warn = '删除后不可恢复。';
   try {
     const refs = await fetchReferences(row.id);

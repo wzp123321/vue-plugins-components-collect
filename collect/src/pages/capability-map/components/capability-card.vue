@@ -92,9 +92,7 @@ const resolvableAlternatives = computed(
 
 const demoTarget = computed(() => props.profile.usage?.demoPath ?? props.profile.path);
 
-function navTitleOf(path: string): string {
-  return allNavItems.find((item) => item.path === path)?.label ?? path;
-}
+const navTitleOf = (path: string): string => allNavItems.find((item) => item.path === path)?.label ?? path;
 </script>
 
 <style lang="less" scoped>

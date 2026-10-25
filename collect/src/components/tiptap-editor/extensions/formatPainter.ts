@@ -35,10 +35,10 @@ export interface FormatPainterStorage {
  * 采样当前选区的格式样式
  * @description 提取选区的文本级格式（加粗/斜体/颜色等）与段落级格式（对齐/行高）
  */
-export function sampleFormats(editor: {
+export const sampleFormats = (editor: {
   isActive: (name: string) => boolean;
   getAttributes: (name: string) => Record<string, unknown>;
-}): FormatPainterFormats {
+}): FormatPainterFormats => {
   const formats: FormatPainterFormats = {};
 
   formats.bold = editor.isActive('bold');

@@ -14,7 +14,7 @@ import type { Row } from '../types';
  * @param core 核心状态实例（写 currentCell）
  * @param tableRef vxe 实例（scrollToRow / scrollToColumn / setActiveCell）
  */
-export function useGridScroll(core: GridCore, tableRef: Ref<any>) {
+export const useGridScroll = (core: GridCore, tableRef: Ref<any>) => {
   /** 把单元格滚入可视区并设为活动格（校验面板/查找跳转共用；内部先 nextTick 等 vxe 行高就绪） */
   const scrollToCell = (row: Row, field: string) => {
     nextTick(() => {

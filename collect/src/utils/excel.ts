@@ -28,16 +28,16 @@ export interface BorderRange {
   endCol: number
 }
 
-export function createWorkbook(sheetName: string) {
+export const createWorkbook = (sheetName: string) => {
   const workbook = new ExcelJS.Workbook()
   const worksheet = workbook.addWorksheet(sheetName)
   return { workbook, worksheet }
 }
 
-export function setHeaderCell(
+export const setHeaderCell = (
   worksheet: ExcelJS.Worksheet,
   config: HeaderCellConfig,
-) {
+) => {
   const cell = worksheet.getCell(config.row, config.col)
   cell.value = config.value
   cell.font = { bold: true, ...config.font }
@@ -53,10 +53,10 @@ export function setHeaderCell(
   }
 }
 
-export function mergeCells(
+export const mergeCells = (
   worksheet: ExcelJS.Worksheet,
   config: CellMergeConfig,
-) {
+) => {
   worksheet.mergeCells(
     config.startRow,
     config.startCol,
@@ -65,10 +65,10 @@ export function mergeCells(
   )
 }
 
-export function applyBorders(
+export const applyBorders = (
   worksheet: ExcelJS.Worksheet,
   range: BorderRange,
-) {
+) => {
   for (let row = range.startRow; row <= range.endRow; row++) {
     for (let col = range.startCol; col <= range.endCol; col++) {
       const cell = worksheet.getCell(row, col)
@@ -82,17 +82,17 @@ export function applyBorders(
   }
 }
 
-export function setColumnWidths(
+export const setColumnWidths = (
   worksheet: ExcelJS.Worksheet,
   widths: ColumnWidthConfig[],
-) {
+) => {
   worksheet.columns = widths
 }
 
-export async function exportWorkbook(
+export const exportWorkbook = async (
   workbook: ExcelJS.Workbook,
   fileName: string,
-) {
+) => {
   const buffer = await workbook.xlsx.writeBuffer()
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

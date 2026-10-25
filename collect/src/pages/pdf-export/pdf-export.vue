@@ -51,12 +51,12 @@ defineOptions({ name: 'PdfExportDemo' });
 const busy = ref(false);
 
 /** 路线一：浏览器打印为 PDF（@media print 只保留票据） */
-function printDoc() {
+const printDoc = () => {
   window.print();
 }
 
 /** 路线二：html2canvas 导出高清 PNG（可直接嵌 PDF） */
-async function exportImage() {
+const exportImage = async () => {
   const doc = document.getElementById('pdf-doc');
   if (!doc) return;
   busy.value = true;

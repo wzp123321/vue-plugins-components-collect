@@ -83,7 +83,7 @@ const normalizeImportValue = (def: ColDef, raw: any): ImportCell => {
  * @param fileInputRef 隐藏的文件 input ref（触发系统文件选择框）
  * @param sel 自研选区状态机（复制/粘贴的取源与锚点来源）
  */
-export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | undefined>, sel: CellSelection) {
+export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | undefined>, sel: CellSelection) => {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 导入 =====================
