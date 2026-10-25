@@ -40,7 +40,7 @@ export const mockSpaceTree: MockSpaceNode[] = [
   },
 ];
 
-export function flatMockSpaces(): MockSpaceNode[] {
+export const flatMockSpaces = (): MockSpaceNode[] => {
   const result: MockSpaceNode[] = [];
   const walk = (list: MockSpaceNode[]) => {
     list.forEach((n) => {
@@ -52,13 +52,15 @@ export function flatMockSpaces(): MockSpaceNode[] {
   return result;
 }
 
-export function searchSpaces(keyword: string): Promise<MockSpaceNode[]> {
-  return new Promise((resolve) => {
+export const searchSpaces = (keyword: string): Promise<MockSpaceNode[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const k = keyword.trim().toLowerCase();
       const all = flatMockSpaces();
-      if (!k) return resolve([]);
+      if (!k) {
+        resolve([]);
+        return;
+      }
       resolve(all.filter((n) => n.name.toLowerCase().includes(k)));
     }, 200);
   });
-}

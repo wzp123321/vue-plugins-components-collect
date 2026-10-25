@@ -196,13 +196,16 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     const halfHeight = Math.max(bounds.height / 2, 1)
     // 8 个角点 = (±halfW, ±halfH, {底面 z=0, 顶面 z=depth+3})，涵盖立体厚度
     const corners: THREE.Vector3[] = []
-    for (const sx of [-1, 1]) {
-      for (const sy of [-1, 1]) {
-        for (const z of [0, mapConfig.depth + 3]) {
+    const xSigns = [-1, 1]
+    const ySigns = [-1, 1]
+    const zLevels = [0, mapConfig.depth + 3]
+    xSigns.forEach((sx) => {
+      ySigns.forEach((sy) => {
+        zLevels.forEach((z) => {
           corners.push(new THREE.Vector3(sx * halfWidth, sy * halfHeight, z))
-        }
-      }
-    }
+        })
+      })
+    })
     // 视线目标：地图顶面中心（板块厚度为 depth，故取 z=depth）
     const target = new THREE.Vector3(0, 0, mapConfig.depth)
     const direction = viewDirection()
@@ -218,10 +221,10 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       probe.updateMatrixWorld(true)
       probe.updateProjectionMatrix()
       let maxNdc = 0
-      for (const corner of corners) {
+      corners.forEach((corner) => {
         const projected = corner.clone().project(probe)
         maxNdc = Math.max(maxNdc, Math.abs(projected.x), Math.abs(projected.y))
-      }
+      })
       if (!Number.isFinite(maxNdc) || maxNdc <= 0) break
       // 角点越界(maxNdc>margin)就按比例拉远；margin 内则贴近
       const next = distance * (maxNdc / margin)
@@ -242,7 +245,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
    * @param duration 动画时长(秒)；<=0 表示瞬移（无需过渡）
    * @param target 取景中心点；默认地图顶面中心 (0,0,depth)，画框缩放时传选区世界中心
    */
-  const focus = (fit: FitProjection | null, duration = 0.55, target?: THREE.Vector3) => {
+  const focus = (fit: FitProjection | null, duration?: number, target?: THREE.Vector3) => {
+    // 默认时长 0.55 秒；duration 不传 / 传 undefined 时等价于原来的默认参数
+    const tween = duration ?? 0.55
     if (!camera || !controls) return
     const lookAt = target ? target.clone() : new THREE.Vector3(0, 0, mapConfig.depth)
     const distance = fit ? fitDistance(fit) : MAP_EXTENT * 2
@@ -260,15 +265,15 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       lastFitDistance = distance
       controls.enabled = true
     }
-    if (duration <= 0) {
+    if (tween <= 0) {
       controls.target.copy(lookAt)
       camera.position.copy(position)
       controls.update()
       finish()
       return
     }
-    gsap.to(controls.target, { x: lookAt.x, y: lookAt.y, z: lookAt.z, duration, ease: 'power2.out' })
-    gsap.to(camera.position, { x: position.x, y: position.y, z: position.z, duration, ease: 'power2.out', onComplete: finish })
+    gsap.to(controls.target, { x: lookAt.x, y: lookAt.y, z: lookAt.z, duration: tween, ease: 'power2.out' })
+    gsap.to(camera.position, { x: position.x, y: position.y, z: position.z, duration: tween, ease: 'power2.out', onComplete: finish })
     // 动画期间放开限制，否则 min/maxDistance 会把补间位置"夹断"
     controls.minDistance = 1
     controls.maxDistance = 4000
@@ -330,7 +335,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   const viewPreset = (name: 'top' | 'oblique' | 'front') => {
     if (!camera || !controls) return
     const target = controls.target.clone()
-    const tiltDeg = name === 'top' ? 2 : name === 'front' ? 56 : VIEW_TILT_DEG
+    let tiltDeg = VIEW_TILT_DEG
+    if (name === 'top') tiltDeg = 2
+    else if (name === 'front') tiltDeg = 56
     // oblique 还原初始：用默认距离；top/front 保留用户当前缩放距离（只改倾角更自然）
     const radius = name === 'oblique'
       ? MAP_EXTENT * 2.2
@@ -472,6 +479,11 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     composer.render()
   };
 
+  // 页面重新可见时重置时间基准，避免隐藏期间堆积的 dt 造成位置突跳
+  const onVisibility = () => {
+    if (!document.hidden) lastTime = performance.now()
+  };
+
   /** 初始化渲染器、相机、控制器、灯光与后期，并启动主循环 */
   const start = () => {
     const element = host()
@@ -480,9 +492,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     // 清掉可能残留的旧画布（HMR / 重复挂载）
     // ⚠️ 坑：canvas 是 appendChild 进去的、不在模板里，旧实例 unmount 不会摘 DOM
     //   → 两块 canvas 叠加（看起来像"地图下面多了一张图"）。挂载前先清干净。
-    for (const canvas of Array.from(element.querySelectorAll('canvas'))) canvas.remove()
+    Array.from(element.querySelectorAll('canvas')).forEach((canvas) => canvas.remove())
 
     scene = new THREE.Scene()
+    // 大气雾效：指数雾，拉远/切层时边缘自然淡出，增强空间纵深感。
+    // 颜色取底色系与透明背景协调；密度极小，避免整图发灰。
+    scene.fog = new THREE.FogExp2(0x040e24, 0.0009)
     renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
@@ -498,6 +513,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     // 改为每帧手动 reset，才能拿到整帧的累加值而不是最后一趟的数字。
     renderer.info.autoReset = false
     renderer.setClearColor(0x000000, 0)
+    // 接触阴影：开启阴影贴图（PCF 软阴影），地块顶面 MeshPhong 即可接收
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     // 限制像素比，避免 4K/Retina 屏下设备像素比过大导致 fill-rate 爆炸掉帧
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
     element.appendChild(renderer.domElement)
@@ -537,6 +555,17 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     scene.add(new THREE.AmbientLight(0xffffff, legacyIntensity(0.52)))
     const keyLight = new THREE.DirectionalLight(0xd6ebff, legacyIntensity(0.95))
     keyLight.position.set(-40, -90, 160)
+    // 接触阴影：keyLight 作为投影光源，正交视锥覆盖整个地图范围（±220 世界单位）
+    keyLight.castShadow = true
+    keyLight.shadow.mapSize.set(2048, 2048)
+    keyLight.shadow.camera.near = 10
+    keyLight.shadow.camera.far = 420
+    keyLight.shadow.camera.left = -220
+    keyLight.shadow.camera.right = 220
+    keyLight.shadow.camera.top = 220
+    keyLight.shadow.camera.bottom = -220
+    keyLight.shadow.bias = -0.0005
+    keyLight.shadow.normalBias = 0.02
     scene.add(keyLight)
     const rimLight = new THREE.DirectionalLight(0x3f8fd0, legacyIntensity(0.4))
     rimLight.position.set(60, 40, 30)
@@ -584,11 +613,13 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     composer.setSize(width, height)
 
     starfield = createStarfield()
-    for (const points of starfield.points) {
+    // 捕获已收窄的 scene 引用：forEach 回调内无法沿用外层 if (!scene) return 的窄化
+    const activeScene = scene
+    starfield.points.forEach((points) => {
       // 创建时套用已记录的主题意图（亮色主题下 start 前就可能已被关掉）
       points.visible = starfieldVisible
-      scene.add(points)
-    }
+      activeScene.add(points)
+    })
 
     // 底部辉光地面：半径 = MAP_EXTENT * decor.ground.radius 的圆盘，
     // 放射状青色光晕（中心亮、边缘透明），加法混合贴在地图正下方 z=-0.1。
@@ -662,7 +693,7 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
         metrics.height = host.clientHeight
         metrics.pixelRatio = renderer.getPixelRatio()
       }
-      for (const tick of ticks) tick(dt, elapsed, metrics)
+      ticks.forEach((tick) => tick(dt, elapsed, metrics))
       starfield?.update(elapsed)
       // 底部辉光地面呼吸动画
       if (groundGlow) (groundGlow.material as THREE.ShaderMaterial).uniforms.uTime.value = elapsed
@@ -671,11 +702,6 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
       render()
     }
     loop()
-  };
-
-  // 页面重新可见时重置时间基准，避免隐藏期间堆积的 dt 造成位置突跳
-  const onVisibility = () => {
-    if (!document.hidden) lastTime = performance.now()
   };
 
   /** 销毁一切：取消循环、解绑事件、释放 GPU 资源、移除 canvas */
@@ -727,7 +753,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     setStarfieldVisible(value: boolean) {
       starfieldVisible = value
       if (!starfield) return
-      for (const points of starfield.points) points.visible = value
+      starfield.points.forEach((points) => {
+        points.visible = value
+      })
     },
     scene: () => scene,
     camera: () => camera,

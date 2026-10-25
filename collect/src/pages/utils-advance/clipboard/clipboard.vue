@@ -162,12 +162,12 @@ const pasteEventContent = ref('');
 const pasteEventType = ref('');
 const opLogs = ref<{ action: string; detail: string; time: string; type: 'success' | 'warning' | 'danger' | 'info' }[]>([]);
 
-function getTime() {
+const getTime = () => {
   const d = new Date();
   return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
 }
 
-function addLog(action: string, detail: string, type: 'success' | 'warning' | 'danger' | 'info' = 'info') {
+const addLog = (action: string, detail: string, type: 'success' | 'warning' | 'danger' | 'info' = 'info') => {
   opLogs.value.unshift({ action, detail, time: getTime(), type });
   if (opLogs.value.length > 10) opLogs.value.pop();
 }
@@ -177,7 +177,7 @@ onMounted(() => {
 });
 
 // 核心复制函数（兼容版）
-async function copyToClipboard(text: string): Promise<boolean> {
+const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(text);
@@ -197,7 +197,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
-async function copyTextToClipboard() {
+const copyTextToClipboard = async () => {
   if (!copyText.value.trim()) return;
   const ok = await copyToClipboard(copyText.value);
   if (ok) {
@@ -213,7 +213,7 @@ const codeSnippet = `const arr = [1, [2, [3, [4]]]];
 const flat = arr.flat(Infinity);
 console.log(flat); // [1, 2, 3, 4]`;
 
-async function copyCodeSnippet() {
+const copyCodeSnippet = async () => {
   const ok = await copyToClipboard(codeSnippet);
   if (ok) {
     ElMessage.success('✅ 代码已复制');
@@ -228,7 +228,7 @@ const quickItems = [
   { icon: '🔑', label: 'UUID 示例', value: '550e8400-e29b-41d4-a716-446655440000' },
 ];
 
-async function quickCopy(value: string, label: string) {
+const quickCopy = async (value: string, label: string) => {
   const ok = await copyToClipboard(value);
   if (ok) {
     ElMessage.success(`✅ 已复制「${label}」`);
@@ -236,7 +236,7 @@ async function quickCopy(value: string, label: string) {
   }
 }
 
-async function readFromClipboard() {
+const readFromClipboard = async () => {
   try {
     if (!navigator.clipboard) {
       ElMessage.warning('当前环境不支持读取剪贴板');
@@ -248,12 +248,12 @@ async function readFromClipboard() {
     ElMessage.success('✅ 读取成功');
   } catch (err) {
     const msg = err instanceof Error ? err.message : '未知错误';
-    ElMessage.error('读取失败：' + msg);
+    ElMessage.error(`读取失败：${msg}`);
     addLog('读取', `失败: ${msg}`, 'danger');
   }
 }
 
-function handlePasteEvent(e: ClipboardEvent) {
+const handlePasteEvent = (e: ClipboardEvent) => {
   e.preventDefault();
   const items = e.clipboardData?.items;
   if (!items) return;
@@ -261,7 +261,8 @@ function handlePasteEvent(e: ClipboardEvent) {
   let text = '';
   let type = '';
 
-  for (const item of items) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
     if (item.type === 'text/plain') {
       item.getAsString(str => {
         pasteEventContent.value = str;

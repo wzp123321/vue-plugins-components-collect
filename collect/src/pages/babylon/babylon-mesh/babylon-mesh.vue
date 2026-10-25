@@ -10,7 +10,7 @@ import { onBeforeUnmount, onMounted } from 'vue';
 /** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
 let engine: BABYLON.Engine | null = null;
 
-function initBaby() {
+const initBaby = () => {
   const canvas = document.getElementById('babylon-mesh-canvas');
   if (!canvas) {
     return;
@@ -90,10 +90,10 @@ function initBaby() {
   // const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 1), scene);
   // const light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), scene);
 
-  engine.runRenderLoop(function () {
+  engine.runRenderLoop(() => {
     scene.render();
   });
-}
+};
 
 onMounted(() => {
   initBaby();

@@ -32,30 +32,30 @@ export const flatMockDepartments: MockDeptNode[] = (() => {
 })();
 
 /** 模拟搜索接口: 根据 name 模糊匹配 */
-export function searchDepartments(keyword: string): Promise<MockDeptNode[]> {
-  return new Promise((resolve) => {
+export const searchDepartments = (keyword: string): Promise<MockDeptNode[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const k = keyword.trim().toLowerCase();
-      if (!k) return resolve([]);
+      if (!k) {
+        resolve([]);
+        return;
+      }
       resolve(flatMockDepartments.filter((d) => d.name.toLowerCase().includes(k)));
     }, 200);
   });
-}
 
 /** 模拟懒加载子节点 */
-export function loadDeptChildren(parentId: string): Promise<MockDeptNode[]> {
-  return new Promise((resolve) => {
+export const loadDeptChildren = (parentId: string): Promise<MockDeptNode[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       resolve(flatMockDepartments.filter((d) => d.parent === parentId));
     }, 200);
   });
-}
 
 /** 模拟批量查节点 */
-export function getDeptNodesByIds(ids: string[]): Promise<MockDeptNode[]> {
-  return new Promise((resolve) => {
+export const getDeptNodesByIds = (ids: string[]): Promise<MockDeptNode[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       resolve(flatMockDepartments.filter((d) => ids.includes(d.id)));
     }, 200);
   });
-}

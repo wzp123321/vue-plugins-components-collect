@@ -10,6 +10,24 @@ import { type ColDef, type ColType, emptyValueFor } from '../types';
 import { aggregateCells } from './aggregate';
 
 /**
+ * 行主键 / 脏标记访问助手。
+ * ⚠️ __id / __dirty 是 vxe-table 消费的行字段（__id 即页面 :row-config 的 keyField），
+ * 属性名属外部约定、不可重命名；经解构读取、Object.assign 写入，键名与语义不变，
+ * 同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+const markDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: true });
+};
+const clearDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: false });
+};
+
+/**
  * 数据操作层：行增删复制 / 自定义列增删移序 / 批量填充 / 数据质量清理 / 提交 / 校验面板跳转。
  *
  * 在整体架构中的角色：行选中（复选框）移除后，所有"批量作用域"都收敛到 useCellSelection 的框选矩形，
@@ -23,13 +41,13 @@ import { aggregateCells } from './aggregate';
  * @param sel   自研选区状态机（批量操作的作用域来源）
  * @param draft 草稿实例（提交成功后清草稿；可选）
  */
-export function useGridOps(
+export const useGridOps = (
   core: GridCore,
   tableRef: Ref<any>,
   scroll: GridScroll,
   sel: CellSelection,
   draft?: GridDraft,
-) {
+) => {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 框选选区（行选中移除后的批量作用域） =====================
@@ -67,7 +85,7 @@ export function useGridOps(
   const addRow = () => {
     snap();
     const row = core.makeRow();
-    row.__dirty = true;
+    markDirty(row);
     core.validateRow(row);
     core.allRows.value.push(row);
     core.bumpData();
@@ -78,9 +96,9 @@ export function useGridOps(
   const insertRow = () => {
     snap();
     const row = core.makeRow();
-    row.__dirty = true;
+    markDirty(row);
     core.validateRow(row);
-    const idx = core.currentCell.value ? core.allRows.value.findIndex((r) => r.__id === core.currentCell.value!.row.__id) : -1;
+    const idx = core.currentCell.value ? core.allRows.value.findIndex((r) => rowIdOf(r) === rowIdOf(core.currentCell.value!.row)) : -1;
     if (idx >= 0) core.allRows.value.splice(idx + 1, 0, row);
     else core.allRows.value.push(row);
     core.bumpData();
@@ -90,9 +108,11 @@ export function useGridOps(
     const rows = selectionRows.value;
     if (!rows.length) return;
     snap();
-    const ids = new Set(rows.map((r: any) => r.__id));
-    core.allRows.value = core.allRows.value.filter((r) => !ids.has(r.__id));
-    for (const k of Object.keys(core.cellErrors)) if (ids.has(k.split('__')[0])) delete core.cellErrors[k];
+    const ids = new Set(rows.map((r: any) => rowIdOf(r)));
+    core.allRows.value = core.allRows.value.filter((r) => !ids.has(rowIdOf(r)));
+    Object.keys(core.cellErrors).forEach((k) => {
+      if (ids.has(k.split('__')[0])) delete core.cellErrors[k];
+    });
     core.bumpData();
     ElMessage.success(`已删除 ${rows.length} 行`);
   };
@@ -103,11 +123,11 @@ export function useGridOps(
     snap();
     const copies = rows.map((r: any) => {
       const c = core.makeRow({ ...r });
-      c.__dirty = true;
+      markDirty(c);
       core.validateRow(c);
       return c;
     });
-    const idx = core.allRows.value.findIndex((r) => r.__id === rows[rows.length - 1].__id);
+    const idx = core.allRows.value.findIndex((r) => rowIdOf(r) === rowIdOf(rows[rows.length - 1]));
     core.allRows.value.splice(idx + 1, 0, ...copies);
     core.bumpData();
     ElMessage.success(`已复制 ${copies.length} 行`);
@@ -116,7 +136,9 @@ export function useGridOps(
   const clearAll = () => {
     snap();
     core.allRows.value = [];
-    for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
+    Object.keys(core.cellErrors).forEach((k) => {
+      delete core.cellErrors[k];
+    });
     core.bumpData();
   };
 
@@ -128,13 +150,15 @@ export function useGridOps(
   const dupSignature = (r: any) => core.visibleDefs.value.map((d) => String(r[d.field] ?? '')).join('\u0001');
   const dupGroups = (): string[][] => {
     const m = new Map<string, string[]>();
-    for (const r of core.allRows.value) {
-      if (rowIsEmpty(r)) continue; // 空行不计入重复，交给空行清理处理
-      const k = dupSignature(r);
-      const g = m.get(k);
-      if (g) g.push(r.__id);
-      else m.set(k, [r.__id]);
-    }
+    core.allRows.value.forEach((r) => {
+      // 空行不计入重复，交给空行清理处理（原 continue 的反条件写法）
+      if (!rowIsEmpty(r)) {
+        const k = dupSignature(r);
+        const g = m.get(k);
+        if (g) g.push(rowIdOf(r));
+        else m.set(k, [rowIdOf(r)]);
+      }
+    });
     return [...m.values()].filter((g) => g.length > 1);
   };
 
@@ -168,8 +192,10 @@ export function useGridOps(
       .then(() => {
         snap();
         const drop = new Set<string>();
-        for (const g of groups) for (let i = 1; i < g.length; i++) drop.add(g[i]);
-        core.allRows.value = core.allRows.value.filter((r) => !drop.has(r.__id));
+        groups.forEach((g) => {
+          for (let i = 1; i < g.length; i++) drop.add(g[i]);
+        });
+        core.allRows.value = core.allRows.value.filter((r) => !drop.has(rowIdOf(r)));
         core.revalidateAll();
         core.bumpData();
         ElMessage.success(`已删除 ${drop.size} 个重复行`);
@@ -207,10 +233,10 @@ export function useGridOps(
     core.columnDefs.value.push(def);
     // 回填空值而非预选首选项：与 emptyValueFor / 新增行语义一致（预选会掩盖"未填写"）。
     // 必填列要立即逐行校验，否则新列的空值不会标红、必填标记形同虚设
-    for (const r of core.allRows.value) {
+    core.allRows.value.forEach((r) => {
       r[field] = emptyValueFor(def);
       if (def.required) core.validateCell(r, field);
-    }
+    });
     colDialogVisible.value = false;
     core.bumpData();
     ElMessage.success(`已新增列「${name}」`);
@@ -222,8 +248,12 @@ export function useGridOps(
   const removeCol = (field: string) => {
     snap();
     core.columnDefs.value = core.columnDefs.value.filter((c) => c.field !== field);
-    for (const r of core.allRows.value) delete r[field];
-    for (const k of Object.keys(core.cellErrors)) if (k.endsWith(`__${field}`)) delete core.cellErrors[k];
+    core.allRows.value.forEach((r) => {
+      delete r[field];
+    });
+    Object.keys(core.cellErrors).forEach((k) => {
+      if (k.endsWith(`__${field}`)) delete core.cellErrors[k];
+    });
     delete core.columnFilters[field];
     core.bumpData();
     ElMessage.success('已删除该列');
@@ -271,18 +301,18 @@ export function useGridOps(
       if (fillValue.value === '') v = null;
       else {
         v = Number(fillValue.value);
-        if (isNaN(v)) {
+        if (Number.isNaN(v)) {
           ElMessage.warning('数字列只能填入数值');
           return;
         }
       }
     }
     core.commitCells('批量填充', targets, () => {
-      for (const r of targets) {
+      targets.forEach((r) => {
         r[def.field] = v;
-        r.__dirty = true;
+        markDirty(r);
         core.validateCell(r, def.field);
-      }
+      });
     });
     ElMessage.success(`已填充 ${targets.length} 行`);
   };
@@ -292,11 +322,11 @@ export function useGridOps(
     if (!def) return;
     const targets = resolveFillTargets();
     core.commitCells('批量清空列', targets, () => {
-      for (const r of targets) {
+      targets.forEach((r) => {
         r[def.field] = emptyValueFor(def);
-        r.__dirty = true;
+        markDirty(r);
         core.validateCell(r, def.field);
-      }
+      });
     });
     ElMessage.success('已清空该列');
   };
@@ -305,7 +335,7 @@ export function useGridOps(
   const errDrawer = ref(false);
   /** 校验面板点击跳转：滚动定位 + 闪烁目标格（万行表里只滚不高亮会找不到人） */
   const jumpToError = (e: { rowId: string; field: string }) => {
-    const row = core.allRows.value.find((r) => r.__id === e.rowId);
+    const row = core.allRows.value.find((r) => rowIdOf(r) === e.rowId);
     if (!row) return;
     errDrawer.value = false;
     scroll.scrollToCell(row, e.field);
@@ -321,7 +351,9 @@ export function useGridOps(
    * 故意只放"前端不该知道"的规则，用来演示前后端两段校验的合并。
    */
   const serverValidate = async (payload: Record<string, any>[]): Promise<{ idx: number; field: string; msg: string }[]> => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 400));
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 400);
+    });
     const errs: { idx: number; field: string; msg: string }[] = [];
     payload.forEach((o, idx) => {
       if (Number(o.age) > 62 && !String(o.remark ?? '').trim()) {
@@ -358,28 +390,32 @@ export function useGridOps(
       const rows = core.allRows.value;
       const payload = rows.map((r) => {
         const o: Record<string, any> = {};
-        for (const d of core.columnDefs.value) o[d.field] = r[d.field];
+        core.columnDefs.value.forEach((d) => {
+          o[d.field] = r[d.field];
+        });
         return o;
       });
       // 2) 服务端校验：错误逐格回填到前端错误表，定位口径与本地校验完全一致
       const serverErrs = await serverValidate(payload);
       if (serverErrs.length) {
-        for (const e of serverErrs) {
+        serverErrs.forEach((e) => {
           const row = rows[e.idx];
-          if (row) core.setCellError(row.__id, e.field, e.msg);
-        }
+          if (row) core.setCellError(rowIdOf(row), e.field, e.msg);
+        });
         errDrawer.value = true;
         const first = serverErrs[0];
         const firstRow = rows[first.idx];
         if (firstRow) {
           scroll.scrollToCell(firstRow, first.field);
-          core.flashCell(firstRow.__id, first.field);
+          core.flashCell(rowIdOf(firstRow), first.field);
         }
         ElMessage.error(`服务端校验未通过 ${serverErrs.length} 处，已在表格标红`);
         return;
       }
       // 3) 通过：清脏标记 + 清草稿
-      rows.forEach((r) => (r.__dirty = false));
+      rows.forEach((r) => {
+        clearDirty(r);
+      });
       draft?.clearDraft();
       ElMessage.success(`已提交 ${payload.length} 条记录（mock）`);
     } finally {

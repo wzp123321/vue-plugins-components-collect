@@ -133,18 +133,22 @@ defineOptions({ name: 'EventBus' });
 type EventHandler = (...args: unknown[]) => void;
 class MiniMitt {
   private events: Map<string, EventHandler[]> = new Map();
+
   on(event: string, handler: EventHandler) {
     const handlers = this.events.get(event) || [];
     handlers.push(handler);
     this.events.set(event, handlers);
   }
+
   off(event: string, handler: EventHandler) {
     const handlers = this.events.get(event) || [];
     this.events.set(event, handlers.filter(h => h !== handler));
   }
+
   emit(event: string, ...args: unknown[]) {
     (this.events.get(event) || []).forEach(h => h(...args));
   }
+
   clear() { this.events.clear(); }
 }
 
@@ -168,33 +172,33 @@ const subscribedEvents = ref([
   { name: 'theme', desc: '主题', active: true },
 ]);
 
-function getTime() {
+const getTime = () => {
   const d = new Date();
   return `${d.getSeconds().toString().padStart(2,'0')}.${d.getMilliseconds().toString().slice(0,2)}`;
 }
 
-function emitEvent() {
+const emitEvent = () => {
   if (!msgContent.value.trim()) return;
   emitter.emit(msgType.value, msgContent.value);
   emitLogs.value.unshift({ time: getTime(), type: msgType.value, content: msgContent.value });
   if (emitLogs.value.length > 8) emitLogs.value.pop();
 }
 
-function sendGlobalMsg() {
+const sendGlobalMsg = () => {
   msgContent.value = `全局广播消息 ${Date.now().toString().slice(-4)}`;
   msgType.value = 'message';
   emitEvent();
 }
 
-function onMessage(content: unknown) {
+const onMessage = (content: unknown) => {
   receivedMessages.value.unshift({ time: getTime(), type: 'message', content: String(content) });
   if (receivedMessages.value.length > 8) receivedMessages.value.pop();
 }
-function onNotify(content: unknown) {
+const onNotify = (content: unknown) => {
   receivedMessages.value.unshift({ time: getTime(), type: 'notify', content: String(content) });
   if (receivedMessages.value.length > 8) receivedMessages.value.pop();
 }
-function onTheme(content: unknown) {
+const onTheme = (content: unknown) => {
   receivedMessages.value.unshift({ time: getTime(), type: 'theme', content: `主题切换：${String(content)}` });
   if (receivedMessages.value.length > 8) receivedMessages.value.pop();
 }

@@ -9,6 +9,7 @@
 // 状态的实际读写由 core 执行。
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { rowIdOf } from './useGridCore';
 import type { Row, Snap } from '../types';
 
 /** 字段级变更：撤销写 before，重做写 after */
@@ -42,14 +43,14 @@ const MAX_STEPS = 40;
  * @param deps snapshotNow 取全量快照 / applySnapshot 把全量快照落回 core /
  *             getRows 取当前行数组（增量命令按 rowId 定位行）/ revalidateAll 应用后重校
  */
-export function useHistory(deps: {
+export const useHistory = (deps: {
   snapshotNow: () => Snap;
   applySnapshot: (snap: Snap) => void;
   getRows: () => Row[];
   revalidateAll: () => void;
   /** 增量应用后推进数据版本（统计缓存失效 / 色阶重算） */
   bumpData: () => void;
-}) {
+}) => {
   const { snapshotNow, applySnapshot, getRows, revalidateAll, bumpData } = deps;
   const stack = { undo: [] as HistoryEntry[], redo: [] as HistoryEntry[] };
   const canUndo = ref(false);
@@ -83,12 +84,12 @@ export function useHistory(deps: {
    * 行已被删除时跳过（防御：增量命令与结构变更交错撤销时的残留）。
    */
   const applyPatch = (patch: CellPatch, dir: 'before' | 'after') => {
-    const rowMap = new Map(getRows().map((r) => [r.__id, r]));
-    for (const c of patch.changes) {
+    const rowMap = new Map(getRows().map((r) => [rowIdOf(r), r]));
+    patch.changes.forEach((c) => {
       const row = rowMap.get(c.rowId);
-      if (!row) continue;
-      row[c.field] = dir === 'before' ? c.before : c.after;
-    }
+      // 行已被删除时跳过（防御：增量命令与结构变更交错撤销时的残留）
+      if (row) row[c.field] = dir === 'before' ? c.before : c.after;
+    });
     revalidateAll();
     bumpData();
   };

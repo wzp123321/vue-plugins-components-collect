@@ -96,7 +96,7 @@ const startRolling = (event: MouseEvent) => {
       const endRect = endPoint.getBoundingClientRect();
       const endX = endRect.left + endRect.width / 2;
       const endY = endRect.top + endRect.height / 2;
-      //微调
+      // 微调
       ball.endX = endX - 4;
       ball.endY = endY - 7;
 
@@ -109,10 +109,10 @@ const startRolling = (event: MouseEvent) => {
       ball.progress = 0;
 
       // 使用requestAnimationFrame实现曲线动画
-      let startTime = Date.now();
+      const startTime = Date.now();
       const duration = 400; // 动画持续时间
 
-      function animate() {
+      const animate = () => {
         const currentTime = Date.now();
         const elapsed = currentTime - startTime;
         ball.progress = Math.min(elapsed / duration, 1);
@@ -147,7 +147,8 @@ const getBallStyle = (ball: any) => {
   const isVertical = Math.abs(ball.startX - ball.endX) < 20;
 
   // 计算控制点（确保有弧度）
-  let controlX, controlY;
+  let controlX;
+  let controlY;
 
   if (isVertical) {
     // 如果在同一垂直线上，向左偏移一定距离

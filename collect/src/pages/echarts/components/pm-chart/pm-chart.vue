@@ -9,26 +9,9 @@ import { computed, onMounted } from 'vue';
 
 let chartInstance: EChartsType;
 
-const chartId = computed(() => {
-  return `charts-${(Math.random() * 100000000).toFixed(0)}`;
-});
+const chartId = computed(() => `charts-${(Math.random() * 100000000).toFixed(0)}`);
 
-function initChart() {
-  const chartContainer = document.querySelector(`#${chartId.value}`);
-  if (!chartContainer) {
-    return;
-  }
-  if (chartInstance) {
-    chartInstance.dispose();
-  }
-  chartInstance = init(chartContainer as HTMLElement);
-
-  const options: EChartsOption = getChartOptions();
-  chartInstance.clear();
-  chartInstance.setOption(options);
-}
-function getChartOptions(): EChartsOption {
-  return {
+const getChartOptions = (): EChartsOption => ({
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -97,8 +80,22 @@ function getChartOptions(): EChartsOption {
         data: [-120, -132, -101, -134, -190, -230, -210],
       },
     ],
-  };
-}
+  });
+
+const initChart = () => {
+  const chartContainer = document.querySelector(`#${chartId.value}`);
+  if (!chartContainer) {
+    return;
+  }
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+  chartInstance = init(chartContainer as HTMLElement);
+
+  const options: EChartsOption = getChartOptions();
+  chartInstance.clear();
+  chartInstance.setOption(options);
+};
 
 onMounted(() => {
   initChart();

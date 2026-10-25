@@ -17,7 +17,7 @@ import * as BABYLON from 'babylonjs';
 /** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
 let engine: BABYLON.Engine | null = null;
 
-function initBaBy() {
+const initBaBy = () => {
   const canvas = document.getElementById('babylon-texture-canvas');
   if (!canvas) {
     return;
@@ -45,11 +45,11 @@ function initBaBy() {
     scene,
   );
   boxShape.position.x = -3;
-  const myMaterial = new BABYLON.StandardMaterial('myMaterial', scene); //创建一个材质
-  myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1); //漫反射颜色
-  myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87); //镜面颜色
-  myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); //自发光颜色
-  myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53); //环境光颜色
+  const myMaterial = new BABYLON.StandardMaterial('myMaterial', scene); // 创建一个材质
+  myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1); // 漫反射颜色
+  myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87); // 镜面颜色
+  myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // 自发光颜色
+  myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53); // 环境光颜色
   boxShape.material = myMaterial;
 
   // 平面
@@ -64,7 +64,7 @@ function initBaBy() {
   planeShape.position.x = 3;
   // 材质
   const planeMaterial = new BABYLON.StandardMaterial('planeMaterial', scene);
-  //PATH TO IMAGE，表示图片的路径，其实也可以使用base64格式的图片。
+  // PATH TO IMAGE，表示图片的路径，其实也可以使用base64格式的图片。
   planeMaterial.diffuseTexture = new BABYLON.Texture('../../../assets/images/babylon/grass101.PNG', scene);
   planeMaterial.specularTexture = new BABYLON.Texture('../../../ASSETS/IMAGES/BABYLON/GRASS101.PNG', scene);
   planeMaterial.emissiveTexture = new BABYLON.Texture('../../../ASSETS/IMAGES/BABYLON/GRASS101.PNG', scene);
@@ -87,24 +87,24 @@ function initBaBy() {
   const greenMat = new BABYLON.StandardMaterial('redMat', scene);
   greenMat.ambientColor = new BABYLON.Color3(0, 1, 0);
 
-  //No ambient color
+  // No ambient color
   const sphere0 = BABYLON.MeshBuilder.CreateSphere('sphere0', {}, scene);
   sphere0.position.x = 2.5;
 
-  //Red Ambient
+  // Red Ambient
   const sphere1 = BABYLON.MeshBuilder.CreateSphere('sphere1', {}, scene);
   sphere1.material = redMat;
   sphere0.position.x = 3.5;
 
-  //Green Ambient
+  // Green Ambient
   const sphere2 = BABYLON.MeshBuilder.CreateSphere('sphere2', {}, scene);
   sphere2.material = greenMat;
   sphere2.position.x = 4.5;
 
-  engine.runRenderLoop(function () {
+  engine.runRenderLoop(() => {
     scene.render();
   });
-}
+};
 
 onMounted(() => {
   initBaBy();

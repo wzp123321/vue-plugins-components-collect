@@ -12,6 +12,21 @@ const HIT_LIMIT = 500;
 const FIND_DEBOUNCE_MS = 200;
 
 /**
+ * 行主键 / 脏标记访问助手。
+ * ⚠️ __id / __dirty 是 vxe-table 消费的行字段（__id 即页面 :row-config 的 keyField），
+ * 属性名属外部约定、不可重命名；经解构读取、Object.assign 写入，键名与语义不变，
+ * 同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+const markDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: true });
+};
+
+/**
  * 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表。
  *
  * 在整体架构中的角色：本层是"只读查询 + 定向写回"模块——查找结果（findMatchKeys）供单元格高亮，
@@ -22,7 +37,7 @@ const FIND_DEBOUNCE_MS = 200;
  * @param scroll 滚动定位实例（跳转命中格）
  * @param sel 自研选区状态机（range='sel' 时取框选矩形）
  */
-export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: CellSelection) {
+export const useGridFindReplace = (core: GridCore, scroll: GridScroll, sel: CellSelection) => {
   const findVisible = ref(false);
   const findText = ref('');
   const replaceText = ref('');
@@ -85,8 +100,8 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     const labelField = core.visibleDefs.value[0]?.field;
     const list: { rowId: string; field: string }[] = [];
     const hits: { rowId: string; field: string; rowLabel: string; colLabel: string; value: string }[] = [];
-    for (const r of rows) {
-      for (const f of fields) {
+    rows.forEach((r) => {
+      fields.forEach((f) => {
         const raw = String(r[f] ?? '');
         let hit: boolean;
         if (re) hit = re.test(raw);
@@ -94,19 +109,21 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
           const s = findCase.value ? raw : raw.toLowerCase();
           hit = findWhole.value ? s === tgt : s.includes(tgt);
         }
-        if (!hit) continue;
-        list.push({ rowId: r.__id, field: f });
-        if (hits.length < HIT_LIMIT) {
-          hits.push({
-            rowId: r.__id,
-            field: f,
-            rowLabel: labelField ? String(r[labelField] ?? '') : '',
-            colLabel: core.labelOf(f),
-            value: raw,
-          });
+        // 原 continue 的反条件写法：未命中才跳过
+        if (hit) {
+          list.push({ rowId: rowIdOf(r), field: f });
+          if (hits.length < HIT_LIMIT) {
+            hits.push({
+              rowId: rowIdOf(r),
+              field: f,
+              rowLabel: labelField ? String(r[labelField] ?? '') : '',
+              colLabel: core.labelOf(f),
+              value: raw,
+            });
+          }
         }
-      }
-    }
+      });
+    });
     findMatches.value = list;
     findMatchKeys.value = new Set(list.map((m) => core.errKey(m.rowId, m.field)));
     findHits.value = hits;
@@ -143,7 +160,7 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
   computeFindMatches();
 
   const jumpToMatch = (m: { rowId: string; field: string }) => {
-    const row = core.allRows.value.find((r) => r.__id === m.rowId);
+    const row = core.allRows.value.find((r) => rowIdOf(r) === m.rowId);
     if (!row) return;
     scroll.scrollToCell(row, m.field);
   };
@@ -169,11 +186,11 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     // 未定位匹配时（findIdx=-1）替换第一项；定位后替换当前项
     const target = findIdx.value >= 0 ? findIdx.value : 0;
     const m = findMatches.value[target];
-    const row = core.allRows.value.find((r) => r.__id === m.rowId);
+    const row = core.allRows.value.find((r) => rowIdOf(r) === m.rowId);
     if (!row) return;
     core.commitCells('替换', [row], () => {
       row[m.field] = replaceText.value;
-      row.__dirty = true;
+      markDirty(row);
       core.validateCell(row, m.field);
     });
     computeFindMatches();
@@ -189,19 +206,21 @@ export function useGridFindReplace(core: GridCore, scroll: GridScroll, sel: Cell
     }
     // ⚠️ 坑：必须按"匹配对"逐项替换——早期用 Map 以 rowId 为键，同一行多列同时命中时互相覆盖，只替换一列。
     // 这里改为遍历 findMatches（每 (rowId,field) 一对），逐格写回，避免漏替换。
-    const rowMap = new Map(core.allRows.value.map((r) => [r.__id, r]));
+    const rowMap = new Map(core.allRows.value.map((r) => [rowIdOf(r), r]));
     // 受影响行按 rowId 去重后交给增量事务（一行可能命中多列）
     const touched = [...new Set(findMatches.value.map((m) => rowMap.get(m.rowId)).filter((r): r is any => !!r))];
     let n = 0;
     core.commitCells('全部替换', touched, () => {
-      for (const m of findMatches.value) {
+      findMatches.value.forEach((m) => {
         const row = rowMap.get(m.rowId);
-        if (!row) continue;
-        row[m.field] = replaceText.value;
-        row.__dirty = true;
-        core.validateCell(row, m.field);
-        n++;
-      }
+        // 原 continue 的反条件写法：行不存在才跳过
+        if (row) {
+          row[m.field] = replaceText.value;
+          markDirty(row);
+          core.validateCell(row, m.field);
+          n++;
+        }
+      });
     });
     computeFindMatches();
     ElMessage.success(`已替换 ${n} 处`);

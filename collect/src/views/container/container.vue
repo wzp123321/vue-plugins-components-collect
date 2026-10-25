@@ -178,7 +178,7 @@ watch(
   },
 );
 
-function toggleCollapse() {
+const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
 }
 
@@ -191,9 +191,8 @@ const paletteInput = ref<HTMLInputElement | null>(null);
 /** 最近访问：空查询时优先展示，减少重复检索成本 */
 const RECENTS_STORAGE_KEY = 'ai-nav-recents';
 const RECENTS_LIMIT = 8;
-const recents = ref<string[]>(loadRecents());
 
-function loadRecents(): string[] {
+const loadRecents = (): string[] => {
   try {
     const raw = localStorage.getItem(RECENTS_STORAGE_KEY);
     const parsed = raw ? (JSON.parse(raw) as unknown) : [];
@@ -201,9 +200,11 @@ function loadRecents(): string[] {
   } catch {
     return [];
   }
-}
+};
 
-function recordRecent(path: string) {
+const recents = ref<string[]>(loadRecents());
+
+const recordRecent = (path: string) => {
   if (!allNavItems.some((item) => item.path === path)) return;
   recents.value = [path, ...recents.value.filter((entry) => entry !== path)].slice(0, RECENTS_LIMIT);
   try {
@@ -234,7 +235,7 @@ watch(paletteQuery, () => {
   paletteIndex.value = 0;
 });
 
-async function openPalette() {
+const openPalette = async () => {
   paletteOpen.value = true;
   paletteQuery.value = '';
   paletteIndex.value = 0;
@@ -242,29 +243,31 @@ async function openPalette() {
   paletteInput.value?.focus();
 }
 
-function closePalette() {
+const closePalette = () => {
   paletteOpen.value = false;
 }
 
-function move(step: number) {
+const move = (step: number) => {
   if (paletteResults.value.length === 0) return;
   const next = paletteIndex.value + step;
   const max = paletteResults.value.length - 1;
-  paletteIndex.value = next < 0 ? max : next > max ? 0 : next;
+  if (next < 0) paletteIndex.value = max;
+  else if (next > max) paletteIndex.value = 0;
+  else paletteIndex.value = next;
 }
 
-function choose() {
-  const item = paletteResults.value[paletteIndex.value];
-  if (item) go(item.path);
-}
-
-function go(path: string) {
+const go = (path: string) => {
   closePalette();
   if (path !== route.path) router.push({ path });
-}
+};
+
+const choose = () => {
+  const item = paletteResults.value[paletteIndex.value];
+  if (item) go(item.path);
+};
 
 /** Ctrl/⌘ + K 唤起；Esc 关闭 */
-function handleHotkey(event: KeyboardEvent) {
+const handleHotkey = (event: KeyboardEvent) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     if (paletteOpen.value) closePalette();
@@ -275,7 +278,7 @@ function handleHotkey(event: KeyboardEvent) {
 }
 
 /** 首页搜索框通过自定义事件唤起面板 */
-function handleExternalOpen() {
+const handleExternalOpen = () => {
   openPalette();
 }
 

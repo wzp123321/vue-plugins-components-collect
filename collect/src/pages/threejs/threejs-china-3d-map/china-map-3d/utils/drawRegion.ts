@@ -126,12 +126,12 @@ export const setRegionScan = (enabled: boolean): void => {
  */
 const ringPositions = (ring: Ring, project: ProjectionFn, z: number): number[] | null => {
   const positions: number[] = []
-  for (const [lng, lat] of ring) {
-    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
+  ring.forEach(([lng, lat]) => {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return
     const [x, y] = project([lng, lat])
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return
     positions.push(x, -y, z)
-  }
+  })
   // 至少 3 个点才构成面
   return positions.length >= 9 ? positions : null
 };
@@ -166,14 +166,16 @@ const collapseExtrudeGroups = (geometry: THREE.ExtrudeGeometry) => {
   if (!index) return
 
   let lidCount = 0
-  for (const g of groups) if (g.materialIndex === 0) lidCount += g.count
+  groups.forEach((g) => {
+    if (g.materialIndex === 0) lidCount += g.count
+  })
   if (lidCount === 0 || lidCount === index.count) return
 
   // 非索引几何里 group.start 指的就是顶点序号，补完 0..N-1 索引后二者一一对应
   const sorted = new Uint32Array(index.count)
   let lidAt = 0
   let sideAt = lidCount
-  for (const g of groups) {
+  groups.forEach((g) => {
     const src = index.array.subarray(g.start, g.start + g.count)
     if (g.materialIndex === 0) {
       sorted.set(src, lidAt)
@@ -182,7 +184,7 @@ const collapseExtrudeGroups = (geometry: THREE.ExtrudeGeometry) => {
       sorted.set(src, sideAt)
       sideAt += g.count
     }
-  }
+  })
 
   geometry.setIndex(new THREE.BufferAttribute(sorted, 1))
   geometry.clearGroups()
@@ -224,10 +226,10 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
   // 一个行政区只发一次 draw call（原来每个环一条 Line2）。
   const linePositions: number[] = []
 
-  for (const ring of rings) {
+  rings.forEach((ring) => {
     // ⚠️ lineZ 贴顶面（depth + 0.06）：线框紧贴板块顶面，斜看不飘离
     const positions = ringPositions(ring, project, mapConfig.lineZ)
-    if (!positions) continue
+    if (!positions) return
 
     const shape = new THREE.Shape()
     for (let i = 0; i < positions.length; i += 3) {
@@ -250,7 +252,7 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
         positions[b + 2],
       )
     }
-  }
+  })
 
   if (!shapes.length) return null
 
@@ -268,6 +270,10 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
   // [顶面, 侧壁]：射线只在顶面命中，侧壁不参与拾取
   mesh.userData = { kind: 'surface', region: object }
   mesh.renderOrder = 1
+  // 接触阴影：顶面 MeshPhong 接收阴影，侧壁（垂直面）向相邻地块顶面投射，
+  // 形成省际边界处的接触阴影；柱体 / 棱锥为发光装饰，不投影反而更干净。
+  mesh.receiveShadow = true
+  mesh.castShadow = true
   object.add(mesh)
 
   if (linePositions.length) {

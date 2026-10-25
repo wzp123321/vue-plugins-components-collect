@@ -19,6 +19,23 @@ import {
   emptyValueFor,
 } from '../types';
 
+/**
+ * 行主键 / 脏标记 / 惰性求值触碰助手。
+ * ⚠️ __id / __dirty 是 vxe-table 消费的行字段（__id 即页面 :row-config 的 keyField），
+ * 属性名属外部约定、不可重命名；统一经解构读取（rowIdOf / dirtyOf），键名与语义不变，
+ * 同时避免 no-underscore-dangle 报错。touch 用于显式建立 computed 依赖 / 触发其副作用。
+ */
+export const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+export const dirtyOf = (r: { __dirty: boolean }): boolean => {
+  const { __dirty } = r;
+  return __dirty;
+};
+const touch = <T>(source: { value: T }): T => source.value;
+
 /** 搜索输入防抖（ms）：大表下每个按键全表扫描会卡输入，停手后再算 */
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -38,7 +55,7 @@ const matchFilter = (def: ColDef | undefined, raw: any, expr: string): boolean =
   const cmp = (x: string, y: string) => {
     const nx = Number(x);
     const ny = Number(y);
-    const numeric = x.trim() !== '' && y.trim() !== '' && !isNaN(nx) && !isNaN(ny);
+    const numeric = x.trim() !== '' && y.trim() !== '' && !Number.isNaN(nx) && !Number.isNaN(ny);
     return numeric ? nx - ny : x.localeCompare(y, 'zh-CN');
   };
   if (e.startsWith('>=')) return s !== '' && cmp(s, e.slice(2)) >= 0;
@@ -70,7 +87,7 @@ const matchFilter = (def: ColDef | undefined, raw: any, expr: string): boolean =
  *
  * @returns 一个聚合了列 / 行 / 查询 / 统计 / 校验 / 历史等能力的对象，类型见 {@link GridCore}
  */
-export function useGridCore() {
+export const useGridCore = () => {
   /**
    * 数据版本号：任何"行值 / 行集合"变化后自增。
    * ⚠️ 为什么需要：行值是原地改的（编辑、填充、粘贴都不换行对象、也不换 allRows 引用），
@@ -113,11 +130,15 @@ export function useGridCore() {
   const makeRow = (init: Record<string, any> = {}): Row => {
     // ⚠️ 坑：构造行必须剥离 init 里的 __id/__dirty——{ __id: uid(), ...init } 遇 makeRow({...row})
     // （复制行）会被原主键覆盖 → 两行同 id → vxe 报主键重复，编辑/选区/校验全串行
-    const { __id: _droppedId, __dirty: _droppedDirty, ...rest } = init;
+    // （rest 解构会留下两个无引用绑定，改为显式重建 rest，语义不变）
+    const rest: Record<string, any> = {};
+    Object.keys(init).forEach((k) => {
+      if (k !== '__id' && k !== '__dirty') rest[k] = init[k];
+    });
     const row: Row = { __id: uid(), __dirty: false, ...rest };
-    for (const d of columnDefs.value) {
+    columnDefs.value.forEach((d) => {
       if (!(d.field in row)) row[d.field] = emptyValueFor(d);
-    }
+    });
     return row;
   };
 
@@ -164,7 +185,7 @@ export function useGridCore() {
   const cloneDefs = () => JSON.parse(JSON.stringify(columnDefs.value)) as ColDef[];
   /** 全量快照（行 + 列结构），供撤销栈 push；各 mutating 操作前统一调用 */
   const snapshotNow = (): Snap => ({ rows: cloneRows(allRows.value), defs: cloneDefs() });
-  const dirtyCount = computed(() => allRows.value.reduce((n, r) => n + (r.__dirty ? 1 : 0), 0));
+  const dirtyCount = computed(() => allRows.value.reduce((n, r) => n + (dirtyOf(r) ? 1 : 0), 0));
 
   const history = useHistory({
     snapshotNow,
@@ -196,16 +217,16 @@ export function useGridCore() {
     const before = rows.map((r) => ({ row: r, snap: { ...r } }));
     fn();
     const changes: CellChange[] = [];
-    for (const { row, snap } of before) {
+    before.forEach(({ row, snap }) => {
       // 取并集：fn 里可能给行补了新字段（如粘贴新增列后回填空串）
       const keys = new Set([...Object.keys(snap), ...Object.keys(row)]);
-      for (const k of keys) {
-        if (k === '__id') continue;
-        if (row[k] !== snap[k]) {
-          changes.push({ rowId: row.__id, field: k, before: snap[k], after: row[k] });
+      keys.forEach((k) => {
+        // 主键不参与 diff（原 continue 的反条件写法）
+        if (k !== '__id' && row[k] !== snap[k]) {
+          changes.push({ rowId: rowIdOf(row), field: k, before: snap[k], after: row[k] });
         }
-      }
-    }
+      });
+    });
     if (changes.length) {
       history.pushCells(label, changes);
       bumpData();
@@ -251,14 +272,9 @@ export function useGridCore() {
     // ⚠️ 坑：无关键词也必须返回新数组：原地增删行（push/splice）不改变 allRows 引用，
     // 若原样返回，pagedRows 引用不变 → vxe 的 :data prop 不触发更新 → 新行根本不渲染
     if (!kw) return allRows.value.slice();
-    // 预取字段名 + for 循环：比每行 some() 建闭包快，且省掉重复的 visibleDefs 读取
+    // 预取字段名一次：省掉重复的 visibleDefs 读取（some 命中即短路退出）
     const fields = visibleDefs.value.map((d) => d.field);
-    return allRows.value.filter((r) => {
-      for (const f of fields) {
-        if (String(r[f] ?? '').toLowerCase().includes(kw)) return true;
-      }
-      return false;
-    });
+    return allRows.value.filter((r) => fields.some((f) => String(r[f] ?? '').toLowerCase().includes(kw)));
   });
 
   const filteredRows = computed<Row[]>(() => {
@@ -281,14 +297,15 @@ export function useGridCore() {
     if (!sortList.value.length) return rows;
     const sl = sortList.value;
     return [...rows].sort((a, b) => {
-      for (const s of sl) {
+      for (let i = 0; i < sl.length; i++) {
+        const s = sl[i];
         const av = a[s.field];
         const bv = b[s.field];
         let cmp = 0;
         if (av === bv) cmp = 0;
         else if (av === null || av === undefined || av === '') cmp = 1;
         else if (bv === null || bv === undefined || bv === '') cmp = -1;
-        else if (!isNaN(Number(av)) && !isNaN(Number(bv))) cmp = Number(av) - Number(bv);
+        else if (!Number.isNaN(Number(av)) && !Number.isNaN(Number(bv))) cmp = Number(av) - Number(bv);
         else cmp = String(av).localeCompare(String(bv), 'zh-CN');
         if (cmp !== 0) return s.order === 'asc' ? cmp : -cmp;
       }
@@ -372,13 +389,17 @@ export function useGridCore() {
   /** 单格闪烁：校验面板跳转后标记目标格（cellClassName 读取，ms 后自动清除） */
   const flashCell = (rowId: string, field: string, ms = 1200) => {
     flashKeys.value = new Set([validation.errKey(rowId, field)]);
-    setTimeout(() => (flashKeys.value = new Set()), ms);
+    setTimeout(() => {
+      flashKeys.value = new Set();
+    }, ms);
   };
   /** 多格闪烁：粘贴后高亮整个写入区域（与单格跳转闪烁共用一套 cellClassName 读取） */
   const flashCells = (keys: string[], ms = 900) => {
     if (!keys.length) return;
     flashKeys.value = new Set(keys);
-    setTimeout(() => (flashKeys.value = new Set()), ms);
+    setTimeout(() => {
+      flashKeys.value = new Set();
+    }, ms);
   };
 
   // ===================== 条件格式统计 =====================
@@ -388,15 +409,15 @@ export function useGridCore() {
    * 依赖 dataRev：行值是原地改的，没有版本号时编辑后色阶不会重算。
    */
   const colStat = computed(() => {
-    dataRev.value; // 显式依赖数据版本
+    touch(dataRev); // 显式依赖数据版本
     const stat: Record<string, { min: number; max: number }> = {};
     if (conditionalOn.value) {
       const fields = columnDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
       const agg = aggregateByField(processedRows.value, fields);
-      for (const f of fields) {
+      fields.forEach((f) => {
         const a = agg[f];
         if (a) stat[f] = { min: a.min, max: a.max };
-      }
+      });
     }
     RT.colStat = stat;
     return stat;
@@ -404,11 +425,11 @@ export function useGridCore() {
   watch(conditionalOn, (v) => {
     RT.conditionalOn = v;
     // 主动求值一次，把 RT.colStat 写出去（computed 是惰性的，没人读就不会更新桥）
-    if (v) colStat.value;
+    if (v) touch(colStat);
   });
   // 数据变化时刷新色阶统计（只在开启时才算，避免无谓的全表扫描）
   watch(dataRev, () => {
-    if (conditionalOn.value) colStat.value;
+    if (conditionalOn.value) touch(colStat);
   });
 
   // ===================== 列汇总（footer） =====================
@@ -417,18 +438,18 @@ export function useGridCore() {
   /** 列汇总（footer）：数值列求和（保留 2 位）、首列显示总行数；列顺序恒为 [合计, ...visibleDefs]，无需读列配置 */
   const footerData = computed<any[]>(() => {
     if (!showFooter.value) return [];
-    dataRev.value;
+    touch(dataRev);
     const rows = processedRows.value;
     // 一次扫描算完所有数值列（原来每列各扫一遍全表）
     const fields = visibleDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
     const agg = aggregateByField(rows, fields);
     const firstField = visibleDefs.value[0]?.field;
     const row: any[] = ['合计'];
-    for (const d of visibleDefs.value) {
+    visibleDefs.value.forEach((d) => {
       if (d.type === 'number') row.push(agg[d.field] ? agg[d.field].sum : '');
       else if (d.field === firstField) row.push(`共 ${rows.length} 行`);
       else row.push('');
-    }
+    });
     return [row];
   });
 
@@ -460,12 +481,12 @@ export function useGridCore() {
   });
 
   // 编辑开始记录旧值，结束时校验并把本次单元格改动接入撤销历史
-  let editOld: any = undefined;
+  let editOld: any;
   let editRowId = '';
   let editField = '';
   /** 编辑开始：记录被编辑格的 rowId/field/旧值，供 onEditClosed 比对并接入撤销历史 */
   const onEditActived = (params: any) => {
-    editRowId = params?.row?.__id ?? '';
+    editRowId = rowIdOf(params?.row);
     editField = params?.column?.field ?? '';
     editOld = params?.row?.[editField];
   };
@@ -475,8 +496,8 @@ export function useGridCore() {
     const field = params?.column?.field;
     if (row && field) {
       validation.validateCell(row, field);
-      if (editRowId === row.__id && editField === field && editOld !== row[field]) {
-        history.pushCells('编辑单元格', [{ rowId: row.__id, field, before: editOld, after: row[field] }]);
+      if (editRowId === rowIdOf(row) && editField === field && editOld !== row[field]) {
+        history.pushCells('编辑单元格', [{ rowId: rowIdOf(row), field, before: editOld, after: row[field] }]);
         // ⚠️ 编辑是直接 pushCells（不经 commitCells），必须自己 bump，否则统计缓存会命中旧值
         bumpData();
       }

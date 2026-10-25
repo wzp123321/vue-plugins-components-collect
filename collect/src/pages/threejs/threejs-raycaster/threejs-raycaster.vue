@@ -64,8 +64,8 @@ import {
   Intersection,
   WebGLRenderer,
 } from 'three';
-import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { useThreeScene, type ThreeSceneContext } from '../shared/useThreeScene';
 import { legacyIntensity } from '../shared/lighting';
 
@@ -96,19 +96,19 @@ let raycaster: Raycaster | null = null;
 let selectableObjects: SelectableInfo[] = [];
 
 // 拖拽相关
-let dragPlane = new Plane(new Vector3(0, 1, 0), 0);
-let dragOffset = new Vector3();
+const dragPlane = new Plane(new Vector3(0, 1, 0), 0);
+const dragOffset = new Vector3();
 let isDragging = false;
 
 // hover 相关
 let hoveredObject: SelectableInfo | null = null;
 
 // 鼠标事件相关
-let mouseDownPos = new Vector2();
+const mouseDownPos = new Vector2();
 let mouseMoved = false;
 
 // 屏幕坐标 → NDC 归一化
-function toNDC(clientX: number, clientY: number, canvas: HTMLCanvasElement): Vector2 {
+const toNDC = (clientX: number, clientY: number, canvas: HTMLCanvasElement): Vector2 => {
   const rect = canvas.getBoundingClientRect();
   return new Vector2(
     ((clientX - rect.left) / rect.width) * 2 - 1,
@@ -117,7 +117,7 @@ function toNDC(clientX: number, clientY: number, canvas: HTMLCanvasElement): Vec
 }
 
 /** 通过 Raycaster 找到当前鼠标指向的最前面物体 */
-function raycastFromMouse(event: MouseEvent): Intersection | null {
+const raycastFromMouse = (event: MouseEvent): Intersection | null => {
   if (!raycaster || !ctx3d) return null;
   const ndc = toNDC(event.clientX, event.clientY, ctx3d.renderer.domElement);
   raycaster.setFromCamera(ndc, ctx3d.camera);
@@ -126,14 +126,14 @@ function raycastFromMouse(event: MouseEvent): Intersection | null {
   return intersections.length > 0 ? intersections[0] : null;
 }
 
-function clearHover() {
+const clearHover = () => {
   if (hoveredObject) {
     (hoveredObject.mesh.material as MeshStandardMaterial).emissive?.set(hoveredObject.originalEmissive);
     hoveredObject = null;
   }
 }
 
-function setHover(intersection: Intersection) {
+const setHover = (intersection: Intersection) => {
   const info = selectableObjects.find((s) => s.mesh === intersection.object);
   if (!info || hoveredObject === info) return;
   clearHover();
@@ -141,7 +141,7 @@ function setHover(intersection: Intersection) {
   (info.mesh.material as MeshStandardMaterial).emissive?.set(0x224466);
 }
 
-function selectObject(intersection: Intersection) {
+const selectObject = (intersection: Intersection) => {
   const info = selectableObjects.find((s) => s.mesh === intersection.object);
   if (!info) return;
   infoText.value = `✅ 已选中: ${info.name}`;
@@ -151,7 +151,7 @@ function selectObject(intersection: Intersection) {
 
 // ---------- 鼠标事件处理 ----------
 
-function onMouseMove(event: MouseEvent) {
+const onMouseMove = (event: MouseEvent) => {
   const intersection = raycastFromMouse(event);
   if (intersection) setHover(intersection);
   else clearHover();
@@ -168,7 +168,7 @@ function onMouseMove(event: MouseEvent) {
   if (event.buttons > 0) mouseMoved = true;
 }
 
-function onMouseDown(event: MouseEvent) {
+const onMouseDown = (event: MouseEvent) => {
   mouseDownPos.set(event.clientX, event.clientY);
   mouseMoved = false;
 
@@ -188,7 +188,7 @@ function onMouseDown(event: MouseEvent) {
   }
 }
 
-function onMouseUp(event: MouseEvent) {
+const onMouseUp = (event: MouseEvent) => {
   if (isDragging) {
     isDragging = false;
     orbitControls!.enabled = true;
@@ -208,7 +208,7 @@ function onMouseUp(event: MouseEvent) {
   }
 }
 
-function onKeyDown(event: KeyboardEvent) {
+const onKeyDown = (event: KeyboardEvent) => {
   if (!transformControls) return;
   switch (event.key.toUpperCase()) {
     case 'W':
@@ -228,12 +228,14 @@ function onKeyDown(event: KeyboardEvent) {
       infoText.value = '已取消选中';
       selectedName.value = '';
       break;
+    default:
+      break;
   }
 }
 
 // ---------- 构建场景 ----------
 
-function createScene(scene: Scene) {
+const createScene = (scene: Scene) => {
   const grid = new GridHelper(10, 10, 0x335577, 0x222244);
   scene.add(grid);
   scene.add(new AxesHelper(5));
@@ -310,7 +312,7 @@ function createScene(scene: Scene) {
   });
 }
 
-function initControllers(ctx: ThreeSceneContext) {
+const initControllers = (ctx: ThreeSceneContext) => {
   orbitControls = ctx.controls;
   transformControls = new TransformControls(ctx.camera, ctx.renderer.domElement);
   transformControls.setMode('translate');
@@ -334,7 +336,7 @@ function initControllers(ctx: ThreeSceneContext) {
   raycaster.far = 30;
 }
 
-function bindEvents(renderer: WebGLRenderer) {
+const bindEvents = (renderer: WebGLRenderer) => {
   const canvas = renderer.domElement;
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mousedown', onMouseDown);
@@ -342,7 +344,7 @@ function bindEvents(renderer: WebGLRenderer) {
   window.addEventListener('keydown', onKeyDown);
 }
 
-function unbindEvents() {
+const unbindEvents = () => {
   const canvas = ctx3d?.renderer.domElement;
   if (canvas) {
     canvas.removeEventListener('mousemove', onMouseMove);

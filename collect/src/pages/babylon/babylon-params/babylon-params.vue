@@ -10,7 +10,7 @@ import * as BABYLON from 'babylonjs';
 /** 引擎提升到组件作用域，卸载时 dispose，避免合集页内切换标签泄漏 WebGL 上下文 */
 let engine: BABYLON.Engine | null = null;
 
-function initBaBy() {
+const initBaBy = () => {
   const canvas = document.getElementById('babylon-params-canvas');
   if (!canvas) {
     return;
@@ -29,13 +29,13 @@ function initBaBy() {
   // const line1 = BABYLON.MeshBuilder.CreateLines('firstLine', { points: myPoints }, scene);
 
   const dnaPoints = [];
-  var deltaTheta = 0.1;
-  var deltaY = 0.005;
+  const deltaTheta = 0.1;
+  const deltaY = 0.005;
 
-  var radius = 1;
-  var theta = 0;
-  var Y = 0;
-  for (var i = 0; i < 400; i++) {
+  const radius = 1;
+  let theta = 0;
+  let Y = 0;
+  for (let i = 0; i < 400; i++) {
     dnaPoints.push(new BABYLON.Vector3(radius * Math.cos(theta), Y, radius * Math.sin(theta)));
     theta += deltaTheta;
     Y += deltaY;
@@ -45,10 +45,10 @@ function initBaBy() {
   line2.addRotation(Math.PI / 2, 0, 0);
   line2.scaling.x = 2;
 
-  engine.runRenderLoop(function () {
+  engine.runRenderLoop(() => {
     scene.render();
   });
-}
+};
 
 onMounted(() => {
   initBaBy();

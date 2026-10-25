@@ -35,11 +35,14 @@ export const mockPositions = [
 ];
 
 /** 模拟员工搜索 */
-export function searchEmployees(keyword: string): Promise<MockEmployee[]> {
-  return new Promise((resolve) => {
+export const searchEmployees = (keyword: string): Promise<MockEmployee[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const k = keyword.trim().toLowerCase();
-      if (!k) return resolve([]);
+      if (!k) {
+        resolve([]);
+        return;
+      }
       resolve(
         mockEmployees.filter(
           (e) => e.name.toLowerCase().includes(k) || e.account.toLowerCase().includes(k) || e.phone.includes(k)
@@ -47,29 +50,29 @@ export function searchEmployees(keyword: string): Promise<MockEmployee[]> {
       );
     }, 200);
   });
+
+const collectDeptIds = (rootId: string, all: any[]): string[] => {
+  const ids = [rootId];
+  let added = true;
+  while (added) {
+    added = false;
+    for (let i = 0; i < all.length; i++) {
+      const d = all[i];
+      if (d.parent && ids.includes(d.parent) && !ids.includes(d.id)) {
+        ids.push(d.id);
+        added = true;
+      }
+    }
+  }
+  return ids;
 }
 
 /** 模拟按部门加载员工 */
-export function loadEmployeesByDept(deptId: string): Promise<MockEmployee[]> {
-  return new Promise((resolve) => {
+export const loadEmployeesByDept = (deptId: string): Promise<MockEmployee[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const ids = collectDeptIds(deptId, flatMockDepartments);
       resolve(mockEmployees.filter((e) => ids.includes(e.departmentId)));
     }, 200);
   });
-}
 
-function collectDeptIds(rootId: string, all: any[]): string[] {
-  const ids = [rootId];
-  let added = true;
-  while (added) {
-    added = false;
-    all.forEach((d) => {
-      if (d.parent && ids.includes(d.parent) && !ids.includes(d.id)) {
-        ids.push(d.id);
-        added = true;
-      }
-    });
-  }
-  return ids;
-}

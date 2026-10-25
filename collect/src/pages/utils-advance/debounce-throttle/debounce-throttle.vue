@@ -122,10 +122,10 @@ const debounceDelay = ref(500);
 const debounceInputCount = ref(0);
 const debounceExecCount = ref(0);
 const debounceLogs = ref<{ type: string; time: string; msg: string }[]>([]);
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+const debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 手写防抖函数
-function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number) {
+const debounce = <T extends (...args: unknown[]) => void>(fn: T, delay: number) => {
   let timer: ReturnType<typeof setTimeout> | null = null;
   return function (this: unknown, ...args: Parameters<T>) {
     if (timer) clearTimeout(timer);
@@ -136,7 +136,7 @@ function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number) 
   };
 }
 
-function addLog(list: typeof debounceLogs.value, type: string, msg: string) {
+const addLog = (list: typeof debounceLogs.value, type: string, msg: string) => {
   const now = new Date();
   const time = `${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
   list.unshift({ type, time, msg });
@@ -149,7 +149,7 @@ const debouncedSearch = debounce((val: unknown) => {
   addLog(debounceLogs.value, 'exec', `✅ 执行搜索: "${strVal}"`);
 }, 500);
 
-function handleDebounceInput(val: string) {
+const handleDebounceInput = (val: string) => {
   debounceInputCount.value++;
   addLog(debounceLogs.value, 'trigger', `⌨️ 触发输入 #${debounceInputCount.value}`);
   debouncedSearch(val);
@@ -168,7 +168,7 @@ const throttleLogs = ref<{ type: string; time: string; msg: string }[]>([]);
 const throttleTab = ref('timestamp');
 
 // 手写节流函数（时间戳版）
-function throttle<T extends (...args: unknown[]) => void>(fn: T, interval: number) {
+const throttle = <T extends (...args: unknown[]) => void>(fn: T, interval: number) => {
   let lastTime = 0;
   return function (this: unknown, ...args: Parameters<T>) {
     const now = Date.now();
@@ -184,7 +184,7 @@ const throttledAction = throttle(() => {
   addLog(throttleLogs.value, 'exec', `✅ 执行动作 #${throttleExecCount.value}`);
 }, 500);
 
-function handleThrottleClick() {
+const handleThrottleClick = () => {
   throttleClickCount.value++;
   addLog(throttleLogs.value, 'trigger', `🖱 点击 #${throttleClickCount.value}`);
   throttledAction();

@@ -4,7 +4,7 @@
 // 故这里快照一份 copiedRect，不随 selRect 联动
 import { reactive, ref, watch } from 'vue';
 import type { Ref } from 'vue';
-import type { GridCore } from './useGridCore';
+import { rowIdOf, type GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 
 /**
@@ -19,12 +19,12 @@ import type { CellSelection } from './useCellSelection';
  * @param sel 自研选区状态机（markCopied 时取 selRect 作为复制源）
  * @param gridBox 网格容器（蚂蚁线 overlay 的相对坐标基准）
  */
-export function useCopyMarquee(
+export const useCopyMarquee = (
   core: GridCore,
   tableRef: Ref<any>,
   sel: CellSelection,
   gridBox: Ref<HTMLElement | undefined>,
-) {
+) => {
   const copiedRect = ref<{ rowIds: Set<string>; fields: string[] } | null>(null);
   // ⚠️ 坑：蚂蚁线用 SVG overlay（stroke-dashoffset 循环动画）实现——box-shadow 不支持 dashed，
   // 无法用 box-shadow 做虚线边框动画；故这里只算出区域矩形（top/left/w/h），由模板里的 SVG 描边动画呈现。
@@ -39,7 +39,7 @@ export function useCopyMarquee(
       copyMarquee.show = false;
       return;
     }
-    const rows = core.processedRows.value.filter((r) => rect.rowIds.has(r.__id));
+    const rows = core.processedRows.value.filter((r) => rect.rowIds.has(rowIdOf(r)));
     const first = rows[0];
     const last = rows[rows.length - 1];
     const firstCol = first ? tableRef.value?.getColumnByField?.(rect.fields[0]) : null;
@@ -67,9 +67,9 @@ export function useCopyMarquee(
     if (rect) {
       const fields = sel.rectFields(rect);
       // 快照用行 id（而非索引）：复制后行可能被过滤/删除，索引会失效，行 id 更稳
-      copiedRect.value = { rowIds: new Set(sel.rectRows(rect).map((r) => r.__id)), fields };
+      copiedRect.value = { rowIds: new Set(sel.rectRows(rect).map((r) => rowIdOf(r))), fields };
     } else if (core.currentCell.value) {
-      copiedRect.value = { rowIds: new Set([core.currentCell.value.row.__id]), fields: [core.currentCell.value.field] };
+      copiedRect.value = { rowIds: new Set([rowIdOf(core.currentCell.value.row)]), fields: [core.currentCell.value.field] };
     } else {
       copiedRect.value = null;
     }

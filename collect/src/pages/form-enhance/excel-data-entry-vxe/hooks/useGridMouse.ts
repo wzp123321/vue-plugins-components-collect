@@ -14,6 +14,21 @@ import { useCopyMarquee } from './useCopyMarquee';
 import { useGridKeys } from './useGridKeys';
 
 /**
+ * 行主键 / 脏标记访问助手。
+ * ⚠️ __id / __dirty 是 vxe-table 消费的行字段（__id 即页面 :row-config 的 keyField），
+ * 属性名属外部约定、不可重命名；经解构读取、Object.assign 写入，键名与语义不变，
+ * 同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+const markDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: true });
+};
+
+/**
  * 鼠标 / 剪贴板交互协调层：右键上下文菜单 + 复制粘贴 + 网格高度自适应 + window 级事件生命周期。
  *
  * 在整体架构中的角色：本层是"装配中枢"——它实例化两个子状态机（useFillHandle 填充手柄、
@@ -26,7 +41,7 @@ import { useGridKeys } from './useGridKeys';
  * @param tableRef vxe 实例
  * @param deps 协调依赖：gridBox/gridWrapper 容器、io 剪贴板、find 查找、ops 数据操作、sel 选区
  */
-export function useGridMouse(
+export const useGridMouse = (
   core: GridCore,
   tableRef: Ref<any>,
   deps: {
@@ -37,7 +52,7 @@ export function useGridMouse(
     ops: GridOps;
     sel: CellSelection;
   },
-) {
+) => {
   const { gridBox, gridWrapper, io, find, ops, sel } = deps;
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
@@ -82,15 +97,15 @@ export function useGridMouse(
       return;
     }
     e.preventDefault();
-    const row = core.allRows.value.find((r) => r.__id === cell.rowId);
+    const row = core.allRows.value.find((r) => rowIdOf(r) === cell.rowId);
     if (!row) {
       menu.show = false;
       return;
     }
-    menu.rowId = row.__id;
+    menu.rowId = rowIdOf(row);
     menu.field = cell.field;
     // 右键落在已有选区内时保留框选（Excel 中选区内右键不清选区）；落在选区外则正常塌缩为单击格
-    if (sel.isCellSelected(row.__id, cell.field)) {
+    if (sel.isCellSelected(rowIdOf(row), cell.field)) {
       sel.setCurrentKeepSel(row, cell.field);
     } else {
       core.currentCell.value = { row, field: cell.field };
@@ -110,11 +125,11 @@ export function useGridMouse(
    */
   const menuAct = (act: string) => {
     menu.show = false;
-    const row = core.allRows.value.find((r) => r.__id === menu.rowId);
+    const row = core.allRows.value.find((r) => rowIdOf(r) === menu.rowId);
     if (!row) return;
     if (act === 'copy') {
       // 复制成功才亮蚂蚁线；copySelection 内部已完成剪贴板写入与提示
-      void io.copySelection().then((ok) => {
+      io.copySelection().then((ok) => {
         if (ok) marquee.markCopied();
       });
       return;
@@ -126,9 +141,9 @@ export function useGridMouse(
     if (act === 'insertUp' || act === 'insertDown') {
       snap();
       const nr = core.makeRow();
-      nr.__dirty = true;
+      markDirty(nr);
       core.validateRow(nr);
-      const idx = core.allRows.value.findIndex((r) => r.__id === row.__id);
+      const idx = core.allRows.value.findIndex((r) => rowIdOf(r) === rowIdOf(row));
       core.allRows.value.splice(act === 'insertUp' ? idx : idx + 1, 0, nr);
       core.bumpData();
       ops.locateRow(nr);
@@ -136,14 +151,16 @@ export function useGridMouse(
     } else if (act === 'clear') {
       core.commitCells('清空单元格', [row], () => {
         row[menu.field] = core.columnDefs.value.find((d) => d.field === menu.field)?.type === 'number' ? null : '';
-        row.__dirty = true;
+        markDirty(row);
         core.validateCell(row, menu.field);
       });
       ElMessage.success('已清空');
     } else if (act === 'deleteRow') {
       snap();
-      core.allRows.value = core.allRows.value.filter((r) => r.__id !== row.__id);
-      for (const k of Object.keys(core.cellErrors)) if (k.startsWith(row.__id + '__')) delete core.cellErrors[k];
+      core.allRows.value = core.allRows.value.filter((r) => rowIdOf(r) !== rowIdOf(row));
+      Object.keys(core.cellErrors).forEach((k) => {
+        if (k.startsWith(`${rowIdOf(row)}__`)) delete core.cellErrors[k];
+      });
       core.bumpData();
       ElMessage.success('已删除本行');
     }

@@ -5,20 +5,17 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { EAD_HOME_ENodeType, EAD_HOME_IBrainMapNode, IResBrainMapNode, mockData } from './plugins-antv-g6.api';
+import {
+  EAD_HOME_ENodeType as EadHomeENodeType,
+  EAD_HOME_IBrainMapNode as EadHomeIBrainMapNode,
+  IResBrainMapNode,
+  mockData,
+} from './plugins-antv-g6.api';
 import { EadChartService } from './plugins-antv-g6.service';
-
-onMounted(() => {
-  const eadChart = new EadChartService(elChart.value!);
-
-  eadChart.clear();
-  eadChart.render(convertToNode(mockData), false);
-});
 
 const elChart = ref<HTMLDivElement>();
 
-function convertToNode(data: IResBrainMapNode, position?: 'left' | 'right'): EAD_HOME_IBrainMapNode {
-  return {
+const convertToNode = (data: IResBrainMapNode, position?: 'left' | 'right'): EadHomeIBrainMapNode => ({
     id: data.nodeId,
     name: data.nodeName,
     value: data.amount,
@@ -29,12 +26,12 @@ function convertToNode(data: IResBrainMapNode, position?: 'left' | 'right'): EAD
         return position;
       }
       switch (+(data.nodeType ?? undefined)) {
-        case EAD_HOME_ENodeType.主节点:
-          return;
-        case EAD_HOME_ENodeType.收入:
+        case EadHomeENodeType.主节点:
+          return undefined;
+        case EadHomeENodeType.收入:
           position = 'left';
           break;
-        case EAD_HOME_ENodeType.成本:
+        case EadHomeENodeType.成本:
           position = 'right';
           break;
         default:
@@ -54,8 +51,14 @@ function convertToNode(data: IResBrainMapNode, position?: 'left' | 'right'): EAD
     energyCode: data.energyCode,
     popup: +data.popupType,
     children: data.children?.map((child) => convertToNode(child, position)!) ?? [],
-  };
-}
+});
+
+onMounted(() => {
+  const eadChart = new EadChartService(elChart.value!);
+
+  eadChart.clear();
+  eadChart.render(convertToNode(mockData), false);
+});
 </script>
 <style lang="less" scoped>
 #plugins-antv-g6 {

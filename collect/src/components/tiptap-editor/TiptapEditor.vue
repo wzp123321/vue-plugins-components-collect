@@ -246,9 +246,10 @@
  * 命令执行 / 状态检查抽成 utils，扩展统一在 extensions.ts 配置
  */
 import { computed, nextTick, ref, watch } from 'vue';
+import type { Ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
-import type { JSONContent } from '@tiptap/vue-3';
+import type { Editor, JSONContent } from '@tiptap/vue-3';
 import { ArrowDown, Check } from '@element-plus/icons-vue';
 import { buildExtensions } from './extensions';
 import { createCommandRunner, executeCommand } from './utils/editorCommands';
@@ -367,34 +368,6 @@ const lineHeightOptions = [
 // 斜杠命令菜单实例（扩展回调经它驱动显隐）
 const slashMenuRef = ref<InstanceType<typeof EditorSlashMenu>>();
 
-// ===== 编辑器实例 =====
-const editor = useEditor({
-  extensions: buildExtensions({
-    placeholder: props.placeholder,
-    slashCommand: {
-      onActivate: (state) => slashMenuRef.value?.activate(state),
-      onDeactivate: () => slashMenuRef.value?.hide(),
-      onQueryChange: (query) => slashMenuRef.value?.updateQuery(query),
-    },
-  }),
-  content: props.modelValue || DEFAULT_CONTENT,
-  // 构造期间 ref 尚未赋值，下一帧补齐快照
-  onCreate: () => nextTick(refreshSnapshot),
-  onUpdate: () => {
-    refreshSnapshot();
-    const instance = editor.value;
-    if (!instance) return;
-    emit('update:modelValue', instance.getHTML());
-    emit('change', {
-      html: instance.getHTML(),
-      json: instance.getJSON(),
-      characters: snapshot.value.characters,
-    });
-  },
-  // 选区变化同样触发，用于刷新工具栏激活态
-  onTransaction: () => refreshSnapshot(),
-});
-
 // 快照：每次事务后重建，驱动工具栏状态 / 输出面板刷新
 const snapshot = ref<EditorSnapshot>({
   html: '',
@@ -411,8 +384,8 @@ const snapshot = ref<EditorSnapshot>({
   formatPainterActive: false,
 });
 
-function refreshSnapshot() {
-  const instance = editor.value;
+const refreshSnapshot = (ed: Ref<Editor | null | undefined>) => {
+  const instance = ed.value;
   if (!instance) return;
 
   const textStyleAttrs = instance.getAttributes('textStyle') as {
@@ -431,8 +404,8 @@ function refreshSnapshot() {
     html: instance.getHTML(),
     json: instance.getJSON(),
     characters: characterCount?.characters?.() ?? 0,
-    paragraphStyle: getCurrentParagraphStyle(editor),
-    align: getCurrentTextAlign(editor),
+    paragraphStyle: getCurrentParagraphStyle(ed),
+    align: getCurrentTextAlign(ed),
     fontFamily: fontFamilyOptions.find((option) => option.value === textStyleAttrs.fontFamily)?.value ?? '',
     fontSize: fontSizeOptions.find((option) => option.value === textStyleAttrs.fontSize)?.value ?? '',
     lineHeight:
@@ -443,7 +416,35 @@ function refreshSnapshot() {
     linkHref: linkAttrs.href ?? '',
     formatPainterActive: formatPainterStorage.formatPainter?.isActive ?? false,
   };
-}
+};
+
+// ===== 编辑器实例 =====
+const editor = useEditor({
+  extensions: buildExtensions({
+    placeholder: props.placeholder,
+    slashCommand: {
+      onActivate: (state) => slashMenuRef.value?.activate(state),
+      onDeactivate: () => slashMenuRef.value?.hide(),
+      onQueryChange: (query) => slashMenuRef.value?.updateQuery(query),
+    },
+  }),
+  content: props.modelValue || DEFAULT_CONTENT,
+  // 构造期间 ref 尚未赋值，下一帧补齐快照
+  onCreate: () => nextTick(() => refreshSnapshot(editor)),
+  onUpdate: () => {
+    refreshSnapshot(editor);
+    const instance = editor.value;
+    if (!instance) return;
+    emit('update:modelValue', instance.getHTML());
+    emit('change', {
+      html: instance.getHTML(),
+      json: instance.getJSON(),
+      characters: snapshot.value.characters,
+    });
+  },
+  // 选区变化同样触发，用于刷新工具栏激活态
+  onTransaction: () => refreshSnapshot(editor),
+});
 
 // ===== 命令执行 / 状态检查 =====
 const run = createCommandRunner(editor);
@@ -470,7 +471,7 @@ const currentAlignLabel = computed(
 );
 
 /** 切换段落样式（参考 hlms：切标题时清理 textStyle 并还原选区） */
-function onHeadingChange(value: string) {
+const onHeadingChange = (value: string) => {
   const instance = editor.value;
   if (!instance) return;
   const { from, to } = instance.state.selection;
@@ -496,11 +497,11 @@ function onHeadingChange(value: string) {
     .run();
 }
 
-function onAlignChange(value: 'left' | 'center' | 'right' | 'justify') {
+const onAlignChange = (value: 'left' | 'center' | 'right' | 'justify') => {
   exec((chain) => chain.setTextAlign(value));
 }
 
-function onFontFamilyChange(value: string) {
+const onFontFamilyChange = (value: string) => {
   if (value) {
     exec((chain) => chain.setFontFamily(value));
   } else {
@@ -508,7 +509,7 @@ function onFontFamilyChange(value: string) {
   }
 }
 
-function onFontSizeChange(value: string) {
+const onFontSizeChange = (value: string) => {
   if (value) {
     exec((chain) => chain.setFontSize(value));
   } else {
@@ -516,13 +517,13 @@ function onFontSizeChange(value: string) {
   }
 }
 
-function onLineHeightChange(value: string) {
+const onLineHeightChange = (value: string) => {
   exec((chain) => chain.setLineHeight(value));
 }
 
 // ===== 格式刷 =====
 /** 读取格式刷激活态（扩展 storage） */
-function isFormatPainterActive(): boolean {
+const isFormatPainterActive = (): boolean => {
   const instance = editor.value;
   if (!instance) return false;
   const storage = instance.storage as { formatPainter?: { isActive?: boolean } };
@@ -530,7 +531,7 @@ function isFormatPainterActive(): boolean {
 }
 
 /** 单击：激活单次模式 / 取消 */
-function onFormatPainterClick() {
+const onFormatPainterClick = () => {
   const instance = editor.value;
   if (!instance) return;
   if (isFormatPainterActive()) {
@@ -544,7 +545,7 @@ function onFormatPainterClick() {
 }
 
 /** 双击：激活连续应用模式 / 取消 */
-function onFormatPainterDoubleClick() {
+const onFormatPainterDoubleClick = () => {
   const instance = editor.value;
   if (!instance) return;
   if (isFormatPainterActive()) {
@@ -561,30 +562,30 @@ function onFormatPainterDoubleClick() {
 const textColorVisible = ref(false);
 const highlightVisible = ref(false);
 
-function chooseTextColor(color: string) {
+const chooseTextColor = (color: string) => {
   exec((chain) => chain.setColor(color));
   textColorVisible.value = false;
 }
 
-function onTextColorPickerChange(color: string | null) {
+const onTextColorPickerChange = (color: string | null) => {
   if (color) exec((chain) => chain.setColor(color));
 }
 
-function clearTextColor() {
+const clearTextColor = () => {
   exec((chain) => chain.unsetColor());
   textColorVisible.value = false;
 }
 
-function chooseHighlightColor(color: string) {
+const chooseHighlightColor = (color: string) => {
   exec((chain) => chain.setHighlight({ color }));
   highlightVisible.value = false;
 }
 
-function onHighlightPickerChange(color: string | null) {
+const onHighlightPickerChange = (color: string | null) => {
   if (color) exec((chain) => chain.setHighlight({ color }));
 }
 
-function clearHighlight() {
+const clearHighlight = () => {
   exec((chain) => chain.unsetHighlight());
   highlightVisible.value = false;
 }
@@ -593,18 +594,18 @@ function clearHighlight() {
 const linkVisible = ref(false);
 const linkUrl = ref('');
 
-function openLinkPopover() {
+const openLinkPopover = () => {
   linkUrl.value = snapshot.value.linkHref;
   linkVisible.value = true;
 }
 
-function applyLink() {
+const applyLink = () => {
   if (!linkUrl.value) return;
   exec((chain) => chain.setLink({ href: linkUrl.value }));
   linkVisible.value = false;
 }
 
-function removeLink() {
+const removeLink = () => {
   exec((chain) => chain.unsetLink());
   linkVisible.value = false;
 }
@@ -614,18 +615,18 @@ const imageVisible = ref(false);
 const imageUrl = ref('');
 const imageFileInput = ref<HTMLInputElement>();
 
-function applyImageUrl() {
+const applyImageUrl = () => {
   if (!imageUrl.value) return;
   exec((chain) => chain.setImage({ src: imageUrl.value }));
   imageUrl.value = '';
   imageVisible.value = false;
 }
 
-function pickImageFile() {
+const pickImageFile = () => {
   imageFileInput.value?.click();
 }
 
-function onImageFileChange(event: Event) {
+const onImageFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   target.value = '';
@@ -670,7 +671,7 @@ watch(
     if (!instance || value === undefined) return;
     if (value !== instance.getHTML()) {
       instance.commands.setContent(value || '<p></p>', { emitUpdate: false });
-      refreshSnapshot();
+      refreshSnapshot(editor);
     }
   },
 );
