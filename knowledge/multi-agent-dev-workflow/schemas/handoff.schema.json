@@ -9,6 +9,11 @@
       "type": "string",
       "description": "任务唯一标识，全程不变，用于跨阶段追溯"
     },
+    "task_level": {
+      "type": "string",
+      "enum": ["S", "M", "L"],
+      "description": "流程分级，Phase 0 由编排者定档：S 小改动走精简流程，M 标准（默认），L 完整。契约先行与资产可验证任何档位不跳过"
+    },
     "phase": {
       "type": "string",
       "enum": ["P1-requirement", "P2-contract", "P3-design", "P4-review", "P5-develop", "P6-acceptance"]
@@ -82,6 +87,14 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "明确不该读的，防止上下文污染"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "description": "本轮投递的 token 上限，由编排者按阶段类型设定。投递前估算，超预算先瘦身（只保留 must_read）再发"
+        },
+        "estimated_tokens": {
+          "type": "integer",
+          "description": "编排者投递前填的预估值（artifact 字符数 x 1.5 系数累加），事后记入 cost_log 用于校准"
         }
       }
     },
