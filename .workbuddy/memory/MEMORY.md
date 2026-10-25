@@ -102,3 +102,13 @@
 - 坑：加法混合的白色星芒在浅底上糊成一片「脏点」；starfield 自身没有主题概念
 - 解法：viewport 暴露 `setStarfieldVisible()`，并在内部记住意图（主题 watcher 可能先于 `start()` 触发）
 - 落点：`composables/useMapViewport.ts`、`ChinaMap3D.vue` 的 theme watcher
+
+### 2026-10-26 全仓 lint 清零后的硬约定（长期有效）
+- **代码风格**：`collect/src` 函数一律箭头函数；**不许用 eslint-disable 掩盖**（文件级/行级/块级都不行），报错必须真修。源码现有 disable 仅剩 auto-imports.d.ts / components.d.ts / env.d.ts 三个生成物或环境声明。
+- **存量债已清零**：eslint 0 error（剩 410 个既有 warning，多为 no-explicit-any）、vue-tsc 0 error、stylelint 0 error。新增代码请保持 0 error 提交。
+- **pre-commit 钩子四项**：check-nav-routes → check-unresolved-components → lint-staged（eslint + stylelint）。
+  - 本机坑：lint-staged 在 Windows 用 pidtree 调 `wmic.exe`，被安全策略拉黑 → 钩子恒定 exit 1（eslint/stylelint 其实都过）。此环境只能 `--no-verify`，但**必须手动把四项检查跑齐**再提交。
+  - `git commit` 会连索引里**所有已暂存**文件一起提交（曾误吞 9MB stats.html）：分批提交前先 `git restore --staged .`，再按目录 `git add` 单组提交。
+- **stylelint 版本锁**：`stylelint-config-recommended-vue` 必须 `^1.5.0`（v2 要 stylelint>=16 / postcss-html^2，与仓库 stylelint 15.11 / postcss-html 1.8 冲突）。该包曾被 `.stylelintrc` 引用却没声明，导致钩子 stylelint 步骤一直 Could not find。vendor CSS 已加 ignoreFiles。
+- **echarts 统一入口**：业务侧只能从 `src/config/echarts/setup` 导入 init/类型，不直连 `echarts` 主包（主包与 core 的 ECharts 名义类型不互通）。注意扩展包 wordcloud/liquidfill 内部 `require("echarts")` 会把全量主包打进来，按需对体积无收益。
+- **重排/改名类重构的三类必查回归**：① 闭包内用 `let x`（闭包丢赋值收窄 → TS18047）改用局部 const 承接；② 删「未使用参数」要同步改调用方实参；③ `v-for` 的 index 只在 `<template :key>` 使用会被 vue-tsc 判未读（TS6133），改用稳定字段做 key。
