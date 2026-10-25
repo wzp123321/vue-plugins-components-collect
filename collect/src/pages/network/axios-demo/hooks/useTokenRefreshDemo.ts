@@ -7,8 +7,8 @@ export interface TokenLog {
 }
 
 /** 模拟业务请求：fail=true 抛 401，fail=false 返回数据 */
-const mockRequest = (fail: boolean): Promise<any> => {
-  return new Promise((resolve, reject) => {
+const mockRequest = (fail: boolean): Promise<any> =>
+  new Promise((resolve, reject) => {
     setTimeout(() => {
       if (fail) {
         const err: any = new Error('Request failed with status code 401');
@@ -20,33 +20,30 @@ const mockRequest = (fail: boolean): Promise<any> => {
       }
     }, 200);
   });
-};
 
 /** 模拟刷新 token 接口（成功） */
-const mockRefreshApi = (): Promise<{ accessToken: string; refreshToken: string }> => {
-  return new Promise((resolve) => {
+const mockRefreshApi = (): Promise<{ accessToken: string; refreshToken: string }> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        accessToken: 'AT_' + Date.now().toString(36),
-        refreshToken: 'RT_' + Date.now().toString(36),
+        accessToken: `AT_${Date.now().toString(36)}`,
+        refreshToken: `RT_${Date.now().toString(36)}`,
       });
     }, 400);
   });
-};
 
 /** 模拟刷新 token 接口（refreshToken 也失效） */
-const mockRefreshApiExpired = (): Promise<never> => {
-  return new Promise((_, reject) => {
+const mockRefreshApiExpired = (): Promise<never> =>
+  new Promise((_, reject) => {
     setTimeout(() => {
       const err: any = new Error('refreshToken 失效');
       err.response = { status: 401, data: { code: 401, msg: 'refreshToken 已过期，请重新登录' } };
       reject(err);
     }, 300);
   });
-};
 
 /** Token 失效自动刷新 + 重试（并发安全）演示 hook */
-export function useTokenRefreshDemo() {
+export const useTokenRefreshDemo = () => {
   const tokenRefreshLoading = ref(false);
   const multiTokenLoading = ref(false);
   const refreshExpiredLoading = ref(false);
@@ -68,15 +65,15 @@ export function useTokenRefreshDemo() {
 
   // 初始化一对 token
   if (!accessToken.value) {
-    accessToken.value = 'AT_init_' + Date.now().toString(36);
-    refreshToken.value = 'RT_init_' + Date.now().toString(36);
+    accessToken.value = `AT_init_${Date.now().toString(36)}`;
+    refreshToken.value = `RT_init_${Date.now().toString(36)}`;
   }
 
   const resetTokens = () => {
     isRefreshing = false;
     pendingQueue = [];
-    accessToken.value = 'AT_init_' + Date.now().toString(36);
-    refreshToken.value = 'RT_init_' + Date.now().toString(36);
+    accessToken.value = `AT_init_${Date.now().toString(36)}`;
+    refreshToken.value = `RT_init_${Date.now().toString(36)}`;
     tokenLogs.value = [];
     addLog('info', '🔄 已重置 token 状态');
   };
@@ -92,7 +89,6 @@ export function useTokenRefreshDemo() {
       try {
         const res = await mockRequest(true); // 第一次必失败
         addLog('success', `✅ 业务请求成功：${JSON.stringify(res.data)}`);
-        return;
       } catch (err: any) {
         if (err.response?.status !== 401) throw err;
         addLog('warning', '⚠️ 收到 401 → accessToken 失效');
@@ -153,7 +149,6 @@ export function useTokenRefreshDemo() {
         // 重试
         const retryRes = await mockRequest(false);
         addLog('success', `🎉 请求 #${idx} 重试成功：${JSON.stringify(retryRes.data.data)}`);
-        return retryRes;
       }
     };
     try {

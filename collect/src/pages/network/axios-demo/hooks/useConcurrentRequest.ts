@@ -6,11 +6,11 @@ export interface ConcurrentReq {
 }
 
 /** 通用：限制最大并发数 */
-async function concurrentLimit(
+const concurrentLimit = async (
   tasks: (() => Promise<any>)[],
   limit: number,
   onStatusChange?: (index: number, status: ConcurrentReq['status']) => void,
-) {
+) => {
   const results: any[] = [];
   let index = 0;
 
@@ -33,7 +33,7 @@ async function concurrentLimit(
 }
 
 /** 并发控制 hook */
-export function useConcurrentRequest() {
+export const useConcurrentRequest = () => {
   const concurrentLoading = ref(false);
   const concurrentReqs = ref<ConcurrentReq[]>([]);
 
@@ -46,7 +46,9 @@ export function useConcurrentRequest() {
 
     const tasks = Array.from({ length: 8 }, (_, i) => async () => {
       const delay = Math.random() * 1500 + 500;
-      await new Promise((r) => setTimeout(r, delay));
+      await new Promise((r) => {
+        setTimeout(r, delay);
+      });
       if (Math.random() < 0.1) throw new Error('随机失败');
       return `任务${i + 1}完成`;
     });

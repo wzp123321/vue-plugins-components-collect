@@ -65,7 +65,7 @@ const withTimeout = <T>(task: Promise<T>, timeoutMs: number, message: string): P
     );
   });
 
-export function createTokenManager(options: TokenManagerOptions): TokenManager {
+export const createTokenManager = (options: TokenManagerOptions): TokenManager => {
   const { refreshApi, storage = createTokenStorage(), onAuthFailed, refreshTimeout = 15000 } = options;
 
   let tokens: TokenPair | null = storage.get();
@@ -122,7 +122,7 @@ export function createTokenManager(options: TokenManagerOptions): TokenManager {
     const task = runRefresh(tokens.refreshToken);
     inflight = task;
     // 独立分支消费拒绝，避免 unhandled rejection；不影响 task 本身的拒绝语义
-    void task.catch(() => undefined).finally(() => {
+    task.catch(() => undefined).finally(() => {
       if (inflight === task) inflight = null;
     });
     return task;

@@ -287,7 +287,10 @@ const mockMetricDetails: MetricDetail[] = [
 ];
 
 /** mock 延时，模拟网络请求耗时 */
-const delay = (ms = 300): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms = 300): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 /** 稳定散列：保证同一维度组合每次试算得到相同的演示数值 */
 const hashString = (s: string): number => {
@@ -308,7 +311,7 @@ const cartesian = (groups: string[][]): string[][] =>
 /**
  * 查询指标列表
  */
-export async function fetchMetrics(): Promise<MetricItem[]> {
+export const fetchMetrics = async (): Promise<MetricItem[]> => {
   // TODO 接入真实后端：const { data } = await axios.get('/api/metric/list'); return data.data;
   await delay(300);
   return mockMetricDetails.map((m) => ({ ...m }));
@@ -317,7 +320,7 @@ export async function fetchMetrics(): Promise<MetricItem[]> {
 /**
  * 查询指标详情
  */
-export async function fetchMetricDetail(id: string): Promise<MetricDetail | null> {
+export const fetchMetricDetail = async (id: string): Promise<MetricDetail | null> => {
   // TODO 接入真实后端：const { data } = await axios.get(`/api/metric/${id}`); return data.data;
   await delay(200);
   const detail = mockMetricDetails.find((m) => m.id === id);
@@ -328,7 +331,7 @@ export async function fetchMetricDetail(id: string): Promise<MetricDetail | null
  * 指标试算：按勾选维度对指标做聚合查询
  * 未勾选任何维度时返回单行「全量汇总」结果。
  */
-export async function queryMetric(params: MetricQueryParams): Promise<MetricQueryResult> {
+export const queryMetric = async (params: MetricQueryParams): Promise<MetricQueryResult> => {
   // TODO 接入真实后端：const { data } = await axios.post('/api/metric/query', params); return data.data;
   const start = Date.now();
   await delay(400);

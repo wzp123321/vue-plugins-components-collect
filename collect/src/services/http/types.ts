@@ -145,11 +145,11 @@ declare module 'axios' {
     /** 跳过 onError 统一提示，由业务自行处理 */
     skipErrorHandler?: boolean;
     /** 内部：当前请求已重试次数 */
-    _retryCount?: number;
+    retryCount?: number;
     /** 内部：本次请求是否已因 401 刷新重试过（只重试一次） */
-    _authRetried?: boolean;
+    authRetried?: boolean;
     /** 内部：本次请求的 traceId */
-    _traceId?: string;
+    traceId?: string;
     /** 内部：并发去重的 key */
     _dedupeKey?: string;
   }
