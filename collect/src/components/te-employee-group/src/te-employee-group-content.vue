@@ -83,6 +83,10 @@ const getMemberName = (id: string) => mockEmployees.find((e) => e.id === id)?.na
 
 const isOverflow = (text: string) => text.length * 14 > 140;
 
+const syncSelected = () => {
+  selected.value = mockEmployeeGroups.filter((g) => selectedIds.value.includes(g.id));
+};
+
 watch(
   () => props.modelValue,
   (v) => {
@@ -98,10 +102,6 @@ watch(selectedIds, () => {
   emit('update:modelValue', selectedIds.value);
   emit('change', selected.value);
 });
-
-const syncSelected = () => {
-  selected.value = mockEmployeeGroups.filter((g) => selectedIds.value.includes(g.id));
-};
 
 const removeOne = (item: MockEmployeeGroup) => {
   selectedIds.value = selectedIds.value.filter((id) => id !== item.id);

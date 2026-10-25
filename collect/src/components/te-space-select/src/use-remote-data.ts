@@ -23,6 +23,19 @@ export interface AllowSelectAllLevels {
 export const useRemoteData = () => {
   const detailMap: Map<string, SpaceOption> = new Map();
 
+  const mapChild = (parentId: string, el: MockSpaceNode, allow: AllowSelectAllLevels): SpaceOption => {
+    const childDisabled = el.type === 'floor' ? !allow.floor : !allow.room;
+    return {
+      value: `${parentId}|${el.id}`,
+      label: el.name,
+      disabled: childDisabled,
+      leaf: true,
+      isChild: true,
+      level: el.type,
+      raw: el,
+    };
+  };
+
   /** 处理懒加载分级数据 */
   const dealwithLazyData = (tree: MockSpaceNode[], allow: AllowSelectAllLevels) => {
     const res: SpaceOption[] = [];
@@ -58,29 +71,15 @@ export const useRemoteData = () => {
     return res;
   };
 
-  const mapChild = (parentId: string, el: MockSpaceNode, allow: AllowSelectAllLevels): SpaceOption => {
-    const childDisabled = el.type === 'floor' ? !allow.floor : !allow.room;
-    return {
-      value: `${parentId}|${el.id}`,
-      label: el.name,
-      disabled: childDisabled,
-      leaf: true,
-      isChild: true,
-      level: el.type,
-      raw: el,
-    };
-  };
-
   /** 扁平搜索结果拼成 cascader 树（保留 path 信息） */
-  const buildCascaderFromFlat = (list: MockSpaceNode[]) => {
-    return list.map((n) => ({
+  const buildCascaderFromFlat = (list: MockSpaceNode[]) =>
+    list.map((n) => ({
       value: n.id,
       label: n.name,
       leaf: true,
       level: n.type,
       raw: n,
     }));
-  };
 
   return { dealwithLazyData, buildCascaderFromFlat, detailMap };
 };

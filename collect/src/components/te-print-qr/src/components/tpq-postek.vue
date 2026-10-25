@@ -39,7 +39,9 @@ watch(() => props.content, draw);
 const doPrint = async () => {
   printing.value = true;
   lastLog.value = '正在连接 Postek RFID 设备...';
-  await new Promise((r) => setTimeout(r, 600));
+  await new Promise((r) => {
+    setTimeout(r, 600);
+  });
   lastLog.value = `RFID 标签已写入: ${props.content}`;
   printing.value = false;
 };

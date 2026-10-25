@@ -12,10 +12,10 @@
         <el-icon :size="20"><Picture /></el-icon>
       </div>
     </template>
-    <div class="te-qrcode-carousel" :class="{ 'is-no-animate': isNoAnimate, 'is-one-image': data.length === 1 }">
-      <div v-if="data.length > 0" class="te-qrcode-list">
+    <div class="te-qrcode-carousel" :class="{ 'is-no-animate': isNoAnimate, 'is-one-image': schemeList.length === 1 }">
+      <div v-if="schemeList.length > 0" class="te-qrcode-list">
         <div
-          v-for="(item, idx) in data"
+          v-for="(item, idx) in schemeList"
           :key="item.code"
           class="te-qrcode-item"
           :class="{ active: idx === activeIndex }"
@@ -60,7 +60,7 @@ const props = withDefaults(
 );
 
 const visible = ref(false);
-const data = ref<QrcodeScheme[]>([]);
+const schemeList = ref<QrcodeScheme[]>([]);
 const isNoAnimate = ref(false);
 const loading = ref(true);
 const activeIndex = ref(0);
@@ -76,30 +76,6 @@ const visibleChange = (val: boolean) => {
     isNoAnimate.value = !val;
   }, 100);
 };
-
-const handleShow = () => {
-  loading.value = true;
-  // 模拟接口延迟
-  setTimeout(() => {
-    data.value = props.data;
-    loading.value = false;
-    nextTick(() => drawAll());
-  }, 300);
-};
-
-const drawAll = () => {
-  data.value.forEach((item, index) => {
-    const c = canvasRefs.value[index];
-    if (!c) return;
-    if (item.scanType === 'QRCODE') {
-      QRCode.toCanvas(c, item.scanContent, { width: 164 }).catch((e: any) => console.error(e));
-    } else {
-      drawFakeBarcode(c, item.scanContent);
-    }
-  });
-};
-
-watch(activeIndex, () => nextTick(() => drawAll()));
 
 /** 用 canvas 模拟画一个"条形码"风格 */
 const drawFakeBarcode = (canvas: HTMLCanvasElement, content: string) => {
@@ -133,6 +109,30 @@ const drawFakeBarcode = (canvas: HTMLCanvasElement, content: string) => {
   ctx.font = '12px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(content, W / 2, H - 6);
+};
+
+const drawAll = () => {
+  schemeList.value.forEach((item, index) => {
+    const c = canvasRefs.value[index];
+    if (!c) return;
+    if (item.scanType === 'QRCODE') {
+      QRCode.toCanvas(c, item.scanContent, { width: 164 }).catch((e: any) => console.error(e));
+    } else {
+      drawFakeBarcode(c, item.scanContent);
+    }
+  });
+};
+
+watch(activeIndex, () => nextTick(() => drawAll()));
+
+const handleShow = () => {
+  loading.value = true;
+  // 模拟接口延迟
+  setTimeout(() => {
+    schemeList.value = props.data;
+    loading.value = false;
+    nextTick(() => drawAll());
+  }, 300);
 };
 
 defineOptions({ name: 'TeQrcodeView' });

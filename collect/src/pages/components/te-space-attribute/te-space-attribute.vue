@@ -39,14 +39,7 @@ import { flatSpaceAttrs } from '../../../components/_mock/space-attribute';
 const value1 = ref<string[]>(['sa-1-1-1']);
 const value2 = ref<string[]>(['sa-1-1-1', 'sa-1-1-2']);
 
-const halfIds = computed(() => {
-  // const all = flatSpaceAttrs([]) as SpaceAttrTreeNode[];
-  // 仅简单展示：哪些 node 当前是半选
-  // 真正的半选计算需要 hook 树
-  return [];
-});
-
-void halfIds; // 简化
+const halfIds = computed(() => []);
 
 const onHook = () => {
   const { getChildrenIds, getParentIds, getCheckedPIds, getUncheckedPIds, getIsChecked, getIsHalfChecked } =

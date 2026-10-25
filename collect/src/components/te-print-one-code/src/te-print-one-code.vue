@@ -185,7 +185,9 @@ const handlePrint = () => {
       emit('print', payload);
       ElMessage.success(printType.value === 'direct' ? '已发起打印' : '已导出 PDF');
       printing.value = false;
-      setTimeout(() => (dialogVisible.value = false), 600);
+      setTimeout(() => {
+        dialogVisible.value = false;
+      }, 600);
       return;
     }
     setTimeout(tick, 400);

@@ -30,7 +30,8 @@ const content = computed(() => (props.item.content as string) || '');
 const draw = () => {
   const canvas = canvasRef.value;
   if (!canvas || !content.value) return;
-  const W = 200, H = 100;
+  const W = 200;
+  const H = 100;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');

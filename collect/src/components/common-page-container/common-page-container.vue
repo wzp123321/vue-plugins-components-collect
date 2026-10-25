@@ -17,9 +17,7 @@ const props = defineProps({
   },
 });
 // 组件类名
-const mapComponentClass = () => {
-  return ['common-page-container', props.customClass];
-};
+const mapComponentClass = () => ['common-page-container', props.customClass];
 </script>
 <style lang="less" scoped>
 .common-page-container {

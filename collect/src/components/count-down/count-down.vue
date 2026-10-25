@@ -46,7 +46,9 @@ export default defineComponent({
         leftTime -= 1000;
         if (leftTime <= 0) {
           leftTime = 0;
-          timer.value && clearInterval(timer.value);
+          if (timer.value) {
+            clearInterval(timer.value);
+          }
           context.emit('finish');
         }
         const seconds = Math.floor(leftTime / 1000);
@@ -74,7 +76,9 @@ export default defineComponent({
     });
 
     onUnmounted(() => {
-      timer.value && clearInterval(timer.value);
+      if (timer.value) {
+        clearInterval(timer.value);
+      }
     });
 
     return {

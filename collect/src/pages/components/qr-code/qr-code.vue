@@ -47,7 +47,7 @@ const generateQRCode = () => {
     if (err) console.error(err);
   });
 };
-<\/script>`;
+${'<'}/script>`;
 
 defineOptions({ name: 'QrCodeDemo' });
 </script>

@@ -33,6 +33,7 @@ import { ref, computed, watch } from 'vue';
 import { ElPopover, ElInput, ElIcon, ElCascaderPanel } from 'element-plus';
 import { ArrowDown } from '@element-plus/icons-vue';
 import { mockSpaceTree, flatMockSpaces } from '../../_mock/space';
+import type { MockSpaceNode } from '../../_mock/space';
 import { useRemoteData } from './use-remote-data';
 
 interface Props {
@@ -74,11 +75,14 @@ const buildPath = (leafId: string): string[] => {
   const all = flatMockSpaces();
   const leaf = all.find((n) => n.id === leafId);
   if (!leaf) return [leafId];
+  // id → 节点索引：循环里按 parent 上溯由 O(n²) 的 find 降为 O(n) 的 Map 查找
+  // （同时避免 while 内声明函数引用循环变量 cur 的闭包陷阱）
+  const byId = new Map(all.map((n) => [n.id, n]));
   const ids: string[] = [];
-  let cur = leaf;
+  let cur: MockSpaceNode | null = leaf;
   while (cur) {
     ids.unshift(cur.id);
-    cur = cur.parent ? all.find((n) => n.id === cur!.parent)! : (null as any);
+    cur = cur.parent ? byId.get(cur.parent) ?? null : null;
   }
   return ids;
 };
@@ -104,12 +108,12 @@ const onChange = (paths: any) => {
   if (!props.multiple) visible.value = false;
 };
 
-const displayText = computed(() => {
-  return props.modelValue
+const displayText = computed(() =>
+  props.modelValue
     .map((id) => flatMockSpaces().find((n) => n.id === id)?.name)
     .filter(Boolean)
-    .join(', ');
-});
+    .join(', '),
+);
 
 const handleClear = () => {
   selectedPath.value = [];

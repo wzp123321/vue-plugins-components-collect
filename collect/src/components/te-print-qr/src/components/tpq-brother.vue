@@ -38,7 +38,9 @@ watch(() => props.content, draw);
 const doPrint = async () => {
   printing.value = true;
   lastLog.value = '正在初始化 BPAC 设备...';
-  await new Promise((r) => setTimeout(r, 600));
+  await new Promise((r) => {
+    setTimeout(r, 600);
+  });
   lastLog.value = `Brother 标签已发送到设备: ${props.content}`;
   printing.value = false;
 };

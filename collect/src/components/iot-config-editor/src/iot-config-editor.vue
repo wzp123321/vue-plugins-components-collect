@@ -233,6 +233,7 @@ import {
   type Scenario,
 } from '@/components/three-iot-scene/dataBus'
 import type { PlacedDevice, Wire, Layout } from './types'
+import { ElMessageBox } from 'element-plus'
 
 const DEVICE_W = 110
 const DEVICE_H = 110
@@ -406,8 +407,12 @@ const deleteSelected = () => {
   commit()
   ;[...selectedIds].forEach((uid) => removeDeviceNow(uid))
 }
-const clearAll = () => {
-  if (!window.confirm('确定清空当前组态？（已保存的本地布局仍可通过刷新恢复）')) return
+const clearAll = async () => {
+  try {
+    await ElMessageBox.confirm('确定清空当前组态？（已保存的本地布局仍可通过刷新恢复）')
+  } catch {
+    return
+  }
   commit()
   devices.splice(0, devices.length)
   wires.splice(0, wires.length)
@@ -743,7 +748,7 @@ const onFile = (e: Event) => {
       resyncSeq()
       fitView()
     } catch {
-      window.alert('导入失败：JSON 格式不正确')
+      ElMessageBox.alert('导入失败：JSON 格式不正确')
     }
     ;(e.target as HTMLInputElement).value = ''
   }

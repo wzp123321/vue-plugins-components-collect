@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, type ComponentPublicInstance } from 'vue'
 import { dataBus, TAGS, type DeviceKind } from '@/components/three-iot-scene/dataBus'
 import type { PlacedDevice } from './types'
 
@@ -114,8 +114,9 @@ const beltRef = ref<SVGLineElement | null>(null)
 const pulseRef = ref<SVGCircleElement | null>(null)
 const sparkRef = ref<SVGPolylineElement | null>(null)
 const boxEls: (SVGGElement | null)[] = []
-const setBox = (i: number, el: SVGGElement | null) => {
-  boxEls[i] = el
+const setBox = (i: number, el: Element | ComponentPublicInstance | null) => {
+  // 模板函数 ref 的形参宽类型（可能落到组件实例），按需窄化到 SVG 元素
+  boxEls[i] = el instanceof SVGGElement ? el : null
 }
 
 // 实时迷你曲线：滚动采样绑定数据点的历史值

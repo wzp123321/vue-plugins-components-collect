@@ -29,7 +29,7 @@
             <draggable
               :list="(design.header as any[])"
               group="formItem"
-              item-key="_uid"
+              item-key="uid"
               :min-height="40"
               class="tdd-region-list"
               @add="onAdd($event, 'header')"
@@ -37,8 +37,8 @@
               <template #item="{ element }">
                 <div
                   class="tdd-canvas-item"
-                  :class="{ active: selectId === element._uid }"
-                  @click.stop="selectId = element._uid"
+                  :class="{ active: selectId === element.uid }"
+                  @click.stop="selectId = element.uid"
                 >
                   <component-render :item="element" />
                 </div>
@@ -50,7 +50,7 @@
             <draggable
               :list="(design.body as any[])"
               group="formItem"
-              item-key="_uid"
+              item-key="uid"
               :min-height="200"
               class="tdd-region-list"
               @add="onAdd($event, 'body')"
@@ -58,8 +58,8 @@
               <template #item="{ element }">
                 <div
                   class="tdd-canvas-item"
-                  :class="{ active: selectId === element._uid }"
-                  @click.stop="selectId = element._uid"
+                  :class="{ active: selectId === element.uid }"
+                  @click.stop="selectId = element.uid"
                 >
                   <component-render :item="element" />
                 </div>
@@ -71,7 +71,7 @@
             <draggable
               :list="(design.footer as any[])"
               group="formItem"
-              item-key="_uid"
+              item-key="uid"
               :min-height="40"
               class="tdd-region-list"
               @add="onAdd($event, 'footer')"
@@ -79,8 +79,8 @@
               <template #item="{ element }">
                 <div
                   class="tdd-canvas-item"
-                  :class="{ active: selectId === element._uid }"
-                  @click.stop="selectId = element._uid"
+                  :class="{ active: selectId === element.uid }"
+                  @click.stop="selectId = element.uid"
                 >
                   <component-render :item="element" />
                 </div>
@@ -134,7 +134,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive, markRaw } from 'vue';
+import { ref, computed, reactive, markRaw, defineComponent, h } from 'vue';
 import draggable from 'vuedraggable';
 import { ElButton, ElInput, ElInputNumber, ElColorPicker, ElForm, ElFormItem, ElTag, ElSelect, ElOption, ElEmpty } from 'element-plus';
 
@@ -150,12 +150,12 @@ interface LibItem {
 }
 
 interface CanvasItem extends LibItem {
-  _uid: string;
+  uid: string;
   region: 'header' | 'body' | 'footer';
 }
 
-let _uid = 1;
-const newUid = () => `it-${Date.now()}-${_uid++}`;
+let uid = 1;
+const newUid = () => `it-${Date.now()}-${uid++}`;
 
 const componentLib: LibItem[] = [
   { type: 'text', label: '文本', icon: 'T', props: { text: '这是一段文本', color: '#333', size: 14 } },
@@ -168,7 +168,7 @@ const design = reactive<{ header: CanvasItem[]; body: CanvasItem[]; footer: Canv
   header: [],
   body: [],
   footer: [
-    { _uid: newUid(), type: 'button', label: '按钮', icon: 'B', region: 'footer', props: { text: '提交申请', type: 'primary', color: '#fff', bg: '#409eff' } },
+    { uid: newUid(), type: 'button', label: '按钮', icon: 'B', region: 'footer', props: { text: '提交申请', type: 'primary', color: '#fff', bg: '#409eff' } },
   ],
 });
 
@@ -177,12 +177,12 @@ const selectId = ref<string>('');
 
 const currentItem = computed<CanvasItem | undefined>(() => {
   if (!selectId.value) return undefined;
-  return (design.header as CanvasItem[]).concat(design.body, design.footer).find((i) => i._uid === selectId.value);
+  return (design.header as CanvasItem[]).concat(design.body, design.footer).find((i) => i.uid === selectId.value);
 });
 
 const cloneItem = (item: LibItem): CanvasItem => ({
   ...item,
-  _uid: newUid(),
+  uid: newUid(),
   region: activeRegion.value,
   props: { ...item.props },
 });
@@ -192,19 +192,19 @@ const onAdd = (evt: any, region: 'header' | 'body' | 'footer') => {
   const list = design[region] as CanvasItem[];
   const newItem = list[evt.newIndex];
   if (newItem) {
-    newItem._uid = newUid();
+    newItem.uid = newUid();
     newItem.region = region;
     newItem.props = { ...newItem.props };
-    selectId.value = newItem._uid;
+    selectId.value = newItem.uid;
   }
 };
 
 const removeCurrent = () => {
   if (!currentItem.value) return;
-  const id = currentItem.value._uid;
+  const id = currentItem.value.uid;
   ['header', 'body', 'footer'].forEach((r) => {
     const list = design[r as 'header' | 'body' | 'footer'] as CanvasItem[];
-    const idx = list.findIndex((i) => i._uid === id);
+    const idx = list.findIndex((i) => i.uid === id);
     if (idx >= 0) list.splice(idx, 1);
   });
   selectId.value = '';
@@ -216,7 +216,6 @@ const phoneFrameStyle = computed(() => ({
 }));
 
 /* 简易渲染器: 直接把每个 type 渲染成对应元素 */
-import { defineComponent, h } from 'vue';
 const ComponentRender = markRaw(
   defineComponent({
     name: 'ComponentRender',

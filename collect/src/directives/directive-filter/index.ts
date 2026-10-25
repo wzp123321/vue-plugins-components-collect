@@ -54,9 +54,7 @@ const NUMBER_FIELDS = ['integral', 'decimal', 'negativeFlag', 'zeroFlag', 'min',
 const detectType = (binding: DirectiveBinding<any>): EDirectiveType => {
   const v = binding?.value;
   if (v && typeof v === 'object') {
-    for (const k of NUMBER_FIELDS) {
-      if (k in v) return EDirectiveType.数字;
-    }
+    if (NUMBER_FIELDS.some((k) => k in v)) return EDirectiveType.数字;
   }
   return EDirectiveType.文本;
 };
@@ -79,9 +77,7 @@ const filter = (target: TInputTarget, binding: DirectiveBinding<any>): string =>
     const e = err instanceof Error ? err : new Error(String(err));
     const onError = (binding?.value as any)?.onError;
     if (typeof onError === 'function') onError(e);
-    else
-      // eslint-disable-next-line no-console
-      console.error('[v-inputFilter] 过滤执行异常：', e);
+    else console.error('[v-inputFilter] 过滤执行异常：', e);
     return domValue;
   }
 };
@@ -103,6 +99,13 @@ const applyCleanedValue = (target: TInputTarget, cleaned: string): void => {
 };
 
 /* ============================== 监听器挂载 / 卸载 ============================== */
+
+/** disabled 时跳过过滤（默认行为，可在 binding 中关掉） */
+const shouldSkip = (target: TInputTarget, binding: DirectiveBinding<any>): boolean => {
+  const respectDisabled = (binding?.value as any)?.respectDisabled;
+  if (respectDisabled === false) return false; // 显式关掉兜底
+  return target.disabled === true;
+};
 
 const attachHandler = (el: HTMLElement, binding: DirectiveBinding<any>): void => {
   const target = resolveInputTarget(el);
@@ -198,13 +201,6 @@ const detachHandler = (el: HTMLElement): void => {
   }
 };
 
-/** disabled 时跳过过滤（默认行为，可在 binding 中关掉） */
-const shouldSkip = (target: TInputTarget, binding: DirectiveBinding<any>): boolean => {
-  const respectDisabled = (binding?.value as any)?.respectDisabled;
-  if (respectDisabled === false) return false; // 显式关掉兜底
-  return target.disabled === true;
-};
-
 /* ============================== Vue 指令 ============================== */
 
 const directive: ObjectDirective<HTMLElement, any> = {
@@ -217,7 +213,7 @@ const directive: ObjectDirective<HTMLElement, any> = {
       applyCleanedValue(target, filter(target, binding));
     }
     // 包装组件（el-input / el-textarea）下内部 input 渲染滞后，nextTick + RAF 兜底
-    void nextTick(() => {
+    nextTick(() => {
       const t = resolveInputTarget(el);
       if (t && !shouldSkip(t, binding)) applyCleanedValue(t, filter(t, binding));
       requestAnimationFrame(() => {
@@ -234,7 +230,7 @@ const directive: ObjectDirective<HTMLElement, any> = {
     if (target && !shouldSkip(target, binding)) {
       applyCleanedValue(target, filter(target, binding));
     }
-    void nextTick(() => {
+    nextTick(() => {
       const t = resolveInputTarget(el);
       if (t && !shouldSkip(t, binding)) applyCleanedValue(t, filter(t, binding));
     });
@@ -247,7 +243,6 @@ const directive: ObjectDirective<HTMLElement, any> = {
 const registerInputFilter = (app: App): void => {
   app.directive('inputFilter', directive);
   // 暴露版本到全局，便于业务诊断
-  // eslint-disable-next-line no-console
   console.info(`[v-inputFilter] registered, version=${VERSION}`);
 };
 
