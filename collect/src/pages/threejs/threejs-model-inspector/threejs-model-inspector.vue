@@ -178,6 +178,7 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
+import { ElMessageBox } from 'element-plus';
 import ThreeModelViewer from '@/components/three-model-viewer';
 import type {
   LoadedInfo,
@@ -328,7 +329,7 @@ watch(currentKey, () => {
 // ── 本地模型加载 ─────────────────────────────────────────
 const loadLocalFile = (file: File) => {
   if (!/\.(glb|gltf)$/i.test(file.name)) {
-    window.alert('仅支持 .glb / .gltf 文件');
+    ElMessageBox.alert('仅支持 .glb / .gltf 文件');
     return;
   }
   if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);

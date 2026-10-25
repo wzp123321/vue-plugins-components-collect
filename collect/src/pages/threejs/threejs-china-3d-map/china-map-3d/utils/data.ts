@@ -51,7 +51,9 @@ export const syntheticCount = (adcode: number, level: GeoLevel | string): number
   hash = Math.imul(hash ^ (hash >>> 13), 3266489909) >>> 0
   hash ^= hash >>> 16
   // 层级越细，基准量级越小（区/县 < 市 < 省）
-  const base = level === 'district' ? 6 : level === 'city' ? 20 : 50
+  let base = 50
+  if (level === 'district') base = 6
+  else if (level === 'city') base = 20
   return base + (hash % (base * 2))
 };
 

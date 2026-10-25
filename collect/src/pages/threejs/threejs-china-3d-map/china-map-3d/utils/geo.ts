@@ -41,9 +41,11 @@ export const featureRings = (feature: GeoJsonFeature): Ring[] => {
     out.push(ring as Ring)
   }
   if (geometry.type === 'MultiPolygon') {
-    for (const polygon of geometry.coordinates as Ring[][]) for (const ring of polygon) push(ring)
+    const polygons = geometry.coordinates as Ring[][]
+    polygons.forEach((polygon) => polygon.forEach((ring) => push(ring)))
   } else if (geometry.type === 'Polygon') {
-    for (const ring of geometry.coordinates as Ring[]) push(ring)
+    const rings = geometry.coordinates as Ring[]
+    rings.forEach((ring) => push(ring))
   }
   return out
 };
@@ -66,34 +68,36 @@ interface AreaEntry {
  */
 export const focusRings = (geo: GeoJsonType, step = 2): Ring[] => {
   const entries: AreaEntry[] = []
-  for (const feature of geo.features) {
-    for (const ring of featureRings(feature)) {
+  geo.features.forEach((feature) => {
+    featureRings(feature).forEach((ring) => {
       let minX = Infinity
       let maxX = -Infinity
       let minY = Infinity
       let maxY = -Infinity
       for (let i = 0; i < ring.length; i += step) {
         const [lng, lat] = ring[i]
-        if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
-        if (lng < minX) minX = lng
-        if (lng > maxX) maxX = lng
-        if (lat < minY) minY = lat
-        if (lat > maxY) maxY = lat
+        // 非有限坐标不参与包围盒统计（原 continue 改为正向包裹，结果一致）
+        if (Number.isFinite(lng) && Number.isFinite(lat)) {
+          if (lng < minX) minX = lng
+          if (lng > maxX) maxX = lng
+          if (lat < minY) minY = lat
+          if (lat > maxY) maxY = lat
+        }
       }
-      if (!Number.isFinite(minX)) continue
-      entries.push({ area: Math.max(1e-9, (maxX - minX) * (maxY - minY)), ring })
-    }
-  }
+      if (Number.isFinite(minX)) entries.push({ area: Math.max(1e-9, (maxX - minX) * (maxY - minY)), ring })
+    })
+  })
   if (!entries.length) return []
   entries.sort((a, b) => b.area - a.area)
   const total = entries.reduce((sum, entry) => sum + entry.area, 0)
   const kept: Ring[] = []
   let acc = 0
-  for (const entry of entries) {
+  // some() 返回 true 即停止，等价原「累加到 98.5% 后 break」的提前退出语义
+  entries.some((entry) => {
     kept.push(entry.ring)
     acc += entry.area
-    if (acc >= total * 0.985) break
-  }
+    return acc >= total * 0.985
+  })
   return kept
 };
 
@@ -117,14 +121,14 @@ export interface ComplianceReport {
  */
 export const checkCountryCompliance = (geo: GeoJsonType): ComplianceReport => {
   const missing: string[] = []
-  for (const required of REQUIRED_COUNTRY) {
+  REQUIRED_COUNTRY.forEach((required) => {
     const hit = geo.features.some((feature) => {
       const adcode = String(feature?.properties?.adcode ?? '')
       const name = String(feature?.properties?.name ?? '')
       return required.match(adcode, name)
     })
     if (!hit) missing.push(required.label)
-  }
+  })
   return { ok: missing.length === 0, missing }
 };
 
@@ -153,35 +157,42 @@ export const extractOuterRings = (geo: GeoJsonType): Ring[] => {
   const keyOf = (x1: number, y1: number, x2: number, y2: number) =>
     x1 < x2 || (x1 === x2 && y1 < y2) ? `${x1},${y1}|${x2},${y2}` : `${x2},${y2}|${x1},${y1}`
 
-  for (const feature of geo.features) {
-    for (const ring of featureRings(feature)) {
+  geo.features.forEach((feature) => {
+    featureRings(feature).forEach((ring) => {
       for (let i = 0; i < ring.length - 1; i++) {
         const [x1, y1] = ring[i]
         const [x2, y2] = ring[i + 1]
-        if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) continue
-        const key = keyOf(x1, y1, x2, y2)
-        counts.set(key, (counts.get(key) || 0) + 1)
-        if (!edges.has(key)) edges.set(key, { x1, y1, x2, y2 })
+        // 端点非有限则整条边作废（原 continue 改为正向包裹，计数结果一致）
+        if (Number.isFinite(x1) && Number.isFinite(y1) && Number.isFinite(x2) && Number.isFinite(y2)) {
+          const key = keyOf(x1, y1, x2, y2)
+          counts.set(key, (counts.get(key) || 0) + 1)
+          if (!edges.has(key)) edges.set(key, { x1, y1, x2, y2 })
+        }
       }
-    }
-  }
+    })
+  })
 
   const boundary: Edge[] = []
-  for (const [key, count] of counts) if (count === 1) boundary.push(edges.get(key)!)
+  counts.forEach((count, key) => {
+    if (count !== 1) return
+    const edge = edges.get(key)
+    if (edge) boundary.push(edge)
+  })
   if (!boundary.length) return []
 
   const byStart = new Map<string, Edge[]>()
-  for (const edge of boundary) {
+  boundary.forEach((edge) => {
     const key = `${edge.x1},${edge.y1}`
     const list = byStart.get(key)
     if (list) list.push(edge)
     else byStart.set(key, [edge])
-  }
+  })
 
   const used = new Set<Edge>()
   const rings: Ring[] = []
-  for (const first of boundary) {
-    if (used.has(first)) continue
+  boundary.forEach((first) => {
+    // 已拼进某个环的边跳过（原 continue 改为提前 return）
+    if (used.has(first)) return
     used.add(first)
     const ring: Ring = [[first.x1, first.y1], [first.x2, first.y2]]
     for (;;) {
@@ -193,6 +204,6 @@ export const extractOuterRings = (geo: GeoJsonType): Ring[] => {
       if (next.x2 === first.x1 && next.y2 === first.y1) break
     }
     if (ring.length > 2) rings.push(ring)
-  }
+  })
   return rings
 };

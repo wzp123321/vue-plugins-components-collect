@@ -84,6 +84,16 @@ export interface SpotLayer {
 const GROW_MAX_DELAY = 0.34
 
 /**
+ * 生长缓动：把单根柱子的线性进度 raw 映射成三次缓出（起步快、收尾慢，
+ * 像柱子「弹」出来）。单独抽出是为了避免在 per-frame 循环里写嵌套三元。
+ */
+const growthEase = (raw: number): number => {
+  if (raw <= 0) return 0
+  if (raw >= 1) return 1
+  return 1 - (1 - raw) * (1 - raw) * (1 - raw)
+};
+
+/**
  * 按全局进度 t（0~1）写入柱体生长状态。
  *
  * 只改 transform 与卡片透明度，不动 visible —— 否则会和
@@ -96,12 +106,12 @@ const GROW_MAX_DELAY = 0.34
  * @param t     全局生长进度 0~1（缓动后）
  */
 export const applySpotGrowth = (layer: SpotLayer, t: number) => {
-  for (const grower of layer.growers) {
+  for (let i = 0; i < layer.growers.length; i++) {
+    const grower = layer.growers[i]
     // 高值柱 delay 更大，先长；其余柱按 (t-delay)/span 计算各自进度
     const span = 1 - grower.delay
     const raw = span > 0 ? (t - grower.delay) / span : t
-    // 三次缓出：起步快、收尾慢，像柱子「弹」出来
-    const k = raw <= 0 ? 0 : raw >= 1 ? 1 : 1 - (1 - raw) * (1 - raw) * (1 - raw)
+    const k = growthEase(raw)
 
     const height = grower.height * k
     grower.column.scale.z = Math.max(0.0001, height)
@@ -109,17 +119,18 @@ export const applySpotGrowth = (layer: SpotLayer, t: number) => {
     // 柱顶光点始终跟着柱顶走：柱高为 0 时就是地面上的一颗亮点，正好当「种子」
     grower.cap.position.z = grower.baseZ + height
 
-    if (!grower.cards.length) continue
-    // 卡片在柱长到一半后才浮现，避免和柱子抢注意力
-    const appear = Math.min(1, Math.max(0, (k - 0.5) / 0.5))
-    const eased = 1 - (1 - appear) * (1 - appear)
-    for (let i = 0; i < grower.cards.length; i++) {
-      const card = grower.cards[i]
-      const [sx, sy] = grower.cardSize[i]
-      card.position.z = grower.baseZ + height + grower.cardLift
-      card.scale.set(sx * (0.88 + 0.12 * eased), sy * (0.88 + 0.12 * eased), 1)
-      const material = card.material as THREE.SpriteMaterial
-      material.opacity = eased
+    if (grower.cards.length) {
+      // 卡片在柱长到一半后才浮现，避免和柱子抢注意力
+      const appear = Math.min(1, Math.max(0, (k - 0.5) / 0.5))
+      const eased = 1 - (1 - appear) * (1 - appear)
+      for (let j = 0; j < grower.cards.length; j++) {
+        const card = grower.cards[j]
+        const [sx, sy] = grower.cardSize[j]
+        card.position.z = grower.baseZ + height + grower.cardLift
+        card.scale.set(sx * (0.88 + 0.12 * eased), sy * (0.88 + 0.12 * eased), 1)
+        const material = card.material as THREE.SpriteMaterial
+        material.opacity = eased
+      }
     }
   }
 };
@@ -262,12 +273,13 @@ export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: numb
   // 做避让，相邻太近的只保留先到的，避免华东一片卡片糊成一团
   const cardSlots: Array<[number, number]> = []
   const cardAllowed = new Set<SpotItem>()
-  for (const item of [...items].sort((a, b) => b.value - a.value).slice(0, CARD_MAX_COUNT)) {
+  const cardCandidates = [...items].sort((a, b) => b.value - a.value).slice(0, CARD_MAX_COUNT)
+  cardCandidates.forEach((item) => {
     const [x, y] = item.coord
-    if (cardSlots.some(([sx, sy]) => Math.hypot(sx - x, sy - y) < CARD_MIN_SEPARATION)) continue
+    if (cardSlots.some(([sx, sy]) => Math.hypot(sx - x, sy - y) < CARD_MIN_SEPARATION)) return
     cardSlots.push([x, y])
     cardAllowed.add(item)
-  }
+  })
 
   const geometry = getColumnGeometry()
   const hitGeometry = new THREE.CircleGeometry(2.4, 16)
@@ -293,13 +305,14 @@ export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: numb
     delayOf.set(item, ratio * GROW_MAX_DELAY)
   })
 
-  for (const item of items) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
     const [x, y] = item.coord
     const tier = tiers[item.tier] ?? tiers[tiers.length - 1]
     const color = tier.color
     // 柱高：最小 22% 保底（避免极小值为 0 看不见），其余按 (value/maxValue)^0.85 增长
     const ratio = Math.max(0.05, Math.min(1, item.value / Math.max(1, maxValue)))
-    const height = mapConfig.columnHeight * (0.22 + 0.78 * Math.pow(ratio, 0.85))
+    const height = mapConfig.columnHeight * (0.22 + 0.78 * ratio ** 0.85)
     const payload = { ...item.properties, value: item.value, name: item.name }
 
     const column: any = new THREE.Mesh(geometry, getColumnMaterial(color))
@@ -352,8 +365,8 @@ export const createSpotLayer = (items: SpotItem[], tiers: Tier[], maxValue: numb
     const plate: any = createPlate(item.name, String(item.value), color)
     // 标牌错层：最近 12 个已放置标牌里若有太近的，逐级 bump 抬高，避免重叠
     let bump = 0
-    for (let i = placedPlates.length - 1; i >= Math.max(0, placedPlates.length - 12); i--) {
-      const other = placedPlates[i]
+    for (let p = placedPlates.length - 1; p >= Math.max(0, placedPlates.length - 12); p--) {
+      const other = placedPlates[p]
       if (Math.hypot(other.x - x, other.y - y) < PLATE_MIN_SEPARATION) bump = other.bump + 1
     }
     placedPlates.push({ x, y, bump })
@@ -432,19 +445,28 @@ export const applySpotVisibility = (
   layer.columns.visible = showColumns
   // css2d 模式下所有 Sprite 文本标签让位给 DOM 标签，避免双重显示
   const hideSpriteLabels = labelMode === 'css2d'
-  for (const [adcode, plate] of layer.plateByAdcode) {
-    plate.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
+  /**
+   * 标牌 / 定位点 / 引线三者的显隐规则完全一致：
+   * css2d 全隐藏 → 标牌模式全显示 → 数据柱模式只显示点选城市那一套。
+   */
+  const labelVisible = (adcode: number): boolean => {
+    if (hideSpriteLabels) return false
+    if (!showColumns) return true
+    return adcode === selectedAdcode
   }
-  for (const [adcode, anchor] of layer.anchorByAdcode) {
-    anchor.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
-  }
-  for (const [adcode, leader] of layer.leaderByAdcode) {
-    leader.visible = hideSpriteLabels ? false : showColumns ? adcode === selectedAdcode : true
-  }
-  for (const [adcode, card] of layer.cardByAdcode) {
+  layer.plateByAdcode.forEach((plate, adcode) => {
+    plate.visible = labelVisible(adcode)
+  })
+  layer.anchorByAdcode.forEach((anchor, adcode) => {
+    anchor.visible = labelVisible(adcode)
+  })
+  layer.leaderByAdcode.forEach((leader, adcode) => {
+    leader.visible = labelVisible(adcode)
+  })
+  layer.cardByAdcode.forEach((card, adcode) => {
     // css2d 模式全部隐藏（DOM 标签替代）；标牌模式(showColumns=false)隐藏全部卡片，
     // 避免"地理标牌 + 数值卡片"同时显示造成同一省双标签；数据柱模式下仅选中城市
     // 隐藏其卡片（让位给更详细的标牌）
-    card.visible = hideSpriteLabels ? false : showColumns && adcode !== selectedAdcode
-  }
+    card.visible = !hideSpriteLabels && showColumns && adcode !== selectedAdcode
+  })
 };

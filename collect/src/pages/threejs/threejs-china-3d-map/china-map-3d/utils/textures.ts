@@ -27,7 +27,8 @@ export const getGlowTexture = (): THREE.Texture => {
   if (glowTexture) return glowTexture
   const size = 64
   const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
+  canvas.width = size
+  canvas.height = size
   const ctx = canvas.getContext('2d')!
   const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
   gradient.addColorStop(0, 'rgba(255,255,255,1)')
@@ -52,7 +53,8 @@ export const getRingTexture = (): THREE.Texture => {
   if (ringTexture) return ringTexture
   const size = 128
   const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
+  canvas.width = size
+  canvas.height = size
   const ctx = canvas.getContext('2d')!
   const r = size / 2
   // 用径向渐变画软边圆环：0.62 内全透明 → 0.78 环脊最亮 → 1 外缘淡出
@@ -80,7 +82,8 @@ let measureCtx: CanvasRenderingContext2D | null = null
 export const measureText = (text: string, font: string): number => {
   if (!measureCtx) {
     const canvas = document.createElement('canvas')
-    canvas.width = canvas.height = 4
+    canvas.width = 4
+    canvas.height = 4
     measureCtx = canvas.getContext('2d')!
   }
   measureCtx.font = font

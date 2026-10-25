@@ -30,7 +30,8 @@ const createRng = (seed: number) => {
     value |= 0
     value = (value + 0x6d2b79f5) | 0
     let t = Math.imul(value ^ (value >>> 15), 1 | value)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    // ^= 等价原 (t + X) ^ t（XOR 可交换），PRNG 输出序列完全不变
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t)
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 };
@@ -38,7 +39,8 @@ const createRng = (seed: number) => {
 /** 用 2D Canvas 画一张"带四向星芒 + 径向辉光"的星星贴图 */
 const createStarTexture = (size = 96): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
+  canvas.width = size
+  canvas.height = size
   const ctx = canvas.getContext('2d')!
   const half = size / 2
   const arm = half * 0.95
@@ -64,7 +66,7 @@ const createStarTexture = (size = 96): THREE.CanvasTexture => {
   ]
   // lighter 叠加：多道射线交叉处更亮，形成星芒
   ctx.globalCompositeOperation = 'lighter'
-  for (const [x1, y1, x2, y2] of rays) {
+  rays.forEach(([x1, y1, x2, y2]) => {
     const gradient = ctx.createLinearGradient(x1, y1, (x1 + x2) / 2, (y1 + y2) / 2)
     gradient.addColorStop(0, 'rgba(235,248,255,0.9)')
     gradient.addColorStop(0.35, 'rgba(150,190,235,0.22)')
@@ -75,7 +77,7 @@ const createStarTexture = (size = 96): THREE.CanvasTexture => {
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
     ctx.stroke()
-  }
+  })
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.userData = { shared: true }

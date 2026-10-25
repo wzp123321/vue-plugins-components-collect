@@ -29,7 +29,9 @@ const SLICE_BUDGET_MS = 8
 const LIFT_HOVER = 1.8
 const LIFT_FOCUS = 0.9
 
-const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+const nextFrame = () => new Promise<void>((resolve) => {
+  requestAnimationFrame(() => resolve())
+})
 
 /**
  * useMapLayer ——「一层地图」的几何内容（外轮廓 + 各行政区立体板块）。
@@ -79,17 +81,22 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
 
   /** 重新上色 + 补间抬升：根据 hovered/selected 状态刷新所有板块外观 */
   const paint = () => {
-    for (const node of regions) {
+    regions.forEach((node) => {
       const adcode = adcodeOf(node)
-      const active = selectedSet.has(adcode) ? 'focus' : adcode === hoveredAdcode ? 'hover' : 'base'
+      let active: 'focus' | 'hover' | 'base'
+      if (selectedSet.has(adcode)) active = 'focus'
+      else if (adcode === hoveredAdcode) active = 'hover'
+      else active = 'base'
       // 基色：填色模式按分档色上顶面，未命中的区域回退统一底色
       const baseColor = valueFill?.get(adcode) ?? mapConfig.color
-      for (const material of node.topMaterials) {
-        material.color.set(
-          active === 'focus' ? mapConfig.focusColor : active === 'hover' ? mapConfig.hoverColor : baseColor,
-        )
+      node.topMaterials.forEach((material) => {
+        let paintColor: string
+        if (active === 'focus') paintColor = mapConfig.focusColor
+        else if (active === 'hover') paintColor = mapConfig.hoverColor
+        else paintColor = baseColor
+        material.color.set(paintColor)
         material.opacity = active === 'base' ? mapConfig.opacity : 1
-      }
+      })
 
       // 抬升：只给「高度变了」的板块补间，避免每帧重复起 tween
       const target = liftOf(adcode)
@@ -108,14 +115,14 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
           ease: 'power2.out',
         })
       }
-    }
+    })
   };
 
   /** 清空当前图层：移除节点并释放 GPU 资源 */
   const clear = () => {
     if (!root) return
     // 抬升补间还挂在旧板块上，先掐断再释放
-    for (const node of regions) gsap.killTweensOf(node.object.scale)
+    regions.forEach((node) => gsap.killTweensOf(node.object.scale))
     const scene = getScene()
     disposeObject3D(root)
     scene?.remove(root)
@@ -160,7 +167,8 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     const total = level.geo.features.length
     const created: THREE.Object3D[] = []
     let sliceStart = performance.now()
-    for (let index = 0; index < total; index++) {
+    const buildSlice = async (index: number): Promise<void> => {
+      if (index >= total) return
       if (disposed || root !== group) return
       const node = createRegion(level.geo.features[index], project)
       if (node) {
@@ -175,7 +183,9 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
         await nextFrame()
         sliceStart = performance.now()
       }
+      await buildSlice(index + 1)
     }
+    await buildSlice(0)
 
     // ③ 逐块升起：延迟按序递增，形成「由西向东长出来」的观感
     if (options.rise) {

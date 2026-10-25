@@ -38,7 +38,7 @@ const cache = new WeakMap<GeoJsonFeature, [number, number] | null>()
 /** 经度按纬度收缩，保证距离比较与实际公里数一致（越往高纬经线越密） */
 const cosScale = (ring: Ring): number => {
   let sum = 0
-  for (const [, lat] of ring) sum += lat
+  ring.forEach(([, lat]) => { sum += lat })
   const lat = ring.length ? sum / ring.length : 30
   return Math.cos((lat * Math.PI) / 180) || 1
 };
@@ -48,13 +48,13 @@ const boundsOf = (ring: Ring, scale: number) => {
   let maxX = -Infinity
   let minY = Infinity
   let maxY = -Infinity
-  for (const [lng, lat] of ring) {
+  ring.forEach(([lng, lat]) => {
     const x = lng * scale
     if (x < minX) minX = x
     if (x > maxX) maxX = x
     if (lat < minY) minY = lat
     if (lat > maxY) maxY = lat
-  }
+  })
   return { minX, maxX, minY, maxY }
 };
 
@@ -94,7 +94,7 @@ const distanceToRing = (point: [number, number], ring: Ring, scale: number): num
 const mainRing = (rings: Ring[]): Ring | null => {
   let best: Ring | null = null
   let bestArea = -Infinity
-  for (const ring of rings) {
+  rings.forEach((ring) => {
     const scale = cosScale(ring)
     const { minX, maxX, minY, maxY } = boundsOf(ring, scale)
     const area = (maxX - minX) * (maxY - minY)
@@ -102,7 +102,7 @@ const mainRing = (rings: Ring[]): Ring | null => {
       bestArea = area
       best = ring
     }
-  }
+  })
   return best
 };
 
@@ -116,16 +116,6 @@ const mainRing = (rings: Ring[]): Ring | null => {
  * @param feature GeoJSON Feature（其 properties 必须有 center / centroid）
  * @returns [lng, lat] 锚点；feature 非法或无可解析坐标时返回 null
  */
-export const anchorOf = (feature: GeoJsonFeature): [number, number] | null => {
-  if (!feature) return null
-  const cached = cache.get(feature)
-  if (cached !== undefined) return cached
-
-  const result = computeAnchor(feature)
-  cache.set(feature, result)
-  return result
-};
-
 /**
  * 真正的锚点计算：
  *   1) 基准点 = properties.center（主城区坐标，不要用 centroid）；
@@ -167,6 +157,16 @@ const computeAnchor = (feature: GeoJsonFeature): [number, number] | null => {
   ]
 };
 
+export const anchorOf = (feature: GeoJsonFeature): [number, number] | null => {
+  if (!feature) return null
+  const cached = cache.get(feature)
+  if (cached !== undefined) return cached
+
+  const result = computeAnchor(feature)
+  cache.set(feature, result)
+  return result
+};
+
 /**
  * 直接给经纬度的兜底入口：拿不到 feature（例如外部手写坐标）时原样返回。
  *
@@ -176,6 +176,4 @@ const computeAnchor = (feature: GeoJsonFeature): [number, number] | null => {
 export const anchorCoord = (
   feature: GeoJsonFeature | null | undefined,
   fallback: [number, number],
-): [number, number] => {
-  return (feature && anchorOf(feature)) || fallback
-};
+): [number, number] => (feature && anchorOf(feature)) || fallback

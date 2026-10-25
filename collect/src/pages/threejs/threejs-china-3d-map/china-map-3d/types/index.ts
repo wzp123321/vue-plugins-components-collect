@@ -15,10 +15,34 @@
 
 export type GeoLevel = 'country' | 'province' | 'city' | 'district'
 
-export interface GeoJsonType {
-  type: 'FeatureCollection'
-  features: GeoJsonFeature[]
-}
+export type GeometryType =
+  | 'Point'
+  | 'LineString'
+  | 'Polygon'
+  | 'MultiPoint'
+  | 'MultiLineString'
+  | 'MultiPolygon'
+  | 'GeometryCollection'
+
+/**
+ * 几何坐标：按几何类型映射成对应层级的 [lng, lat] 嵌套结构。
+ * Polygon = [ring][point]，MultiPolygon = [polygon][ring][point]，依此类推。
+ */
+export type GeometryCoordinates<T extends GeometryType> = T extends 'Point'
+  ? [number, number]
+  : T extends 'LineString'
+  ? [number, number][]
+  : T extends 'Polygon'
+  ? [number, number][][]
+  : T extends 'MultiPoint'
+  ? [number, number][]
+  : T extends 'MultiLineString'
+  ? [number, number][][]
+  : T extends 'MultiPolygon'
+  ? [number, number][][][]
+  : T extends 'GeometryCollection'
+    ? any
+    : never
 
 export interface GeoJsonFeature {
   type: 'Feature'
@@ -48,31 +72,8 @@ export interface GeoJsonFeature {
   }
 }
 
-export type GeometryType =
-  | 'Point'
-  | 'LineString'
-  | 'Polygon'
-  | 'MultiPoint'
-  | 'MultiLineString'
-  | 'MultiPolygon'
-  | 'GeometryCollection'
+export interface GeoJsonType {
+  type: 'FeatureCollection'
+  features: GeoJsonFeature[]
+}
 
-/**
- * 几何坐标：按几何类型映射成对应层级的 [lng, lat] 嵌套结构。
- * Polygon = [ring][point]，MultiPolygon = [polygon][ring][point]，依此类推。
- */
-export type GeometryCoordinates<T extends GeometryType> = T extends 'Point'
-  ? [number, number]
-  : T extends 'LineString'
-  ? [number, number][]
-  : T extends 'Polygon'
-  ? [number, number][][]
-  : T extends 'MultiPoint'
-  ? [number, number][]
-  : T extends 'MultiLineString'
-  ? [number, number][][]
-  : T extends 'MultiPolygon'
-  ? [number, number][][][]
-  : T extends 'GeometryCollection'
-    ? any
-    : never

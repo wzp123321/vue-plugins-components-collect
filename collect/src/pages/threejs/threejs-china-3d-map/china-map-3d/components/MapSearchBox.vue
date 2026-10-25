@@ -99,6 +99,18 @@ watch(suggestions, () => {
   activeIndex.value = 0
 })
 
+const pick = (item: SearchItem) => {
+  keyword.value = item.name
+  open.value = false
+  emit('pick', item)
+};
+
+const clear = () => {
+  keyword.value = ''
+  open.value = false
+  nextTick(() => inputEl.value?.blur())
+};
+
 const onKeydown = (event: KeyboardEvent) => {
   if (event.key === 'ArrowDown') {
     event.preventDefault()
@@ -118,21 +130,11 @@ const onKeydown = (event: KeyboardEvent) => {
   }
 };
 
-const pick = (item: SearchItem) => {
-  keyword.value = item.name
-  open.value = false
-  emit('pick', item)
-};
-
-const clear = () => {
-  keyword.value = ''
-  open.value = false
-  nextTick(() => inputEl.value?.blur())
-};
-
 const onBlur = () => {
   // 失焦先留一帧，否则 mousedown 选中还没触发列表就被收起
-  setTimeout(() => (open.value = false), 120)
+  setTimeout(() => {
+    open.value = false
+  }, 120)
 };
 
 defineExpose({

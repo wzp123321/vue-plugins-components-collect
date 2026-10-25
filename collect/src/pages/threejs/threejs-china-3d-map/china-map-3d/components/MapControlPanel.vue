@@ -388,9 +388,6 @@ const collapsed = ref(true);
   gap: 2px;
   margin-top: 8px;
 }
-.map-ctrl__seg--wrap .map-ctrl__segBtn {
-  flex: 1 0 28%;
-}
 .map-ctrl__segBtn {
   flex: 1;
   padding: 4px 0;
@@ -404,6 +401,9 @@ const collapsed = ref(true);
   transition:
     background 0.18s ease,
     color 0.18s ease;
+}
+.map-ctrl__seg--wrap .map-ctrl__segBtn {
+  flex: 1 0 28%;
 }
 .map-ctrl__segBtn--on {
   background: rgba(47, 192, 255, 0.34);

@@ -129,15 +129,15 @@ export const useHeatmap = (options: Options) => {
     let maxX = -Infinity
     let minY = Infinity
     let maxY = -Infinity
-    for (const feature of level.geo.features) {
+    level.geo.features.forEach((feature) => {
       const adcode = Number(feature.properties.adcode)
-      if (!adcode) continue
+      if (!adcode) return
       const v = readValue(data[adcode])
-      if (v <= 0) continue
+      if (v <= 0) return
       const center = anchorOf(feature)
-      if (!center || center.length !== 2) continue
+      if (!center || center.length !== 2) return
       const [x, y] = project(center)
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return
       const wx = x
       const wy = -y
       pts.push({ wx, wy, v })
@@ -145,7 +145,7 @@ export const useHeatmap = (options: Options) => {
       maxX = Math.max(maxX, wx)
       minY = Math.min(minY, wy)
       maxY = Math.max(maxY, wy)
-    }
+    })
     if (pts.length < 2) return
 
     // 外扩边距，避免热力被平面边缘截断
@@ -163,7 +163,7 @@ export const useHeatmap = (options: Options) => {
     const sigma = Math.max(spanX, spanY) * 0.05 + 2 // 世界单位的扩散半径
     let peak = 0
     const raw = new Float32Array(N * N)
-    for (const p of pts) {
+    pts.forEach((p) => {
       const gi = ((p.wx - minX) / spanX) * (N - 1)
       const gj = ((p.wy - minY) / spanY) * (N - 1)
       const i0 = Math.max(0, Math.floor(gi - sigma))
@@ -180,7 +180,7 @@ export const useHeatmap = (options: Options) => {
           if (raw[idx] > peak) peak = raw[idx]
         }
       }
-    }
+    })
     // 归一化写入纹理（R 通道存热力，A=255）
     for (let k = 0; k < N * N; k++) {
       const val = peak > 0 ? Math.min(1, raw[k] / peak) : 0

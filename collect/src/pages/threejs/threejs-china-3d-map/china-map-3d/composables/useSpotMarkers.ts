@@ -84,19 +84,19 @@ export const useSpotMarkers = (options: Options) => {
     //   是 Map（后写覆盖前写），第一份永远不会被 applySpotVisibility 接管、停在创建时的
     //   visible=true，表现就是「同一省份出现两个标牌」。入口处去重是最省事的一道闸。
     const seen = new Set<number>()
-    for (const feature of level.geo.features) {
+    level.geo.features.forEach((feature) => {
       const adcode = Number(feature.properties.adcode)
-      if (!adcode || seen.has(adcode)) continue
+      if (!adcode || seen.has(adcode)) return
       seen.add(adcode)
       const value =
         readCount(options.projectData()?.[adcode]) || syntheticCount(adcode, feature.properties.level)
-      if (value <= 0) continue
+      if (value <= 0) return
       // 锚点 = 主城区坐标，贴边时自动往几何内部收；柱体 / 标牌 / 飞线共用同一套
       // ⚠️ 坑：这里用 anchorOf(feature) 取 properties.center，切勿改用 centroid
       const center = anchorOf(feature)
-      if (!center || center.length !== 2) continue
+      if (!center || center.length !== 2) return
       const [x, y] = project(center)
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return
       items.push({
         adcode,
         coord: [x, y],
@@ -105,7 +105,7 @@ export const useSpotMarkers = (options: Options) => {
         tier: 0,
         properties: { ...feature.properties, value },
       })
-    }
+    })
     return items
   };
 
@@ -138,56 +138,6 @@ export const useSpotMarkers = (options: Options) => {
   };
 
   /**
-   * 重建当前层级的标记：收集数据 → 分档 → 建图层 → 播放生长/显隐。
-   * @param level   当前层级
-   * @param animate 是否播放"柱子长出来"动画（标牌模式下无需生长，直接显现）
-   */
-  const build = (level: MapLevel, animate = true) => {
-    const root = options.getRoot()
-    clear()
-    if (!root) return
-
-    const items = collectItems(level)
-    if (!items.length) return
-
-    // 按数值分档（颜色档位 + 文案），并给每个 item 标注所属档位
-    const values = items.map((item) => item.value)
-    const tiers: Tier[] = buildTiers(values, options.columnColor())
-    for (const item of items) item.tier = tierOf(item.value, tiers)
-    legend.value = tiers.map((tier) => ({ color: tier.color, label: tier.label }))
-    // 同步生成 adcode → 分档色映射（板块填色模式的数据源；clear 时一并丢弃）
-    tierColorByAdcode = new Map(items.map((item) => [item.adcode, tiers[item.tier].color]))
-    // 各分档城市数量（供饼图统计用）
-    const counts = new Array<number>(tiers.length).fill(0)
-    for (const item of items) counts[item.tier]++
-    tierCounts.value = counts
-
-    // 以最大值为柱高归一化基准，建出柱体 + 标牌 + 热区
-    layer = createSpotLayer(items, tiers, Math.max(...values))
-    root.add(layer.group)
-    applySpotVisibility(layer, options.showColumn(), null, options.labelMode())
-    // 标牌模式下柱体整体隐藏，不必浪费一次生长动画
-    if (animate && options.showColumn()) playGrowth(layer)
-    else applySpotGrowth(layer, 1)
-
-    // 预生成各行政区的近 12 月序列（确定性，与看板趋势同源）；同时求月度全局最大值
-    // 作为时间轴柱高归一化基准，避免旺季值超过原始最大值后柱体溢出视窗
-    seriesByAdcode = new Map()
-    let sm = 1
-    for (const item of items) {
-      const s = monthlySeries(item.adcode, item.value, MONTH_COUNT)
-      seriesByAdcode.set(item.adcode, s)
-      for (const v of s) if (v > sm) sm = v
-    }
-    seriesMax = sm
-
-    // 记录当前层数据并应用已有的阈值过滤（切换层级时不丢过滤状态）
-    lastItems = items
-    lastMax = Math.max(...values, 1)
-    setThreshold(thresholdRatio.value)
-  };
-
-  /**
    * 阈值聚焦：把低于阈值比例的柱体淡出（隐藏柱体 + 柱顶光点），高于阈值的保留。
    * 只切 visible，不重建几何，性能无忧；阈值变化即时生效。
    * @param ratio 0~1 比例（相对当前层最大值），0 = 不过滤
@@ -203,6 +153,62 @@ export const useSpotMarkers = (options: Options) => {
       g.column.visible = visible
       g.cap.visible = visible
     })
+  };
+
+  /**
+   * 重建当前层级的标记：收集数据 → 分档 → 建图层 → 播放生长/显隐。
+   * @param level   当前层级
+   * @param animate 是否播放"柱子长出来"动画（标牌模式下无需生长，直接显现）
+   */
+  const build = (level: MapLevel, animate = true) => {
+    const root = options.getRoot()
+    clear()
+    if (!root) return
+
+    const items = collectItems(level)
+    if (!items.length) return
+
+    // 按数值分档（颜色档位 + 文案），并给每个 item 标注所属档位
+    const values = items.map((item) => item.value)
+    const tiers: Tier[] = buildTiers(values, options.columnColor())
+    items.forEach((item) => {
+      item.tier = tierOf(item.value, tiers)
+    })
+    legend.value = tiers.map((tier) => ({ color: tier.color, label: tier.label }))
+    // 同步生成 adcode → 分档色映射（板块填色模式的数据源；clear 时一并丢弃）
+    tierColorByAdcode = new Map(items.map((item) => [item.adcode, tiers[item.tier].color]))
+    // 各分档城市数量（供饼图统计用）
+    const counts = new Array<number>(tiers.length).fill(0)
+    items.forEach((item) => {
+      counts[item.tier]++
+    })
+    tierCounts.value = counts
+
+    // 以最大值为柱高归一化基准，建出柱体 + 标牌 + 热区
+    layer = createSpotLayer(items, tiers, Math.max(...values))
+    root.add(layer.group)
+    applySpotVisibility(layer, options.showColumn(), null, options.labelMode())
+    // 标牌模式下柱体整体隐藏，不必浪费一次生长动画
+    if (animate && options.showColumn()) playGrowth(layer)
+    else applySpotGrowth(layer, 1)
+
+    // 预生成各行政区的近 12 月序列（确定性，与看板趋势同源）；同时求月度全局最大值
+    // 作为时间轴柱高归一化基准，避免旺季值超过原始最大值后柱体溢出视窗
+    seriesByAdcode = new Map()
+    let sm = 1
+    items.forEach((item) => {
+      const s = monthlySeries(item.adcode, item.value, MONTH_COUNT)
+      seriesByAdcode.set(item.adcode, s)
+      s.forEach((v) => {
+        if (v > sm) sm = v
+      })
+    })
+    seriesMax = sm
+
+    // 记录当前层数据并应用已有的阈值过滤（切换层级时不丢过滤状态）
+    lastItems = items
+    lastMax = Math.max(...values, 1)
+    setThreshold(thresholdRatio.value)
   };
 
   /**
@@ -224,7 +230,7 @@ export const useSpotMarkers = (options: Options) => {
       const series = seriesByAdcode.get(item.adcode)
       const value = series ? series[i] : item.value
       const ratio = Math.max(0.05, Math.min(1, value / seriesMax))
-      const height = mapConfig.columnHeight * (0.22 + 0.78 * Math.pow(ratio, 0.85))
+      const height = mapConfig.columnHeight * (0.22 + 0.78 * (ratio ** 0.85))
       g.height = height
       if (animate) {
         gsap.to(g.column.scale, { z: Math.max(0.0001, height), duration: 0.55, ease: 'power2.out', overwrite: true })
