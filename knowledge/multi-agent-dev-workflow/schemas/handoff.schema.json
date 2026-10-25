@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Handoff Contract",
+  "description": "多智能体协同开发中，Agent 之间的结构化交接契约。禁止用大段自然语言转述状态。",
+  "type": "object",
+  "required": ["task_id", "phase", "from", "to", "goal", "signal"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "任务唯一标识，全程不变，用于跨阶段追溯"
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["P1-requirement", "P2-contract", "P3-design", "P4-review", "P5-develop", "P6-acceptance"]
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "本阶段第几轮，超过 3 触发熔断升级给人"
+    },
+    "from": {
+      "type": "string",
+      "description": "发送方 Agent ID，如 03-frontend-architect"
+    },
+    "to": {
+      "type": "string",
+      "description": "接收方 Agent ID，或 human"
+    },
+    "goal": {
+      "type": "string",
+      "description": "本轮要达成的一件事，一句话"
+    },
+    "signal": {
+      "type": "string",
+      "enum": ["REVIEW_REQUESTED", "ACCEPTED", "REJECTED", "NEEDS_CHANGE", "ESCALATED", "CCR_SUBMITTED"],
+      "description": "接收方必须回填此字段。缺失 signal 的交接视为异常，编排者应主动追问"
+    },
+    "current_state": {
+      "type": "string",
+      "description": "当前进展的一句话状态"
+    },
+    "completed_steps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pending_steps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "本轮必须遵守的硬约束（技术栈、规范、不可改动项）"
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "本轮产出的文档。下游只读这些，不读中间过程",
+      "items": {
+        "type": "object",
+        "required": ["type", "path"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["requirement-spec", "interface-contract", "frontend-design", "backend-design", "design-review-report", "acceptance-report", "code", "ccr"]
+          },
+          "path": { "type": "string" },
+          "version": { "type": "string" },
+          "status": { "type": "string", "enum": ["DRAFT", "LOCKED", "FROZEN"] }
+        }
+      }
+    },
+    "context_budget": {
+      "type": "object",
+      "description": "接收方需要读的上下文清单。编排者按此投递，不转发全量历史",
+      "properties": {
+        "must_read": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "artifact 路径清单"
+        },
+        "must_not_read": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "明确不该读的，防止上下文污染"
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "question": { "type": "string" },
+          "options": { "type": "array", "items": { "type": "string" } },
+          "blocking": { "type": "boolean" }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "description": "本轮做出的决策及依据，供后续阶段追溯",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision": { "type": "string" },
+          "rationale": { "type": "string" },
+          "by": { "type": "string" }
+        }
+      }
+    },
+    "reject_reasons": {
+      "type": "array",
+      "description": "signal 为 REJECTED/NEEDS_CHANGE 时必填。每条必须可执行",
+      "items": {
+        "type": "object",
+        "required": ["severity", "description"],
+        "properties": {
+          "severity": { "type": "string", "enum": ["P0", "P1", "P2"] },
+          "dimension": { "type": "string" },
+          "description": { "type": "string" },
+          "location": { "type": "string", "description": "文档章节/代码位置" },
+          "required_change": { "type": "string", "description": "改成什么样才算过" }
+        }
+      }
+    },
+    "timeout_budget": {
+      "type": "object",
+      "description": "超时预算，防死锁",
+      "properties": {
+        "max_rounds": { "type": "integer", "default": 3 },
+        "escalate_to": { "type": "string", "default": "human" }
+      }
+    }
+  }
+}

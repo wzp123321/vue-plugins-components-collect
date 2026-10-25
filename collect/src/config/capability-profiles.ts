@@ -370,6 +370,100 @@ graph.render();`,
     ],
   },
   {
+    path: '/threejs-model-inspector',
+    usage: {
+      install: 'pnpm add three  # 示例模型来自 Khronos glTF-Sample-Assets(CC0/CC-BY)',
+      keyApi: [
+        'GLTFLoader + DRACOLoader(懒加载解码器)',
+        'PMREMGenerator.fromScene(new RoomEnvironment()) 程序化 IBL，免 .hdr',
+        '材质三态: wireframe / transparent+depthWrite=false(X 光)',
+        'AnimationMixer.clipAction(clip).play() 骨骼动画',
+        'UnrealBloomPass 后期泛光(enabled 切换，末位 pass 自动直出)',
+        'TransformControls.getHelper() 挂场景，dragging-changed 时禁用 OrbitControls',
+      ],
+      snippet: `import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+const loader = new GLTFLoader();
+const gltf = await loader.loadAsync('/models/DamagedHelmet.glb');
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;`,
+      demoPath: '/threejs-model-inspector',
+    },
+    positioning: 'Three.js 3D 模型检视台：glTF 加载 + PBR/IBL + 阴影 + 材质三态 + 拾取 + 动画 + 泛光 + 变换',
+    needs: [
+      { text: '在网页里加载并展示真实 3D 模型', level: 'fits', comment: '自带破损头盔/玩具车/狐狸三套免费模型' },
+      { text: '做产品/藏品 3D 展示与材质对比', level: 'fits' },
+      { text: '骨骼动画预览与播放控制', level: 'fits' },
+      { text: '不想自己搭 three 基建只想快速看模型', level: 'fits' },
+    ],
+    notes: [
+      '内置模型放 public/models/，运行时由 GLTFLoader 拉取，不进打包产物',
+      '颜色管线沿用 three-compat(关 ColorManagement)，与站内其余 three 示例一致',
+      '组件本体在 src/components/three-model-viewer，可作为通用查看器复用',
+    ],
+    alternatives: ['/threejs-raycaster', '/threejs-china-3d-map'],
+  },
+  {
+    path: '/threejs-iot-scene',
+    usage: {
+      install: 'pnpm add three  # 设备全程序化生成，无需任何外部模型/贴图',
+      keyApi: [
+        'CSS2DRenderer + CSS2DObject 把 HTML 标签钉在 3D 锚点（即「绑点」浮窗）',
+        'OrbitControls(enableDamping + autoRotate) 轨道环视',
+        '用基础几何体(Box/Cylinder/Torus/Sphere)过程化搭电机/泵/阀/罐/传送带',
+        '响应式数据总线(reactive) 600ms 平滑逼近 + 噪声，逐帧 lerp 驱动运转',
+        '阈值越界 → alarms computed → 设备壳体 emissive 转红 + 标签红色描边',
+        'MeshStandardMaterial 阴影 + Hemisphere/Directional/Point 灯光',
+      ],
+      snippet: `import { createIotScene } from '@/components/three-iot-scene/src/useIotScene';
+const h = createIotScene(el);
+h.setScenario('alarm'); // normal | alarm | stop`,
+      demoPath: '/threejs-iot-scene',
+    },
+    positioning: 'Three.js 物联网 3D 组态：程序化设备 + 实时数据总线 + 浮动绑点 + 运转动画 + 阈值报警',
+    needs: [
+      { text: '做工业/物联网组态大屏，设备随实时数据运转', level: 'fits', comment: '电机转/泵叶轮转/阀手轮转角/罐液位/传送带移动/传感器脉冲' },
+      { text: '把数据标签「绑」到 3D 设备并显示实时值', level: 'fits', comment: 'CSS2D 浮动绑点 + 绑点明细表' },
+      { text: '演示告警态（超温/超压/卡阀/高液位）可视化', level: 'fits' },
+      { text: '需要加载真实工业设备模型', level: 'partial', comment: '当前设备为过程化几何体，非扫描/建模模型' },
+    ],
+    notes: [
+      '数据总线是模块级单例(src/components/three-iot-scene/dataBus.ts)，组件与页面共享',
+      '颜色管线沿用 three-compat(关 ColorManagement)，outputColorSpace=LinearSRGB',
+      '卸载时全量 dispose 几何体/材质/控制器/渲染器，并 stopBus()',
+    ],
+    alternatives: ['/threejs-model-inspector', '/echarts-map'],
+  },
+  {
+    path: '/iot-config-editor',
+    usage: {
+      install: 'pnpm add three  # 仅编辑器自身零依赖：纯 SVG + Vue + Pinia 化 reactive 数据总线',
+      keyApi: [
+        '元件库 → 画布：HTML5 pointer 事件拖拽 + getScreenCTM().inverse() 把屏幕坐标映射到 SVG viewBox',
+        '设备节点 DeviceNode.vue 用基础 SVG 形状过程化绘制，rAF 按绑定值驱动扇叶/叶轮/液位/皮带/脉冲',
+        '绑点连线：从设备端口 pointerdown 拉贝塞尔曲线到另一设备，Wire 存 from/to 持久化',
+        '实时数据总线(dataBus.ts) 600ms 平滑逼近 + 噪声，watch/computed 派生状态与报警',
+        '布局存 localStorage，刷新可恢复；绑定点可在属性面板切换数据点',
+      ],
+      snippet: `<IotConfigEditor />  // 直接用，自带元件库/画布/属性面板/场景切换
+// 拖设备入画布 → 拖端口连线 → 顶部切「正常/告警/停机」看运转与报警`,
+      demoPath: '/iot-config-editor',
+    },
+    positioning: '物联网组态编辑器（2D SVG）：拖拽搭建设备 + 绑点连线 + 实时数据驱动运转',
+    needs: [
+      { text: '做可拖拽的组态/SCADA 编辑器，而非固定大屏', level: 'fits', comment: '元件库拖入、自由布局、连线、属性面板' },
+      { text: '把数据点「绑」到设备并显示实时绑点值', level: 'fits', comment: '属性面板可切绑定 tag，节点实时显示数值' },
+      { text: '演示设备随实时数据运转（转/升降/移动/脉冲）', level: 'fits', comment: 'rAF 按 dataBus 值驱动，零模型零贴图' },
+      { text: '需要加载真实工业 CAD 模型', level: 'no', comment: '设备为 SVG 过程化图形，非 3D 模型' },
+    ],
+    notes: [
+      '与 /threejs-iot-scene 共用同一份 dataBus 单例，两套页面数据/场景联动一致',
+      '设备节点动画走 rAF 直接改 SVG transform，不经 Vue 响应式，避免逐帧重渲染',
+      '画布坐标用 getScreenCTM().inverse() 反算，缩放/letterbox 下拖拽依然精准',
+    ],
+    alternatives: ['/threejs-iot-scene', '/workflow-designer'],
+  },
+  {
     path: '/threejs-china-3d-map',
     usage: {
       install: 'pnpm add three @types/three',

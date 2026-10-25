@@ -6,6 +6,8 @@ import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
 import requireTransform from 'vite-plugin-require-transform';
+import { compression } from 'vite-plugin-compression2';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -70,14 +72,26 @@ export default ({ mode }) => {
           // 故 vue 生态 + element-plus 统一进 vue-vendor，其余大依赖单独分组。
           manualChunks(id: string) {
             if (!id.includes('node_modules')) return;
+            // ⚠️ vue 生态必须同组：拆开会因共享 @vue/shared 导致循环初始化
+            // "Cannot access 'tc' before initialization"（生产包启动即报，dev 不复现）。
             if (
-              id.includes('element-plus') ||
-              id.includes('@element-plus') ||
-              id.includes('@vueuse') ||
-              /[\\/]node_modules[\\/](vue|@vue)[\\/]/.test(id)
+              /[\\/]node_modules[\\/](vue|@vue|@vueuse|element-plus|@element-plus|pinia)[\\/]/.test(id)
             ) {
               return 'vue-vendor';
             }
+            // 重型图形 / 可视化 / 编辑器库单独分组，提升缓存命中、避免挤进通用 vendor
+            if (/[\\/]node_modules[\\/]three[\\/]/.test(id)) return 'three';
+            if (/[\\/]node_modules[\\/](babylonjs|babylonjs-gui)[\\/]/.test(id)) return 'babylonjs';
+            if (/[\\/]node_modules[\\/]d3[\\/]/.test(id)) return 'd3';
+            if (/[\\/]node_modules[\\/]@antv[\\/]g6[\\/]/.test(id)) return 'antv-g6';
+            if (/[\\/]node_modules[\\/]@visactor[\\/]vchart[\\/]/.test(id)) return 'vchart';
+            if (/[\\/]node_modules[\\/](vxe-table|vxe-pc-ui|xe-utils)[\\/]/.test(id)) return 'vxe';
+            if (/[\\/]node_modules[\\/]@tiptap[\\/]/.test(id)) return 'tiptap';
+            if (/[\\/]node_modules[\\/](codemirror|@codemirror)[\\/]/.test(id)) return 'codemirror';
+            if (/[\\/]node_modules[\\/](jspreadsheet-ce|jsuites)[\\/]/.test(id)) return 'jspreadsheet';
+            if (/[\\/]node_modules[\\/]@logicflow[\\/]/.test(id)) return 'logicflow';
+            if (/[\\/]node_modules[\\/]frappe-gantt[\\/]/.test(id)) return 'frappe-gantt';
+            if (/[\\/]node_modules[\\/]@vue-office[\\/]/.test(id)) return 'vue-office';
             if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
             if (id.includes('axios')) return 'axios';
             if (id.includes('vue3-slide-verify')) return 'vue3-slide-verify';
@@ -103,6 +117,12 @@ export default ({ mode }) => {
       requireTransform({
         fileRegex: /.ts$|.tsx$|.vue$/,
       }),
-    ],
+      // 构建产物预压缩：gzip + brotli，部署时由静态服务器直接返回，省去运行时压缩开销
+      compression({ algorithm: 'gzip', threshold: 1024 }),
+      compression({ algorithm: 'brotliCompress', threshold: 1024 }),
+      // 体积可视化：仅 ANALYZE=true pnpm build 时生成 dist/stats.html
+      process.env.ANALYZE === 'true' &&
+        visualizer({ filename: 'stats.html', gzipSize: true, brotliSize: true }),
+    ].filter(Boolean),
   });
 };

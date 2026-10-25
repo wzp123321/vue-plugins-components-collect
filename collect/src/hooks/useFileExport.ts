@@ -1,3 +1,4 @@
+/* eslint-disable no-unsafe-optional-chaining, consistent-return */
 import { ElMessage, ElLoading } from 'element-plus';
 import axios from 'axios';
 import { Ref } from 'vue';
@@ -11,7 +12,7 @@ export const useFileExport = () => {
     reader.onloadend = (e) => {
       const errRes = JSON.parse(e.target?.result as string);
       if (errRes?.errmsg && typeof errRes?.errmsg === 'string' && +errRes?.errcode !== 401) {
-        console.log(`%c✨✨${type}失败✨✨`, 'font-size: 24px', errRes?.errmsg);
+        console.error(`${type}失败：`, errRes?.errmsg);
         ElMessage.error(`${type}失败，${errRes?.errmsg}`);
       }
     };

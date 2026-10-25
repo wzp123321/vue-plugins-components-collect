@@ -21,7 +21,8 @@
 </template>
 <script lang="ts">
 	import { defineComponent } from "vue";
-	import DragComponent from "./index.vue";
+	import DragComponent from "./component-layout-drag.vue";
+
 	export default defineComponent({
 		name: "",
 		components: {

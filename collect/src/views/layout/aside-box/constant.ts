@@ -112,7 +112,15 @@ export const navGroups: NavGroup[] = [
           { path: '/threejs-sun', label: '太阳地球', searchOnly: true },
           { path: '/threejs-galaxy', label: '粒子银河系', searchOnly: true },
           { path: '/threejs-raycaster', label: '交互拾取', searchOnly: true },
+          { path: '/threejs-model-inspector', label: '3D 模型检视台' },
           { path: '/threejs-china-3d-map', label: '中国 3D 地图' },
+        ],
+      },
+      {
+        label: '物联网组态',
+        items: [
+          { path: '/threejs-iot-scene', label: '设备运转监视(3D)' },
+          { path: '/iot-config-editor', label: '组态编辑器(拖拽)' },
         ],
       },
       {
@@ -270,6 +278,7 @@ export const navGroups: NavGroup[] = [
           { path: '/gsap-animation', label: 'GSAP 动画' },
           { path: '/mind-map', label: '思维导图' },
           { path: '/i18n-demo', label: '国际化' },
+          { path: '/teacher-manage', label: '教师信息 CRUD' },
         ],
       },
     ],

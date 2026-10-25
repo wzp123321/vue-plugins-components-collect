@@ -16,26 +16,20 @@ export const isLongTimeTask = (startTime: string, endTime: string) => {
 /**
  * 判断是否低于30天
  */
-export const mapDateScopeTooShort = (startTime: string, endTime: string) => {
-  return (
+export const mapDateScopeTooShort = (startTime: string, endTime: string) => (
     !!startTime &&
     !!endTime &&
     Math.abs(differenceInDays(new Date(startTime), new Date(endTime))) < shortestDateScope - 1
   );
-};
 
 /**
  * 判断是否是日能耗参考的系统推荐
  */
-export const mapIsStandardSystemRecommendType = (type: string) => {
-  return type === EMiDailyEnergyStandardType.系统推荐;
-};
+export const mapIsStandardSystemRecommendType = (type: string) => type === EMiDailyEnergyStandardType.系统推荐;
 /**
  * 判断是否是日能耗上限的系统推荐
  */
-export const mapIsUpperSystemRecommendType = (type: string) => {
-  return type === EMiDailyUpperLimitType.系统推荐;
-};
+export const mapIsUpperSystemRecommendType = (type: string) => type === EMiDailyUpperLimitType.系统推荐;
 /**
  * 根据年份和月份获取该月的天数列表
  * @param year 年份
@@ -129,9 +123,9 @@ export const getDataIsShowDot = (data: (string | null)[], color: string, groupNa
       }
     });
     return arrData;
-  } else {
+  } 
     return data;
-  }
+  
 };
 
 /**
@@ -159,17 +153,13 @@ export const isDateInRange = (
  * @param value
  * @returns
  */
-export const mapIsEmpty = (value: string) => {
-  return value === '' || value === null;
-};
+export const mapIsEmpty = (value: string) => value === '' || value === null;
 /**
  * 处理异常数据
  * @param value
  * @returns
  */
-export const mapEmptyValue = (value: string) => {
-  return value !== '' && value !== null ? thousandSeparation(Number(value)) : '-';
-};
+export const mapEmptyValue = (value: string) => value !== '' && value !== null ? thousandSeparation(Number(value)) : '-';
 /**
  * 找到配置不全的时段
  */
@@ -208,8 +198,7 @@ export const findNotConfiguredPeriod = (list: IMcMonitoringConfigureForm[]) => {
 };
 
 // 获取symbolStyle
-export const getsymbolStyle = (color: string): any => {
-  return {
+export const getsymbolStyle = (color: string): any => ({
     color: {
       type: 'radial',
       x: 0.5,
@@ -258,5 +247,4 @@ export const getsymbolStyle = (color: string): any => {
         },
       ],
     },
-  };
-};
+  });

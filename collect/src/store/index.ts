@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 
-const useCounterStore = defineStore({
-  // id 每个store都需要有一个唯一标识
-  id: 'counter',
+const useCounterStore = defineStore('counter', {
   // 数据源
   state: () => ({
     count: 0,

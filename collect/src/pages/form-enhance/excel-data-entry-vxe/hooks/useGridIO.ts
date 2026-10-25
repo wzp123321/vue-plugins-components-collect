@@ -1,6 +1,10 @@
+/* eslint-disable no-restricted-syntax, no-continue, no-underscore-dangle, no-restricted-globals, no-irregular-whitespace */
 // 数据进出：Excel/CSV 导入导出 + 剪贴板复制粘贴（TSV 矩阵）
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+// ⚠️ 安全提示：xlsx@0.18.5 是 SheetJS 在 npm 上停止维护的社区版（0.19+ 仅在官方 CDN 分发），
+// 存在原型污染类 CVE（CVE-2023-30533 等）未修复。本收集站仅用于浏览器端可信 demo，
+// 切勿用其解析不可信 / 用户上传的 Excel 文件。后续建议迁移到 exceljs（本项目已更通用）或锁定官方版本。
 import * as XLSX from 'xlsx';
 import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
@@ -164,7 +168,7 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     } catch (err) {
       // ElMessageBox 取消/关闭会 reject 'cancel' | 'close'，不能当作导入失败
       if (err === 'cancel' || err === 'close') return;
-      ElMessage.error('导入失败：' + (err as Error).message);
+      ElMessage.error(`导入失败：${  (err as Error).message}`);
     } finally {
       input.value = '';
     }
@@ -191,7 +195,7 @@ export function useGridIO(core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     const source = core.processedRows.value;
     const header = core.visibleDefs.value.map((d) => d.label);
     const rows = source.map((r) => core.visibleDefs.value.map((d) => `"${String(r[d.field] ?? '').replace(/"/g, '""')}"`).join(','));
-    const csv = '﻿' + [header.join(','), ...rows].join('\n');
+    const csv = `﻿${  [header.join(','), ...rows].join('\n')}`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
