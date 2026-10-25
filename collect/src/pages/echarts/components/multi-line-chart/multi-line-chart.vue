@@ -13,15 +13,13 @@
             <span class="is-icon" :style="{ background: item.color }"></span>
             <span class="is-name">{{ item.name }}</span>
           </template>
-          <!-- eslint-disable-next-line vue/no-useless-template-attributes -->
-          <template v-if="item.icon === EMcLegendType.实线" @click="handleLegendClick(item)">
+          <template v-if="item.icon === EMcLegendType.实线">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="5" width="10" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
             </svg>
             <span class="is-name">{{ item.name }}</span>
           </template>
-          <!-- eslint-disable-next-line vue/no-useless-template-attributes -->
-          <template v-if="item.icon === EMcLegendType.虚线" @click="handleLegendClick(item)">
+          <template v-if="item.icon === EMcLegendType.虚线">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="5" width="4" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
               <rect x="7" y="5" width="4" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
@@ -47,14 +45,14 @@
 import { onUnmounted, onMounted, ref, nextTick } from 'vue';
 import { useEChartsInit } from '@/hooks';
 import { IconCaretLeft, IconCaretRight } from '@arco-iconbox/vue-te';
-import {
+import type {
   EChartsOption,
-  EChartsType,
   LegendComponentOption,
   TooltipComponentOption,
   XAXisComponentOption,
   YAXisComponentOption,
 } from 'echarts';
+import type { EChartsType } from '@/config/echarts/setup';
 import {
   EMcEnergyTrendAnalysisType,
   EMcLegendType,

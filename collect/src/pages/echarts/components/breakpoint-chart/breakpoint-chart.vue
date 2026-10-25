@@ -5,7 +5,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, computed } from 'vue';
-import { init } from 'echarts';
+import { init } from '@/config/echarts/setup';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';

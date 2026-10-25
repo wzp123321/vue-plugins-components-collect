@@ -13,7 +13,8 @@ import * as echarts from 'echarts/core'
 import { EffectScatterChart, MapChart, ScatterChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, VisualMapComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-import { EChartsType, init, EChartsOption } from 'echarts'
+import { init } from '@/config/echarts/setup';
+import type { EChartsType, EChartsOption } from '@/config/echarts/setup';
 import {
   EffectScatterSeriesOption,
   MapSeriesOption,
@@ -90,7 +91,7 @@ const PROFIT_LABELS: Record<number, string> = {
   [CP_EProfitState.高盈利]: '高盈利',
 }
 
-export interface CP_ICityStat {
+export interface CityStat {
   adcode: number
   name: string
   center: [number, number]
@@ -101,7 +102,7 @@ export interface CP_ICityStat {
   profitState: CP_EProfitState
 }
 
-export interface CP_IProjectInfo {
+export interface ProjectInfo {
   id: string
   name: string
   cityName: string
@@ -120,18 +121,142 @@ const seededValue = (adcode: number, salt: number): number => {
   return x - Math.floor(x)
 }
 
+/** 以下原为 ChartDashboardService 的私有方法——均为不依赖实例状态的纯函数，
+ *  按 class-methods-use-this 规则外置为模块级箭头函数，行为不变 */
+const loadProvinceGeo = async (adcode: string): Promise<any | null> => {
+    const loader = provinceGeoLoaders[`/src/assets/geojson/province/${adcode}.json`]
+
+    if (!loader) {
+      return null
+    }
+    try {
+      const module = (await loader()) as any
+      return module.default || module
+    } catch (error) {
+      console.warn(`加载 ${adcode} 地图数据失败`, error)
+      return null
+    }
+}
+
+const buildCityStats = (features: any[]): CityStat[] =>
+    features
+      .filter((feature) => feature?.properties?.center)
+      .map((feature) => {
+        const { adcode, name, center } = feature.properties
+        const power = Math.round(20 + seededValue(adcode, 1) * 480)
+        const projectCount = 2 + Math.floor(seededValue(adcode, 2) * 16)
+        const alarmCount = Math.floor(seededValue(adcode, 3) * 5)
+        const profitState = (1 + Math.floor(seededValue(adcode, 4) * 4)) as CP_EProfitState
+        return { adcode, name, center, power, projectCount, alarmCount, profitState }
+      })
+      .sort((a, b) => b.power - a.power)
+
+const buildProjects = (cities: CityStat[]): ProjectInfo[] => {
+    const list: ProjectInfo[] = []
+
+    cities.forEach((city) => {
+      for (let i = 0; i < city.projectCount; i++) {
+        list.push({
+          id: `${city.adcode}-${i}`,
+          name: `${city.name}${i + 1}号电站`,
+          cityName: city.name,
+          coordinate: [
+            city.center[0] + (seededValue(city.adcode, 10 + i) - 0.5) * 0.5,
+            city.center[1] + (seededValue(city.adcode, 20 + i) - 0.5) * 0.5,
+          ],
+          alarm: i < city.alarmCount,
+          profitState: city.profitState,
+        })
+      }
+    })
+    return list
+}
+
+const mapGrid = (): EChartsOption['grid'] => ({ top: 0, right: 0, bottom: 0, left: 0 })
+
+const nationalTooltip = (): EChartsOption['tooltip'] => ({
+      trigger: 'item',
+      enterable: true,
+      renderMode: 'html',
+      confine: true,
+      className: 'ch-map-tooltip',
+      position: 'right',
+      padding: 0,
+      backgroundColor: 'rgba(6, 39, 65, 0.95)',
+      borderColor: 'rgba(54, 129, 255, 1)',
+      borderWidth: 1,
+      formatter: (params: any) => {
+        if (params.seriesType !== 'map') return ''
+        const power = params.data?.value ?? 0
+        const drillable = PROVINCE_OPTIONS.some((o) => o.name === params.name)
+        return `
+          <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
+            <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${params.name}</div>
+            <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${power} GWh</span></div>
+          <div style="color:${drillable ? '#7fe3f0' : '#9ec9ff'};margin-top:4px;">${drillable ? '▸ 点击下钻到省份' : '暂未收录下级地图'}</div>
+        </div>
+      `
+      },
+    })
+
+const mapTooltip = (): EChartsOption['tooltip'] => ({
+      trigger: 'item',
+      enterable: true,
+      renderMode: 'html',
+      confine: true,
+      className: 'ch-map-tooltip',
+      position: 'right',
+      padding: 0,
+      backgroundColor: 'rgba(6, 39, 65, 0.95)',
+      borderColor: 'rgba(54, 129, 255, 1)',
+      borderWidth: 1,
+      formatter: (params: any) => {
+        // 地图区域 → 城市指标
+        if (params.seriesType === 'map') {
+          const city = params.data?.city as CityStat | undefined
+          if (!city) return ''
+          return `
+            <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:190px;line-height:1.8;">
+              <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${city.name}</div>
+              <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${city.power} GWh</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>项目数</span><span style="color:#7fe3f0;">${city.projectCount}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>告警数</span><span style="color:${city.alarmCount ? '#ff7a45' : '#7fe3f0'};">${city.alarmCount}</span></div>
+              <div style="display:flex;justify-content:space-between;"><span>盈利状态</span><span style="color:#7fe3f0;">${PROFIT_LABELS[city.profitState]}</span></div>
+            </div>
+          `
+        }
+        // 项目散点 → 项目信息
+        const project = params.data?.project as ProjectInfo | undefined
+        if (!project) return ''
+        return `
+          <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
+            <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${project.name}</div>
+            <div style="display:flex;justify-content:space-between;"><span>所属城市</span><span style="color:#7fe3f0;">${project.cityName}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>盈利状态</span><span style="color:#7fe3f0;">${PROFIT_LABELS[project.profitState]}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>运行状态</span><span style="color:${project.alarm ? '#ff7a45' : '#7fe3f0'};">${project.alarm ? '告警' : '正常'}</span></div>
+          </div>
+        `
+      },
+  })
+
+
 class ChartDashboardService {
   static readonly provinceOptions = PROVINCE_OPTIONS
+
   static readonly profitLabels = PROFIT_LABELS
 
-  private _customId = ref<string>('')
+  private customId = ref<string>('')
+
   public myEchart?: EChartsType
-  private _option: EChartsOption = {}
+
+  private option: EChartsOption = {}
 
   /** 当前视图层级 */
   public level = ref<DashboardLevel>('national')
+
   /** 当前省 adcode（省份视图） */
   public currentAdcode = ref('')
+
   /** 当前省名称（省份视图） */
   public currentProvinceName = ref('')
 
@@ -139,32 +264,37 @@ class ChartDashboardService {
   private provincePowers: { name: string; adcode: number; power: number }[] = []
 
   /** 当前省城市统计（按发电量降序），ref 化供外层 computed 追踪 */
-  private cityStats = ref<CP_ICityStat[]>([])
+  private cityStats = ref<CityStat[]>([])
+
   /** 全省项目点 */
-  private projects = ref<CP_IProjectInfo[]>([])
+  private projects = ref<ProjectInfo[]>([])
+
   /** 当前选中城市名，空串表示全省视图 */
   private selectedCityName = ref('')
+
   /** 当前注册的地图名（用 adcode） */
   private currentMapName = ''
 
   /** 城市数据就绪回调（侧栏排行渲染） */
-  public onCitiesChange?: (cities: CP_ICityStat[]) => void
+  public onCitiesChange?: (cities: CityStat[]) => void
+
   /** 地图点击 / 侧栏选中城市回调 */
-  public onCitySelect?: (city: CP_ICityStat | null) => void
+  public onCitySelect?: (city: CityStat | null) => void
+
   /** 视图层级变化回调（面包屑渲染） */
   public onLevelChange?: (level: DashboardLevel) => void
 
   public get customChartId(): string {
-    return this._customId.value
+    return this.customId.value
   }
 
   constructor() {
-    this._customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`
+    this.customId.value = `charts_${(Math.random() * 10000).toFixed(0)}`
   }
 
-  //#region 初始化
+  // #region 初始化
   initCharts() {
-    const ele = document.getElementById(this._customId.value)
+    const ele = document.getElementById(this.customId.value)
 
     if (!ele) {
       console.warn('未加载容器')
@@ -174,9 +304,9 @@ class ChartDashboardService {
     this.bindMapClick()
     this.renderNational()
   }
-  //#endregion
+  // #endregion
 
-  //#region 全国视角
+  // #region 全国视角
   renderNational() {
     this.level.value = 'national'
     this.onLevelChange?.('national')
@@ -190,10 +320,10 @@ class ChartDashboardService {
       })
     const maxPower = this.provincePowers.reduce((m, p) => Math.max(m, p.power), 100)
 
-    this._option = {}
-    this._option.grid = this.mapGrid()
-    this._option.tooltip = this.nationalTooltip()
-    this._option.visualMap = {
+    this.option = {}
+    this.option.grid = mapGrid()
+    this.option.tooltip = nationalTooltip()
+    this.option.visualMap = {
       show: true,
       type: 'continuous',
       min: 0,
@@ -206,7 +336,7 @@ class ChartDashboardService {
       calculable: true,
       inRange: { color: ['#0b2f5e', '#12507e', '#1b7fb8', '#35b8e8', '#7fe3f0'] },
     } as any
-    this._option.geo = {
+    this.option.geo = {
       map: 'china-national',
       roam: true,
       aspectScale: 1.0,
@@ -286,14 +416,14 @@ class ChartDashboardService {
         }),
     }
 
-    this._option.series = [mapSeries, projectSeries, alarmSeries] as any
-    this.myEchart?.setOption(this._option, true)
+    this.option.series = [mapSeries, projectSeries, alarmSeries] as any
+    this.myEchart?.setOption(this.option, true)
   }
-  //#endregion
+  // #endregion
 
-  //#region 省份下钻
+  // #region 省份下钻
   async drillToProvince(adcode: string, name: string) {
-    const geo = await this.loadProvinceGeo(adcode)
+    const geo = await loadProvinceGeo(adcode)
 
     if (!geo?.features?.length) {
       console.warn(`未找到 ${name} 的地图数据`)
@@ -307,8 +437,8 @@ class ChartDashboardService {
     this.onLevelChange?.('province')
     echarts.registerMap(adcode, geo as any)
 
-    this.cityStats.value = this.buildCityStats(geo.features)
-    this.projects.value = this.buildProjects(this.cityStats.value)
+    this.cityStats.value = buildCityStats(geo.features)
+    this.projects.value = buildProjects(this.cityStats.value)
     this.applyOption()
     this.onCitiesChange?.(this.cityStats.value)
     this.onCitySelect?.(null)
@@ -317,152 +447,39 @@ class ChartDashboardService {
   backToNational() {
     this.renderNational()
   }
-  //#endregion
+  // #endregion
 
-  //#region 懒加载省级 GeoJSON
-  private async loadProvinceGeo(adcode: string): Promise<any | null> {
-    const loader = provinceGeoLoaders[`/src/assets/geojson/province/${adcode}.json`]
+  // #region 懒加载省级 GeoJSON
 
-    if (!loader) {
-      return null
-    }
-    try {
-      const module = (await loader()) as any
-      return module.default || module
-    } catch (error) {
-      console.warn(`加载 ${adcode} 地图数据失败`, error)
-      return null
-    }
-  }
-  //#endregion
+  // #endregion
 
-  //#region 构造城市统计（确定性 mock）
-  private buildCityStats(features: any[]): CP_ICityStat[] {
-    return features
-      .filter((feature) => feature?.properties?.center)
-      .map((feature) => {
-        const { adcode, name, center } = feature.properties
-        const power = Math.round(20 + seededValue(adcode, 1) * 480)
-        const projectCount = 2 + Math.floor(seededValue(adcode, 2) * 16)
-        const alarmCount = Math.floor(seededValue(adcode, 3) * 5)
-        const profitState = (1 + Math.floor(seededValue(adcode, 4) * 4)) as CP_EProfitState
-        return { adcode, name, center, power, projectCount, alarmCount, profitState }
-      })
-      .sort((a, b) => b.power - a.power)
-  }
-  //#endregion
+  // #region 构造城市统计（确定性 mock）
 
-  //#region 构造项目散点
-  private buildProjects(cities: CP_ICityStat[]): CP_IProjectInfo[] {
-    const list: CP_IProjectInfo[] = []
+  // #endregion
 
-    cities.forEach((city) => {
-      for (let i = 0; i < city.projectCount; i++) {
-        list.push({
-          id: `${city.adcode}-${i}`,
-          name: `${city.name}${i + 1}号电站`,
-          cityName: city.name,
-          coordinate: [
-            city.center[0] + (seededValue(city.adcode, 10 + i) - 0.5) * 0.5,
-            city.center[1] + (seededValue(city.adcode, 20 + i) - 0.5) * 0.5,
-          ],
-          alarm: i < city.alarmCount,
-          profitState: city.profitState,
-        })
-      }
-    })
-    return list
-  }
-  //#endregion
+  // #region 构造项目散点
 
-  //#region 应用配置（省份视角）
+  // #endregion
+
+  // #region 应用配置（省份视角）
   private applyOption() {
-    this._option = {}
-    this._option.grid = this.mapGrid()
-    this._option.tooltip = this.mapTooltip()
-    this._option.visualMap = this.mapVisualMap()
-    this._option.geo = this.mapGeo()
-    this._option.series = this.mapSeries()
-    this.myEchart?.setOption(this._option, true)
+    this.option = {}
+    this.option.grid = mapGrid()
+    this.option.tooltip = mapTooltip()
+    this.option.visualMap = this.mapVisualMap()
+    this.option.geo = this.mapGeo()
+    this.option.series = this.mapSeries()
+    this.myEchart?.setOption(this.option, true)
   }
-  //#endregion
+  // #endregion
 
-  private mapGrid(): EChartsOption['grid'] {
-    return { top: 0, right: 0, bottom: 0, left: 0 }
-  }
+  // #region 全国 tooltip
 
-  //#region 全国 tooltip
-  private nationalTooltip(): EChartsOption['tooltip'] {
-    return {
-      trigger: 'item',
-      enterable: true,
-      renderMode: 'html',
-      confine: true,
-      className: 'ch-map-tooltip',
-      position: 'right',
-      padding: 0,
-      backgroundColor: 'rgba(6, 39, 65, 0.95)',
-      borderColor: 'rgba(54, 129, 255, 1)',
-      borderWidth: 1,
-      formatter: (params: any) => {
-        if (params.seriesType !== 'map') return ''
-        const power = params.data?.value ?? 0
-        const drillable = PROVINCE_OPTIONS.some((o) => o.name === params.name)
-        return `
-          <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
-            <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${params.name}</div>
-            <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${power} GWh</span></div>
-            <div style="color:${drillable ? '#7fe3f0' : '#9ec9ff'};margin-top:4px;">${drillable ? '▸ 点击下钻到省份' : '暂未收录下级地图'}</div>
-          </div>
-        `
-      },
-    }
-  }
-  //#endregion
+  // #endregion
 
-  //#region 省份 tooltip
-  private mapTooltip(): EChartsOption['tooltip'] {
-    return {
-      trigger: 'item',
-      enterable: true,
-      renderMode: 'html',
-      confine: true,
-      className: 'ch-map-tooltip',
-      position: 'right',
-      padding: 0,
-      backgroundColor: 'rgba(6, 39, 65, 0.95)',
-      borderColor: 'rgba(54, 129, 255, 1)',
-      borderWidth: 1,
-      formatter: (params: any) => {
-        // 地图区域 → 城市指标
-        if (params.seriesType === 'map') {
-          const city = params.data?.city as CP_ICityStat | undefined
-          if (!city) return ''
-          return `
-            <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:190px;line-height:1.8;">
-              <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${city.name}</div>
-              <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${city.power} GWh</span></div>
-              <div style="display:flex;justify-content:space-between;"><span>项目数</span><span style="color:#7fe3f0;">${city.projectCount}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span>告警数</span><span style="color:${city.alarmCount ? '#ff7a45' : '#7fe3f0'};">${city.alarmCount}</span></div>
-              <div style="display:flex;justify-content:space-between;"><span>盈利状态</span><span style="color:#7fe3f0;">${PROFIT_LABELS[city.profitState]}</span></div>
-            </div>
-          `
-        }
-        // 项目散点 → 项目信息
-        const project = params.data?.project as CP_IProjectInfo | undefined
-        if (!project) return ''
-        return `
-          <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
-            <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${project.name}</div>
-            <div style="display:flex;justify-content:space-between;"><span>所属城市</span><span style="color:#7fe3f0;">${project.cityName}</span></div>
-            <div style="display:flex;justify-content:space-between;"><span>盈利状态</span><span style="color:#7fe3f0;">${PROFIT_LABELS[project.profitState]}</span></div>
-            <div style="display:flex;justify-content:space-between;"><span>运行状态</span><span style="color:${project.alarm ? '#ff7a45' : '#7fe3f0'};">${project.alarm ? '告警' : '正常'}</span></div>
-          </div>
-        `
-      },
-    }
-  }
-  //#endregion
+  // #region 省份 tooltip
+
+  // #endregion
 
   private mapVisualMap(): EChartsOption['visualMap'] {
     const maxPower = this.cityStats.value.reduce((max, city) => Math.max(max, city.power), 100)
@@ -604,7 +621,7 @@ class ChartDashboardService {
     return [mapSeries, projectSeries, alarmSeries] as any
   }
 
-  //#region 地图点击：全国下钻 / 省份选中城市
+  // #region 地图点击：全国下钻 / 省份选中城市
   private bindMapClick() {
     this.myEchart?.on('click', (params: any) => {
       if (this.level.value === 'national') {
@@ -616,14 +633,14 @@ class ChartDashboardService {
       }
       // 省份视角：点击城市区域选中 / 取消
       if (params.seriesType !== 'map') return
-      const city = params.data?.city as CP_ICityStat | undefined
+      const city = params.data?.city as CityStat | undefined
       if (!city) return
       this.selectCity(city.name === this.selectedCityName.value ? '' : city.name)
     })
   }
-  //#endregion
+  // #endregion
 
-  //#region 选中城市（地图 + 侧栏联动）
+  // #region 选中城市（地图 + 侧栏联动）
   selectCity(cityName: string) {
     this.selectedCityName.value = cityName
     const city = this.cityStats.value.find((item) => item.name === cityName) || null
@@ -634,9 +651,9 @@ class ChartDashboardService {
     }
     this.onCitySelect?.(city)
   }
-  //#endregion
+  // #endregion
 
-  //#region 侧栏 hover 与地图联动
+  // #region 侧栏 hover 与地图联动
   highlightCity(cityName: string) {
     this.myEchart?.dispatchAction({ type: 'highlight', seriesIndex: 0, name: cityName })
   }
@@ -644,18 +661,18 @@ class ChartDashboardService {
   downplayCity(cityName: string) {
     this.myEchart?.dispatchAction({ type: 'downplay', seriesIndex: 0, name: cityName })
   }
-  //#endregion
+  // #endregion
 
-  //#region 数据查询
-  getProjects(): CP_IProjectInfo[] {
+  // #region 数据查询
+  getProjects(): ProjectInfo[] {
     return this.projects.value
   }
 
-  getProjectsByCity(cityName: string): CP_IProjectInfo[] {
+  getProjectsByCity(cityName: string): ProjectInfo[] {
     return this.projects.value.filter((project) => project.cityName === cityName)
   }
 
-  getAlarmProjects(): CP_IProjectInfo[] {
+  getAlarmProjects(): ProjectInfo[] {
     return this.projects.value.filter((project) => project.alarm)
   }
 
@@ -667,7 +684,7 @@ class ChartDashboardService {
       alarmCount: this.projects.value.filter((project) => project.alarm).length,
     }
   }
-  //#endregion
+  // #endregion
 
   resize() {
     this.myEchart?.resize()

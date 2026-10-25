@@ -1,5 +1,6 @@
 import { ref, shallowRef } from 'vue';
-import { EChartsType, init, EChartsOption } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsType, EChartsOption } from '@/config/echarts/setup';
 
 export const useEChartsInit = () => {
   const chartInstance = shallowRef<EChartsType | null>(null);
@@ -19,8 +20,8 @@ export const useEChartsInit = () => {
    * 缩放
    */
   const resize = () => {
-    if (chartInstance) {
-      chartInstance.value!.resize();
+    if (chartInstance.value) {
+      chartInstance.value.resize();
     }
   };
   const addResize = () => {

@@ -10,6 +10,14 @@ import {
   EchartsGraphic,
   StackBar,
   PieLongLabel,
+  RadarChartDemo,
+  FunnelChartDemo,
+  HeatmapChartDemo,
+  GraphChartDemo,
+  SankeyChartDemo,
+  ScatterChartDemo,
+  DataZoomChartDemo,
+  WordCloudChartDemo,
 } from './index';
 
 export const roseMinMaxRate = 1 / 20;
@@ -173,5 +181,37 @@ export const customComponents: { description: string; component: any }[] = [
   {
     description: '长文本饼图',
     component: PieLongLabel,
+  },
+  {
+    description: '雷达图',
+    component: RadarChartDemo,
+  },
+  {
+    description: '漏斗图',
+    component: FunnelChartDemo,
+  },
+  {
+    description: '热力图',
+    component: HeatmapChartDemo,
+  },
+  {
+    description: '关系图',
+    component: GraphChartDemo,
+  },
+  {
+    description: '桑基图',
+    component: SankeyChartDemo,
+  },
+  {
+    description: '基础散点图',
+    component: ScatterChartDemo,
+  },
+  {
+    description: 'dataZoom 缩放',
+    component: DataZoomChartDemo,
+  },
+  {
+    description: '词云',
+    component: WordCloudChartDemo,
   },
 ];

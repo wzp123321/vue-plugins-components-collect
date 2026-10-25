@@ -148,7 +148,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import ChartDashboardService, { CP_ICityStat, CP_IProjectInfo } from './chart-dashboard.service'
+import ChartDashboardService, { CityStat, ProjectInfo } from './chart-dashboard.service'
 import mapConfig from './map/map-config.json'
 import CmBar from './components/cm-bar.vue'
 import CmGauge from './components/cm-gauge.vue'
@@ -170,16 +170,16 @@ const profitLegend = [
   { state: 4, label: profitLabels[4], icon: (mapConfig as any).mark.high },
 ]
 
-const rankedCities = ref<CP_ICityStat[]>([])
-const selectedCity = ref<CP_ICityStat | null>(null)
+const rankedCities = ref<CityStat[]>([])
+const selectedCity = ref<CityStat | null>(null)
 
 const maxPower = computed(() =>
   rankedCities.value.reduce((max, city) => Math.max(max, city.power), 1),
 )
-const powerPercent = (city: CP_ICityStat) => Math.round((city.power / maxPower.value) * 100)
+const powerPercent = (city: CityStat) => Math.round((city.power / maxPower.value) * 100)
 const topCities = computed(() => rankedCities.value.slice(0, 10))
 
-const detailProjects = computed<CP_IProjectInfo[]>(() =>
+const detailProjects = computed<ProjectInfo[]>(() =>
   selectedCity.value
     ? dashboardService.getProjectsByCity(selectedCity.value.name)
     : dashboardService.getAlarmProjects(),
@@ -204,7 +204,7 @@ const handleProvinceChange = (adcode: string) => {
   dashboardService.drillToProvince(option.adcode, option.name)
 }
 
-const handleCityClick = (city: CP_ICityStat) => {
+const handleCityClick = (city: CityStat) => {
   dashboardService.selectCity(city.name === selectedCity.value?.name ? '' : city.name)
 }
 

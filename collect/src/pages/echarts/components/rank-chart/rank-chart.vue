@@ -8,7 +8,8 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, computed, ref, onUnmounted } from 'vue';
-import { EChartsType, init } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsType } from '@/config/echarts/setup';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';

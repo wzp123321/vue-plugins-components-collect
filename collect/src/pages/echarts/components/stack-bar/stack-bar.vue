@@ -16,7 +16,7 @@ import { onMounted, shallowRef, watch } from 'vue';
 import useChartStore from '@/store/modules/chart';
 import { useEChartsInit } from '@/hooks';
 import { formatDate, mapPickerSmallFormatByTimeUnit, thousandSeparation } from '@/utils';
-import { EChartsOption, EChartsType } from 'echarts';
+import type { EChartsOption, EChartsType } from '@/config/echarts/setup';
 import { commonEChartOption, newEChartsConstant, pieColors } from '@/config/echarts';
 import { IconExport } from '@arco-iconbox/vue-te';
 import { handleChartToImage, resetLegendName, resetXAxisTime } from '@/config/echarts/utils';
@@ -126,14 +126,14 @@ const mapChartOptions = (): EChartsOption => {
   return options;
 };
 
-let chartInstance = shallowRef<EChartsType | null>(null);
+const chartInstance = shallowRef<EChartsType | null>(null);
 
 /**
  * 导出图表
  */
 const handleChartExport = () => {
-  if (chartRef.value && chartInstance !== undefined) {
-    handleChartToImage(chartInstance.value as EChartsType, '堆叠图');
+  if (chartRef.value && chartInstance.value) {
+    handleChartToImage(chartInstance.value, '堆叠图');
   }
 };
 /**
@@ -142,7 +142,6 @@ const handleChartExport = () => {
  * @param {number} end
  */
 const triggerDataZoom = (start: number, end: number) =>
-  chartInstance &&
   chartInstance.value?.dispatchAction({
     type: 'dataZoom',
     start,
@@ -156,10 +155,10 @@ const triggerDataZoom = (start: number, end: number) =>
  * @param {number | null} dataIndex
  */
 const handleStackBarLegendHighlight = (dataIndex: number | null) => {
-  if (chartInstance) {
+  if (chartInstance.value) {
     // 如果选中id为空，则全部高亮
     if (dataIndex === null) {
-      chartInstance.value?.dispatchAction({
+      chartInstance.value.dispatchAction({
         type: 'legendAllSelect',
       });
     } else {
@@ -199,9 +198,9 @@ watch(
 onMounted(() => {
   if (chartRef.value) {
     chartInstance.value = initCharts(mapChartOptions());
-    if (chartInstance) {
-      chartInstance.value?.off('globalout');
-      chartInstance.value?.on('globalout', () => {
+    if (chartInstance.value) {
+      chartInstance.value.off('globalout');
+      chartInstance.value.on('globalout', () => {
         setTimeout(() => {
           chartInstance.value?.dispatchAction({
             type: 'hideTip',

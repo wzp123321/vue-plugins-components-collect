@@ -39,7 +39,7 @@ export const useFileHandler = () => {
           if (file?.size) {
             resolve(file);
           } else {
-            reject('无法选取文件');
+            reject(new Error('无法选取文件'));
           }
         }
 
@@ -53,11 +53,11 @@ export const useFileHandler = () => {
    */
   const transferFileToUrl = (file: File) => {
     let url = null;
-    if ((window as any).createObjectURL != undefined) {
+    if ((window as any).createObjectURL !== undefined) {
       url = (window as any).createObjectURL(file);
-    } else if (window.URL != undefined) {
+    } else if (window.URL !== undefined) {
       url = window.URL.createObjectURL(file);
-    } else if (window.webkitURL != undefined) {
+    } else if (window.webkitURL !== undefined) {
       url = window.webkitURL.createObjectURL(file);
     }
     return url;
@@ -102,12 +102,33 @@ export const useFileHandler = () => {
   };
 
   /**
+   * 文件下载处理
+   * @param url 源路径
+   * @param name 输出文件名
+   */
+  const FDownLoadHandler = (url: string, name?: string): Promise<void> =>
+    new Promise((resolve, reject) => {
+      if (url) {
+        const element = document.createElement('a');
+        element.href = url;
+        if (name) {
+          element.download = name;
+        }
+        element.click();
+        resolve();
+        element.remove();
+      } else {
+        reject(new Error(`无法下载${name || '文件'}`));
+      }
+    });
+
+  /**
    * 二进制响应处理
    * @param blob 二进制流
    * @param name 输出文件名
    */
-  const FBlobHandler = (blob: Blob, name?: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
+  const FBlobHandler = (blob: Blob, name?: string): Promise<void> =>
+    new Promise((resolve, reject) => {
       if (blob.size) {
         const reader = new FileReader();
 
@@ -126,38 +147,17 @@ export const useFileHandler = () => {
           reader.readAsDataURL(blob);
         }
       } else {
-        reject(`无法获取${name || '文件'}`);
+        reject(new Error(`无法获取${name || '文件'}`));
       }
     });
-  };
-
-  /**
-   * 文件下载处理
-   * @param url 源路径
-   * @param name 输出文件名
-   */
-  const FDownLoadHandler = (url: string, name?: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (url) {
-        const element = document.createElement('a');
-        element.href = url;
-        name && (element.download = name);
-        element.click();
-        resolve();
-        element.remove();
-      } else {
-        reject(`无法下载${name || '文件'}`);
-      }
-    });
-  };
 
   /**
    * 获取文件md5
    * @param file
    * @returns {Promise<string | null>}
    */
-  const mapFileMD5 = (file: File): Promise<string | null> => {
-    return new Promise((resolve) => {
+  const mapFileMD5 = (file: File): Promise<string | null> =>
+    new Promise((resolve) => {
       if (!file) {
         resolve(null);
         return;
@@ -173,7 +173,6 @@ export const useFileHandler = () => {
         resolve(md5);
       };
     });
-  };
 
   /**
    * 文件分片

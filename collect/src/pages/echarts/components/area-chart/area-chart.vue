@@ -4,7 +4,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { init } from 'echarts';
+import { init } from '@/config/echarts/setup';
 import { computed, onMounted } from 'vue';
 
 let echartIns: any;

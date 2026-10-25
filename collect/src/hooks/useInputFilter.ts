@@ -13,8 +13,8 @@ export const useInputFilter = () => {
    */
   const filterSpecialSymbol = (label: string, allowSpace: boolean = false) => {
     const characters: string = '';
-    const _default = String.raw`\`\\;\'\"<>`;
-    const reg = new RegExp(String.raw`[${_default}${characters}]`, 'g');
+    const defaultChars = String.raw`\`\\;\'\"<>`;
+    const reg = new RegExp(String.raw`[${defaultChars}${characters}]`, 'g');
     label = label.trim();
     if (!allowSpace) {
       label = label.replace(/\s+/g, '');

@@ -47,7 +47,7 @@ import useChartStore from '@/store/modules/chart';
 import { useEChartsInit } from '@/hooks';
 import { IconExport } from '@arco-iconbox/vue-te';
 import { nightingaleChartsDataList, roseMinMaxRate } from '../model';
-import { EChartsOption, EChartsType } from 'echarts';
+import type { EChartsOption, EChartsType } from '@/config/echarts/setup';
 import { cloneDeep } from 'lodash-es';
 import { handleElementToImage } from '@/utils/file';
 import { cardLinearBackgroundColors, pieColors } from '@/config/echarts/newConstant';
@@ -63,7 +63,7 @@ const chartStore = useChartStore();
 // 当前高亮卡片id
 const checkedCardId = ref<number | null>(null);
 let originName = '';
-let chartInstance = shallowRef<EChartsType | null>(null);
+const chartInstance = shallowRef<EChartsType | null>(null);
 /**
  * 卡片背景
  */
@@ -86,7 +86,7 @@ const mapCardColor = (index: number) => pieColors[index % pieColors.length];
  */
 const handleCheck = (id: number | null, name: string, index: number) => {
   chartStore.setSelectedCardDataIndex(index);
-  if (chartInstance) {
+  if (chartInstance.value) {
     if (originName) {
       chartInstance.value?.dispatchAction({
         type: 'downplay',
@@ -220,7 +220,7 @@ onMounted(() => {
   if (chartRef.value) {
     const option = mapChartOptions();
     chartInstance.value = initCharts(option);
-    if (chartInstance) {
+    if (chartInstance.value) {
       chartInstance.value?.on('click', (params: ICommonObject) => {
         if (params && params.componentType === 'series') {
           const id = params.data.id === checkedCardId.value ? null : params.data.id;

@@ -7,7 +7,10 @@
  */
 import { ref } from 'vue';
 
-import { init, EChartsType, EChartsOption, XAXisComponentOption, MarkPointComponentOption } from 'echarts';
+// XAXisComponentOption / MarkPointComponentOption 为细分组件类型，集中入口 setup 未再导出，仍从主包取类型
+import type { XAXisComponentOption, MarkPointComponentOption } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsOption, EChartsType } from '@/config/echarts/setup';
 
 import { formatDate } from '@/utils/index';
 
@@ -32,53 +35,20 @@ const alarmVO = {
   outOfLimitValue: 356, // 越限值
 };
 
-class AlarmChartService<T> {
-  private _is_init = ref<boolean>(false);
-
-  private _dataSource = ref<T>();
-
-  private _customChartId = ref<string>('');
-
-  private echartsInstance?: EChartsType;
-
-  public get customChartId(): string {
-    return this._customChartId.value;
-  }
-
-  constructor(params: T) {
-    this._customChartId.value = `charts_${(Math.random() * 10000).toFixed(0)}`;
-    this._is_init.value = true;
-    this._dataSource.value = params;
-  }
-
-  public initChart = () => {
-    if (!this._is_init.value) {
-      console.warn('请先初始化服务！');
-      return;
-    }
-    const containerEle = document.getElementById(this._customChartId.value);
-    if (!containerEle) {
-      console.warn('加载图表容器错误！');
-      return;
-    }
-    this.echartsInstance = init(containerEle);
-    const options = this.getEchartsOptions();
-    this.echartsInstance.setOption(options);
-  };
-
-  getTooltip(): EChartsOption['tooltip'] {
-    return {
-      trigger: 'axis',
-      borderWidth: 0,
-      padding: [0],
-      formatter(params: any) {
-        const value = params[0]?.value;
-        const date = Number(params[0]?.axisValue);
-        const borderColor = value > alarmVO.thresholdValue ? DANGER_COLOR : NORMAL_COLOR;
-        const labelColor = TEXT_SECOND_PRIMARY_COLOR;
-        const valueColor = TEXT_PRIMARY_COLOR;
-        const marginBottom = '8px';
-        return `<div style="padding: 10px 16px 12px;border:2px solid ${borderColor};border-radius: 4px;line-height: 22px">
+/** 以下原为 AlarmChartService 的方法——均为不依赖实例状态的纯函数，
+ *  按 class-methods-use-this 规则外置为模块级箭头函数，行为不变 */
+const getTooltip = (): EChartsOption['tooltip'] => ({
+  trigger: 'axis',
+  borderWidth: 0,
+  padding: [0],
+  formatter(params: any) {
+    const value = params[0]?.value;
+    const date = Number(params[0]?.axisValue);
+    const borderColor = value > alarmVO.thresholdValue ? DANGER_COLOR : NORMAL_COLOR;
+    const labelColor = TEXT_SECOND_PRIMARY_COLOR;
+    const valueColor = TEXT_PRIMARY_COLOR;
+    const marginBottom = '8px';
+    return `<div style="padding: 10px 16px 12px;border:2px solid ${borderColor};border-radius: 4px;line-height: 22px">
                     <div style="color: ${labelColor}">越限值</div>
                     <div style="color: ${valueColor};margin-bottom: ${marginBottom}">${value ?? '--'}</div>
                     <div style="color: ${labelColor}">越限时间</div>
@@ -88,54 +58,51 @@ class AlarmChartService<T> {
                     <div style="color: ${labelColor}">阈值</div>
                     <div style="color: ${valueColor};">${alarmVO.thresholdValue}</div>
                 </div>`;
+  },
+  position: (point, _params, _dom, _rect, size) => [
+    point[0] + size.contentSize[0] + 40 < size.viewSize[0] ? point[0] + 34 : point[0] - 34 - size.contentSize[0],
+    8,
+  ],
+  // TODO---- 需要根据值 生成不同颜色
+  axisPointer: {
+    type: 'line',
+    axis: 'x',
+    lineStyle: {
+      color: {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: 0,
+        y2: 1,
+        colorStops: [
+          { offset: 0, color: 'rgba(24, 144, 255, 1)' },
+          { offset: 1, color: 'rgba(24, 144, 255, 0)' },
+        ],
       },
-      position: (point, _params, _dom, _rect, size) => [
-        point[0] + size.contentSize[0] + 40 < size.viewSize[0] ? point[0] + 34 : point[0] - 34 - size.contentSize[0],
-        8,
-      ],
-      // TODO---- 需要根据值 生成不同颜色
-      axisPointer: {
-        type: 'line',
-        axis: 'x',
-        lineStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(24, 144, 255, 1)' },
-              { offset: 1, color: 'rgba(24, 144, 255, 0)' },
-            ],
-          },
-          width: 1,
-          type: 'solid',
-        },
-      },
-    };
-  }
+      width: 1,
+      type: 'solid',
+    },
+  },
+});
 
-  getXaxis(): XAXisComponentOption {
-    return {
-      type: 'category',
-      boundaryGap: false,
-      data: alarmVO?.xaxis ?? [],
-      axisLabel: {
-        show: false, // 不显示文本
-      },
-      axisTick: {
-        show: false,
-      },
-      axisLine: {
-        lineStyle: {
-          color: XIAS_LINE_COLOR, // 轴线颜色
-        },
-      },
-    };
-  }
+const getXaxis = (): XAXisComponentOption => ({
+  type: 'category',
+  boundaryGap: false,
+  data: alarmVO?.xaxis ?? [],
+  axisLabel: {
+    show: false, // 不显示文本
+  },
+  axisTick: {
+    show: false,
+  },
+  axisLine: {
+    lineStyle: {
+      color: XIAS_LINE_COLOR, // 轴线颜色
+    },
+  },
+});
 
-  getMarkPoint(): MarkPointComponentOption {
+const getMarkPoint = (): MarkPointComponentOption => {
     const data = [];
     if (
       Object.prototype.toString.call(alarmVO?.outOfLimitValue) !== '[object Null]' &&
@@ -191,57 +158,9 @@ class AlarmChartService<T> {
       symbolSize: 0, // 容器大小
       data,
     };
-  }
+}
 
-  getSeries(): EChartsOption['series'] {
-    return [
-      {
-        name: 'alarm',
-        type: 'line',
-        stack: 'Total',
-        emphasis: {
-          lineStyle: {
-            width: 2,
-          },
-        },
-        itemStyle: {
-          borderWidth: 20,
-        },
-        lineStyle: {
-          width: 2,
-        },
-        symbol: 'circle',
-        symbolSize: 16,
-        showSymbol: true,
-        data: this.getDataIsShowDot(alarmVO.data),
-        markPoint: this.getMarkPoint(),
-        markLine: {
-          symbol: ['none', 'none'],
-          data: [
-            {
-              emphasis: {
-                lineStyle: {
-                  width: 1,
-                },
-              },
-              yAxis: alarmVO.thresholdValue,
-              label: {
-                show: true,
-                position: 'start',
-                color: DANGER_COLOR,
-              },
-              lineStyle: {
-                width: 1,
-                color: DANGER_COLOR,
-              },
-            },
-          ],
-        },
-      },
-    ];
-  }
-
-  getsymbolStyle = (color: string, shodowColor: string): any => ({
+const getsymbolStyle = (color: string, shodowColor: string): any => ({
     color: {
       type: 'radial',
       x: 0.5,
@@ -290,9 +209,9 @@ class AlarmChartService<T> {
         },
       ],
     },
-  });
+});
 
-  getDataIsShowDot(data: string[] | number[]) {
+const getDataIsShowDot = (data: string[] | number[]) => {
     if (data && data.length && data.length > 0) {
       let arrItem = {};
       const arrData: any[] = [];
@@ -313,7 +232,7 @@ class AlarmChartService<T> {
               lineStyle: {
                 width: 2,
               },
-              itemStyle: this.getsymbolStyle(color, shadowColor),
+              itemStyle: getsymbolStyle(color, shadowColor),
             },
             itemStyle: {
               color,
@@ -334,7 +253,7 @@ class AlarmChartService<T> {
               lineStyle: {
                 width: 2,
               },
-              itemStyle: this.getsymbolStyle(color, shadowColor),
+              itemStyle: getsymbolStyle(color, shadowColor),
             },
             itemStyle: {
               color,
@@ -354,7 +273,7 @@ class AlarmChartService<T> {
               lineStyle: {
                 width: 2,
               },
-              itemStyle: this.getsymbolStyle(color, shadowColor),
+              itemStyle: getsymbolStyle(color, shadowColor),
             },
             itemStyle: {
               color,
@@ -369,9 +288,9 @@ class AlarmChartService<T> {
               lineStyle: {
                 width: 2,
               },
-              itemStyle: this.getsymbolStyle(color, shadowColor),
+              itemStyle: getsymbolStyle(color, shadowColor),
             },
-            itemStyle: this.getsymbolStyle(color, shadowColor),
+            itemStyle: getsymbolStyle(color, shadowColor),
           };
           arrData.push(arrItem);
         } else {
@@ -383,7 +302,7 @@ class AlarmChartService<T> {
               lineStyle: {
                 width: 2,
               },
-              itemStyle: this.getsymbolStyle(color, shadowColor),
+              itemStyle: getsymbolStyle(color, shadowColor),
             },
             itemStyle: {
               color: 'transparent',
@@ -395,9 +314,55 @@ class AlarmChartService<T> {
       return arrData;
     }
     return data;
-  }
+}
 
-  getEchartsOptions(): EChartsOption {
+const getSeries = (): EChartsOption['series'] => [
+  {
+    name: 'alarm',
+    type: 'line',
+    stack: 'Total',
+    emphasis: {
+      lineStyle: {
+        width: 2,
+      },
+    },
+    itemStyle: {
+      borderWidth: 20,
+    },
+    lineStyle: {
+      width: 2,
+    },
+    symbol: 'circle',
+    symbolSize: 16,
+    showSymbol: true,
+    data: getDataIsShowDot(alarmVO.data),
+    markPoint: getMarkPoint(),
+    markLine: {
+      symbol: ['none', 'none'],
+      data: [
+        {
+          emphasis: {
+            lineStyle: {
+              width: 1,
+            },
+          },
+          yAxis: alarmVO.thresholdValue,
+          label: {
+            show: true,
+            position: 'start',
+            color: DANGER_COLOR,
+          },
+          lineStyle: {
+            width: 1,
+            color: DANGER_COLOR,
+          },
+        },
+      ],
+    },
+  },
+];
+
+const getEchartsOptions = (): EChartsOption => {
     const unit = 'kWh';
     return {
       title: {
@@ -409,14 +374,14 @@ class AlarmChartService<T> {
         top: 20,
         left: 10,
       },
-      tooltip: this.getTooltip(),
+      tooltip: getTooltip(),
       grid: {
         left: '2%',
         right: '2%',
         bottom: '3%',
         containLabel: true,
       },
-      xAxis: this.getXaxis(),
+      xAxis: getXaxis(),
       yAxis: {
         type: 'value',
         axisLabel: {
@@ -455,9 +420,45 @@ class AlarmChartService<T> {
         ],
         seriesIndex: 0,
       },
-      series: this.getSeries(),
+      series: getSeries(),
     };
+}
+
+class AlarmChartService<T> {
+  private isInit = ref<boolean>(false);
+
+  private dataSource = ref<T>();
+
+  // 对外通过同名 getter customChartId 暴露，故内部 ref 取 chartId
+  private chartId = ref<string>('');
+
+  private echartsInstance?: EChartsType;
+
+  public get customChartId(): string {
+    return this.chartId.value;
   }
+
+  constructor(params: T) {
+    this.chartId.value = `charts_${(Math.random() * 10000).toFixed(0)}`;
+    this.isInit.value = true;
+    this.dataSource.value = params;
+  }
+
+  public initChart = () => {
+    if (!this.isInit.value) {
+      console.warn('请先初始化服务！');
+      return;
+    }
+    const containerEle = document.getElementById(this.chartId.value);
+    if (!containerEle) {
+      console.warn('加载图表容器错误！');
+      return;
+    }
+    this.echartsInstance = init(containerEle);
+    const options = getEchartsOptions();
+    this.echartsInstance.setOption(options);
+  };
+
 }
 
 export default AlarmChartService;

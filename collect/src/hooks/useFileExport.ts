@@ -1,4 +1,3 @@
-/* eslint-disable no-unsafe-optional-chaining, consistent-return */
 import { ElMessage, ElLoading } from 'element-plus';
 import axios from 'axios';
 import { Ref } from 'vue';
@@ -11,7 +10,8 @@ export const useFileExport = () => {
     const reader = new FileReader();
     reader.onloadend = (e) => {
       const errRes = JSON.parse(e.target?.result as string);
-      if (errRes?.errmsg && typeof errRes?.errmsg === 'string' && +errRes?.errcode !== 401) {
+      // Number() 与一元 + 等价（undefined → NaN），但不触发 no-unsafe-optional-chaining
+      if (errRes?.errmsg && typeof errRes?.errmsg === 'string' && Number(errRes?.errcode) !== 401) {
         console.error(`${type}失败：`, errRes?.errmsg);
         ElMessage.error(`${type}失败，${errRes?.errmsg}`);
       }
@@ -92,12 +92,11 @@ export const useFileExport = () => {
       if (res.data?.size && res.data?.type.includes('json')) {
         loadingInstance.close();
         mapUploadError(type, res.data);
-        return false;
+        return;
       }
       await useFileBlobHandler(res.data, name);
       loadingInstance.close();
       ElMessage.success(`${type}成功`);
-      return true;
     } catch (error) {
       loadingInstance.close();
       if (error && (error as any).data) {

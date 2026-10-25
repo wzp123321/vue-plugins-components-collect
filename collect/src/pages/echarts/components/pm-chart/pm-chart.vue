@@ -4,7 +4,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { init, EChartsType, EChartsOption } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsType, EChartsOption } from '@/config/echarts/setup';
 import { computed, onMounted } from 'vue';
 
 let chartInstance: EChartsType;
