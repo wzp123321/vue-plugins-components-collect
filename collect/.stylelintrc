@@ -13,7 +13,8 @@
     "**/*.md",
     "**/*.yaml",
     "**/*.html",
-    "public/*"
+    "public/*",
+    "src/assets/style/vendor/*"
   ],
   "rules": {}
 }

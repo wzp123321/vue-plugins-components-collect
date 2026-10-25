@@ -4,7 +4,11 @@
     "es2021": true,
     "node": true
   },
-  "extends": ["plugin:vue/vue3-strongly-recommended", "airbnb-base", "prettier"],
+  "extends": [
+    "plugin:vue/vue3-strongly-recommended",
+    "airbnb-base",
+    "prettier"
+  ],
   "parser": "vue-eslint-parser",
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -23,16 +27,107 @@
     "defineDefaults": "readonly",
     "defineOptions": "readonly",
     "window": "readonly",
-    "require": "readonly"
+    "require": "readonly",
+    "EffectScope": "readonly",
+    "ElMessage": "readonly",
+    "EventListener": "readonly",
+    "EventListenerOptions": "readonly",
+    "NodeJS": "readonly",
+    "SpeechSynthesisVoice": "readonly",
+    "acceptHMRUpdate": "readonly",
+    "computed": "readonly",
+    "createApp": "readonly",
+    "createPinia": "readonly",
+    "customRef": "readonly",
+    "defineAsyncComponent": "readonly",
+    "defineComponent": "readonly",
+    "defineStore": "readonly",
+    "effectScope": "readonly",
+    "getActivePinia": "readonly",
+    "getCurrentInstance": "readonly",
+    "getCurrentScope": "readonly",
+    "h": "readonly",
+    "inject": "readonly",
+    "isProxy": "readonly",
+    "isReactive": "readonly",
+    "isReadonly": "readonly",
+    "isRef": "readonly",
+    "mapActions": "readonly",
+    "mapGetters": "readonly",
+    "mapState": "readonly",
+    "mapStores": "readonly",
+    "mapWritableState": "readonly",
+    "markRaw": "readonly",
+    "nextTick": "readonly",
+    "onActivated": "readonly",
+    "onBeforeMount": "readonly",
+    "onBeforeRouteLeave": "readonly",
+    "onBeforeRouteUpdate": "readonly",
+    "onBeforeUnmount": "readonly",
+    "onBeforeUpdate": "readonly",
+    "onDeactivated": "readonly",
+    "onErrorCaptured": "readonly",
+    "onMounted": "readonly",
+    "onRenderTracked": "readonly",
+    "onRenderTriggered": "readonly",
+    "onScopeDispose": "readonly",
+    "onServerPrefetch": "readonly",
+    "onUnmounted": "readonly",
+    "onUpdated": "readonly",
+    "onWatcherCleanup": "readonly",
+    "provide": "readonly",
+    "reactive": "readonly",
+    "readonly": "readonly",
+    "ref": "readonly",
+    "resolveComponent": "readonly",
+    "setActivePinia": "readonly",
+    "setMapStoreSuffix": "readonly",
+    "shallowReactive": "readonly",
+    "shallowReadonly": "readonly",
+    "shallowRef": "readonly",
+    "storeToRefs": "readonly",
+    "toRaw": "readonly",
+    "toRef": "readonly",
+    "toRefs": "readonly",
+    "toValue": "readonly",
+    "triggerRef": "readonly",
+    "unref": "readonly",
+    "useAttrs": "readonly",
+    "useCssModule": "readonly",
+    "useCssVars": "readonly",
+    "useId": "readonly",
+    "useLink": "readonly",
+    "useModel": "readonly",
+    "useRoute": "readonly",
+    "useRouter": "readonly",
+    "useSlots": "readonly",
+    "useTemplateRef": "readonly",
+    "watch": "readonly",
+    "watchEffect": "readonly",
+    "watchPostEffect": "readonly",
+    "watchSyncEffect": "readonly"
   },
-  "plugins": ["vue", "@typescript-eslint"],
+  "plugins": [
+    "vue",
+    "@typescript-eslint"
+  ],
   "settings": {
     "import/resolver": {
       "alias": {
-        "map": [["@", "./src"]]
+        "map": [
+          [
+            "@",
+            "./src"
+          ]
+        ]
       }
     },
-    "import/extensions": [".js", ".ts", ".jsx", ".tsx"]
+    "import/extensions": [
+      ".js",
+      ".ts",
+      ".jsx",
+      ".tsx"
+    ]
   },
   "rules": {
     "import/no-extraneous-dependencise": 0,
@@ -54,6 +149,23 @@
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": 2,
     "max-classes-per-file": "off",
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "no-bitwise": [
+      "error",
+      {
+        "allow": [
+          "|",
+          "|=",
+          "^",
+          "^=",
+          ">>>",
+          ">>",
+          "<<",
+          "&",
+          "&=",
+          "~"
+        ]
+      }
+    ]
   }
 }
