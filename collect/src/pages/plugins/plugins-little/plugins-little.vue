@@ -20,7 +20,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col v-for="item in componentList" :span="12">
+      <el-col v-for="(item, index) in componentList" :key="index" :span="12">
         <el-card class="box-card">
           <component :is="item"></component>
         </el-card>
@@ -59,21 +59,16 @@ const play = async (decodedAudioData: any) => {
  * @param {string} url
  * @returns {ArrayBuffer}
  */
-const getMp3ArrayBuffer = async (url: string) => {
-  return fetch(url).then((r) => r.arrayBuffer());
-};
+const getMp3ArrayBuffer = async (url: string) => fetch(url).then((r) => r.arrayBuffer());
 
 /**
  * @param {ArrayBuffer} arrayBuffer
  * @returns {AudioBuffer}
  */
-const decode = async (arrayBuffer: any) => {
-  return audioContext.decodeAudioData(arrayBuffer);
-};
+const decode = async (arrayBuffer: any) => audioContext.decodeAudioData(arrayBuffer);
 const videoBroadCast = async () => {
   const mp3 =
-    'https://tts.baidu.com/text2audio?cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0&tex=' +
-    encodeURI(text1.value);
+    `https://tts.baidu.com/text2audio?cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0&tex=${encodeURI(text1.value)}`;
   const musicArrayBuffer = await getMp3ArrayBuffer(mp3);
   const decodedAudioData = await decode(musicArrayBuffer);
   play(decodedAudioData);

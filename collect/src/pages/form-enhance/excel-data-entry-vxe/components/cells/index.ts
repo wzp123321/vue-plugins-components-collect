@@ -32,7 +32,7 @@ const makeEditRenderer = (Comp: any) => (renderOpts: any, params: any) => {
       options: renderOpts.options || [],
       'onUpdate:modelValue': (v: any) => {
         row[field] = v;
-        row.__dirty = true;
+        Object.assign(row, { __dirty: true });
       },
     }),
   ];

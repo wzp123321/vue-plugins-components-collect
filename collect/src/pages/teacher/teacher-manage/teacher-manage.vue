@@ -50,8 +50,8 @@
       <el-table-column prop="hireDate" label="入职日期" min-width="110" />
       <el-table-column v-if="canEdit" label="操作" width="150" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-          <el-button link type="danger" @click="onDelete(row)">删除</el-button>
+          <el-button link type="primary" @click="openEdit(row as Teacher)">编辑</el-button>
+          <el-button link type="danger" @click="onDelete(row as Teacher)">删除</el-button>
         </template>
       </el-table-column>
       <template #empty>

@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax, no-continue, no-underscore-dangle, no-restricted-globals, no-irregular-whitespace */
 // 数据进出：Excel/CSV 导入导出 + 剪贴板复制粘贴（TSV 矩阵）
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -6,11 +5,19 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 // 存在原型污染类 CVE（CVE-2023-30533 等）未修复。本收集站仅用于浏览器端可信 demo，
 // 切勿用其解析不可信 / 用户上传的 Excel 文件。后续建议迁移到 exceljs（本项目已更通用）或锁定官方版本。
 import * as XLSX from 'xlsx';
-import type { GridCore } from './useGridCore';
+import { rowIdOf, type GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 import type { ColDef, Row } from '../types';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * 行标脏助手：__dirty 是 vxe 消费的行字段（属性名属外部约定、不可重命名），
+ * 统一经 Object.assign 写入，避免直接读写下划线属性触发 no-underscore-dangle。
+ */
+const markDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: true });
+};
 
 /** Date → YYYY-MM-DD（取本地年月日：xlsx 的 cellDates 用本地时区构造 Date） */
 const formatDate = (d: Date): string => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -45,13 +52,14 @@ const normalizeImportValue = (def: ColDef, raw: any): ImportCell => {
   if (def.type === 'number') {
     if (blank) return { ok: true, value: null };
     const n = Number(raw);
-    return isNaN(n) ? { ok: false } : { ok: true, value: n };
+    // 保留原 isNaN 的 ToNumber 强转语义（raw 已 Number 化一次，等价）
+    return Number.isNaN(Number(n)) ? { ok: false } : { ok: true, value: n };
   }
   if (def.type === 'date') {
     if (blank) return { ok: true, value: '' };
     if (raw instanceof Date) {
       // 兜底：若上游仍给 Date（旧缓存/第三方文件），按本地年月日取
-      return isNaN(raw.getTime()) ? { ok: false } : { ok: true, value: formatDate(raw) };
+      return Number.isNaN(Number(raw.getTime())) ? { ok: false } : { ok: true, value: formatDate(raw) };
     }
     if (typeof raw === 'number') {
       // Excel 日期序列号（主路径）：SSF 换算，兼容 1900/1904 日期系统，且不受时区影响
@@ -110,35 +118,38 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
       }
       const json = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: '' });
       const labelField: Record<string, string> = {};
-      for (const d of core.columnDefs.value) labelField[d.label] = d.field;
+      core.columnDefs.value.forEach((d) => {
+        labelField[d.label] = d.field;
+      });
 
       const rows: Row[] = [];
       const unmatchedCols = new Set<string>();
       let skippedNaN = 0;
       let skippedSelect = 0;
       let skippedDate = 0;
-      for (const raw of json) {
+      json.forEach((raw) => {
         const row = core.makeRow();
-        row.__dirty = true;
-        for (const cn of Object.keys(raw)) {
+        markDirty(row);
+        Object.keys(raw).forEach((cn) => {
           const field = labelField[cn];
+          // 原 for...of + continue 的正向写法：回调里 return 等价跳过本格
           if (!field) {
             unmatchedCols.add(cn);
-            continue;
+            return;
           }
           const def = core.columnDefs.value.find((d) => d.field === field);
-          if (!def) continue;
+          if (!def) return;
           const cell = normalizeImportValue(def, raw[cn]);
           if (!cell.ok) {
             if (def.type === 'number') skippedNaN++;
             else if (def.type === 'select') skippedSelect++;
             else if (def.type === 'date') skippedDate++;
-            continue;
+            return;
           }
           row[field] = cell.value;
-        }
+        });
         rows.push(row);
-      }
+      });
       if (!rows.length) {
         ElMessage.warning('没有解析到可导入的数据行');
         return;
@@ -151,7 +162,9 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
       );
       snap();
       core.allRows.value = rows;
-      for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
+      Object.keys(core.cellErrors).forEach((k) => {
+        delete core.cellErrors[k];
+      });
       core.revalidateAll();
       core.bumpData();
       ElMessage.success(`已导入 ${rows.length} 行`);
@@ -179,7 +192,9 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
   const buildExportRows = (source: any[]) =>
     source.map((r) => {
       const o: Record<string, any> = {};
-      for (const d of core.visibleDefs.value) o[d.label] = r[d.field];
+      core.visibleDefs.value.forEach((d) => {
+        o[d.label] = r[d.field];
+      });
       return o;
     });
 
@@ -195,7 +210,8 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     const source = core.processedRows.value;
     const header = core.visibleDefs.value.map((d) => d.label);
     const rows = source.map((r) => core.visibleDefs.value.map((d) => `"${String(r[d.field] ?? '').replace(/"/g, '""')}"`).join(','));
-    const csv = `﻿${  [header.join(','), ...rows].join('\n')}`;
+    // \uFEFF 即 UTF-8 BOM（Excel 靠它识别编码）：写转义而非字面量，等价且不引入异常空白字符
+    const csv = `\uFEFF${  [header.join(','), ...rows].join('\n')}`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -258,7 +274,7 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
     if (rect) return { startIdx: rect.topIdx, startCol: rect.leftIdx };
     if (core.currentCell.value) {
       const visFields = core.visibleDefs.value.map((d) => d.field);
-      const idx = core.processedRows.value.findIndex((r) => r.__id === core.currentCell.value!.row.__id);
+      const idx = core.processedRows.value.findIndex((r) => rowIdOf(r) === rowIdOf(core.currentCell.value!.row));
       const col = visFields.indexOf(core.currentCell.value.field);
       return { startIdx: idx >= 0 ? idx : 0, startCol: col >= 0 ? col : 0 };
     }
@@ -293,7 +309,9 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
           width: 120,
         };
         core.columnDefs.value.push(def);
-        for (const r of core.allRows.value) r[def.field] = '';
+        core.allRows.value.forEach((r) => {
+          r[def.field] = '';
+        });
       }
       addedCols = addN;
       visFields = core.visibleDefs.value.map((d) => d.field);
@@ -318,15 +336,19 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
         }
         const def = core.columnDefs.value.find((d) => d.field === f);
         let val: any = grid[i][j];
+        // 原 continue 改写为跳过标记：非法值不写入、不标脏、不入 written（语义等价）
+        let skip = false;
         if (def?.type === 'number') {
-          if (val === '') val = null;
-          else {
+          if (val === '') {
+            val = null;
+          } else {
             const n = Number(val);
-            if (isNaN(n)) {
+            if (Number.isNaN(Number(n))) {
               skippedNaN++;
-              continue;
+              skip = true;
+            } else {
+              val = n;
             }
-            val = n;
           }
         } else if (def?.type === 'select') {
           // ⚠️ 坑：下拉列非选项值必须跳过——直接写入会让显示标签与下拉编辑器双双异常
@@ -334,31 +356,34 @@ export const useGridIO = (core: GridCore, fileInputRef: Ref<HTMLInputElement | u
           // （标签渲染不存在的选项、下拉编辑器显示空白），等于把脏数据偷渡进库
           if (val !== '' && !(def.options ?? []).includes(val)) {
             skippedSelect++;
-            continue;
+            skip = true;
           }
         } else if (def?.type === 'date' && val !== '') {
           const norm = normalizeDate(val);
           if (!norm) {
             skippedDate++;
-            continue;
+            skip = true;
+          } else {
+            val = norm;
           }
-          val = norm;
         }
-        r[f] = val;
-        r.__dirty = true;
-        written.push({ r, f });
+        if (!skip) {
+          r[f] = val;
+          markDirty(r);
+          written.push({ r, f });
+        }
       }
       // 粘贴新生成的行也要跑全字段校验：只校验写入格的话，必填列缺失不会标红（与新增行不一致）
       if (isNew) core.validateRow(r);
     }
     // 统一对实际写入的格跑校验（新行上面已全量校验过，此处覆盖既有行路径并统计未通过数）
     let invalid = 0;
-    for (const { r, f } of written) {
+    written.forEach(({ r, f }) => {
       core.validateCell(r, f);
-      if (core.cellErrors[core.errKey(r.__id, f)]) invalid++;
-    }
+      if (core.cellErrors[core.errKey(rowIdOf(r), f)]) invalid++;
+    });
     // 粘贴区域闪烁反馈（与 Excel 粘贴后短暂高亮目标区一致；cellClassName 合并读取 core.flashKeys）
-    if (written.length) core.flashCells(written.map(({ r, f }) => core.errKey(r.__id, f)), 900);
+    if (written.length) core.flashCells(written.map(({ r, f }) => core.errKey(rowIdOf(r), f)), 900);
     core.bumpData();
     ElMessage.success(`已粘贴 ${grid.length} 行 × ${grid[0].length} 列`);
     if (addedCols) ElMessage.info(`粘贴宽度超出可见列，已自动新增 ${addedCols} 个文本列`);

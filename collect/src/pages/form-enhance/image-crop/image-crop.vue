@@ -102,6 +102,12 @@ let dragStart = { x: 0, y: 0, cx: 0, cy: 0, cw: 0, ch: 0 };
 
 const triggerUpload = () => fileInputRef.value?.click();
 
+const loadFile = (file: File) => {
+  const reader = new FileReader();
+  reader.onload = (e) => { imageUrl.value = e.target?.result as string; };
+  reader.readAsDataURL(file);
+};
+
 const onFileChange = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (file) loadFile(file);
@@ -110,12 +116,6 @@ const onFileChange = (e: Event) => {
 const onDrop = (e: DragEvent) => {
   const file = e.dataTransfer?.files[0];
   if (file?.type.startsWith('image/')) loadFile(file);
-};
-
-const loadFile = (file: File) => {
-  const reader = new FileReader();
-  reader.onload = (e) => { imageUrl.value = e.target?.result as string; };
-  reader.readAsDataURL(file);
 };
 
 const onImageLoad = () => {

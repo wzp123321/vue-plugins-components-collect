@@ -29,15 +29,15 @@ import dragStore from '../../../../../store/modules/drag';
 
 import draggable from 'vuedraggable';
 import { mapTagStyle, mockList, indexTypeList } from './pdf-index-list.api';
-import { PGS_ESymbolType, GPS_IIndexVO, PDF_DRAGGABLE_CLASS } from '../../plugins-draggable-formula.api';
+import { PGS_ESymbolType as PgsESymbolType, GPS_IIndexVO as GpsIIndexVO, PDF_DRAGGABLE_CLASS } from '../../plugins-draggable-formula.api';
 import { ref } from 'vue';
 
 const store = dragStore();
 
 // 指标列表
-const indexList = ref<GPS_IIndexVO[]>(mockList);
+const indexList = ref<GpsIIndexVO[]>(mockList);
 // 指标类型
-const indexType = ref<PGS_ESymbolType>(PGS_ESymbolType.基础);
+const indexType = ref<PgsESymbolType>(PgsESymbolType.基础);
 
 /**
  * 拖拽开始

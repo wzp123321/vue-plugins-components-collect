@@ -27,10 +27,11 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { ref, onUnmounted } from 'vue';
+
 defineOptions({
   name: 'AnimationLottery',
 });
-import { ref, onUnmounted } from 'vue';
 
 const prizes = ref([
   { name: 'iPhone', icon: '📱' },
@@ -53,21 +54,6 @@ let speed = 100;
 let round = 0;
 const totalRound = 2; // 旋转轮数
 
-const startLottery = () => {
-  if (isLotteryFlag.value) return;
-
-  isLotteryFlag.value = true;
-  result.value = '';
-  resultIndex.value = -1;
-  round = 0;
-  speed = 100;
-
-  // 模拟从后端获取中奖结果 (实际项目应该用API)
-  const prizeIndex = Math.floor(Math.random() * prizes.value.length);
-
-  animate(prizeIndex);
-};
-
 const animate = (targetIndex: number) => {
   activeIndex.value = (activeIndex.value + 1) % prizes.value.length;
 
@@ -86,6 +72,21 @@ const animate = (targetIndex: number) => {
     resultIndex.value = targetIndex;
     result.value = prizes.value[targetIndex].name;
   }
+};
+
+const startLottery = () => {
+  if (isLotteryFlag.value) return;
+
+  isLotteryFlag.value = true;
+  result.value = '';
+  resultIndex.value = -1;
+  round = 0;
+  speed = 100;
+
+  // 模拟从后端获取中奖结果 (实际项目应该用API)
+  const prizeIndex = Math.floor(Math.random() * prizes.value.length);
+
+  animate(prizeIndex);
 };
 
 onUnmounted(() => {

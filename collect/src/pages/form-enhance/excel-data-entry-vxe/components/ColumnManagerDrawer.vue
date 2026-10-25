@@ -42,22 +42,21 @@ const commitFlag = (apply: () => void) => {
   apply();
 };
 const setRequired = (d: ColDef, v: boolean) => {
-  commitFlag(() => (d.required = v));
+  commitFlag(() => { d.required = v; });
   props.core.revalidateAll();
 };
 const setVisible = (d: ColDef, v: boolean) => {
-  commitFlag(() => (d.visible = v));
+  commitFlag(() => { d.visible = v; });
   if (!v) {
     // 隐藏列后若还留着它的筛选/排序，数据会被"看不见的条件"过滤或重排，用户容易误判成数据丢了
-    delete props.core.columnFilters[d.field];
-    if (props.core.sortList.value.some((s) => s.field === d.field)) {
-      props.core.sortList.value = props.core.sortList.value.filter((s) => s.field !== d.field);
-    }
+    // store 状态统一经 core 的方法修改，不在组件里直接戳内部 ref/reactive
+    props.core.removeColumnFilter(d.field);
+    props.core.removeFieldSort(d.field);
   }
   props.core.revalidateAll();
 };
 const setFrozen = (d: ColDef, v: boolean) => {
-  commitFlag(() => (d.frozen = v));
+  commitFlag(() => { d.frozen = v; });
 };
 </script>
 

@@ -91,7 +91,7 @@ const sentCount = ref(0);
 const receivedCount = ref(0);
 const reconnectCount = ref(0);
 
-const quickMessages = ['Hello WebSocket!', 'Ping', '当前时间: ' + new Date().toLocaleTimeString(), '{"type":"chat","msg":"测试JSON"}'];
+const quickMessages = ['Hello WebSocket!', 'Ping', `当前时间: ${new Date().toLocaleTimeString()}`, '{"type":"chat","msg":"测试JSON"}'];
 
 const statusText = { connected: '✅ 已连接', connecting: '⏳ 连接中...', disconnected: '🔴 未连接' }[wsStatus.value] ?? '';
 
@@ -105,6 +105,14 @@ const addMsg = (type: string, content: string) => {
   messages.value.push({ type, content, time: new Date().toLocaleTimeString() });
   nextTick(() => { if (msgListRef.value) msgListRef.value.scrollTop = msgListRef.value.scrollHeight; });
 };
+
+const startHeartbeat = () => {
+  heartbeatTimer = window.setInterval(() => {
+    if (ws?.readyState === WebSocket.OPEN) ws.send('ping');
+  }, 30000);
+};
+
+const stopHeartbeat = () => clearInterval(heartbeatTimer);
 
 const connect = () => {
   wsStatus.value = 'connecting';
@@ -162,14 +170,6 @@ const sendQuick = (msg: string) => {
   addMsg('sent', `→ ${msg}`);
   sentCount.value++;
 };
-
-const startHeartbeat = () => {
-  heartbeatTimer = window.setInterval(() => {
-    if (ws?.readyState === WebSocket.OPEN) ws.send('ping');
-  }, 30000);
-};
-
-const stopHeartbeat = () => clearInterval(heartbeatTimer);
 
 onUnmounted(() => {
   reconnectAttempts = MAX_RECONNECT;

@@ -97,7 +97,7 @@ const clearStorage = () => {
 onMounted(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
-    try { Object.assign(persistedData, JSON.parse(saved)); } catch {}
+    try { Object.assign(persistedData, JSON.parse(saved)); } catch { /* 存储内容损坏时忽略，沿用默认设置 */ }
   }
   rawStorageData.value = localStorage.getItem(STORAGE_KEY) || '(空)';
 });

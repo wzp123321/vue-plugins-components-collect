@@ -182,7 +182,7 @@ import AddColumnDialog from './components/AddColumnDialog.vue';
 import ColumnManagerDrawer from './components/ColumnManagerDrawer.vue';
 import ErrorDrawer from './components/ErrorDrawer.vue';
 import TemplateDialog from './components/TemplateDialog.vue';
-import { useGridCore } from './hooks/useGridCore';
+import { useGridCore, rowIdOf, dirtyOf } from './hooks/useGridCore';
 import { useGridColumns } from './hooks/useGridColumns';
 import { useGridScroll } from './hooks/useGridScroll';
 import { useGridDraft } from './hooks/useGridDraft';
@@ -263,7 +263,7 @@ const posLabel = computed(() => {
   if (!a) return '未选中';
   const rows = core.processedRows.value;
   const fields = core.visibleDefs.value.map((d) => d.field);
-  const ri = rows.findIndex((r) => r.__id === a.rowId);
+  const ri = rows.findIndex((r) => rowIdOf(r) === a.rowId);
   const ci = fields.indexOf(a.field);
   if (ri < 0 || ci < 0) return '未选中';
   return `第 ${ri + 1} 行 / ${rows.length} · 第 ${ci + 1} 列 ${core.labelOf(a.field)}`;
@@ -300,7 +300,7 @@ const clearSortChip = (field?: string) => {
 /** clearAllQuery —— 一键清空所有查询态：搜索词 + 全部列筛选 + 全部排序，并同步 vxe 表头标记。 */
 const clearAllQuery = () => {
   core.searchText.value = '';
-  for (const k of Object.keys(core.columnFilters)) delete core.columnFilters[k];
+  Object.keys(core.columnFilters).forEach((k) => { delete core.columnFilters[k]; });
   core.sortList.value = [];
   tableRef.value?.clearFilter?.();
   tableRef.value?.clearSort?.();
@@ -324,8 +324,8 @@ const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }:
   if (column.type === 'seq') {
     if (fields.length && rows.length) {
       sel.selectAll(
-        { rowId: rows[0].__id, field: fields[0] },
-        { rowId: rows[rows.length - 1].__id, field: fields[fields.length - 1] },
+        { rowId: rowIdOf(rows[0]), field: fields[0] },
+        { rowId: rowIdOf(rows[rows.length - 1]), field: fields[fields.length - 1] },
       );
     }
     return;
@@ -369,7 +369,7 @@ const cellClassName = ({ row, column }: any) => {
   const field = column?.field;
   if (!field) return '';
   const cls: string[] = [];
-  const key = core.errKey(row.__id, field);
+  const key = core.errKey(rowIdOf(row), field);
   if (core.cellErrors[key]) cls.push('cell-error');
   if (find.findMatchKeys.value.has(key)) cls.push('cell-found');
   // 闪烁来自两处：核心的单格闪烁（错误跳转）与填充手柄的多格闪烁（填充预览）
@@ -378,11 +378,11 @@ const cellClassName = ({ row, column }: any) => {
   // 活动格取 anchor（选区固定端）而非 currentCell：Shift 扩展时 currentCell 会跟到 focus 端，
   // 而 Excel 中白底始终留在起始格（anchor）上
   const act = sel.anchor.value;
-  if (act && act.rowId === row.__id && act.field === field) cls.push('cell-active');
+  if (act && act.rowId === rowIdOf(row) && act.field === field) cls.push('cell-active');
   // 十字高亮：活动格所在行/列淡色引导（多列宽表录入时防串行）。
   // 用 background-image 而非 background-color：与 cell-sel 的 background-color(!important) 可叠加不打架
   if (act) {
-    const sameRow = act.rowId === row.__id;
+    const sameRow = act.rowId === rowIdOf(row);
     const sameCol = act.field === field;
     // 活动格自身不加（它已有 cell-active 白底，再叠淡蓝会脏）
     if (!(sameRow && sameCol)) {
@@ -390,15 +390,15 @@ const cellClassName = ({ row, column }: any) => {
       else if (sameCol) cls.push('cross-col');
     }
   }
-  if (sel.isCellSelected(row.__id, field)) {
+  if (sel.isCellSelected(rowIdOf(row), field)) {
     // 选区内淡色底 + 区域外框（仅矩形四边的格带描边类，角格自动合成两条）。
     // 复制态下与 copiedRect 重合的格不再画实线外框——让位给蚂蚁线（Excel：Ctrl+C 后原边框被虚线动画替代），
     // 避免同色同位的实线把虚线行军效果压住
     cls.push('cell-sel');
     const cr = mouse.copiedRect.value;
-    const inCopied = !!cr && cr.rowIds.has(row.__id) && cr.fields.includes(field);
+    const inCopied = !!cr && cr.rowIds.has(rowIdOf(row)) && cr.fields.includes(field);
     if (!inCopied) {
-      const e = sel.selEdge(row.__id, field);
+      const e = sel.selEdge(rowIdOf(row), field);
       if (e.t) cls.push('sel-t');
       if (e.b) cls.push('sel-b');
       if (e.l) cls.push('sel-l');
@@ -413,7 +413,10 @@ const cellClassName = ({ row, column }: any) => {
  * @param row 行数据
  * 说明：行标脏（__dirty）用于行首色条提示，与单元格级样式解耦。
  */
-const rowClassName = ({ row }: any) => (row?.__dirty ? 'row-dirty' : '');
+const rowClassName = ({ row }: any) => {
+  if (!row || !dirtyOf(row)) return '';
+  return 'row-dirty';
+};
 
 // 序号列点击 = 选中整行（行头语义）；数据列点击 = 移动当前格（选区由 watcher 塌缩/Shift 扩展）
 /**
@@ -424,7 +427,7 @@ const rowClassName = ({ row }: any) => (row?.__dirty ? 'row-dirty' : '');
  */
 const onCellClick = (params: any) => {
   if (params?.column?.type === 'seq') {
-    if (params?.row) sel.selectRow(params.row.__id);
+    if (params?.row) sel.selectRow(rowIdOf(params.row));
     return;
   }
   core.onCellClick(params);

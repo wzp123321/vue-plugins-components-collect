@@ -43,7 +43,7 @@ const renderCellDisplay = (renderOpts: any, params: any) => {
   }
   if (ctype === 'number') {
     // 空串 / null / NaN 一律按"无值"处理（避免把非法值渲染成 NaN 文本）
-    const num = value === null || value === '' || isNaN(Number(value)) ? null : Number(value);
+    const num = value === null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
     if (num === null) return [h('span', { class: 'dt-num' }, '')];
     // 条件格式开启且本列有统计时，按 (num-min)/(max-min) 计算数据条占比
     if (RT.conditionalOn && RT.colStat[field]) {
@@ -51,7 +51,7 @@ const renderCellDisplay = (renderOpts: any, params: any) => {
       // max==min 时分母归零，直接给 0% 避免 Infinity/NaN
       const pct = max > min ? (num - min) / (max - min) : 0;
       return [h('div', { class: 'dt-bar-cell' }, [
-        h('div', { class: 'dt-bar', style: { width: (pct * 100).toFixed(1) + '%' } }),
+        h('div', { class: 'dt-bar', style: { width: `${(pct * 100).toFixed(1)}%` } }),
         h('span', { class: 'dt-num' }, String(num)),
       ])];
     }

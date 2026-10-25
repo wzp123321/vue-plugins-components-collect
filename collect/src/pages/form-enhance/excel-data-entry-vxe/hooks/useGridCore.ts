@@ -374,6 +374,15 @@ export const useGridCore = () => {
     columnFilters[field] = values ?? [];
   };
 
+  /** 列管理：删除某列的全部筛选条件——隐藏列时调用，避免数据被"看不见的条件"过滤 */
+  const removeColumnFilter = (field: string) => {
+    delete columnFilters[field];
+  };
+  /** 列管理：从多列排序列表移除某字段——隐藏列时调用，避免数据被"看不见的排序"重排 */
+  const removeFieldSort = (field: string) => {
+    sortList.value = sortList.value.filter((s) => s.field !== field);
+  };
+
   // ===================== 当前单元格 =====================
   // 行选中（复选框）已移除；当前单元格是选区塌缩/编辑/填充手柄/状态栏统计的唯一基准
   const currentCell = ref<{ row: Row; field: string } | null>(null);
@@ -538,6 +547,8 @@ export const useGridCore = () => {
     pagedRows,
     onSortChange,
     onFilterChange,
+    removeColumnFilter,
+    removeFieldSort,
     // 当前单元格 / 编辑事件
     currentCell,
     onCellClick,

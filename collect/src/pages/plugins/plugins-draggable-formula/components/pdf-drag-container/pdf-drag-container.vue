@@ -41,7 +41,7 @@ import { cloneDeep } from 'lodash-es';
 import { storeToRefs } from 'pinia';
 import draggable from 'vuedraggable';
 import dragStore from '../../../../../store/modules/drag';
-import { GPS_IIndexVO } from '../../plugins-draggable-formula.api';
+import { GPS_IIndexVO as GpsIIndexVO } from '../../plugins-draggable-formula.api';
 
 import PdfTag from '../pdf-tag/pdf-tag.vue';
 
@@ -52,8 +52,8 @@ const props = defineProps({
     default: 180,
   },
   modelValue: {
-    type: Array as PropType<GPS_IIndexVO[]>,
-    default: [],
+    type: Array as PropType<GpsIIndexVO[]>,
+    default: () => [],
   },
 });
 
@@ -64,19 +64,17 @@ const identify = `${(Math.random() * 10000000000).toFixed(0)}-${(Math.random() *
 // store
 const store = storeToRefs(dragStore());
 // 公式列表
-const compExpressionList = ref<GPS_IIndexVO[]>(props.modelValue ?? []);
+const compExpressionList = ref<GpsIIndexVO[]>(props.modelValue ?? []);
 // 鼠标移入
 const mouseEnterFlag = ref<boolean>(false);
 
-const dragFlag = computed(() => {
-  return store.dragFlag.value;
-});
+const dragFlag = computed(() => store.dragFlag.value);
 /**
  * 新增
  */
-const addFormula = (_a: any, _b: any) => {
-  compExpressionList.value = compExpressionList.value.map((item, index): GPS_IIndexVO => {
-    let res = cloneDeep(item);
+const addFormula = () => {
+  compExpressionList.value = compExpressionList.value.map((item, index): GpsIIndexVO => {
+    const res = cloneDeep(item);
     res.id = `front${index}`;
     return res;
   });
@@ -117,7 +115,7 @@ const mapMove = (e: any) => {
  * @param value
  * @param element
  */
-const handleTagValueChange = (value: string, element: GPS_IIndexVO) => {
+const handleTagValueChange = (value: string, element: GpsIIndexVO) => {
   element.value = value;
 };
 /**

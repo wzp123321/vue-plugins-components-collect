@@ -10,7 +10,7 @@ iv = CryptoJS.enc.Utf8.parse('37fa77f6a3b0462d');
 // 加密方法
 const encrypt = (text: string) => {
   const encryptedContent = CryptoJS.AES.encrypt(text, key, {
-    iv: iv,
+    iv,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7,
   });
@@ -20,7 +20,7 @@ const encrypt = (text: string) => {
 // 解密方法
 const decrypt = (text: string) => {
   const decryptedContent = CryptoJS.AES.decrypt(CryptoJS.format.Hex.parse(text), key, {
-    iv: iv,
+    iv,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7,
   });

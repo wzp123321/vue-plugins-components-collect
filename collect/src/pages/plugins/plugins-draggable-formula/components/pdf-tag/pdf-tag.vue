@@ -10,18 +10,18 @@
 </template>
 <script lang="ts" setup>
 import { computed, toRef, watch } from 'vue';
-import { PGS_ESymbolType } from '../../plugins-draggable-formula.api';
+import { PGS_ESymbolType as PgsESymbolType } from '../../plugins-draggable-formula.api';
 import { mapTagStyle } from '../pdf-index-list/pdf-index-list.api';
 
 interface Props {
-  indexType: PGS_ESymbolType;
+  indexType: PgsESymbolType;
   name: string;
   id: string;
   editable: boolean;
   value: string;
 }
 const props = withDefaults(defineProps<Props>(), {
-  indexType: PGS_ESymbolType.数字,
+  indexType: PgsESymbolType.数字,
   name: '',
   id: '',
   editable: false,
@@ -32,9 +32,7 @@ const emits = defineEmits(['deleteItem', 'valueChange']);
 // 输入框
 const value = toRef(props, 'value');
 
-const style = computed(() => {
-  return mapTagStyle(props.indexType);
-});
+const style = computed(() => mapTagStyle(props.indexType));
 
 /**
  * 删除

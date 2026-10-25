@@ -9,18 +9,21 @@ import { cloneDeep } from 'lodash-es';
 class DraggableFormulaService {
   // 开关
   public visible: boolean = false;
+
   //  条件组
   public groupList: ConditionGroupClazz[] = [];
 
   constructor() {
     this.groupList = [];
   }
+
   /**
    * 查询
    */
   public queryGroup() {
     console.log(this.groupList);
   }
+
   /**
    * 新增条件组
    * @param group
@@ -29,6 +32,7 @@ class DraggableFormulaService {
     const group = new ConditionGroup();
     this.groupList.push(group);
   }
+
   /**
    * 复制条件组
    * @param group
@@ -37,6 +41,7 @@ class DraggableFormulaService {
   public copyGroup(group: ConditionGroupClazz, index: number) {
     this.groupList.splice(index, 0, cloneDeep(group));
   }
+
   /**
    * 删除某一个条件组
    * @param index

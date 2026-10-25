@@ -81,7 +81,7 @@ const showFull = ref(false);
 // 模拟异步加载的组件
 const BasicAsyncComp = defineAsyncComponent(
   () =>
-    new Promise<any>((resolve) =>
+    new Promise<any>((resolve) => {
       setTimeout(
         () =>
           resolve(
@@ -91,14 +91,14 @@ const BasicAsyncComp = defineAsyncComponent(
             }),
           ),
         800,
-      ),
-    ),
+      );
+    }),
 );
 
 // 完整配置的异步组件
 const FullAsyncComp = defineAsyncComponent({
   loader: () =>
-    new Promise<any>((resolve) =>
+    new Promise<any>((resolve) => {
       setTimeout(
         () =>
           resolve(
@@ -111,8 +111,8 @@ const FullAsyncComp = defineAsyncComponent({
             }),
           ),
         2000,
-      ),
-    ),
+      );
+    }),
   delay: 200,       // 延迟多少毫秒后显示 loading 组件
   timeout: 5000,    // 超时时间，超出后显示 error 组件
   errorComponent: defineComponent({ setup: () => () => h('div', { style: 'color:red' }, '❌ 组件加载失败') }),

@@ -251,16 +251,18 @@ const clearLog = () => {
   logs.value = [];
 };
 
+// 结果详情格式化：空值/对象/其它分别处理
+const formatResult = (result) => {
+  if (result === undefined || result === null) return '执行成功';
+  if (typeof result === 'object') return JSON.stringify(result);
+  return String(result);
+};
+
 // 通用操作封装：执行并记录结果
 const op = (label, fn) => {
   try {
     const result = fn();
-    const detail =
-      result === undefined || result === null
-        ? '执行成功'
-        : typeof result === 'object'
-          ? JSON.stringify(result)
-          : String(result);
+    const detail = formatResult(result);
     addLog('操作', `${label} => ${detail.slice(0, 120)}`);
   } catch (e) {
     addLog('操作', `${label} => 失败：${e.message}`);
@@ -367,7 +369,7 @@ const featureCards = [
       {
         label: 'setValue(B2)',
         type: 'primary',
-        handler: () => op('setValue 修改 B2', () => getActiveSheet().setValue('B2', '新值-' + (Date.now() % 100))),
+        handler: () => op('setValue 修改 B2', () => getActiveSheet().setValue('B2', `新值-${Date.now() % 100}`)),
       },
       {
         label: 'getRowData(1)',
@@ -449,7 +451,7 @@ const featureCards = [
       {
         label: 'setHeader(0)',
         type: 'success',
-        handler: () => op('setHeader 修改表头', () => getActiveSheet().setHeader(0, '新标题' + (Date.now() % 100))),
+        handler: () => op('setHeader 修改表头', () => getActiveSheet().setHeader(0, `新标题-${Date.now() % 100}`)),
       },
       {
         label: 'getHeaders',

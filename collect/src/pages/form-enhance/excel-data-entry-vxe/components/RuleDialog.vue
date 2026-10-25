@@ -69,10 +69,10 @@ const save = () => {
   const minLen = num(form.minLen);
   const maxLen = num(form.maxLen);
   // 仅当转换成功且非 NaN 才写入上下界/长度规则
-  if (min !== undefined && !isNaN(min)) rules.min = min;
-  if (max !== undefined && !isNaN(max)) rules.max = max;
-  if (minLen !== undefined && !isNaN(minLen)) rules.minLen = minLen;
-  if (maxLen !== undefined && !isNaN(maxLen)) rules.maxLen = maxLen;
+  if (min !== undefined && !Number.isNaN(min)) rules.min = min;
+  if (max !== undefined && !Number.isNaN(max)) rules.max = max;
+  if (minLen !== undefined && !Number.isNaN(minLen)) rules.minLen = minLen;
+  if (maxLen !== undefined && !Number.isNaN(maxLen)) rules.maxLen = maxLen;
   if (form.pattern.trim()) rules.pattern = form.pattern.trim();
   if (form.patternMsg.trim()) rules.patternMsg = form.patternMsg.trim();
   if (form.unique) rules.unique = true;

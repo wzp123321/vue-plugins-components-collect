@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useFullscreen } from '@vueuse/core';
+
 const iframeRef = ref(null);
 const { isFullscreen, isSupported, exit, toggle } = useFullscreen(iframeRef, {
   autoExit: true,

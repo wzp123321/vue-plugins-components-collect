@@ -60,6 +60,16 @@ export interface IResBrainMapNode {
   children: IResBrainMapNode[];
 }
 
+export interface EAD_HOME_INodeExtensionItem {
+  readonly code: string;
+  readonly name: string;
+  order?: number;
+  readonly value?: string;
+  readonly unit?: string;
+  readonly color?: string;
+  visible?: boolean;
+}
+
 export interface EAD_HOME_IBrainMapNode {
   readonly id: string;
   readonly name: string;
@@ -72,16 +82,6 @@ export interface EAD_HOME_IBrainMapNode {
   readonly energyCode?: string;
   readonly popup: EAD_HOME_EPopupType;
   readonly children: EAD_HOME_IBrainMapNode[];
-}
-
-export interface EAD_HOME_INodeExtensionItem {
-  readonly code: string;
-  readonly name: string;
-  order?: number;
-  readonly value?: string;
-  readonly unit?: string;
-  readonly color?: string;
-  visible?: boolean;
 }
 
 export const mockData: any = {
