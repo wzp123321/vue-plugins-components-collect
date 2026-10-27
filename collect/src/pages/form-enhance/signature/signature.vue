@@ -101,12 +101,6 @@ let lastX = 0;
 let lastY = 0;
 const history = ref<ImageData[]>([]);
 
-onMounted(() => {
-  ctx = canvasRef.value!.getContext('2d')!;
-  fillWhiteBg();
-  saveHistory();
-});
-
 const fillWhiteBg = () => {
   if (!ctx) return;
   ctx.fillStyle = '#ffffff';
@@ -119,6 +113,12 @@ const saveHistory = () => {
   if (history.value.length > 30) history.value.shift();
   canUndo.value = history.value.length > 1;
 };
+
+onMounted(() => {
+  ctx = canvasRef.value!.getContext('2d')!;
+  fillWhiteBg();
+  saveHistory();
+});
 
 const getPos = (e: MouseEvent) => {
   const rect = canvasRef.value!.getBoundingClientRect();

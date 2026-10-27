@@ -96,10 +96,10 @@ export const useFlyLines = (options: Options) => {
       const beijing = level.geo.features.find((feature) => Number(feature.properties.adcode) === 110000)
       const hub = (beijing && anchorOf(beijing)) || BEIJING
       const spokes: [number, number][] = []
-      for (const coord of FLY_CITIES) {
+      FLY_CITIES.forEach((coord) => {
         const point = project(coord)
         if (Number.isFinite(point[0]) && Number.isFinite(point[1])) spokes.push(point)
-      }
+      })
       return spokes.length ? { hub, spokes } : null
     }
 
@@ -108,14 +108,14 @@ export const useFlyLines = (options: Options) => {
     const hub = first && anchorOf(first)
     if (!hub) return null
     const spokes: [number, number][] = []
-    for (const feature of level.geo.features) {
+    level.geo.features.forEach((feature) => {
       // ⚠️ 坑：端点用 anchorOf 取 center，不能用 feature 的几何 centroid
       const center = anchorOf(feature)
-      if (!center || center.length !== 2) continue
-      if (center[0] === hub[0] && center[1] === hub[1]) continue
+      if (!center || center.length !== 2) return
+      if (center[0] === hub[0] && center[1] === hub[1]) return
       const point = project(center)
       if (Number.isFinite(point[0]) && Number.isFinite(point[1])) spokes.push(point)
-    }
+    })
     return spokes.length ? { hub, spokes } : null
   };
 
@@ -136,8 +136,10 @@ export const useFlyLines = (options: Options) => {
     const hubPoint = project(graph.hub)
     if (!Number.isFinite(hubPoint[0]) || !Number.isFinite(hubPoint[1])) return
 
-    group = new THREE.Group()
-    group.userData = { kind: 'flylines' }
+    // 闭包内（forEach 回调）拿不到 let 变量的赋值收窄，先用局部 const 承接
+    const g = new THREE.Group()
+    group = g
+    g.userData = { kind: 'flylines' }
     const tint = options.color()
     const speed = options.speed() ?? mapConfig.fly.speed
     // 地图平面上的锚点 → 世界坐标（屏幕 y 向下 → 世界 y 向上，与 drawFlyLine 同约定）
@@ -154,7 +156,7 @@ export const useFlyLines = (options: Options) => {
     ripples = [
       createRipple(worldOf(hubPoint), tint, mapConfig.fly.ripple.size * mapConfig.fly.ripple.hubScale, phaseIndex++ / count),
     ]
-    for (const spoke of graph.spokes) {
+    graph.spokes.forEach((spoke) => {
       // 速度个体差异（±18%，确定性哈希）：整齐划一的速度会让弧场像节拍器
       const speedMul = 0.82 + hash01(spoke[0], spoke[1], 3) * 0.36
       const { object, anim } = createFlyLine(hubPoint, spoke, {
@@ -162,14 +164,14 @@ export const useFlyLines = (options: Options) => {
         speed: speed * speedMul,
         phase: Math.random(),
       })
-      group.add(object)
+      g.add(object)
       anims.push(anim)
       // 端点涟漪：流星落点一圈圈扩散
       ripples.push(
         createRipple(worldOf(spoke), tint, mapConfig.fly.ripple.size, phaseIndex++ / count),
       )
-    }
-    for (const ripple of ripples) group.add(ripple.mesh)
+    })
+    ripples.forEach((ripple) => g.add(ripple.mesh))
     root.add(group)
 
     if (delay > 0 && options.visible()) {
@@ -179,7 +181,9 @@ export const useFlyLines = (options: Options) => {
         revealTimer = null
         if (!group) return
         // 重置所有飞线相位到 0，确保"同时起跑"，而不是各自残留进度
-        for (const anim of anims) anim.p = 0
+        anims.forEach((anim) => {
+          anim.p = 0
+        })
         group.visible = options.visible()
       })
     } else {
@@ -215,13 +219,13 @@ export const useFlyLines = (options: Options) => {
       // 每条线用自己中点到相机的距离，近处的线不会被远处的比例拖细。
       const tanHalf = Math.tan((camera.fov * Math.PI) / 360)
       const viewHeight = view?.height ?? 0
-      for (const anim of anims) {
+      anims.forEach((anim) => {
         const worldPerPx =
           viewHeight > 0 ? (2 * tanHalf * position.distanceTo(anim.mid)) / viewHeight : 0
         updateFlyLine(anim, dt, elapsed, position, moved, worldPerPx)
-      }
+      })
       // 端点涟漪与流星同帧推进（tick 开头已做过 group.visible 早退）
-      for (const ripple of ripples) updateRipple(ripple, elapsed)
+      ripples.forEach((ripple) => updateRipple(ripple, elapsed))
     },
     /** 重建 / 换层级后强制重算一次朝向 */
     invalidate() {
@@ -231,12 +235,14 @@ export const useFlyLines = (options: Options) => {
       if (group) group.visible = visible
     },
     setColor(color: string) {
-      for (const anim of anims) setFlyLineTint(anim, color)
+      anims.forEach((anim) => setFlyLineTint(anim, color))
       // 涟漪与拖尾同色：控制台换色时同步
-      for (const ripple of ripples) setRippleTint(ripple, color)
+      ripples.forEach((ripple) => setRippleTint(ripple, color))
     },
     setSpeed(speed: number) {
-      for (const anim of anims) anim.speed = speed
+      anims.forEach((anim) => {
+        anim.speed = speed
+      })
     },
   }
 };

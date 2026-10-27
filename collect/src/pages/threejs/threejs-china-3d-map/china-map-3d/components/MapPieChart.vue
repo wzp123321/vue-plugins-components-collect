@@ -45,9 +45,8 @@ const props = withDefaults(
 )
 
 /** 极坐标 → 笛卡尔（SVG 坐标，y 向下） */
-const polar = (cx: number, cy: number, r: number, angle: number) => {
-  return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)] as const
-}
+const polar = (cx: number, cy: number, r: number, angle: number) =>
+  [cx + r * Math.cos(angle), cy + r * Math.sin(angle)] as const
 
 const total = computed(() => props.segments.reduce((sum, s) => sum + s.value, 0))
 
@@ -61,7 +60,7 @@ const arcs = computed(() => {
   const r = 28
   let start = -Math.PI / 2 // 从正上方起笔
   const out: Array<{ d: string; color: string }> = []
-  for (const s of props.segments) {
+  props.segments.forEach((s) => {
     const angle = (s.value / sum) * Math.PI * 2
     const end = start + angle
     const large = angle > Math.PI ? 1 : 0
@@ -76,7 +75,7 @@ const arcs = computed(() => {
         : `M ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} L ${x2} ${y2} A ${r} ${r} 0 ${large} 0 ${x3} ${y3} Z`
     out.push({ d, color: s.color })
     start = end
-  }
+  })
   return out
 })
 </script>

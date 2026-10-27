@@ -23,7 +23,8 @@
       <el-col :span="12" style="margin-top:20px">
         <el-card>
           <template #header>③ 贝塞尔曲线绘制</template>
-          <canvas ref="bezierCanvas" width="400" height="260" class="canvas-box"
+          <canvas
+ref="bezierCanvas" width="400" height="260" class="canvas-box"
             @mousedown="startBezier" @mousemove="previewBezier" @mouseup="endBezier"></canvas>
           <div class="ctrl">
             <el-button size="small" @click="clearBezier">清空</el-button>
@@ -42,7 +43,8 @@
           </div>
           <div class="ctrl" style="flex-wrap:wrap;gap:6px">
             <el-button size="small" @click="filterInput?.click()">选择图片</el-button>
-            <el-button v-for="f in filters" :key="f.name" size="small"
+            <el-button
+v-for="f in filters" :key="f.name" size="small"
               :type="activeFilter === f.name ? 'primary' : ''"
               @click="applyFilter(f.name)">{{ f.label }}</el-button>
           </div>
@@ -123,9 +125,15 @@ let clockTimer = 0;
 
 const drawClock = () => {
   if (!clockCtx) return;
-  const W = 400, H = 260, CX = W / 2, CY = H / 2, R = 110;
+  const W = 400;
+  const H = 260;
+  const CX = W / 2;
+  const CY = H / 2;
+  const R = 110;
   const now = new Date();
-  const h = now.getHours() % 12, m = now.getMinutes(), s = now.getSeconds();
+  const h = now.getHours() % 12;
+  const m = now.getMinutes();
+  const s = now.getSeconds();
   clockCtx.clearRect(0, 0, W, H);
 
   // 表盘
@@ -190,7 +198,8 @@ const startBezier = (e: MouseEvent) => {
 const previewBezier = (e: MouseEvent) => {
   if (!bezierDrawing || !bezierCtx || !bezierSaved) return;
   const rect = bezierCanvas.value!.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
   bezierCtx.putImageData(bezierSaved, 0, 0);
   bezierCtx.beginPath();
   bezierCtx.moveTo(bezierStart.x, bezierStart.y);
@@ -238,10 +247,17 @@ const applyFilter = (filterName: string) => {
   const imageData = new ImageData(new Uint8ClampedArray(originalImageData.data), originalImageData.width, originalImageData.height);
   const d = imageData.data;
   if (filterName === 'grayscale') {
-    for (let i = 0; i < d.length; i += 4) { const g = d[i] * 0.3 + d[i+1] * 0.59 + d[i+2] * 0.11; d[i] = d[i+1] = d[i+2] = g; }
+    for (let i = 0; i < d.length; i += 4) {
+      const g = d[i] * 0.3 + d[i+1] * 0.59 + d[i+2] * 0.11;
+      d[i] = g;
+      d[i+1] = g;
+      d[i+2] = g;
+    }
   } else if (filterName === 'sepia') {
     for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i+1], b = d[i+2];
+      const r = d[i];
+      const g = d[i+1];
+      const b = d[i+2];
       d[i] = Math.min(255, r*0.393+g*0.769+b*0.189);
       d[i+1] = Math.min(255, r*0.349+g*0.686+b*0.168);
       d[i+2] = Math.min(255, r*0.272+g*0.534+b*0.131);

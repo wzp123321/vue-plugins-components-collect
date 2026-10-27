@@ -116,11 +116,11 @@ onMounted(() => {
   });
 });
 
-function fit() {
+const fit = () => {
   graph?.fitView();
 }
 
-function exportJson() {
+const exportJson = () => {
   if (!graph) return;
   jsonView.value = JSON.stringify(graph.get('data'), null, 2);
 }

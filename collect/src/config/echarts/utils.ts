@@ -1,4 +1,5 @@
-import { EChartsType, format } from 'echarts';
+import { format } from '@/config/echarts/setup';
+import type { EChartsType } from '@/config/echarts/setup';
 import { ICommonObject, ECommonTimeUnit } from '../../services/common.api';
 import { format as DateFnsFormat } from 'date-fns';
 
@@ -188,9 +189,8 @@ const echartsUtils = {
         }
       });
       return arrData;
-    } else {
-      return data;
     }
+    return data;
   },
   // 获取symbolStyle
   getsymbolStyle(color: string) {
@@ -250,9 +250,7 @@ const echartsUtils = {
    * @param name
    * @returns
    */
-  formatterText: (name: string) => {
-    return format.truncateText(name, 100, '14px Microsoft Yahei', '…', {});
-  },
+  formatterText: (name: string) => format.truncateText(name, 100, '14px Microsoft Yahei', '…', {}),
 };
 
 /**
@@ -330,8 +328,8 @@ export const resetXAxisTime = (timeStamp: number, timeUnit: any) => {
       case ECommonTimeUnit.YEAR:
         data = DateFnsFormat(date, 'yyyy');
         break;
-      case 'default':
-        break;
+      default:
+        return '';
     }
   }
   return data;

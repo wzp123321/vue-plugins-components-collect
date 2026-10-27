@@ -30,7 +30,7 @@ export interface AuthInterceptorOptions {
  * });
  * ```
  */
-export function createAuthInterceptor(axiosInstance: AxiosInstance, options: AuthInterceptorOptions) {
+export const createAuthInterceptor = (axiosInstance: AxiosInstance, options: AuthInterceptorOptions) => {
   const { getAccessToken, handleUnauthorized, isRefreshRequest, transformResponse } = options;
 
   // ===== 请求拦截：自动注入 Authorization =====

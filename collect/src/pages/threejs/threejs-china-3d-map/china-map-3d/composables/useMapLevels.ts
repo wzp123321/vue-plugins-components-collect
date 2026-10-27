@@ -47,7 +47,11 @@ interface Options {
  * 等待下一帧：把耗时步骤切成"动画帧 + await"的节奏，
  * 让加载进度条（stage）能逐段刷新，而不是一次性卡住主线程。
  */
-const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+const nextFrame = () => new Promise<void>((resolve) => {
+  requestAnimationFrame(() => {
+    resolve()
+  })
+})
 
 /**
  * 层级栈 composable：对外暴露当前层、面包屑、下钻/返回/跳转与各定位 API。
@@ -337,8 +341,8 @@ export const useMapLevels = (options: Options) => {
   /** 按 adcode 找当前层级的行政区（供外部 API 使用）。先查当前层，再退化查全国层 */
   const findFeature = (adcode: string | number) => {
     const scope = [current.value, stack.value[0]].filter(Boolean) as MapLevel[]
-    for (const level of scope) {
-      const feature = level.geo.features.find((item) => String(item.properties.adcode) === String(adcode))
+    for (let i = 0; i < scope.length; i++) {
+      const feature = scope[i].geo.features.find((item) => String(item.properties.adcode) === String(adcode))
       if (feature) return feature
     }
     return null

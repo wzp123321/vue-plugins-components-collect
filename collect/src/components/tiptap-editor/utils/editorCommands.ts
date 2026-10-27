@@ -18,34 +18,34 @@ export type CommandBuilder = (chain: EditorChain) => EditorChain;
  * const toggleBold = runCommand((chain) => chain.toggleBold())
  * toggleBold()
  */
-export function createCommandRunner(editor: Ref<Editor | null | undefined>) {
-  return (fn: CommandBuilder) => () => {
-    const instance = editor.value;
-    if (!instance) return;
-    fn(instance.chain().focus()).run();
-  };
-}
+export const createCommandRunner = (
+  editor: Ref<Editor | null | undefined>,
+) => (fn: CommandBuilder) => () => {
+  const instance = editor.value;
+  if (!instance) return;
+  fn(instance.chain().focus()).run();
+};
 
 /**
  * 创建不带焦点的命令执行器
  */
-export function createCommandRunnerWithoutFocus(editor: Ref<Editor | null | undefined>) {
-  return (fn: CommandBuilder) => () => {
-    const instance = editor.value;
-    if (!instance) return;
-    fn(instance.chain()).run();
-  };
-}
+export const createCommandRunnerWithoutFocus = (
+  editor: Ref<Editor | null | undefined>,
+) => (fn: CommandBuilder) => () => {
+  const instance = editor.value;
+  if (!instance) return;
+  fn(instance.chain()).run();
+};
 
 /**
  * 直接执行一条命令
  * @returns 是否执行成功
  */
-export function executeCommand(
+export const executeCommand = (
   editor: Ref<Editor | null | undefined>,
   fn: CommandBuilder,
   withFocus = true,
-): boolean {
+): boolean => {
   const instance = editor.value;
   if (!instance) return false;
   const chain = withFocus ? instance.chain().focus() : instance.chain();
@@ -56,16 +56,16 @@ export function executeCommand(
  * 按顺序批量执行多条命令
  * @returns 是否全部执行成功
  */
-export function executeBatchCommands(
+export const executeBatchCommands = (
   editor: Ref<Editor | null | undefined>,
   commands: CommandBuilder[],
   withFocus = true,
-): boolean {
+): boolean => {
   const instance = editor.value;
   if (!instance) return false;
   let chain = withFocus ? instance.chain().focus() : instance.chain();
-  for (const command of commands) {
+  commands.forEach((command) => {
     chain = command(chain);
-  }
+  });
   return chain.run();
 }

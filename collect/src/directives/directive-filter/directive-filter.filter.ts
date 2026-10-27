@@ -115,7 +115,6 @@ export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDi
 
   // 互斥校验：regExp（denylist）与 allowPattern（白名单）语义相反。
   if (regExp instanceof RegExp && allowPattern instanceof RegExp) {
-    // eslint-disable-next-line no-console
     console.warn(
       '[v-inputFilter:text] regExp（denylist）与 allowPattern（白名单）互斥，请二选一；当前将按"先 allowPattern 后 regExp"执行，可能产生非预期结果。',
     );
@@ -154,7 +153,11 @@ export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDi
 
   // 4. 中文
   if (isBoolean(allowChinese) && !allowChinese) {
-    const next = value.replace(/[^\x00-\xff]/g, '');
+    // 移除非 ASCII（码点 > 0xFF）字符；按字符遍历过滤而非正则范围类，
+    // 避免正则里出现 \x00-\x1f 控制字符范围（no-control-regex）
+    const next = Array.from(value)
+      .filter((ch) => (ch.codePointAt(0) ?? 0) <= 0xff)
+      .join('');
     if (next !== value) {
       fire('denyPattern', value, next, '移除非 ASCII');
       value = next;
@@ -170,12 +173,14 @@ export const handleTextFilter = (domValue: string, binding: DirectiveBinding<IDi
 
   // 6. transform
   if (transform) {
-    const next =
-      typeof transform === 'function'
-        ? transform(value)
-        : transform === 'upper'
-          ? value.toUpperCase()
-          : value.toLowerCase();
+    let next: string;
+    if (typeof transform === 'function') {
+      next = transform(value);
+    } else if (transform === 'upper') {
+      next = value.toUpperCase();
+    } else {
+      next = value.toLowerCase();
+    }
     if (next !== value) {
       fire('transform', value, next, `transform=${typeof transform === 'function' ? 'fn' : transform}`);
       value = next;
@@ -312,15 +317,21 @@ export const handleNumberFilter = (domValue: string, binding: DirectiveBinding<I
   if (nextInt.length > int) {
     fire(
       'integral',
-      `${symbol}${nextInt}${decP ? '.' + decP : ''}`,
-      `${symbol}${nextInt.substring(0, int)}${decP ? '.' + decP : ''}`,
+      `${symbol}${nextInt}${decP ? `.${decP}` : ''}`,
+      `${symbol}${nextInt.substring(0, int)}${decP ? `.${decP}` : ''}`,
       `超过 integral=${int}`,
     );
     nextInt = nextInt.substring(0, int);
   }
   // 保留末尾 . 供用户继续输入
   const hasTrailingDot = decP === '' && value.endsWith('.');
-  value = decP ? `${symbol}${nextInt}.${decP}` : hasTrailingDot ? `${symbol}${nextInt}.` : `${symbol}${nextInt}`;
+  if (decP) {
+    value = `${symbol}${nextInt}.${decP}`;
+  } else if (hasTrailingDot) {
+    value = `${symbol}${nextInt}.`;
+  } else {
+    value = `${symbol}${nextInt}`;
+  }
 
   // 归一 +0 → 0（+ 是冗余符号；-0 保留，负零在用户视角有符号意义），
   // 0.0 → 0 已在步骤 7 中处理（decP 全 0 → intP）

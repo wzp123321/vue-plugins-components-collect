@@ -5,29 +5,34 @@ export interface LogLine {
   msg: string;
 }
 
-/** 通用：带重试的执行函数 */
-async function retryRequest(
+/** 通用：带重试的执行函数（递归实现，保持串行 try → 等待 → 重试语义） */
+const retryRequest = async (
   fn: () => Promise<any>,
-  retries = 3,
-  delay = 1000,
+  retries?: number,
+  delay?: number,
   onRetry?: (attempt: number) => void,
-): Promise<any> {
-  for (let i = 0; i <= retries; i++) {
+): Promise<any> => {
+  const maxRetries = retries ?? 3;
+  const waitMs = delay ?? 1000;
+  const sleep = (ms: number) =>
+    new Promise<void>((r) => {
+      setTimeout(r, ms);
+    });
+  const attempt = async (i: number): Promise<any> => {
     try {
       return await fn();
     } catch (err: any) {
-      if (i < retries) {
-        onRetry?.(i + 1);
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        throw err;
-      }
+      if (i >= maxRetries) throw err;
+      onRetry?.(i + 1);
+      await sleep(waitMs);
+      return attempt(i + 1);
     }
-  }
-}
+  };
+  return attempt(0);
+};
 
 /** 请求重试机制 hook */
-export function useRetryRequest() {
+export const useRetryRequest = () => {
   const retryLoading = ref(false);
   const retryLogs = ref<LogLine[]>([]);
 

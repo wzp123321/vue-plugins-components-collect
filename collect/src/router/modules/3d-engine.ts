@@ -87,6 +87,27 @@ const threejsRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/threejs/threejs-china-3d-map/threejs-china-3d-map.vue'),
   },
+  {
+    path: '/threejs-model-inspector',
+    meta: {
+      name: 'Threejs 3D 模型检视台',
+    },
+    component: () => import('../../pages/threejs/threejs-model-inspector/threejs-model-inspector.vue'),
+  },
+  {
+    path: '/threejs-iot-scene',
+    meta: {
+      name: 'Threejs 物联网3D组态',
+    },
+    component: () => import('../../pages/threejs/threejs-iot-scene/threejs-iot-scene.vue'),
+  },
+  {
+    path: '/iot-config-editor',
+    meta: {
+      name: '物联网组态编辑器',
+    },
+    component: () => import('../../pages/iot/iot-config-editor/iot-config-editor.vue'),
+  },
 ];
 
 export default threejsRoutes;

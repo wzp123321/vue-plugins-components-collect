@@ -8,3 +8,6 @@ src/router/types/*.d.ts
 *png
 *gif
 *.d.ts
+
+# iconfont.cn 生成的 SVG symbol 压缩脚本，平台重新下载即覆盖，不纳入 lint
+src/assets/iconfont-symbol.js

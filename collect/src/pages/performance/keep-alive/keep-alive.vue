@@ -68,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, defineComponent, h } from 'vue';
+import { ref, defineComponent, h, watch } from 'vue';
 
 defineOptions({ name: 'KeepAliveDemo' });
 
@@ -125,7 +125,6 @@ const componentMap: Record<string, any> = { Counter: CounterComp, InputForm: Inp
 const currentComponent = ref(componentMap[activeTab.value]);
 
 // 监听 tab 切换
-import { watch } from 'vue';
 watch(activeTab, (val) => {
   currentComponent.value = componentMap[val];
 });

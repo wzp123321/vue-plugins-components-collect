@@ -97,7 +97,7 @@ const parseFilename = (disposition?: string): string | undefined => {
   return plain?.[1]?.trim();
 };
 
-export function createHttpClient(options: HttpClientConfig = {}): HttpClient {
+export const createHttpClient = (options: HttpClientConfig = {}): HttpClient => {
   const config = resolveConfig(options);
 
   const instance = axios.create({
@@ -122,7 +122,7 @@ export function createHttpClient(options: HttpClientConfig = {}): HttpClient {
     if (existing) return existing as Promise<T>;
     const promise = task();
     inflight.set(key, promise);
-    void promise
+    promise
       .catch(() => undefined)
       .finally(() => {
         if (inflight.get(key) === promise) inflight.delete(key);

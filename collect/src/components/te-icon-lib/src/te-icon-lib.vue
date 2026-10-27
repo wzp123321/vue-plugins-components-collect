@@ -46,7 +46,7 @@
 import { ref, computed } from 'vue';
 import { ElIcon, ElDialog, ElDescriptions, ElDescriptionsItem } from 'element-plus';
 import { View, Delete, Plus } from '@element-plus/icons-vue';
-import { mockIconLib, type MockIcon } from '../../_mock/icon-lib';
+import { type MockIcon } from '../../_mock/icon-lib';
 import TeIconLibSelect from './te-icon-lib-select.vue';
 
 interface Props {
@@ -96,9 +96,6 @@ const handleConfirm = (items: MockIcon[]) => {
   emit('change', next);
   dialogVisible.value = false;
 };
-
-// 兼容原版接口: 默认拉一次 mock
-void mockIconLib;
 
 defineOptions({ name: 'TeIconLib' });
 </script>

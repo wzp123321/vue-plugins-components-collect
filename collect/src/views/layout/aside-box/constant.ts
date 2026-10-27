@@ -112,7 +112,15 @@ export const navGroups: NavGroup[] = [
           { path: '/threejs-sun', label: '太阳地球', searchOnly: true },
           { path: '/threejs-galaxy', label: '粒子银河系', searchOnly: true },
           { path: '/threejs-raycaster', label: '交互拾取', searchOnly: true },
+          { path: '/threejs-model-inspector', label: '3D 模型检视台' },
           { path: '/threejs-china-3d-map', label: '中国 3D 地图' },
+        ],
+      },
+      {
+        label: '物联网组态',
+        items: [
+          { path: '/threejs-iot-scene', label: '设备运转监视(3D)' },
+          { path: '/iot-config-editor', label: '组态编辑器(拖拽)' },
         ],
       },
       {
@@ -270,6 +278,7 @@ export const navGroups: NavGroup[] = [
           { path: '/gsap-animation', label: 'GSAP 动画' },
           { path: '/mind-map', label: '思维导图' },
           { path: '/i18n-demo', label: '国际化' },
+          { path: '/teacher-manage', label: '教师信息 CRUD' },
         ],
       },
     ],
@@ -295,22 +304,17 @@ export const allNavItems: FlatNavItem[] = navGroups.reduce<FlatNavItem[]>((acc, 
 export const navTotal = allNavItems.length;
 
 /** 菜单可见条目数（不含 searchOnly） */
-export function visibleCountOfSection(section: NavSection): number {
-  return section.items.filter((item) => !item.searchOnly).length;
-}
+export const visibleCountOfSection = (section: NavSection): number =>
+  section.items.filter((item) => !item.searchOnly).length;
 
-export function countOfGroup(group: NavGroup): number {
-  return group.sections.reduce((sum, section) => sum + visibleCountOfSection(section), 0);
-}
+export const countOfGroup = (group: NavGroup): number =>
+  group.sections.reduce((sum, section) => sum + visibleCountOfSection(section), 0);
 
-export function firstPathOfGroup(group: NavGroup): string {
-  return group.sections[0]?.items.find((item) => !item.searchOnly)?.path ?? '/home';
-}
+export const firstPathOfGroup = (group: NavGroup): string =>
+  group.sections[0]?.items.find((item) => !item.searchOnly)?.path ?? '/home';
 
 /** 关键字检索：命中标题、路径、分区与分组名 */
-export function searchNav(keyword: string): FlatNavItem[] {
-  return semanticSearch(keyword, allNavItems);
-}
+export const searchNav = (keyword: string): FlatNavItem[] => semanticSearch(keyword, allNavItems);
 
 /** 兼容旧引用：侧边栏仍是「一组菜单」的入参形态 */
 export const menuList = navGroups;

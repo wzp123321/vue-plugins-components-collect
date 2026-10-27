@@ -8,14 +8,12 @@ import type { GridCore } from './useGridCore';
  * date→dt-el-date、其余→dt-el-text。统一由 element-plus 组件实现（输入框无边框、编辑不高亮整列）。
  * @param d 列类型与下拉选项
  */
-const makeEditRender = (d: { type: string; options?: string[] }) =>
-  d.type === 'number'
-    ? { name: 'dt-el-number' }
-    : d.type === 'select'
-      ? { name: 'dt-el-select', options: d.options ?? [] }
-      : d.type === 'date'
-        ? { name: 'dt-el-date' }
-        : { name: 'dt-el-text' };
+const makeEditRender = (d: { type: string; options?: string[] }) => {
+  if (d.type === 'number') return { name: 'dt-el-number' };
+  if (d.type === 'select') return { name: 'dt-el-select', options: d.options ?? [] };
+  if (d.type === 'date') return { name: 'dt-el-date' };
+  return { name: 'dt-el-text' };
+};
 
 // 序号列固定宽；数据列基准宽来自 ColDef.width，缺省 120
 const SEQ_WIDTH = 52;
@@ -33,7 +31,7 @@ const DEFAULT_COL_WIDTH = 120;
  * @param core 核心状态实例（读取 columnDefs / visibleDefs）
  * @param tableRef vxe 实例（loadColumn / getCellElement 等）
  */
-export function useGridColumns(core: GridCore, tableRef: Ref<any>) {
+export const useGridColumns = (core: GridCore, tableRef: Ref<any>) => {
   // ===================== 宽度自适应（表格盛满容器） =====================
   // ⚠️ 坑：vxe 列宽只认 px——% 宽会被 XEUtils.toInteger（parseInt）截断成整数百分比，8 列累计最多差 7px 缝隙；
   // 官方 fit 参数已标注"可能废弃，不要使用"。故在此把基准宽度按 body 可视宽等比换算成 px：

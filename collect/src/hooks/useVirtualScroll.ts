@@ -8,7 +8,7 @@ export interface UseVirtualScrollOptions<T> {
   itemsPerRow?: number
 }
 
-export function useVirtualScroll<T = any>(options: UseVirtualScrollOptions<T>) {
+export const useVirtualScroll = <T = any>(options: UseVirtualScrollOptions<T>) => {
   const { dataSource, itemSize, poolBuffer, rootRef, itemsPerRow = 1 } = options
 
   const pool = ref<T[]>([])
@@ -33,7 +33,7 @@ export function useVirtualScroll<T = any>(options: UseVirtualScrollOptions<T>) {
     paddingTop: number
   }
 
-  function calcPoolRange(): RangeResult {
+  const calcPoolRange = (): RangeResult => {
     if (!rootRef.value) return { pool: [], paddingTop: 0 }
 
     const range: number[] = []
@@ -55,13 +55,13 @@ export function useVirtualScroll<T = any>(options: UseVirtualScrollOptions<T>) {
     }
   }
 
-  function updatePool() {
+  const updatePool = () => {
     const result = calcPoolRange()
     pool.value = result.pool
     paddingTop.value = result.paddingTop
   }
 
-  function handleScroll() {
+  const handleScroll = () => {
     if (!rootRef.value) return
     if (isScrollBusy) return
     isScrollBusy = true
@@ -72,7 +72,7 @@ export function useVirtualScroll<T = any>(options: UseVirtualScrollOptions<T>) {
     })
   }
 
-  function initPool() {
+  const initPool = () => {
     try {
       if (!rootRef.value) return
       const containerSize = rootRef.value.clientHeight
@@ -84,7 +84,7 @@ export function useVirtualScroll<T = any>(options: UseVirtualScrollOptions<T>) {
     }
   }
 
-  function refreshScrollHeight() {
+  const refreshScrollHeight = () => {
     scrollHeight.value = dataSource.value.length * itemSize.value
   }
 

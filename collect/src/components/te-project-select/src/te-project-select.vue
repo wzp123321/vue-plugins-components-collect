@@ -52,17 +52,17 @@ const visible = ref(false);
 
 watch(
   () => props.modelValue,
-  (v) => (innerValue.value = [...v])
+  (v) => {
+    innerValue.value = [...v];
+  }
 );
 
-const { initFlag } = projectHook({
+projectHook({
   searchValue: ref(''),
   multiple: ref(props.multiple),
   needAllProjects: ref(props.needAllProjects),
   tenantId: props.tenantId || 'demo',
 });
-// 占位: 真实项目会触发加载
-void initFlag;
 
 const onChange = (v: string[]) => {
   innerValue.value = v;

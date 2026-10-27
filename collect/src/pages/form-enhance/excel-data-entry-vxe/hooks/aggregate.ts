@@ -30,7 +30,7 @@ const round2 = (n: number) => Number(n.toFixed(2));
 export const numOf = (v: any): number | null => {
   if (v === null || v === undefined || v === '') return null;
   const n = Number(v);
-  return isNaN(n) ? null : n;
+  return Number.isNaN(n) ? null : n;
 };
 
 export const newAcc = (): Acc => ({ count: 0, sum: 0, min: Infinity, max: -Infinity });
@@ -54,18 +54,18 @@ export const finishAcc = (a: Acc): NumAgg | null =>
  */
 export const aggregateByField = (rows: readonly Row[], fields: readonly string[]): Record<string, NumAgg> => {
   const accs: Record<string, Acc> = {};
-  for (const f of fields) accs[f] = newAcc();
-  for (const r of rows) {
-    for (const f of fields) {
+  fields.forEach((f) => { accs[f] = newAcc(); });
+  rows.forEach((r) => {
+    fields.forEach((f) => {
       const n = numOf(r[f]);
       if (n !== null) addToAcc(accs[f], n);
-    }
-  }
+    });
+  });
   const out: Record<string, NumAgg> = {};
-  for (const f of fields) {
+  fields.forEach((f) => {
     const agg = finishAcc(accs[f]);
     if (agg) out[f] = agg;
-  }
+  });
   return out;
 };
 
@@ -76,21 +76,21 @@ export const aggregateByField = (rows: readonly Row[], fields: readonly string[]
  */
 export const aggregateCells = (rows: readonly Row[], fields: readonly string[]): NumAgg | null => {
   const acc = newAcc();
-  for (const r of rows) {
-    for (const f of fields) {
+  rows.forEach((r) => {
+    fields.forEach((f) => {
       const n = numOf(r[f]);
       if (n !== null) addToAcc(acc, n);
-    }
-  }
+    });
+  });
   return finishAcc(acc);
 };
 
 /** 单列聚合（当前列状态栏统计），无有效值返回 null */
 export const aggregateColumn = (rows: readonly Row[], field: string): NumAgg | null => {
   const acc = newAcc();
-  for (const r of rows) {
+  rows.forEach((r) => {
     const n = numOf(r[field]);
     if (n !== null) addToAcc(acc, n);
-  }
+  });
   return finishAcc(acc);
 };

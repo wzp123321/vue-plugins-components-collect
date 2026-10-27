@@ -8,14 +8,13 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, computed, ref, onUnmounted } from 'vue';
-import { EChartsType, init } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsType } from '@/config/echarts/setup';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';
 
-const customChartId = computed(() => {
-  return 'charts_' + (Math.random() * 1000).toFixed(0);
-});
+const customChartId = computed(() => `charts_${(Math.random() * 1000).toFixed(0)}`);
 const lineChartDataList = [
   {
     id: 1,
@@ -56,25 +55,33 @@ const yPosition = ref<{ top: string; left: string }>({
 });
 let echartIns: EChartsType;
 
-function getBarLegendData() {
-  return lineChartDataList?.length
+const getBarLegendData = () =>
+  lineChartDataList?.length
     ? lineChartDataList
-        .map((item, index) => {
-          return {
-            name: echartsUtils.resetName(index + 1, item.name),
-          };
-        })
+        .map((item, index) => ({
+          name: echartsUtils.resetName(index + 1, item.name),
+        }))
         .reverse()
     : [];
-}
-function getYData() {
-  return lineChartDataList.map((item, index) => {
+const getYData = () =>
+  lineChartDataList.map((item, index) => {
     const { name } = item;
     return echartsUtils.resetName(index + 1, name);
   });
-}
-function getSeriesData() {
-  return lineChartDataList.map((item, index) => {
+/**
+ * 获取后缀
+ */
+const setArray = (index: number = 1) => {
+  const suffixes: any = [];
+  for (let idx = 0; idx < index; idx++) {
+    suffixes.push({
+      value: 0,
+    });
+  }
+  return suffixes;
+};
+const getSeriesData = () =>
+  lineChartDataList.map((item, index) => {
     const { name, value } = item;
     const dataArr: any = setArray(index + 1);
     dataArr.pop();
@@ -91,20 +98,7 @@ function getSeriesData() {
       data: dataArr,
     };
   });
-}
-/**
- * 获取后缀
- */
-function setArray(index: number = 1) {
-  const suffixes: any = [];
-  for (let idx = 0; idx < index; idx++) {
-    suffixes.push({
-      value: 0,
-    });
-  }
-  return suffixes;
-}
-function getEchartsOptions() {
+const getEchartsOptions = () => {
   const unit = 'px';
   const colorArr = echartsConstant.CHARTS_LINE_BAR_MAIN_COLOR.reverse();
   const options = {
@@ -123,11 +117,10 @@ function getEchartsOptions() {
         color: echartsConstant.CHARTS_TOOLTIP_TEXT_COLOR,
         align: 'left',
       },
-      formatter: (params: any) => {
-        return `${params[0].axisValue}<br/>点能耗：${thousandSeparation(params[0].data.value) ?? '--'}${
+      formatter: (params: any) =>
+        `${params[0].axisValue}<br/>点能耗：${thousandSeparation(params[0].data.value) ?? '--'}${
           (params[0].data.value ?? '--') !== '--' ? '' : unit
-        }`;
-      },
+        }`,
     },
     legend: Object.assign(echartsOption.ECHARTS_LINECHART_LEGEND_OPTION, {
       bottom: 10,
@@ -141,7 +134,7 @@ function getEchartsOptions() {
     grid: echartsOption.ECHARTS_COMMON_GRID_OPTION,
     xAxis: echartsOption.ECHARTS_LINECHART_AXIS_VALUE_OPTION,
     yAxis: Object.assign(echartsOption.ECHARTS_LINECHART_AXIS_CATEGORY_OPTION, {
-      name: '能耗 ' + ' (' + unit + ')',
+      name: `能耗 (${unit})`,
       data: getYData(),
       axisLabel: {
         show: true,
@@ -158,8 +151,27 @@ function getEchartsOptions() {
   };
 
   return options;
-}
-function initEcharts() {
+};
+
+const handleMouseOver = (item: any) => {
+  if (item.componentType === 'yAxis') {
+    const { event, value } = item;
+    yaxisShowFlag.value = true;
+    yaxisText.value = value;
+    yPosition.value = {
+      top: `${event.offsetY + 30}px`,
+      left: `${event.offsetX}px`,
+    };
+  } else {
+    yaxisShowFlag.value = false;
+  }
+};
+
+const handleMouseOut = () => {
+  yaxisShowFlag.value = false;
+};
+
+const initEcharts = () => {
   const ele = document.getElementById(customChartId.value);
   if (!ele) {
     return;
@@ -174,25 +186,7 @@ function initEcharts() {
   echartIns.on('mouseout', () => {
     handleMouseOut();
   });
-}
-
-function handleMouseOver(item: any) {
-  if (item.componentType === 'yAxis') {
-    const { event, value } = item;
-    yaxisShowFlag.value = true;
-    yaxisText.value = value;
-    yPosition.value = {
-      top: `${event.offsetY + 30}px`,
-      left: `${event.offsetX}px`,
-    };
-  } else {
-    yaxisShowFlag.value = false;
-  }
-}
-
-function handleMouseOut() {
-  yaxisShowFlag.value = false;
-}
+};
 
 onMounted(() => {
   initEcharts();

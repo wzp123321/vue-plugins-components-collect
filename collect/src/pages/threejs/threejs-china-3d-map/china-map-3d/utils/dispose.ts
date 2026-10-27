@@ -49,14 +49,14 @@ export const disposeObject3D = (root: THREE.Object3D): void => {
     }
     if (!node.material) return
     const materials = Array.isArray(node.material) ? node.material : [node.material]
-    for (const material of materials) {
+    materials.forEach((material) => {
       const target = material as any
-      if (target.userData?.shared) continue
-      for (const key of TEXTURE_KEYS) {
+      if (target.userData?.shared) return
+      TEXTURE_KEYS.forEach((key) => {
         const texture = target[key]
         if (texture && !texture.userData?.shared) texture.dispose()
-      }
+      })
       material.dispose()
-    }
+    })
   })
 };

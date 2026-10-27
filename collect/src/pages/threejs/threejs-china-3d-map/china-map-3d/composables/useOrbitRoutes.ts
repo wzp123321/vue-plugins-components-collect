@@ -22,7 +22,6 @@
 import * as THREE from 'three'
 import { getGlowTexture } from '../utils/textures'
 import { mapConfig } from '../utils/mapConfig'
-import type { MapLevel } from './useMapLayer'
 
 interface Options {
   getRoot: () => THREE.Object3D | null
@@ -53,6 +52,17 @@ const makeOrbit = (radius: number, tilt: number, lift: number): THREE.CatmullRom
   return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.5)
 }
 
+/** 释放一个 group 内全部几何与材质（轨道专用，避免误 dispose 共享资源） */
+const disposeGroup = (group: THREE.Group) => {
+  group.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (mesh.geometry && !(mesh.geometry.userData as { shared?: boolean })?.shared) mesh.geometry.dispose()
+    const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
+    if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
+    else mat?.dispose()
+  })
+}
+
 /**
  * 轨道路线 composable。
  * @param options.getRoot  三维对象挂载根
@@ -71,11 +81,8 @@ export const useOrbitRoutes = (options: Options) => {
     satellites = []
   }
 
-  /**
-   * 构建当前层级的轨道与卫星（几何与层级无关，仅借 root 挂载）。
-   * @param level 当前层级（确保只在有 root 时构建；轨道尺度用 MAP_EXTENT 常量）
-   */
-  const build = (_level: MapLevel) => {
+  /** 构建当前层级的轨道与卫星（几何与层级无关，仅借 root 挂载）。 */
+  const build = () => {
     clear()
     const root = options.getRoot()
     if (!root) return
@@ -133,7 +140,9 @@ export const useOrbitRoutes = (options: Options) => {
    */
   const tick = (dt: number) => {
     if (!group?.visible) return
-    for (const sat of satellites) {
+    // 每帧热路径：C 式 for 避免迭代协议与临时闭包开销
+    for (let i = 0; i < satellites.length; i++) {
+      const sat = satellites[i]
       sat.t = (sat.t + dt * sat.speed) % 1
       if (sat.t < 0) sat.t += 1
       const p = sat.curve.getPointAt(sat.t)
@@ -149,15 +158,4 @@ export const useOrbitRoutes = (options: Options) => {
       if (group) group.visible = visible
     },
   }
-}
-
-/** 释放一个 group 内全部几何与材质（轨道专用，避免误 dispose 共享资源） */
-const disposeGroup = (group: THREE.Group) => {
-  group.traverse((obj) => {
-    const mesh = obj as THREE.Mesh
-    if (mesh.geometry && !(mesh.geometry.userData as { shared?: boolean })?.shared) mesh.geometry.dispose()
-    const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
-    if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
-    else mat?.dispose()
-  })
 }

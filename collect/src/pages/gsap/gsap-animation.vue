@@ -46,14 +46,14 @@ defineOptions({ name: 'GsapAnimationDemo' });
 const stageEl = ref<HTMLElement | null>(null);
 let ctx: gsap.Context | null = null;
 
-function withContext(run: (scope: HTMLElement) => void) {
+const withContext = (run: (scope: HTMLElement) => void) => {
   const scope = stageEl.value;
   if (!scope) return;
   ctx?.revert();
   ctx = gsap.context(() => run(scope), scope);
 }
 
-function playTimeline() {
+const playTimeline = () => {
   withContext((scope) => {
     const boxes = scope.querySelectorAll('.gsap-box');
     gsap
@@ -65,7 +65,7 @@ function playTimeline() {
   });
 }
 
-function playStagger() {
+const playStagger = () => {
   withContext((scope) => {
     gsap.from(scope.querySelectorAll('.gsap-dot'), {
       y: 46,
@@ -79,7 +79,7 @@ function playStagger() {
   });
 }
 
-function reset() {
+const reset = () => {
   ctx?.revert();
   ctx = null;
 }

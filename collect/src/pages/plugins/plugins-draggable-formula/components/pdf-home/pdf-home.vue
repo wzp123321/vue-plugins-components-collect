@@ -4,6 +4,7 @@
     <template v-if="draggableFormulaService.groupList.length !== 0">
       <pdf-condition-group
         v-for="(item, index) in draggableFormulaService.groupList"
+        :key="index"
         :groupInfo="item"
         @copy="draggableFormulaService.copyGroup(item as any, index)"
         @delete="draggableFormulaService.deleteGroup(index)"

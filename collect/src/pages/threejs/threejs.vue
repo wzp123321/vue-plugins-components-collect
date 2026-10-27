@@ -3,12 +3,11 @@
 </template>
 
 <script lang="ts" setup>
-import { MeshPhongMaterial } from 'three';
-import { Scene, PerspectiveCamera, WebGLRenderer, Color, Mesh, BoxGeometry, DirectionalLight } from 'three';
+import { MeshPhongMaterial, Scene, PerspectiveCamera, WebGLRenderer, Color, Mesh, BoxGeometry, DirectionalLight } from 'three';
 import { onMounted } from 'vue';
 import { legacyIntensity } from './shared/lighting';
 
-function initThree() {
+const initThree = () => {
   // 场景
   const scene = new Scene();
 

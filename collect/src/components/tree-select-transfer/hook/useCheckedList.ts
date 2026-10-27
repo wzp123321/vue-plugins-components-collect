@@ -1,13 +1,13 @@
 import { ref } from 'vue';
-import { Tst_ITreeNodeData } from '../tree-select-transfer.api';
+import { Tst_ITreeNodeData as TstITreeNodeData } from '../tree-select-transfer.api';
 
 export const useCheckedList = () => {
   // 选中列表
-  const checkedList = ref<Tst_ITreeNodeData[]>([]);
+  const checkedList = ref<TstITreeNodeData[]>([]);
   // 过滤文本
   const filerListLabel = ref<string>('');
   // 初始化
-  const initCheckedList = (list: Tst_ITreeNodeData[]) => {
+  const initCheckedList = (list: TstITreeNodeData[]) => {
     checkedList.value = [...list];
   };
   /**

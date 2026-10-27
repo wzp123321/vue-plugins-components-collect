@@ -105,11 +105,9 @@ let sparkSystem: BABYLON.ParticleSystem | null = null;
 
 // ---------- 工具函数 ----------
 
-function formatNum(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
-}
+const formatNum = (n: number): string => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`);
 
-function addLog(msg: string) {
+const addLog = (msg: string) => {
   const timestamp = new Date().toLocaleTimeString();
   const line = `[${timestamp}] ${msg}`;
   console.log(line);
@@ -124,7 +122,7 @@ function addLog(msg: string) {
       logPanelRef.value!.scrollTop = logPanelRef.value!.scrollHeight;
     }, 50);
   }
-}
+};
 
 // ---------- Canvas 2D 生成粒子纹理 ----------
 
@@ -138,7 +136,7 @@ function addLog(msg: string) {
  * @param innerAlpha 中心透明度 (0-1)
  * @returns 生成纹理的 data URL
  */
-function createGlowTexture(size: number, innerAlpha: number): string {
+const createGlowTexture = (size: number, innerAlpha: number): string => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -159,7 +157,7 @@ function createGlowTexture(size: number, innerAlpha: number): string {
   ctx.fillRect(0, 0, size, size);
 
   return canvas.toDataURL('image/png');
-}
+};
 
 // ---------- 构建火焰内核粒子系统 ----------
 
@@ -169,7 +167,7 @@ function createGlowTexture(size: number, innerAlpha: number): string {
  * - 颜色从亮白渐变到橙色再到透明
  * - 上升速度快
  */
-function createFlameCore(): BABYLON.ParticleSystem {
+const createFlameCore = (): BABYLON.ParticleSystem => {
   addLog('创建火焰内核粒子系统...');
 
   const system = new BABYLON.ParticleSystem('flameCore', 2000, scene!);
@@ -227,7 +225,7 @@ function createFlameCore(): BABYLON.ParticleSystem {
 
   addLog('火焰内核创建完成 ✅');
   return system;
-}
+};
 
 // ---------- 构建外焰粒子系统 ----------
 
@@ -237,7 +235,7 @@ function createFlameCore(): BABYLON.ParticleSystem {
  * - 颜色从红色渐变到暗红再到透明
  * - 更大的发射区域
  */
-function createFlameOuter(): BABYLON.ParticleSystem {
+const createFlameOuter = (): BABYLON.ParticleSystem => {
   addLog('创建外焰粒子系统...');
 
   const system = new BABYLON.ParticleSystem('flameOuter', 1500, scene!);
@@ -272,7 +270,7 @@ function createFlameOuter(): BABYLON.ParticleSystem {
 
   addLog('外焰创建完成 ✅');
   return system;
-}
+};
 
 // ---------- 构建烟雾粒子系统 ----------
 
@@ -282,7 +280,7 @@ function createFlameOuter(): BABYLON.ParticleSystem {
  * - 标准混合模式（非加法）
  * - 模拟火焰上方的烟雾/灰烬
  */
-function createSmoke(): BABYLON.ParticleSystem {
+const createSmoke = (): BABYLON.ParticleSystem => {
   addLog('创建烟雾粒子系统...');
 
   const system = new BABYLON.ParticleSystem('smoke', 500, scene!);
@@ -320,7 +318,7 @@ function createSmoke(): BABYLON.ParticleSystem {
 
   addLog('烟雾创建完成 ✅');
   return system;
-}
+};
 
 // ---------- 构建火花粒子系统 ----------
 
@@ -330,7 +328,7 @@ function createSmoke(): BABYLON.ParticleSystem {
  * - 高速随机方向
  * - 加法混合，非常亮
  */
-function createSparks(): BABYLON.ParticleSystem {
+const createSparks = (): BABYLON.ParticleSystem => {
   addLog('创建火花粒子系统...');
 
   const system = new BABYLON.ParticleSystem('sparks', 300, scene!);
@@ -366,11 +364,11 @@ function createSparks(): BABYLON.ParticleSystem {
 
   addLog('火花创建完成 ✅');
   return system;
-}
+};
 
 // ---------- 构建场景 ----------
 
-function createScene() {
+const createScene = () => {
   addLog('======== 构建火焰粒子场景 ========');
 
   // ---- 引擎 ----
@@ -436,11 +434,11 @@ function createScene() {
 
   addLog('======== 场景构建完成，启动渲染循环 ========');
   addLog(`场景信息: 网格数=${scene.meshes.length}, 材质数=${scene.materials.length}`);
-}
+};
 
 // ---------- 粒子参数更新 ----------
 
-function updateFlameParams() {
+const updateFlameParams = () => {
   if (!flameCoreSystem || !flameOuterSystem || !smokeSystem || !sparkSystem) return;
 
   // 火焰内核
@@ -477,14 +475,14 @@ function updateFlameParams() {
       sys.noiseStrength = new BABYLON.Vector3(turbulence.value * 0.5, turbulence.value * 0.3, turbulence.value * 0.5);
     }
   });
-}
+};
 
 // 监听参数变化（使用 watch，每次滑块变化都实时更新）
 watch([flameEmitRate, flameSize, flameSpeed, smokeEmitRate, sparkEmitRate, turbulence], () => {
   updateFlameParams();
 });
 
-function resetParams() {
+const resetParams = () => {
   flameEmitRate.value = 200;
   flameSize.value = 0.8;
   flameSpeed.value = 1.5;
@@ -493,19 +491,19 @@ function resetParams() {
   turbulence.value = 3;
   addLog('参数已重置为默认值');
   updateFlameParams();
-}
+};
 
 // ---------- 渲染循环 ----------
 
-function runRenderLoop() {
+const runRenderLoop = () => {
   engine!.runRenderLoop(() => {
     scene!.render();
   });
-}
+};
 
-function onResize() {
+const onResize = () => {
   engine?.resize();
-}
+};
 
 // ---------- 生命周期 ----------
 

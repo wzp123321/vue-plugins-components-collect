@@ -184,7 +184,7 @@ const handleCreated = (editor) => {
 onBeforeUnmount(() => {
   editorRef.value?.destroy()
 })
-<\/script>`;
+<\u002fscript>`;
 
 const wangEditorConfig = `const editorConfig = {
   placeholder: '请输入内容...',

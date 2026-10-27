@@ -84,15 +84,13 @@ let galaxyGeometry: BufferGeometry | null = null;
 let galaxyMaterial: PointsMaterial | null = null;
 let scheduledRebuild = false;
 
-function formatNumber(n: number): string {
-  return n >= 10000 ? `${(n / 10000).toFixed(1)}万` : `${n}`;
-}
+const formatNumber = (n: number): string => (n >= 10000 ? `${(n / 10000).toFixed(1)}万` : `${n}`);
 
 /**
  * 生成对数螺旋臂的粒子坐标和颜色。
  * 对数螺旋极坐标方程：r(θ) = a * e^(b * θ)，并在每个粒子位置加入随机扰动。
  */
-function generateGalaxyParticles(count: number, arms: number, maxRadius: number): ParticleAttribute {
+const generateGalaxyParticles = (count: number, arms: number, maxRadius: number): ParticleAttribute => {
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
 
@@ -105,7 +103,7 @@ function generateGalaxyParticles(count: number, arms: number, maxRadius: number)
     const armIndex = i % arms;
     const armOffset = (armIndex / arms) * Math.PI * 2;
 
-    const r = innerEdge + Math.pow(Math.random(), 0.5) * (maxRadius - innerEdge);
+    const r = innerEdge + Math.random() ** 0.5 * (maxRadius - innerEdge);
     const theta = r * spiralTightness * (Math.random() * 0.6 + 0.7) + armOffset;
 
     const randomX = (Math.random() - 0.5) * randomness * 3;
@@ -129,14 +127,14 @@ function generateGalaxyParticles(count: number, arms: number, maxRadius: number)
   return { position: positions, color: colors };
 }
 
-function buildGalaxyGeometry(attrs: ParticleAttribute): BufferGeometry {
+const buildGalaxyGeometry = (attrs: ParticleAttribute): BufferGeometry => {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(attrs.position, 3));
   geometry.setAttribute('color', new BufferAttribute(attrs.color, 3));
   return geometry;
 }
 
-function buildGalaxy() {
+const buildGalaxy = () => {
   if (!ctx3d) return;
   const scene = ctx3d.scene;
 
@@ -163,12 +161,12 @@ function buildGalaxy() {
   infoText.value = `粒子数: ${formatNumber(count)} · 螺旋臂: ${arms} · 半径: ${radius}`;
 }
 
-function resetParams() {
+const resetParams = () => {
   controlParams.value = { speed: 0.5, count: 15000, size: 1.5, radius: 18, arms: 3 };
   scheduledRebuild = true;
 }
 
-function rebuildGalaxy() {
+const rebuildGalaxy = () => {
   scheduledRebuild = true;
 }
 

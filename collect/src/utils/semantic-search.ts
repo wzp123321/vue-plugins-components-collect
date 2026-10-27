@@ -137,12 +137,16 @@ const INTENT_ALIASES: Record<string, string[]> = {
   '/utils-advance': ['工具函数', '高级工具'],
 };
 
-/** 画像全文：定位 + 需求结论 + 落地要点，检索权重最高的自然语言面 */
-function profileText(profile: CapabilityProfile): string {
+/** 画像全文：定位 + 需求结论 + 落地要点 + 详细应用，检索权重最高的自然语言面 */
+const profileText = (profile: CapabilityProfile): string => {
+  const usage = profile.usage;
   return [
     profile.positioning,
     ...profile.needs.map((need) => `${need.text} ${need.comment ?? ''}`),
     ...(profile.notes ?? []),
+    usage?.install ?? '',
+    usage?.snippet ?? '',
+    ...(usage?.keyApi ?? []),
   ]
     .join(' ')
     .toLowerCase();
@@ -153,11 +157,27 @@ export interface ProfileHit {
   score: number;
 }
 
+/** 把查询词扩展成一组相关词（同义词 + 分词） */
+const expandTerms = (query: string): string[] => {
+  const lower = query.toLowerCase();
+  const tokens = lower.split(/[\s,，。、；;]+/).filter((t) => t.length > 0);
+  const terms = new Set<string>([lower, ...tokens]);
+
+  SYNONYM_GROUPS.forEach((group) => {
+    const hit = group.some(
+      (word) => lower.includes(word) || tokens.some((t) => t === word || word.includes(t)),
+    );
+    if (hit) group.forEach((w) => terms.add(w));
+  });
+
+  return [...terms];
+}
+
 /**
  * 画像检索：输入工作需求句，返回命中的能力条目。
  * 空查询返回全量（按配置顺序），供能力地图默认分组展示。
  */
-export function searchProfiles(keyword: string): ProfileHit[] {
+export const searchProfiles = (keyword: string): ProfileHit[] => {
   const query = keyword.trim();
   if (!query) return capabilityProfiles.map((profile) => ({ profile, score: 0 }));
 
@@ -166,9 +186,9 @@ export function searchProfiles(keyword: string): ProfileHit[] {
     .map((profile) => {
       const text = profileText(profile);
       let score = 0;
-      for (const term of terms) {
+      terms.forEach((term) => {
         if (term && text.includes(term)) score += 4;
-      }
+      });
       return { profile, score };
     })
     .filter((hit) => hit.score > 0);
@@ -180,24 +200,8 @@ export function searchProfiles(keyword: string): ProfileHit[] {
 /** path → 画像全文 的预编译索引（能力地图与检索共用） */
 const profileByText = new Map(capabilityProfiles.map((profile) => [profile.path, profile]));
 
-/** 把查询词扩展成一组相关词（同义词 + 分词） */
-function expandTerms(query: string): string[] {
-  const lower = query.toLowerCase();
-  const tokens = lower.split(/[\s,，。、；;]+/).filter((t) => t.length > 0);
-  const terms = new Set<string>([lower, ...tokens]);
-
-  for (const group of SYNONYM_GROUPS) {
-    const hit = group.some(
-      (word) => lower.includes(word) || tokens.some((t) => t === word || word.includes(t)),
-    );
-    if (hit) group.forEach((w) => terms.add(w));
-  }
-
-  return [...terms];
-}
-
 /** 本地语义检索：同义词扩展 + 加权打分，按相关度排序返回 */
-export function semanticSearch(keyword: string, items: FlatNavItem[]): FlatNavItem[] {
+export const semanticSearch = (keyword: string, items: FlatNavItem[]): FlatNavItem[] => {
   const query = keyword.trim();
   if (!query) return items;
 
@@ -215,15 +219,15 @@ export function semanticSearch(keyword: string, items: FlatNavItem[]): FlatNavIt
     const capT = profile ? profileText(profile) : '';
 
     let score = 0;
-    for (const term of terms) {
-      if (!term) continue;
+    terms.forEach((term) => {
+      if (!term) return;
       if (labelT.includes(term)) score += 3;
       if (aliasT.includes(term)) score += 4;
       if (capT.includes(term)) score += 4;
       if (sectionT.includes(term)) score += 2;
       if (groupT.includes(term)) score += 2;
       if (pathT.includes(term)) score += 1;
-    }
+    });
 
     if (score > 0) scored.push({ item, score, index });
   });

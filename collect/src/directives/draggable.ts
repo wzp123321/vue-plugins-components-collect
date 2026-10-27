@@ -1,5 +1,56 @@
 import { App } from 'vue';
 
+// 去除后缀
+const removeSuffix = (total: number, value: string, type: string) => {
+  let num = 0;
+  if (type === '%') {
+    num = (total / 100) * Number(value.substr(0, value.indexOf('%')));
+  }
+  if (type === 'px') {
+    num = Number(value.substr(0, value.indexOf('px')));
+  }
+  return num;
+};
+
+// 获取初始宽度
+const getInitialMarinTop = (el: HTMLElement) => {
+  const value = window.getComputedStyle(
+    ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
+    null,
+  ).marginTop;
+  let marginTop = 0;
+  if (value.indexOf('vh') !== -1) {
+    const clientHeight = document.documentElement.clientHeight;
+    const count = Number(value.substring(0, value.indexOf('vh')));
+    marginTop = (clientHeight / 100) * count;
+  }
+  if (value.indexOf('px') !== -1) {
+    marginTop = Number(value.substring(0, value.indexOf('px')));
+  }
+  return marginTop;
+};
+// 获取初始marginLeft
+const getInitialMarginLeft = (el: HTMLElement) => {
+  const value = window.getComputedStyle(
+    ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
+    null,
+  ).marginLeft;
+  const clientWidth = document.documentElement.scrollWidth;
+  let marginLeft = 0;
+  if (value === 'auto') {
+    const domWidth = window.getComputedStyle(
+      ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
+      null,
+    ).width;
+    const width = removeSuffix(clientWidth, domWidth, domWidth.indexOf('%') !== -1 ? '%' : 'px');
+    marginLeft = (clientWidth - width) / 2;
+  }
+  if (value.indexOf('px') !== -1) {
+    marginLeft = Number(value.substring(0, value.indexOf('px')));
+  }
+  return marginLeft;
+};
+
 const registrDrag = (app: App) => {
   /**
    * 弹框initial值 用于重置
@@ -8,7 +59,7 @@ const registrDrag = (app: App) => {
   let initailMarginTop = ' ';
   // 记录是否操作
   app.directive('drag', {
-    mounted(el, _binding) {
+    mounted(el) {
       // 弹窗的容器
       const domDrag = el.firstElementChild.firstElementChild.firstElementChild;
       // 记录拖拽开始的光标坐标，0 表示没有拖拽
@@ -53,8 +104,12 @@ const registrDrag = (app: App) => {
               .width.replace('px', '');
             // 初始位置 + 拖拽距离 不能低于0 不能超过屏幕宽度-弹框宽度
             let l = currentLeft + move.x;
-            l = l < 0 ? 0 : l > screenWidth - Number(domWidth) ? screenWidth - Number(domWidth) : l;
-            domDrag.style.marginLeft = l + 'px';
+            if (l < 0) {
+              l = 0;
+            } else if (l > screenWidth - Number(domWidth)) {
+              l = screenWidth - Number(domWidth);
+            }
+            domDrag.style.marginLeft = `${l}px`;
 
             // 窗口高度
             const screenHeight = document.documentElement.scrollHeight;
@@ -70,7 +125,7 @@ const registrDrag = (app: App) => {
             let t = currentTop + move.y;
             t = t > screenHeight - Number(domHeight) ? screenHeight - Number(domHeight) : t;
             t = t < 0 ? 0 : t;
-            domDrag.style.marginTop = t + 'px';
+            domDrag.style.marginTop = `${t}px`;
           };
           // 鼠标抬起，结束拖拽
           document.onmouseup = (upE: MouseEvent) => {
@@ -96,55 +151,6 @@ const registrDrag = (app: App) => {
       }, 100);
     },
   });
-};
-// 获取初始宽度
-const getInitialMarinTop = (el: HTMLElement) => {
-  const value = window.getComputedStyle(
-    ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
-    null,
-  ).marginTop;
-  let marginTop = 0;
-  if (value.indexOf('vh') !== -1) {
-    const clientHeight = document.documentElement.clientHeight;
-    const count = Number(value.substring(0, value.indexOf('vh')));
-    marginTop = (clientHeight / 100) * count;
-  }
-  if (value.indexOf('px') !== -1) {
-    marginTop = Number(value.substring(0, value.indexOf('px')));
-  }
-  return marginTop;
-};
-// 获取初始marginLeft
-const getInitialMarginLeft = (el: HTMLElement) => {
-  const value = window.getComputedStyle(
-    ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
-    null,
-  ).marginLeft;
-  const clientWidth = document.documentElement.scrollWidth;
-  let marginLeft = 0;
-  if (value === 'auto') {
-    const domWidth = window.getComputedStyle(
-      ((el.firstElementChild as HTMLElement).firstElementChild as HTMLElement).firstElementChild as HTMLElement,
-      null,
-    ).width;
-    const width = removeSuffix(clientWidth, domWidth, domWidth.indexOf('%') !== -1 ? '%' : 'px');
-    marginLeft = (clientWidth - width) / 2;
-  }
-  if (value.indexOf('px') !== -1) {
-    marginLeft = Number(value.substring(0, value.indexOf('px')));
-  }
-  return marginLeft;
-};
-// 去除后缀
-const removeSuffix = (total: number, value: string, type: string) => {
-  let num = 0;
-  if (type === '%') {
-    num = (total / 100) * Number(value.substr(0, value.indexOf('%')));
-  }
-  if (type === 'px') {
-    num = Number(value.substr(0, value.indexOf('px')));
-  }
-  return num;
 };
 
 export default registrDrag;

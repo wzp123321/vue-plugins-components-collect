@@ -10,14 +10,14 @@ export const useTree = () => {
   // 展开节点
   const expandedKeys = ref<number[]>([]);
   // 初始化
-  const initTreeChecked = (checked: number[], _expanded: number[]) => {
+  const initTreeChecked = (checked: number[]) => {
     treeCheckedKeys.value = [...checked];
     expandedKeys.value = [...checked];
   };
   // 节点选择
   const handleCheckChange = (checked: number[]) => {
     treeCheckedKeys.value = [...checked];
-    treeRef.value && treeRef.value?.setCheckedKeys(treeCheckedKeys.value);
+    if (treeRef.value) treeRef.value?.setCheckedKeys(treeCheckedKeys.value);
   };
 
   return {

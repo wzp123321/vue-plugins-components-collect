@@ -1,5 +1,5 @@
 <template>
-  <div class="mulit-line-chart">
+  <div class="multi-line-chart">
     <!-- 图例 -->
     <section class="mlc-legend">
       <div class="mlc-legend-container">
@@ -13,13 +13,13 @@
             <span class="is-icon" :style="{ background: item.color }"></span>
             <span class="is-name">{{ item.name }}</span>
           </template>
-          <template v-if="item.icon === EMcLegendType.实线" @click="handleLegendClick(item)">
+          <template v-if="item.icon === EMcLegendType.实线">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="5" width="10" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
             </svg>
             <span class="is-name">{{ item.name }}</span>
           </template>
-          <template v-if="item.icon === EMcLegendType.虚线" @click="handleLegendClick(item)">
+          <template v-if="item.icon === EMcLegendType.虚线">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="5" width="4" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
               <rect x="7" y="5" width="4" height="2" :fill="item.selected ? item.color : '#D8D8D8'" />
@@ -45,14 +45,14 @@
 import { onUnmounted, onMounted, ref, nextTick } from 'vue';
 import { useEChartsInit } from '@/hooks';
 import { IconCaretLeft, IconCaretRight } from '@arco-iconbox/vue-te';
-import {
+import type {
   EChartsOption,
-  EChartsType,
   LegendComponentOption,
   TooltipComponentOption,
   XAXisComponentOption,
   YAXisComponentOption,
 } from 'echarts';
+import type { EChartsType } from '@/config/echarts/setup';
 import {
   EMcEnergyTrendAnalysisType,
   EMcLegendType,
@@ -85,25 +85,19 @@ const checkedTypeList = [
 // 图例
 const legendList = ref<IMcCustomLegend[]>([]);
 
-let chartInstance: EChartsType | undefined = undefined;
+let chartInstance: EChartsType | undefined;
 const { chartRef, initCharts, resize, removeResize } = useEChartsInit();
-const mapColors = () => {
-  return (mockData.workdayBar ?? [])?.map((_item, index) => {
-    return barChartColors[index % barChartColors.length];
-  });
-};
+const mapColors = () => (mockData.workdayBar ?? [])?.map((_item, index) => barChartColors[index % barChartColors.length]);
 /**
  * 图例
  */
 const mapLegendData = () => {
-  const groupLegendList = (mockData.workdayBar ?? []).map((_item, index) => {
-    return {
+  const groupLegendList = (mockData.workdayBar ?? []).map((_item, index) => ({
       name: `稳定区间${index + 1}`,
       icon: EMcLegendType.正方形,
       color: mapColors()[index],
       selected: true,
-    };
-  });
+    }));
   const markLineLegends: IMcCustomLegend[] = [
     {
       name: '推荐参考值',
@@ -184,14 +178,14 @@ const mapTooltip = (): TooltipComponentOption => ({
   axisPointer: {
     type: 'shadow',
   },
-  formatter: function (params: any) {
+  formatter (params: any) {
     let content = '';
     params?.forEach((item: any) => {
-      content += `<div><span>${item?.data?.groupName ? item?.data?.groupName + '：' : ''}</span><span>${
+      content += `<div><span>${item?.data?.groupName ? `${item?.data?.groupName  }：` : ''}</span><span>${
         thousandSeparation(item?.data?.value) ?? ''
       }</span></div>`;
     });
-    let htmlStr = `<div>
+    const htmlStr = `<div>
           <div>${params?.[0]?.axisValueLabel}</div>
           ${content}
         </div>`;
@@ -213,9 +207,7 @@ const mapXAxis = (xAxisData: string[]): XAXisComponentOption => ({
     color: 'rgba(0, 0, 0,0.85)',
     margin: 16,
     fontSize: 12,
-    formatter: (value: any) => {
-      return formatDate(new Date(value), 'MM-DD');
-    },
+    formatter: (value: any) => formatDate(new Date(value), 'MM-DD'),
   },
   // 刻度
   axisTick: {
@@ -240,17 +232,17 @@ const mapYAxisValue = () => {
   if (mockData.workdayRecommendUpper !== '' && mockData.workdayRecommendUpper !== null) {
     list.push(Number(mockData.workdayRecommendUpper));
   }
-  let cloneBarData =
+  const cloneBarData =
     cloneDeep(mockData.workdayBarData?.[1])
       ?.filter((item) => item !== null && item !== '')
       ?.map((item) => Number(item)) ?? [];
   list = [...list, ...cloneBarData];
-  let cloneLineData1 =
+  const cloneLineData1 =
     cloneDeep(mockData.workdayLineBar?.[0])
       ?.filter((item) => item !== null && item !== '')
       ?.map((item) => Number(item)) ?? [];
   list = [...list, ...cloneLineData1];
-  let cloneLineData2 =
+  const cloneLineData2 =
     cloneDeep(mockData.workdayLineBar?.[1])
       ?.filter((item) => item !== null && item !== '')
       ?.map((item) => Number(item)) ?? [];
@@ -286,13 +278,13 @@ const mapYAxis = (): YAXisComponentOption => ({
   },
 });
 const mapShowMarkLineList = (markLineColors: string[]) => {
-  let list: any[] = [];
+  const list: any[] = [];
   const mapMarkLineOption = (name: string, color: string, value: string) => ({
     name,
     yAxis: value !== null ? Number(value) : null,
     show: false,
     lineStyle: {
-      color: color,
+      color,
       width: 1,
       type: 'dashed',
     },
@@ -456,14 +448,14 @@ onMounted(async () => {
   if (chartRef.value) {
     mapLegendData();
     await nextTick();
-    const width = document.querySelector('.mulit-line-chart')?.clientWidth;
+    const width = document.querySelector('.multi-line-chart')?.clientWidth;
     init(legendList.value, width as number, 24);
     const options = mapChartOptions();
     chartInstance = initCharts(options) as EChartsType;
 
     window.addEventListener('resize', () => {
       resize();
-      const width = document.querySelector('.mulit-line-chart')?.clientWidth;
+      const width = document.querySelector('.multi-line-chart')?.clientWidth;
       init(legendList.value, width as number, 24);
     });
   }
@@ -471,7 +463,7 @@ onMounted(async () => {
 onUnmounted(() => {
   removeResize();
   window.removeEventListener('resize', () => {
-    const width = document.querySelector('.mulit-line-chart')?.clientWidth;
+    const width = document.querySelector('.multi-line-chart')?.clientWidth;
     init(legendList.value, width as number, 24);
   });
 });
@@ -479,7 +471,7 @@ onUnmounted(() => {
 defineExpose({ handleRefresh });
 </script>
 <style lang="less" scoped>
-.mulit-line-chart {
+.multi-line-chart {
   width: 100%;
   position: relative;
 

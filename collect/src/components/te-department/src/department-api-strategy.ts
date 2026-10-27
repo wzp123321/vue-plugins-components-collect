@@ -23,15 +23,13 @@ const standardStrategy: DepartmentApiStrategy = {
 
 const cloudStrategy: DepartmentApiStrategy = {
   mode: 'cloud',
-  loadChildren: async () => {
-    // 模拟云端
-    return new Promise((resolve) => {
+  // 模拟云端
+  loadChildren: async () =>
+    new Promise((resolve) => {
       setTimeout(() => resolve([]), 200);
-    });
-  },
+    }),
   search: async () => [],
 };
 
-export function getDepartmentApiByMode(mode: 'standard' | 'cloud'): DepartmentApiStrategy {
-  return mode === 'cloud' ? cloudStrategy : standardStrategy;
-}
+export const getDepartmentApiByMode = (mode: 'standard' | 'cloud'): DepartmentApiStrategy =>
+  mode === 'cloud' ? cloudStrategy : standardStrategy;

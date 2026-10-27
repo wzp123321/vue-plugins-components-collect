@@ -48,7 +48,7 @@ const syncToColumn = () => {
     list.forEach((f: any) => {
       const on = picked.value.includes(f.value);
       f.checked = on;
-      f._checked = on;
+      Object.assign(f, { _checked: on });
     });
   } else {
     const v = text.value.trim();

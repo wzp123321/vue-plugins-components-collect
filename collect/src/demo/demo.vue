@@ -199,9 +199,6 @@ const progressPercent = computed(() => {
   if (!chunks.value.length) return 0;
   return Math.min(100, Math.round(((chunkIndex.value + 1) / chunks.value.length) * 100));
 });
-// 持有当前 utterance 引用，避免被 GC（Chrome 已知行为）
-// @ts-expect-error TS6133 - 通过闭包副作用保留引用，TS 无法识别
-let currentUtter: SpeechSynthesisUtterance | null = null;
 // 用户主动停止后，阻止 onend / onerror 继续自动播放下一段
 let userStopped = false;
 
@@ -246,19 +243,19 @@ const splitText = (raw: string, maxLen = 80): string[] => {
   const parts = trimmed.match(/[^。！？.!?\n]+[。！？.!?\n]?/g) || [trimmed];
   const result: string[] = [];
   let cur = '';
-  for (const p of parts) {
+  parts.forEach((p) => {
     if ((cur + p).length > maxLen && cur) {
       result.push(cur);
       cur = p;
     } else {
       cur += p;
     }
-  }
+  });
   if (cur) result.push(cur);
   return result;
 };
 
-const setUtterance = (u: SpeechSynthesisUtterance, idx: number) => {
+const setUtterance = (u: SpeechSynthesisUtterance, idx: number, next: (i: number) => void) => {
   const voice = getSelectedVoice();
   if (voice) u.voice = voice;
   u.lang = voice?.lang || 'zh-CN';
@@ -280,7 +277,7 @@ const setUtterance = (u: SpeechSynthesisUtterance, idx: number) => {
   };
   u.onend = () => {
     if (userStopped) return;
-    speakChunkAt(idx + 1);
+    next(idx + 1);
   };
   u.onerror = (e) => {
     if (userStopped) return;
@@ -288,7 +285,7 @@ const setUtterance = (u: SpeechSynthesisUtterance, idx: number) => {
       lastError.value = `${e.error || '未知错误'}`;
     }
     if (e.error === 'canceled' || e.error === 'interrupted') return;
-    speakChunkAt(idx + 1);
+    next(idx + 1);
   };
 };
 
@@ -296,13 +293,11 @@ const speakChunkAt = (idx: number) => {
   if (idx >= chunks.value.length) {
     status.value = 'idle';
     chunkIndex.value = 0;
-    currentUtter = null;
     return;
   }
   chunkIndex.value = idx;
   const u = new SpeechSynthesisUtterance(chunks.value[idx]);
-  setUtterance(u, idx);
-  currentUtter = u;
+  setUtterance(u, idx, speakChunkAt);
   window.speechSynthesis.speak(u);
 };
 
@@ -346,7 +341,6 @@ const stop = () => {
   status.value = 'idle';
   chunkIndex.value = 0;
   chunks.value = [];
-  currentUtter = null;
 };
 
 let voicesHandler: (() => void) | null = null;
@@ -373,7 +367,6 @@ onBeforeUnmount(() => {
     userStopped = true;
     window.speechSynthesis.cancel();
   }
-  currentUtter = null;
 });
 </script>
 

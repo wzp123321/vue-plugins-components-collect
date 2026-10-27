@@ -33,7 +33,9 @@ const resolution = new THREE.Vector2(1, 1)
  * userData.shared 标记，供 dispose.ts 跳过释放（跨层级复用）。
  */
 const createLineMaterial = (options: Record<string, unknown>): LineMaterial => {
-  const material = new (LineMaterial as any)({ ...options, resolution: resolution.clone() }) as LineMaterial
+  // fog:false —— 飞线 / 边界线为高亮元素，开启场景雾后应始终保持清晰，
+  // 不被大气雾吞掉；纵深感由地块顶面（受光材质）承接即可。
+  const material = new (LineMaterial as any)({ ...options, resolution: resolution.clone(), fog: false }) as LineMaterial
   ;(material as any).userData = { shared: true }
   return material
 };
@@ -90,7 +92,8 @@ export const getOutlineGlowMaterial = (): LineMaterial => {
 /** 视口尺寸变化：同步所有 Line2 材质的分辨率，否则线宽会错乱 */
 export const setLineResolution = (width: number, height: number) => {
   resolution.set(width, height)
-  for (const material of [innerLine, outline, outlineGlow]) {
+  const materials = [innerLine, outline, outlineGlow]
+  materials.forEach((material) => {
     if (material?.resolution) material.resolution.set(width, height)
-  }
+  })
 };

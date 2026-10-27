@@ -126,14 +126,12 @@ const exportData = ref([
   },
 ]);
 
-const getSecondLevelHeaders = () => {
-  return [
-    { name: '序号', colSpan: 1, rowSpan: 2 },
-    { name: '对象', colSpan: 1, rowSpan: 2 },
-    { name: '总成本', colSpan: 1, rowSpan: 2 },
-    { name: '分项成本', colSpan: testTableData.title?.length, rowSpan: 1 }, // 合并4列
-  ];
-};
+const getSecondLevelHeaders = () => [
+  { name: '序号', colSpan: 1, rowSpan: 2 },
+  { name: '对象', colSpan: 1, rowSpan: 2 },
+  { name: '总成本', colSpan: 1, rowSpan: 2 },
+  { name: '分项成本', colSpan: testTableData.title?.length, rowSpan: 1 }, // 合并4列
+];
 
 const exportExcel = async () => {
   // 创建工作簿
@@ -197,7 +195,7 @@ const exportExcel = async () => {
     { width: 20 }, // 序号
     { width: 40 }, // 对象
     { width: 30 }, // 总成本
-    ...testTableData.title?.map((item) => ({ width: 30 })),
+    ...(testTableData.title ?? []).map(() => ({ width: 30 })),
   ];
 
   // 设置边框

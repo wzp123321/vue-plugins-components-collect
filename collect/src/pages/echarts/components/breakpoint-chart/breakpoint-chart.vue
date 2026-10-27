@@ -5,7 +5,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, computed } from 'vue';
-import { init } from 'echarts';
+import { init } from '@/config/echarts/setup';
 
 import { echartsConstant, echartsOption, echartsUtils } from '../../../../config/echarts/index';
 import { thousandSeparation } from '../../../../utils/index';
@@ -14,10 +14,8 @@ const customChartId = computed(() => `charts_${(Math.random() * 1000).toFixed(0)
 
 let echartIns: any;
 
-function getXaxisData() {
-  return ['2022-10-01', '2022-10-02', '2022-10-03', '2022-10-04', '2022-10-05', '2022-10-06'];
-}
-function getEchartsOptions() {
+const getXaxisData = () => ['2022-10-01', '2022-10-02', '2022-10-03', '2022-10-04', '2022-10-05', '2022-10-06'];
+const getEchartsOptions = () => {
   const unit = 'px';
   const actualValueList: (number | null)[] = [222, 342, 1245, null, 543, null];
   const averageValueList: (number | null)[] = [122, 542, 345, null, null, 233];
@@ -160,8 +158,8 @@ function getEchartsOptions() {
   };
 
   return options;
-}
-function initEcharts() {
+};
+const initEcharts = () => {
   const ele = document.getElementById(customChartId.value);
   if (!ele) {
     return;
@@ -169,7 +167,7 @@ function initEcharts() {
   echartIns = init(ele);
   echartIns.clear();
   echartIns.setOption(getEchartsOptions());
-}
+};
 
 onMounted(() => {
   initEcharts();

@@ -10,6 +10,17 @@ import type { Ref } from 'vue';
 import type { GridCore } from './useGridCore';
 import type { Row } from '../types';
 
+/**
+ * 行主键读取助手。
+ * ⚠️ __id 是 vxe-table 消费的行字段（即页面 :row-config 的 keyField，DOM tr 的 rowid 即其编码值），
+ * 属性名属外部约定、不可重命名；经解构读取，键名与语义不变，同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+
 /** 选区中的一个单元格坐标：rowId 对应 DOM tr 的 rowid（= keyField 编码值），field 对应列的 field（经 colid 换算） */
 export interface SelCell {
   rowId: string;
@@ -46,7 +57,7 @@ export interface SelRect {
  * @param tableRef vxe 实例（getColumnById 把 colid 换 field）
  * @param gridWrapper 网格容器（mousedown 绑在此，避免空白区误触）
  */
-export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper: Ref<HTMLElement | undefined>) {
+export const useCellSelection = (core: GridCore, tableRef: Ref<any>, gridWrapper: Ref<HTMLElement | undefined>) => {
   // anchor：选区基准格（鼠标按下格 / Shift 扩展时的固定端）；focus：选区的移动端
   const anchor = ref<SelCell | null>(null);
   const focus = ref<SelCell | null>(null);
@@ -60,7 +71,7 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   // rowId → processedRows 下标：拖选时只做 O(1) 查表；只有 processedRows 变化（增删行/查询）时才重建
   const rowIndexMap = computed(() => {
     const m = new Map<string, number>();
-    core.processedRows.value.forEach((r, i) => m.set(r.__id, i));
+    core.processedRows.value.forEach((r, i) => m.set(rowIdOf(r), i));
     return m;
   });
 
@@ -218,9 +229,9 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     if (!fields.length) return;
     anchor.value = { rowId, field: fields[0] };
     focus.value = { rowId, field: fields[fields.length - 1] };
-    const row = core.processedRows.value.find((r) => r.__id === rowId);
+    const row = core.processedRows.value.find((r) => rowIdOf(r) === rowId);
     const cur = core.currentCell.value;
-    if (row && (!cur || cur.row.__id !== rowId || cur.field !== fields[0])) {
+    if (row && (!cur || rowIdOf(cur.row) !== rowId || cur.field !== fields[0])) {
       keepSelection = true;
       core.currentCell.value = { row, field: fields[0] };
     }
@@ -234,10 +245,10 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
   const selectColumn = (field: string) => {
     const rows = core.processedRows.value;
     if (!rows.length) return;
-    anchor.value = { rowId: rows[0].__id, field };
-    focus.value = { rowId: rows[rows.length - 1].__id, field };
+    anchor.value = { rowId: rowIdOf(rows[0]), field };
+    focus.value = { rowId: rowIdOf(rows[rows.length - 1]), field };
     const cur = core.currentCell.value;
-    if (!cur || cur.row.__id !== rows[0].__id || cur.field !== field) {
+    if (!cur || rowIdOf(cur.row) !== rowIdOf(rows[0]) || cur.field !== field) {
       keepSelection = true;
       core.currentCell.value = { row: rows[0], field };
     }
@@ -251,7 +262,7 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
    */
   const setCurrentKeepSel = (row: any, field: string) => {
     const cur = core.currentCell.value;
-    if (!cur || cur.row.__id !== row.__id || cur.field !== field) {
+    if (!cur || rowIdOf(cur.row) !== rowIdOf(row) || cur.field !== field) {
       keepSelection = true;
       core.currentCell.value = { row, field };
     }
@@ -270,10 +281,10 @@ export function useCellSelection(core: GridCore, tableRef: Ref<any>, gridWrapper
     if (suppressCollapseOnce) {
       suppressCollapseOnce = false;
       // 仅当点击恰好落在拖选的 focus 格上时才跳过塌缩（浏览器 click 行为）；否则视为过期，继续正常同步
-      if (c.row.__id === focus.value?.rowId && c.field === focus.value?.field) return;
+      if (rowIdOf(c.row) === focus.value?.rowId && c.field === focus.value?.field) return;
     }
-    if (shiftDown && anchor.value) extendTo(c.row.__id, c.field);
-    else collapseTo(c.row.__id, c.field);
+    if (shiftDown && anchor.value) extendTo(rowIdOf(c.row), c.field);
+    else collapseTo(rowIdOf(c.row), c.field);
   });
 
   // ===================== DOM 事件 =====================

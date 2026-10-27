@@ -24,7 +24,7 @@
     <section class="pcg-content">
       <div class=""><span @click="props.groupInfo.addCondition">判断条件</span></div>
       <div class=""><span>计算公式</span></div>
-      <template v-for="item in props.groupInfo.conditionList">
+      <template v-for="item in props.groupInfo.conditionList" :key="item.id">
         <pdfExpressionContainer v-model="item.judgementConditionList"></pdfExpressionContainer>
         <pdfExpressionContainer v-model="item.judgementConditionList"></pdfExpressionContainer>
       </template>

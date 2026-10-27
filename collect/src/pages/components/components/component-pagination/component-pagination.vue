@@ -69,6 +69,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref, watch, onMounted, PropType } from 'vue';
+
 defineOptions({
   name: 'ComponentPagination',
 });
@@ -91,48 +92,44 @@ const props = defineProps({
   },
   pageSizes: {
     type: Array as PropType<number[]>,
-    default: [10, 20, 30, 40, 50],
+    default: () => [10, 20, 30, 40, 50],
   },
 });
 // 总数
-const total = computed(() => {
-  return props.total;
-});
+const total = computed(() => props.total);
 // 下拉
-const pageSizeOptions = computed(() => {
-  return props.pageSizes.map((v) => {
-    return { label: `${v}条/页`, value: v };
-  });
-});
+const pageSizeOptions = computed(() =>
+  props.pageSizes.map((v) => ({ label: `${v}条/页`, value: v })),
+);
 
 const index = ref<number>(1);
 const size = ref<number>(props.pageSizes?.[0] ?? 10);
 const isJumpLeftActive = ref<boolean>(false);
 const isJumpRightActive = ref<boolean>(false);
 // 总页数
-const pageCount = () => {
-  return Math.ceil(props.total / props.pageSize);
-};
+const pageCount = () => Math.ceil(props.total / props.pageSize);
 /**
  * 设置页码
  */
 const setIndex = (v: number) => {
-  index.value = v < 1 ? 1 : v > pageCount() ? pageCount() : v;
+  if (v < 1) {
+    index.value = 1;
+  } else if (v > pageCount()) {
+    index.value = pageCount();
+  } else {
+    index.value = v;
+  }
   emit('update:currentPage', index.value);
   emit('current-change', index.value);
 };
 /**
  * 是否可减页码
  */
-const canLeft = (): boolean => {
-  return index.value > 1;
-};
+const canLeft = (): boolean => index.value > 1;
 /**
  * 是否可加页码
  */
-const canRight = (): boolean => {
-  return index.value < pageCount();
-};
+const canRight = (): boolean => index.value < pageCount();
 /**
  * 是否左可跳多页
  */
@@ -157,17 +154,16 @@ const canJumpRight = () => {
  * 过去页码数组
  */
 const pageList = (): number[] => {
-  if (pageCount() > 7) {
-    if (index.value < 4) {
-      return [2, 3, 4, 5];
-    } else if (pageCount() - 3 < index.value) {
-      return [pageCount() - 4, pageCount() - 3, pageCount() - 2, pageCount() - 1];
-    } else {
-      return [index.value - 2, index.value - 1, index.value, index.value + 1, index.value + 2];
-    }
-  } else {
+  if (pageCount() <= 7) {
     return Array.from({ length: pageCount() - 2 }, (_v, k) => k + 2);
   }
+  if (index.value < 4) {
+    return [2, 3, 4, 5];
+  }
+  if (pageCount() - 3 < index.value) {
+    return [pageCount() - 4, pageCount() - 3, pageCount() - 2, pageCount() - 1];
+  }
+  return [index.value - 2, index.value - 1, index.value, index.value + 1, index.value + 2];
 };
 /**
  * 跳页
@@ -201,6 +197,18 @@ const handleKeyDown = (e: Event | KeyboardEvent) => {
   if (e.target) {
     (e.target as HTMLInputElement)?.blur();
   }
+};
+/**
+ * 校验输入框是否合法
+ */
+const checkJumpVerification = (value: string) => {
+  const reg = /^-?[0-9]+$/;
+  const min = 1;
+  const max = pageCount();
+  if (reg.test(value)) {
+    return !(+value < (min ?? undefined)) && !(+value > (max ?? undefined));
+  }
+  return false;
 };
 /**
  * 跳转指定页码
@@ -237,18 +245,6 @@ const setJumpLeftActive = (state: boolean) => {
 };
 const setJumpRightActive = (state: boolean) => {
   isJumpRightActive.value = state;
-};
-/**
- * 校验输入框是否合法
- */
-const checkJumpVerification = (value: string) => {
-  const reg = new RegExp(/^\-?[0-9]+$/);
-  const min = 1;
-  const max = pageCount();
-  if (reg.test(value)) {
-    return !(+value < (min ?? undefined)) && !(+value > (max ?? undefined));
-  }
-  return false;
 };
 watch(
   () => props.pageSize,

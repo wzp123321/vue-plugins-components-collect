@@ -230,19 +230,18 @@ const deleteId = ref(1);
 const queryId = ref(1);
 const queryCategory = ref('');
 
-function getTime() {
+const getTime = () => {
   const d = new Date();
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
 }
 
-function log(msg: string, status = 'ok') {
+const log = (msg: string, status = 'ok') => {
   opLogs.value.unshift({ time: getTime(), status, msg });
   if (opLogs.value.length > 20) opLogs.value.pop();
 }
 
 // 打开数据库
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+const openDB = (): Promise<IDBDatabase> => new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const db = (e.target as IDBOpenDBRequest).result;
@@ -255,80 +254,73 @@ function openDB(): Promise<IDBDatabase> {
     req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
     req.onerror = (e) => reject((e.target as IDBOpenDBRequest).error);
   });
-}
 
 // 增
-function add(data: Omit<Product, 'id'>): Promise<number> {
-  return new Promise((resolve, reject) => {
+const add = (data: Omit<Product, 'id'>): Promise<number> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readwrite');
     const req = tx.objectStore(STORE_NAME).add(data);
     req.onsuccess = () => resolve(req.result as number);
     req.onerror = () => reject(req.error);
   });
-}
 
 // 删
-function remove(id: number): Promise<void> {
-  return new Promise((resolve, reject) => {
+const remove = (id: number): Promise<void> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readwrite');
     const req = tx.objectStore(STORE_NAME).delete(id);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
-}
 
 // 改
-function update(data: Product): Promise<void> {
-  return new Promise((resolve, reject) => {
+const update = (data: Product): Promise<void> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readwrite');
     const req = tx.objectStore(STORE_NAME).put(data);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
-}
 
 // 查全部
-function getAll(): Promise<Product[]> {
-  return new Promise((resolve, reject) => {
+const getAll = (): Promise<Product[]> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readonly');
     const req = tx.objectStore(STORE_NAME).getAll();
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
-}
 
 // 查单个
-function getById(id: number): Promise<Product | undefined> {
-  return new Promise((resolve, reject) => {
+const getById = (id: number): Promise<Product | undefined> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readonly');
     const req = tx.objectStore(STORE_NAME).get(id);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
-}
 
 // 按索引查
-function getByIndex(indexName: string, value: string): Promise<Product[]> {
-  return new Promise((resolve, reject) => {
+const getByIndex = (indexName: string, value: string): Promise<Product[]> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readonly');
     const idx = tx.objectStore(STORE_NAME).index(indexName);
     const req = idx.getAll(value);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
-}
 
 // 清空
-function clearStore(): Promise<void> {
-  return new Promise((resolve, reject) => {
+const clearStore = (): Promise<void> => new Promise((resolve, reject) => {
     const tx = db!.transaction(STORE_NAME, 'readwrite');
     const req = tx.objectStore(STORE_NAME).clear();
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
+
+const queryAll = async () => {
+  if (!db) return;
+  const data = await getAll();
+  tableData.value = data;
+  recordCount.value = data.length;
+  log(`查询全部，共 ${data.length} 条`);
 }
 
-async function initDB() {
+const initDB = async () => {
   dbLoading.value = true;
   try {
     db = await openDB();
@@ -344,8 +336,11 @@ async function initDB() {
   }
 }
 
-async function addRecord() {
-  if (!form.value.name) return ElMessage.warning('请输入商品名称');
+const addRecord = async () => {
+  if (!form.value.name) {
+    ElMessage.warning('请输入商品名称');
+    return;
+  }
   try {
     const id = await add({ ...form.value, createdAt: new Date().toLocaleString() });
     log(`新增成功 ID=${id}，商品：${form.value.name}`);
@@ -364,11 +359,16 @@ const batchItems = [
   { name: '橙子', price: 8.8, stock: 120, category: 'fruit' },
 ];
 
-async function addBatchRecords() {
+const addBatchRecords = async () => {
   try {
-    for (const item of batchItems) {
-      await add({ ...item, createdAt: new Date().toLocaleString() });
-    }
+    // 顺序执行，保证自增 ID 与数组顺序一致
+    await batchItems.reduce<Promise<void>>(
+      (chain, item) =>
+        chain.then(async () => {
+          await add({ ...item, createdAt: new Date().toLocaleString() });
+        }),
+      Promise.resolve(),
+    );
     log('批量添加 5 条成功');
     ElMessage.success('批量添加成功');
     await queryAll();
@@ -377,10 +377,13 @@ async function addBatchRecords() {
   }
 }
 
-async function updateRecord() {
+const updateRecord = async () => {
   try {
     const record = await getById(updateId.value);
-    if (!record) return ElMessage.warning(`ID=${updateId.value} 不存在`);
+    if (!record) {
+      ElMessage.warning(`ID=${updateId.value} 不存在`);
+      return;
+    }
     record.price = updatePrice.value;
     record.stock = updateStock.value;
     await update(record);
@@ -392,7 +395,7 @@ async function updateRecord() {
   }
 }
 
-async function deleteRecord() {
+const deleteRecord = async () => {
   try {
     await remove(deleteId.value);
     log(`删除 ID=${deleteId.value}`);
@@ -403,7 +406,7 @@ async function deleteRecord() {
   }
 }
 
-async function deleteById(id: number) {
+const deleteById = async (id: number) => {
   try {
     await remove(id);
     log(`删除 ID=${id}`);
@@ -413,25 +416,19 @@ async function deleteById(id: number) {
   }
 }
 
-async function clearAll() {
+const clearAll = async () => {
   try {
     await ElMessageBox.confirm('确定清空所有数据吗？', '警告', { type: 'warning' });
     await clearStore();
     log('清空全部数据');
     ElMessage.success('已清空');
     await queryAll();
-  } catch {}
+  } catch {
+    // 用户取消确认框，无需处理
+  }
 }
 
-async function queryAll() {
-  if (!db) return;
-  const data = await getAll();
-  tableData.value = data;
-  recordCount.value = data.length;
-  log(`查询全部，共 ${data.length} 条`);
-}
-
-async function queryById() {
+const queryById = async () => {
   const record = await getById(queryId.value);
   if (record) {
     tableData.value = [record];
@@ -443,8 +440,11 @@ async function queryById() {
   }
 }
 
-async function queryByCategory() {
-  if (!queryCategory.value) return queryAll();
+const queryByCategory = async () => {
+  if (!queryCategory.value) {
+    await queryAll();
+    return;
+  }
   const data = await getByIndex('category', queryCategory.value);
   tableData.value = data;
   log(`按分类「${queryCategory.value}」查询，共 ${data.length} 条`);

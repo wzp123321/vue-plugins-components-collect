@@ -4,7 +4,7 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted } from 'vue';
 import { useEChartsInit } from '@/hooks';
-import { EChartsOption } from 'echarts';
+import type { EChartsOption } from 'echarts';
 
 defineOptions({ name: 'MarkAreaChart' });
 

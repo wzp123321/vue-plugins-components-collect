@@ -107,7 +107,7 @@ onMounted(() => {
   });
 });
 
-function switchMode(mode: ViewMode) {
+const switchMode = (mode: ViewMode) => {
   currentMode.value = mode;
   gantt?.change_view_mode(mode);
 }

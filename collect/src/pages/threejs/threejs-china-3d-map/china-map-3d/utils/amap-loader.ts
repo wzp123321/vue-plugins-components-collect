@@ -44,9 +44,7 @@ const provinceLoaders = import.meta.glob('/src/assets/geojson/province/*.json')
  * - 各省市级数据：懒加载 src/assets/geojson/province/{adcode}.json
  * - 市 → 区县级数据：本地缺失时走 DataV CDN 兜底
  */
-export const fetchChinaGeoJson = async (): Promise<GeoJsonType> => {
-  return chinaJson as unknown as GeoJsonType
-};
+export const fetchChinaGeoJson = async (): Promise<GeoJsonType> => chinaJson as unknown as GeoJsonType
 
 /**
  * 加载某 adcode 的下一级数据：先看 import.meta.glob 注册的本地加载器，失败 /
@@ -98,9 +96,7 @@ export const fetchDistrictGeoJson = async (adcode: string): Promise<GeoJsonType>
 };
 
 /** 该 adcode 的数据是否已在缓存中（用于判断是否值得预取） */
-export const isDistrictCached = (adcode: string): boolean => {
-  return cache.has(adcode)
-};
+export const isDistrictCached = (adcode: string): boolean => cache.has(adcode)
 
 /**
  * 后台预取：不抛错、不阻塞，命中缓存直接跳过。
@@ -108,7 +104,8 @@ export const isDistrictCached = (adcode: string): boolean => {
  */
 export const prefetchDistrictGeoJson = (adcode: string): void => {
   if (!adcode || cache.has(adcode) || inflight.has(adcode)) return
-  void fetchDistrictGeoJson(adcode).catch(() => undefined)
+  // 后台预取：结果无需等待，只吞掉可能的网络异常，避免未处理拒绝
+  fetchDistrictGeoJson(adcode).catch(() => undefined)
 };
 
 /** 清空数据缓存与并发记录（切换 / 重置地图时调用） */

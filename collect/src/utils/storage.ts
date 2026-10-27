@@ -3,7 +3,7 @@
  * @param key
  * @param value
  */
-export function FSetStorageData(key: string, value?: string): void {
+export const FSetStorageData = (key: string, value?: string): void => {
   window.sessionStorage.setItem(key, encodeURIComponent(value ?? ''));
 }
 /**
@@ -11,6 +11,4 @@ export function FSetStorageData(key: string, value?: string): void {
  * @param key
  * @returns
  */
-export function FGetStorageData(key: string): string | null {
-  return window.sessionStorage.getItem(key);
-}
+export const FGetStorageData = (key: string): string | null => window.sessionStorage.getItem(key);

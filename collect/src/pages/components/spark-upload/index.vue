@@ -51,7 +51,7 @@ interface Log {
 
 const logs = ref<Log[]>([]);
 
-function addLog(message: string, type: Log['type'] = 'info') {
+const addLog = (message: string, type: Log['type'] = 'info') => {
   const now = new Date();
   const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
   logs.value.unshift({ time, message, type });
@@ -60,27 +60,29 @@ function addLog(message: string, type: Log['type'] = 'info') {
   }
 }
 
-function clearLogs() {
+const clearLogs = () => {
   logs.value = [];
 }
 
-const mockUploadRequest = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
+const mockUploadRequest = (): Promise<void> =>
+  new Promise((resolve, reject) => {
     const randomDelay = Math.random() * 2000 + 500;
     setTimeout(() => {
-      Math.random() > 0.2 ? resolve() : reject(new Error('模拟上传失败'));
+      if (Math.random() > 0.2) {
+        resolve();
+      } else {
+        reject(new Error('模拟上传失败'));
+      }
     }, randomDelay);
   });
-};
 
-const mockMergeRequest = async (): Promise<void> => {
-  return new Promise((resolve) => {
+const mockMergeRequest = async (): Promise<void> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       addLog('服务器合并文件完成', 'success');
       resolve();
     }, 1000);
   });
-};
 
 const {
   currentFile,
@@ -103,7 +105,7 @@ const {
   notifyMerge: mockMergeRequest,
 });
 
-async function handleFileChange(file: File) {
+const handleFileChange = async (file: File) => {
   addLog(`选择文件: ${file.name}`, 'info');
   addLog('开始计算文件 hash...', 'info');
 

@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { useEChartsInit } from '@/hooks';
-import { EChartsOption, EChartsType } from 'echarts';
+import type { EChartsOption, EChartsType } from '@/config/echarts/setup';
 import { onMounted, shallowRef } from 'vue';
 
 defineOptions({
@@ -154,11 +154,11 @@ const mapChartOptions = (): EChartsOption => ({
     },
   ],
 });
-let chartInstance= shallowRef<EChartsType | null>(null);
+const chartInstance = shallowRef<EChartsType | null>(null);
 onMounted(() => {
   if (chartRef.value) {
     chartInstance.value = initCharts(mapChartOptions());
-    if (chartInstance) {
+    if (chartInstance.value) {
       chartInstance.value?.off('globalout');
       chartInstance.value?.on('globalout', () => {
         setTimeout(() => {

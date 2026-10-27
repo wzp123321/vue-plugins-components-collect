@@ -8,11 +8,11 @@ defineOptions({
   name: 'AnimationClickHeart',
 });
 
-const handleClick = (e: any) => {
+const handleClick = (e: MouseEvent) => {
   const heart = document.createElement('div');
   heart.className = 'heart';
-  heart.style.left = e?.clientX + 'px';
-  heart.style.top = e?.clientY + 'px';
+  heart.style.left = `${e.clientX}px`;
+  heart.style.top = `${e.clientY}px`;
 
   const container = document.querySelector('.animation-click-heart');
   container?.appendChild(heart);

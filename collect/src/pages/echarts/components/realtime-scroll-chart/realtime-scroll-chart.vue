@@ -4,7 +4,8 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, shallowRef } from 'vue';
 import { useEChartsInit } from '@/hooks';
-import { EChartsOption, EChartsType } from 'echarts';
+import type { EChartsOption } from 'echarts';
+import type { EChartsType } from '@/config/echarts/setup';
 
 defineOptions({ name: 'RealtimeScrollChart' });
 

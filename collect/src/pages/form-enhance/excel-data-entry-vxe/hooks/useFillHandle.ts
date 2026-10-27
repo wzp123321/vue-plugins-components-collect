@@ -20,7 +20,7 @@ const parseDate = (v: any): Date | null => {
   const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!m) return null;
   const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  return isNaN(d.getTime()) ? null : d;
+  return Number.isNaN(d.getTime()) ? null : d;
 };
 /**
  * 给日期加 N 天并以 YYYY-MM-DD 输出；setDate 自动处理跨月与闰年。
@@ -38,6 +38,21 @@ const addDays = (v: any, days: number): string => {
 };
 
 /**
+ * 行主键 / 脏标记访问助手。
+ * ⚠️ __id / __dirty 是 vxe-table 消费的行字段（__id 即页面 :row-config 的 keyField），
+ * 属性名属外部约定、不可重命名；经解构读取、Object.assign 写入，键名与语义不变，
+ * 同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+const markDirty = (r: { __dirty: boolean }): void => {
+  Object.assign(r, { __dirty: true });
+};
+
+/**
  * 拖拽填充手柄（Excel 填充柄）：锚点定位 + 手柄显隐 + 纵向/横向序列填充 + 双击填至末行。
  *
  * 在整体架构中的角色：与快捷键填充（useGridKeys 的 Ctrl+D/Ctrl+R/Ctrl+Enter）互补，
@@ -52,12 +67,12 @@ const addDays = (v: any, days: number): string => {
  * @param sel   自研选区状态机（selRect 提供源矩形）
  * @param gridBox 网格容器（定位手柄 / 蚂蚁线的相对坐标基准）
  */
-export function useFillHandle(
+export const useFillHandle = (
   core: GridCore,
   tableRef: Ref<any>,
   sel: CellSelection,
   gridBox: Ref<HTMLElement | undefined>,
-) {
+) => {
   // ===================== 手柄定位 =====================
   // 锚点格 = 矩形选区的右下角（末行 × 末列），与 Excel 一致——早期锚在 focus 端，
   // 从左上往右下框选时手柄位置才对，反向框选（focus 落在左上）手柄会跑到左上角。
@@ -110,7 +125,7 @@ export function useFillHandle(
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
     const rowid = el?.closest('.vxe-body--row')?.getAttribute('rowid');
     if (!rowid) return -1;
-    return core.processedRows.value.findIndex((r) => r.__id === rowid);
+    return core.processedRows.value.findIndex((r) => rowIdOf(r) === rowid);
   };
   const colIdxFromPoint = (x: number, y: number) => {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
@@ -128,7 +143,7 @@ export function useFillHandle(
     if (!rect) {
       const cur = core.currentCell.value;
       if (!cur) return null;
-      const ri = rows.findIndex((r) => r.__id === cur.row.__id);
+      const ri = rows.findIndex((r) => rowIdOf(r) === rowIdOf(cur.row));
       const ci = fields.indexOf(cur.field);
       if (ri < 0 || ci < 0) return null;
       // 单格无选区时也允许横向/纵向填充：行集合退化为该行本身
@@ -154,13 +169,13 @@ export function useFillHandle(
     let step = 0;
     if (type === 'number') {
       const f = Number(first);
-      step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
-      if (!isFinite(step)) step = 0;
+      step = seed.length >= 2 && Number.isFinite(f) ? Number(seed[1]) - f : 0;
+      if (!Number.isFinite(step)) step = 0;
     } else if (type === 'date') {
       const d0 = parseDate(first);
       const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
       step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
-      if (!isFinite(step)) step = 1;
+      if (!Number.isFinite(step)) step = 1;
     }
     return (t: number): any => {
       if (first === '' || first == null) return first; // 源为空：复制
@@ -181,13 +196,13 @@ export function useFillHandle(
     let step = 0;
     if (type === 'number') {
       const f = Number(first);
-      step = seed.length >= 2 && isFinite(f) ? Number(seed[1]) - f : 0;
-      if (!isFinite(step)) step = 0;
+      step = seed.length >= 2 && Number.isFinite(f) ? Number(seed[1]) - f : 0;
+      if (!Number.isFinite(step)) step = 0;
     } else if (type === 'date') {
       const d0 = parseDate(first);
       const d1 = seed.length >= 2 ? parseDate(seed[1]) : null;
       step = d0 && d1 ? Math.round((d1.getTime() - d0.getTime()) / 86400000) : 1;
-      if (!isFinite(step)) step = 1;
+      if (!Number.isFinite(step)) step = 1;
     }
     return (colIdx: number): any => {
       if (first === '' || first == null) return first;
@@ -206,11 +221,13 @@ export function useFillHandle(
     let n = 0;
     for (let i = fromIdx; i <= toIdx; i++) {
       const r = rg.rows[i];
-      if (!r) continue;
-      r[srcField] = series(i);
-      r.__dirty = true;
-      core.validateCell(r, srcField);
-      n++;
+      // 原 continue 的反条件写法：行不存在才跳过
+      if (r) {
+        r[srcField] = series(i);
+        markDirty(r);
+        core.validateCell(r, srcField);
+        n++;
+      }
     }
     return n;
   };
@@ -222,15 +239,19 @@ export function useFillHandle(
     let n = 0;
     for (let i = rg.topIdx; i <= rg.bottomIdx; i++) {
       const r = rg.rows[i];
-      if (!r) continue;
-      const series = horizontalSeries(r, rg.leftIdx, rg.rightIdx, rg.fields);
-      for (let c = fromCol; c <= toCol; c++) {
-        const f = rg.fields[c];
-        if (!f) continue;
-        r[f] = series(c);
-        r.__dirty = true;
-        core.validateCell(r, f);
-        n++;
+      // 原 continue 的反条件写法：行不存在才跳过
+      if (r) {
+        const series = horizontalSeries(r, rg.leftIdx, rg.rightIdx, rg.fields);
+        for (let c = fromCol; c <= toCol; c++) {
+          const f = rg.fields[c];
+          // 原 continue 的反条件写法：列不存在才跳过
+          if (f) {
+            r[f] = series(c);
+            markDirty(r);
+            core.validateCell(r, f);
+            n++;
+          }
+        }
       }
     }
     return n;
@@ -242,6 +263,42 @@ export function useFillHandle(
   // 故在此自测双击间隔；命中即执行"填充至末行"，不再进入拖拽。
   // 阈值取 420ms（Windows 默认双击间隔 500ms 留余量）；真拖拽结束后清零，避免"拖完立刻按下"被误判双击
   let lastDownAt = 0;
+
+  /**
+   * 双击填充柄：纵向延续到"参照列最后一个非空行"（Excel 双击小黑点）。
+   * 参照列 = 选区左侧相邻可见列；选区已在首列时取右侧相邻列；都没有则退回选区首列。
+   */
+  const fillToEnd = () => {
+    const rg = rectRange();
+    if (!rg) return;
+    const fields = rg.fields;
+    const refIdx = rg.leftIdx > 0 ? rg.leftIdx - 1 : Math.min(rg.rightIdx + 1, fields.length - 1);
+    const refField = fields[refIdx];
+    const srcField = fields[rg.rightIdx];
+    if (!refField || !srcField) return;
+    // 从选区末行往下找参照列最后一个非空行（参照列自身上方已填满时才能可靠推断数据区末尾）
+    let last = -1;
+    for (let i = rg.rows.length - 1; i > rg.bottomIdx; i--) {
+      const v = rg.rows[i][refField];
+      if (v !== null && v !== undefined && v !== '') {
+        last = i;
+        break;
+      }
+    }
+    if (last < 0) {
+      ElMessage.info('参照列下方没有数据，无法自动填充');
+      return;
+    }
+    let n = 0;
+    core.commitCells('填充至末行', rg.rows.slice(rg.bottomIdx + 1, last + 1), () => {
+      n = applyVertical(rg.bottomIdx + 1, last, srcField);
+    });
+    ElMessage.success(n ? `已向下填充 ${n} 格（至参照列末行）` : '没有可填充的行');
+    setTimeout(() => {
+      flashKeys.value = new Set();
+    }, 600);
+    refreshFillHandle();
+  };
 
   /** 按下填充柄开始拖拽：按指针位移主轴决定纵向/横向，拖拽过程闪烁预览目标区 */
   const startFill = (ev?: PointerEvent) => {
@@ -288,18 +345,22 @@ export function useFillHandle(
         if (!r) return keys;
         for (let i = r[0]; i <= r[1]; i++) {
           const row = rg.rows[i];
-          if (!row) continue;
-          for (const f of rg.fields.slice(rg.leftIdx, rg.rightIdx + 1)) keys.add(core.errKey(row.__id, f));
+          // 原 continue 的反条件写法：行不存在才跳过
+          if (row) {
+            rg.fields.slice(rg.leftIdx, rg.rightIdx + 1).forEach((f) => keys.add(core.errKey(rowIdOf(row), f)));
+          }
         }
       } else if (axis === 'h') {
         const c = hRange(colIdxFromPoint(x, y));
         if (!c) return keys;
         for (let i = rg.topIdx; i <= rg.bottomIdx; i++) {
           const row = rg.rows[i];
-          if (!row) continue;
-          for (let k = c[0]; k <= c[1]; k++) {
-            const f = rg.fields[k];
-            if (f) keys.add(core.errKey(row.__id, f));
+          // 原 continue 的反条件写法：行不存在才跳过
+          if (row) {
+            for (let k = c[0]; k <= c[1]; k++) {
+              const f = rg.fields[k];
+              if (f) keys.add(core.errKey(rowIdOf(row), f));
+            }
           }
         }
       }
@@ -342,45 +403,13 @@ export function useFillHandle(
         ElMessage.success(n ? `已向${right ? '右' : '左'}填充 ${n} 格` : '没有可填充的列');
       }
       lastDownAt = 0; // 真拖拽后清零双击计时
-      setTimeout(() => (flashKeys.value = new Set()), 600);
+      setTimeout(() => {
+        flashKeys.value = new Set();
+      }, 600);
       refreshFillHandle();
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-  };
-
-  /**
-   * 双击填充柄：纵向延续到"参照列最后一个非空行"（Excel 双击小黑点）。
-   * 参照列 = 选区左侧相邻可见列；选区已在首列时取右侧相邻列；都没有则退回选区首列。
-   */
-  const fillToEnd = () => {
-    const rg = rectRange();
-    if (!rg) return;
-    const fields = rg.fields;
-    const refIdx = rg.leftIdx > 0 ? rg.leftIdx - 1 : Math.min(rg.rightIdx + 1, fields.length - 1);
-    const refField = fields[refIdx];
-    const srcField = fields[rg.rightIdx];
-    if (!refField || !srcField) return;
-    // 从选区末行往下找参照列最后一个非空行（参照列自身上方已填满时才能可靠推断数据区末尾）
-    let last = -1;
-    for (let i = rg.rows.length - 1; i > rg.bottomIdx; i--) {
-      const v = rg.rows[i][refField];
-      if (v !== null && v !== undefined && v !== '') {
-        last = i;
-        break;
-      }
-    }
-    if (last < 0) {
-      ElMessage.info('参照列下方没有数据，无法自动填充');
-      return;
-    }
-    let n = 0;
-    core.commitCells('填充至末行', rg.rows.slice(rg.bottomIdx + 1, last + 1), () => {
-      n = applyVertical(rg.bottomIdx + 1, last, srcField);
-    });
-    ElMessage.success(n ? `已向下填充 ${n} 格（至参照列末行）` : '没有可填充的行');
-    setTimeout(() => (flashKeys.value = new Set()), 600);
-    refreshFillHandle();
   };
 
   return { fillHandle, flashKeys, hideFillHandle, refreshFillHandle, startFill, fillToEnd };

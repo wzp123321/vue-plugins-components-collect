@@ -77,6 +77,11 @@ const mockTable = reactive<Record<string, { desc: string; data: unknown }>>({
 /** 演示用独立实例；业务项目把这个拦截器装进 services/http 的单例 */
 const http = axios.create({ timeout: 5000 });
 
+const sleep = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 http.interceptors.request.use(async (config) => {
   const entry = mockTable[config.url ?? '/'];
   if (mockEnabled.value && entry?.data) {
@@ -92,11 +97,7 @@ http.interceptors.request.use(async (config) => {
   return config;
 });
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function call(url: string) {
+const call = async (url: string) => {
   const started = Date.now();
   try {
     const { data } = await http.get(url);

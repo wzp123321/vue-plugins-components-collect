@@ -83,6 +83,18 @@ const filterNode = (value: string, data: any) => {
   return data.name.includes(value);
 };
 
+const findNodeById = (tree: any[], id: string): any => {
+  for (let i = 0; i < tree.length; i++) {
+    const n = tree[i];
+    if (n.id === id) return n;
+    if (n.children) {
+      const r = findNodeById(n.children, id);
+      if (r) return r;
+    }
+  }
+  return null;
+};
+
 watch(keyword, (val) => {
   treeRef.value?.filter(val);
 });
@@ -106,17 +118,6 @@ watch(
   },
   { immediate: true },
 );
-
-const findNodeById = (tree: any[], id: string): any => {
-  for (const n of tree) {
-    if (n.id === id) return n;
-    if (n.children) {
-      const r = findNodeById(n.children, id);
-      if (r) return r;
-    }
-  }
-  return null;
-};
 
 const onCheck = () => {
   const checked = treeRef.value?.getCheckedNodes() as MockTitle[];
@@ -143,10 +144,8 @@ const clearAll = () => {
   onCheck();
 };
 
-const isOverflow = (text: string, max: number) => {
-  // 简单估算: 12px 一个汉字约 12px, 不到 max 就认为不溢出
-  return text.length * 14 > max;
-};
+// 简单估算: 12px 一个汉字约 12px, 不到 max 就认为不溢出
+const isOverflow = (text: string, max: number): boolean => text.length * 14 > max;
 
 defineOptions({ name: 'TeTitleContent' });
 </script>

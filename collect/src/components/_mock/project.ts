@@ -20,7 +20,7 @@ export const mockProjects: MockProject[] = [
   { id: 'p-6', code: 'P-006', name: '成都基地', groupId: 'g-3', groupName: '区域基地', campusId: 'c-4', campusName: '成都基地' },
 ];
 
-export function searchProjects(keyword: string): MockProject[] {
+export const searchProjects = (keyword: string): MockProject[] => {
   const k = keyword.trim().toLowerCase();
   if (!k) return mockProjects;
   return mockProjects.filter(
@@ -28,6 +28,4 @@ export function searchProjects(keyword: string): MockProject[] {
   );
 }
 
-export function getProjectById(id: string) {
-  return mockProjects.find((p) => p.id === id);
-}
+export const getProjectById = (id: string) => mockProjects.find((p) => p.id === id);

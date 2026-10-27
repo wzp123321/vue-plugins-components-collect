@@ -99,7 +99,7 @@ const asyncError = ref('');
 // ① defineAsyncComponent 异步组件
 const AsyncHeavyComponent = defineAsyncComponent({
   loader: () =>
-    new Promise((resolve) =>
+    new Promise((resolve) => {
       setTimeout(
         () =>
           resolve(
@@ -112,8 +112,8 @@ const AsyncHeavyComponent = defineAsyncComponent({
             }) as any,
           ),
         1500,
-      ),
-    ),
+      );
+    }),
   delay: 200,
   timeout: 10000,
 });
@@ -122,7 +122,9 @@ const AsyncHeavyComponent = defineAsyncComponent({
 const AsyncSetupComponent = defineComponent({
   async setup() {
     // 顶层 await，Suspense 会等待这里的 Promise
-    const data = await new Promise<string>((resolve) => setTimeout(() => resolve('来自异步请求的用户数据'), 2000));
+    const data = await new Promise<string>((resolve) => {
+      setTimeout(() => resolve('来自异步请求的用户数据'), 2000);
+    });
     return () =>
       h('div', { style: 'padding:16px;background:#ecf5ff;border-radius:8px;color:#409eff' }, [
         h('p', '✅ async setup 加载成功！'),
@@ -162,7 +164,7 @@ const asyncComponentCode = `const AsyncComp = defineAsyncComponent({
 const asyncSetupCode = `// 子组件内 - 顶层 await
 <script setup>
 const data = await fetchUserData() // 顶层 await
-<\/script>
+${'<'}/script>
 
 // 父组件用 Suspense 包裹即可自动处理 loading`;
 

@@ -102,12 +102,13 @@ const askAI = async () => {
   const response = getResponse(q);
   const chars = response.split('');
 
-  for (const char of chars) {
-    await new Promise((r) => setTimeout(r, 30 + Math.random() * 40));
+  await chars.reduce(async (prev, char) => {
+    await prev;
+    await new Promise((r) => { setTimeout(r, 30 + Math.random() * 40); });
     aiMsg.content += char;
     await nextTick();
     if (msgRef.value) msgRef.value.scrollTop = msgRef.value.scrollHeight;
-  }
+  }, Promise.resolve());
 
   aiMsg.streaming = false;
   streaming.value = false;
@@ -117,7 +118,7 @@ const askAI = async () => {
 const sseActive = ref(false);
 const sseEvents = ref<{ type: string; data: string; time: string }[]>([]);
 let sseTimer: number;
-let sseEventTypes = ['message', 'notification', 'update', 'heartbeat'];
+const sseEventTypes = ['message', 'notification', 'update', 'heartbeat'];
 
 const startSSE = () => {
   sseActive.value = true;

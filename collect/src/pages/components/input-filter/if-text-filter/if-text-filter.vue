@@ -116,7 +116,6 @@ const props = defineProps<{
 /* 组件名与父级模板标签 <if-text-input-filter> 对齐，便于 DevTools 与 scripts/check-unresolved-components.mjs 识别 */
 defineOptions({ name: 'IfTextInputFilter' });
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 const log = props.log;
 
 const t1 = reactive({

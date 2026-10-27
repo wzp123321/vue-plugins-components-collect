@@ -45,7 +45,8 @@ const PALETTE: Record<ThemeName, { line: string; glow: string; blending: THREE.B
  */
 const createTexture = (theme: ThemeName): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = TEXTURE_SIZE
+  canvas.width = TEXTURE_SIZE
+  canvas.height = TEXTURE_SIZE
   const ctx = canvas.getContext('2d')!
   const center = TEXTURE_SIZE / 2
   const maxRadius = center - 10

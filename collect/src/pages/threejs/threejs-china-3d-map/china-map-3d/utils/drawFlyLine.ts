@@ -264,15 +264,15 @@ export const createFlyLine = (
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1)
     // 用 sin(πt) 做中段提亮：两端靠近地平线更暗，中段最亮
-    const lift = Math.pow(Math.sin(Math.PI * t), 0.7)
+    const lift = (Math.sin(Math.PI * t)) ** 0.7
     scratch.copy(TRACK_NEAR).lerp(TRACK_FAR, lift * 0.9)
     const o = i * 6
     // 同一份颜色写左右两顶点（三角带每点 2 顶点共用一个颜色）
-    for (const offset of [o, o + 3]) {
+    ;[o, o + 3].forEach((offset) => {
       track.colors[offset] = scratch.r
       track.colors[offset + 1] = scratch.g
       track.colors[offset + 2] = scratch.b
-    }
+    })
   }
   const trackHalf = mapConfig.fly.trackWidth / 2
   writeRibbon(track.positions, points, tangents, INITIAL_CAMERA, () => trackHalf)
@@ -404,8 +404,8 @@ export const updateFlyLine = (
     let b = 0
     // 只在「头部后方 band 长度内」写亮色；幂次衰减形成尾焰由亮到暗
     if (behind >= 0 && behind < band) {
-      const tail = Math.pow(1 - behind / band, 1.7) * mapConfig.fly.tailGain
-      const core = behind < CORE_SPAN ? Math.pow(1 - behind / CORE_SPAN, 2) * mapConfig.fly.coreGain : 0
+      const tail = ((1 - behind / band) ** 1.7) * mapConfig.fly.tailGain
+      const core = behind < CORE_SPAN ? ((1 - behind / CORE_SPAN) ** 2) * mapConfig.fly.coreGain : 0
       r = (tint.r * tail + WHITE.r * core) * fade
       g = (tint.g * tail + WHITE.g * core) * fade
       b = (tint.b * tail + WHITE.b * core) * fade
@@ -429,7 +429,7 @@ export const updateFlyLine = (
     const half = mapConfig.fly.streakWidth / 2
     writeRibbon(anim.streakPositions, points, tangents, cameraPos, (index) => {
       const k = Math.min(1, Math.max(0, (flight - index / (n - 1)) / band))
-      const shaped = half * (0.85 - 0.5 * Math.pow(k, 0.7))
+      const shaped = half * (0.85 - 0.5 * (k ** 0.7))
       // 下限作用在「收细之后」的宽度上：否则尾部依旧会断
       return Math.max(shaped, minStreakHalf)
     })
@@ -523,7 +523,7 @@ export const createRipple = (
 export const updateRipple = (ripple: Ripple, elapsed: number) => {
   const prog = (elapsed * mapConfig.fly.ripple.speed + ripple.phase) % 1
   ripple.mesh.scale.setScalar(ripple.size * (0.3 + 0.7 * prog))
-  ripple.material.opacity = Math.pow(1 - prog, 1.6) * mapConfig.fly.ripple.opacity
+  ripple.material.opacity = ((1 - prog) ** 1.6) * mapConfig.fly.ripple.opacity
 };
 
 /** 修改涟漪颜色（控制台换色时与拖尾同步） */

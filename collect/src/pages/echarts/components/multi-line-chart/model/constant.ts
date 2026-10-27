@@ -1,5 +1,5 @@
-import { EMiDailyEnergyStandardType, EMiDailyUpperLimitType } from './enum';
-import { EMcEnergyTrendAnalysisType } from './enum';
+import { EMiDailyEnergyStandardType, EMiDailyUpperLimitType , EMcEnergyTrendAnalysisType } from './enum';
+
 import { IMcConvertMonitoringConfigureInfo } from './api';
 
 // 轮询超长任务的间隔

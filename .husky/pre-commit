@@ -11,3 +11,6 @@ node ./scripts/check-nav-routes.mjs || exit 1
 
 # 模板组件解析校验（pages 下的子组件漏 import 会静默渲染为空）
 node ./scripts/check-unresolved-components.mjs || exit 1
+
+# 增量代码质量（已装的 ESLint + Stylelint 真正生效）
+npx lint-staged || exit 1

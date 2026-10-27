@@ -169,7 +169,7 @@ let activeThemeName: ThemeName = 'dark'
 export const getThemeName = (): ThemeName => activeThemeName
 
 /** 应用主题：把调色板覆写到 mapConfig（运行时可写），并记忆当前主题名 */
-export function applyTheme(name: ThemeName): void {
+export const applyTheme = (name: ThemeName): void => {
   const p = themePalettes[name]
   if (!p) return
   activeThemeName = name

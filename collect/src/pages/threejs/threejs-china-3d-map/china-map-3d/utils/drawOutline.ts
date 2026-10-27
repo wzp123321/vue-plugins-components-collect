@@ -48,16 +48,17 @@ export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Gr
   // 合并后整层只剩 2 次（实线 + 光晕共用同一个 geometry）。
   const linePositions: number[] = []
 
-  for (const ring of extractOuterRings(geo)) {
+  extractOuterRings(geo).forEach((ring) => {
     const positions: number[] = []
     let valid = true
-    for (const [lng, lat] of ring) {
+    for (let r = 0; r < ring.length; r++) {
+      const [lng, lat] = ring[r]
       const [x, y] = project([lng, lat])
       if (!Number.isFinite(x) || !Number.isFinite(y)) { valid = false; break }
       // 屏幕 y（向下）翻成世界 y（向上）
       positions.push(x, -y, z)
     }
-    if (!valid || positions.length < 9) continue
+    if (!valid || positions.length < 9) return
 
     // 闭合环：末点接回首点，逐段写入线段对
     const pointCount = positions.length / 3
@@ -73,7 +74,7 @@ export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Gr
         positions[b + 2],
       )
     }
-  }
+  })
 
   if (!linePositions.length) return group
 

@@ -193,12 +193,12 @@ const BG_PRESETS: Record<string, string> = {
  * 这里只创建 Image 并给 src，浏览器把响应放进 HTTP 缓存，切换时即命中。
  */
 const preloadBgPresets = () => {
-  for (const url of Object.values(BG_PRESETS)) {
-    if (!url) continue;
+  Object.values(BG_PRESETS).forEach((url) => {
+    if (!url) return;
     const img = new Image();
     img.decoding = 'async';
     img.src = url;
-  }
+  });
 };
 
 const props = withDefaults(
@@ -328,29 +328,6 @@ const prefersReducedMotion =
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * 每帧更新背景视差。
- * 屏幕方向推导（默认从南向北看，北朝上）：视点向东(+x)移动 → 地图内容
- * 在屏幕上向左走 → 背景应同向更小幅度左移；向北(+y) → 内容向下走 →
- * 背景同向小幅下移。scale(1.06) 留 6% 出血，±14px 平移永不露边。
- */
-const updateBgParallax = () => {
-  const el = bgLayer.value;
-  if (!el || prefersReducedMotion) return;
-  const target = viewport.controls()?.target;
-  const tx = target ? target.x / 130 : 0;
-  const ty = target ? target.y / 130 : 0;
-  bgParallax.x += (tx - bgParallax.x) * 0.06;
-  bgParallax.y += (ty - bgParallax.y) * 0.06;
-  if (
-    Math.abs(bgParallax.x - bgParallaxWritten.x) < 0.0006 &&
-    Math.abs(bgParallax.y - bgParallaxWritten.y) < 0.0006
-  ) return;
-  bgParallaxWritten.x = bgParallax.x;
-  bgParallaxWritten.y = bgParallax.y;
-  el.style.transform = `translate3d(${(-bgParallax.x * 14).toFixed(2)}px, ${(bgParallax.y * 10).toFixed(2)}px, 0) scale(1.06)`;
-};
-
-/**
  * 大屏底图（A）内联样式：传了 bgImage 才覆盖内置程序化底图；
  * 没传就只有强度变量，背景由 .map-bg-image--dark / --light 里的 CSS 渐变兜底。
  */
@@ -401,6 +378,30 @@ const scaleInfo = ref<{ km: number; px: number; ratio: number }>({ km: 0, px: 0,
  *   ±130 内（坑③）；canvas 由它 appendChild（坑④）。
  */
 const viewport = useMapViewport(() => canvasHost.value);
+
+/**
+ * 每帧更新背景视差。
+ * 屏幕方向推导（默认从南向北看，北朝上）：视点向东(+x)移动 → 地图内容
+ * 在屏幕上向左走 → 背景应同向更小幅度左移；向北(+y) → 内容向下走 →
+ * 背景同向小幅下移。scale(1.06) 留 6% 出血，±14px 平移永不露边。
+ * ⚠️ 必须放在 viewport 之后：箭头函数无提升，写在前面会命中 TDZ。
+ */
+const updateBgParallax = () => {
+  const el = bgLayer.value;
+  if (!el || prefersReducedMotion) return;
+  const target = viewport.controls()?.target;
+  const tx = target ? target.x / 130 : 0;
+  const ty = target ? target.y / 130 : 0;
+  bgParallax.x += (tx - bgParallax.x) * 0.06;
+  bgParallax.y += (ty - bgParallax.y) * 0.06;
+  if (
+    Math.abs(bgParallax.x - bgParallaxWritten.x) < 0.0006 &&
+    Math.abs(bgParallax.y - bgParallaxWritten.y) < 0.0006
+  ) return;
+  bgParallaxWritten.x = bgParallax.x;
+  bgParallaxWritten.y = bgParallax.y;
+  el.style.transform = `translate3d(${(-bgParallax.x * 14).toFixed(2)}px, ${(bgParallax.y * 10).toFixed(2)}px, 0) scale(1.06)`;
+};
 
 /**
  * layer — 图层构建（GeoJSON → 三维网格、下钻重建、选择性泛光）。
@@ -495,6 +496,21 @@ const syncFill = () => {
   layer.setValueFill(props.fillByValue ? markers.tierColorByAdcode() : null);
 };
 
+/**
+ * 后置绑定槽：打破「声明顺序上的循环依赖」。
+ * 三者的回调彼此交叉引用，箭头函数无提升，直接用名字互引必然有一方 TDZ：
+ *   - current ← 层级栈（useMapLevels 返回），measure 的 kmPerUnit 要读当前层 fit；
+ *   - zoom    ← 缩放下钻，它的 hitCenter 要调 levels 的 drill()；
+ *   - picker  ← 指针拾取，它的 onHover 要调 levels 的 canDrill()；
+ * 而 useMapLevels 的 onEnter / onLeave 又要反向调用 zoom.reset() 与 picker。
+ * 故先声明槽位、各自创建后回填；这些回调全在 onMounted 之后才执行，运行时顺序不变。
+ */
+const bound: {
+  current: ReturnType<typeof useMapLevels>['current'] | null;
+  zoom: ReturnType<typeof useZoomDrill> | null;
+  picker: ReturnType<typeof usePointerPick> | null;
+} = { current: null, zoom: null, picker: null };
+
 // ── 测量（P1 交互）：单击地面落点，折线累计长度 + ≥3 点自动算面积 ──
 /** 测量模式开关（由工具栏 v-model:measure 驱动） */
 const measureOn = ref(false);
@@ -505,7 +521,7 @@ const measure = useMeasure({
   // d3 墨卡托 scale 是「每弧度经度对应的世界单位数」→ 反推每个世界单位多少 km，
   // 并按当前层中心纬度做墨卡托校正，这样三级的测量值都是真实量级
   kmPerUnit: () => {
-    const fit = current.value?.fit;
+    const fit = bound.current?.value?.fit;
     const scale = Number(fit?.scale) || 0;
     if (!scale) return 1;
     const lat = Number(fit?.center?.[1] ?? 35);
@@ -522,8 +538,29 @@ const clearMeasure = () => {
 // 进入测量模式：收起巡游（视角飘着没法落点），光标改十字准星
 watch(measureOn, (on) => {
   if (on && roamOn.value) roamOn.value = false;
-  picker.refreshCursor();
+  bound.picker?.refreshCursor();
 });
+
+// ── 一次性提示（toast）：书签 / 数据异常等场景共用，放在最早使用者之前 ──
+/** 当前提示内容：null = 无提示 */
+const notice = ref<{ text: string; tone: 'info' | 'error' } | null>(null);
+let noticeTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * pushNotice — 弹出一个一次性提示（toast），自动定时消失。
+ * @param text 提示文案
+ * @param tone 'info'（蓝）| 'error'（红），error 通常给更长停留时间
+ * @param duration 自动消失毫秒数（默认 2800；错误提示常传 4000~6000）
+ * 实现：先清掉旧定时器再起新的，避免多条提示互相覆盖提前消失。
+ */
+const pushNotice = (text: string, tone: 'info' | 'error' = 'info', duration = 2800) => {
+  notice.value = { text, tone };
+  if (noticeTimer) clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => {
+    notice.value = null;
+    noticeTimer = null;
+  }, duration);
+};
 
 // ── 视角书签（P1 交互）：相机位置 + 视点存 localStorage，一键还原 ──
 const showBookmarks = ref(false);
@@ -625,24 +662,12 @@ watch(
 
 onUnmounted(() => stopTimeline());
 
-/** 一次性提示：错误 / 无数据，优先于进度条展示 */
-const notice = ref<{ text: string; tone: 'info' | 'error' } | null>(null);
-let noticeTimer: ReturnType<typeof setTimeout> | null = null;
-
-/**
- * pushNotice — 弹出一个一次性提示（toast），自动定时消失。
- * @param text 提示文案
- * @param tone 'info'（蓝）| 'error'（红），error 通常给更长停留时间
- * @param duration 自动消失毫秒数（默认 2800；错误提示常传 4000~6000）
- * 实现：先清掉旧定时器再起新的，避免多条提示互相覆盖提前消失。
- */
-const pushNotice = (text: string, tone: 'info' | 'error' = 'info', duration = 2800) => {
-  notice.value = { text, tone };
-  if (noticeTimer) clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => {
-    notice.value = null;
-    noticeTimer = null;
-  }, duration);
+// ── 右键上下文菜单（P0 交互）─────────────────────────────────────
+// ⚠️ 必须放在 useMapLevels 之前：它的 onLeave 回调要关掉菜单（箭头函数无提升）。
+/** 菜单状态：null=关闭；pick 为右键命中结果（null=点在空白，给导航类操作） */
+const contextMenu = ref<{ x: number; y: number; pick: PickResult | null } | null>(null);
+const closeContextMenu = () => {
+  contextMenu.value = null;
 };
 
 /**
@@ -699,18 +724,18 @@ const {
     flies.build(level, props.deferEntrance ? 0 : 0.72);
     // 展示型装饰层随层级重建（几何与层级无关的项也借 root 挂载）
     pyramids.build(level);
-    orbits.build(level);
+    orbits.build();
     heat.build(level);
     c2d.build(level);
     syncLabels();
     // 下钻后把缩放/下钻控制器复位到初始距离，避免沿用上层的相机状态。
-    zoom.reset(viewport.camera(), viewport.controls());
+    bound.zoom?.reset(viewport.camera(), viewport.controls());
     emit('geo-data-loaded', level.geo);
   },
   // 离开当前层（准备下钻 / 返回 / 跳级）时执行：先清交互态，再下沉/清空图层。
   // 切层时先清掉悬停态（picker 在下方创建，回调可安全引用：切层发生在挂载之后）
   onLeave: async () => {
-    picker.clearHover();
+    bound.picker?.clearHover();
     // 切层后旧菜单指向的对象已不存在，一并关闭
     closeContextMenu();
     // 测量几何挂在旧层 root 上，切层必须清掉，否则会悬在重建后的新地图上空
@@ -730,6 +755,8 @@ const {
   },
   onNoChild: (name) => pushNotice(`${name} 暂无下级行政区数据`),
 });
+// 回填当前层级 ref：measure 的 kmPerUnit 经 bound 读取（见 bound 注释）
+bound.current = current;
 
 // 主题切换 → 覆写 mapConfig 配色并重新上色（immediate 让首帧即落主题）
 // ⚠️ 必须放在 useMapLevels 之后：下面要用 current（层级栈末尾）。immediate 的
@@ -760,7 +787,7 @@ watch(
       markers.build(level, false);
       // 与下面 projectData watcher 保持同一套重建清单，避免装饰层停留在旧 root
       pyramids.build(level);
-      orbits.build(level);
+      orbits.build();
       heat.build(level);
       c2d.build(level);
       // ⚠️ 飞线组也挂在 layer.root() 上：layer.build 内部 clear() 会把它连同旧 root
@@ -791,6 +818,15 @@ watch(
  *   kind==='surface' 且带 customProperties 的板块即下钻。集中对中心区域采样，
  *   是因为缩放下钻语义上就是"放大到眼前这块区域"。
  */
+/** 中心区采样点（NDC）：中心 + 上下左右各 0.05，命中任一即视为"眼前这块区域" */
+const CENTER_SAMPLES: Array<[number, number]> = [
+  [0, 0],
+  [0.05, 0],
+  [-0.05, 0],
+  [0, 0.05],
+  [0, -0.05],
+];
+
 const zoom = useZoomDrill({
   enabled: () => props.zoomDrillEnabled,
   threshold: () => props.zoomDrillThreshold,
@@ -799,28 +835,22 @@ const zoom = useZoomDrill({
     const camera = viewport.camera();
     const root = layer.root();
     if (!camera || !root) return false;
-    // 以屏幕中心为圆心，向四周取 5 个采样点（中心 + 上下左右各 0.05）发射射线，
-    // 任一命中"可下钻板块"即触发下钻，提升命中宽容度。
-    for (const [sx, sy] of [
-      [0, 0],
-      [0.05, 0],
-      [-0.05, 0],
-      [0, 0.05],
-      [0, -0.05],
-    ]) {
+    // 向四周取 5 个采样点发射射线，任一命中"可下钻板块"即触发下钻，提升命中宽容度。
+    // some() 命中即短路，与原先 for...of 里的 return true 等价。
+    return CENTER_SAMPLES.some(([sx, sy]) => {
       viewport.pointer.set(sx, sy);
       viewport.raycaster.setFromCamera(viewport.pointer, camera);
       const hits = viewport.raycaster.intersectObjects(root.children, true);
       const hit = hits.find((item: any) => item.object.userData?.kind === 'surface');
       const region = (hit?.object as any)?.userData?.region;
-      if (region?.customProperties) {
-        drill(region.customProperties);
-        return true;
-      }
-    }
-    return false;
+      if (!region?.customProperties) return false;
+      drill(region.customProperties);
+      return true;
+    });
   },
 });
+// 回填缩放下钻控制器：levels 的 onEnter 经 bound 复位它（见 bound 注释）
+bound.zoom = zoom;
 
 /** 点击锁定：显示该城市的标牌并高亮板块 */
 // ⚠️ 坑⑦：地理标牌默认全部收起，这里 markers.select(adcode) 才让"该城市"
@@ -830,13 +860,6 @@ const selectAdcode = (adcode: number | null) => {
   layer.setSelected(adcode);
   selectedAdcodes.value = adcode != null ? [adcode] : [];
   emit('select-change', adcode);
-};
-
-// ── 右键上下文菜单（P0 交互）─────────────────────────────────────
-/** 菜单状态：null=关闭；pick 为右键命中结果（null=点在空白，给导航类操作） */
-const contextMenu = ref<{ x: number; y: number; pick: PickResult | null } | null>(null);
-const closeContextMenu = () => {
-  contextMenu.value = null;
 };
 
 /** 剪贴板写入：优先 Clipboard API，非 https / 旧环境回退 execCommand；失败静默 */
@@ -852,6 +875,29 @@ const copyText = (text: string) => {
     el.remove();
   }
   pushNotice(`已复制 ${text}`, 'info', 1600);
+};
+
+/**
+ * drillProperties — 对外广播 drill-down 事件并真正执行下钻。
+ * @param properties 目标行政区属性（含 adcode / name / center 等）。
+ * ⚠️ 必须放在 contextItems 之前：菜单项的 action 引用它（箭头函数无提升）。
+ */
+const drillProperties = (properties: GeoJsonFeature['properties']) => {
+  emit('drill-down', properties);
+  drill(properties);
+};
+
+/**
+ * handleBack — 返回上一级（底部"返回上级"按钮）。
+ * ⚠️ 坑①：返回即 pop history[] 后重建上一层地图，而非相机后退。
+ * stack.length===2 表示"当前在省级、再退就回全国"，此时额外广播 reset-to-country。
+ * ⚠️ 必须放在 contextItems 之前：空白处菜单的「返回上一级」引用它（箭头函数无提升）。
+ */
+const handleBack = () => {
+  selectAdcode(null);
+  // 回到全国时通知外部
+  if (stack.value.length === 2) emit('reset-to-country');
+  back();
 };
 
 /** 菜单项按命中类型生成：行政区 / 标记 / 空白处（导航快捷操作） */
@@ -921,15 +967,6 @@ const adcodeOf = (pick: PickResult | null): number | null => {
 };
 
 /**
- * drillProperties — 对外广播 drill-down 事件并真正执行下钻。
- * @param properties 目标行政区属性（含 adcode / name / center 等）。
- */
-const drillProperties = (properties: GeoJsonFeature['properties']) => {
-  emit('drill-down', properties);
-  drill(properties);
-};
-
-/**
  * handleDrill — 双击事件入口：从拾取结果取出属性并下钻。
  * @param pick 指针拾取结果，优先取 spot（标记），其次取板块 properties。
  */
@@ -950,11 +987,36 @@ let lastHoverAdcode: number | null = null;
  * 注意：canvas 不在模板里，故需 onMounted 时 picker.attach(canvas)。
  */
 
+/** 画框缩放：把相机平滑聚焦到选中区域的屏幕包围盒（复用 viewport.focus 的取景算法） */
+const zoomToSelection = (set: Set<number>) => {
+  const regs = layer.regions().filter((r) => set.has(r.adcode))
+  if (regs.length < 1) return
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  regs.forEach((r) => {
+    minX = Math.min(minX, r.world.x); maxX = Math.max(maxX, r.world.x)
+    minY = Math.min(minY, r.world.y); maxY = Math.max(maxY, r.world.y)
+  })
+  const cx = (minX + maxX) / 2
+  const cy = (minY + maxY) / 2
+  const hw = Math.max((maxX - minX) / 2, 6)
+  const hh = Math.max((maxY - minY) / 2, 6)
+  const fit = {
+    center: [0, 0] as [number, number],
+    scale: 1,
+    bounds: { minX: -hw, minY: -hh, maxX: hw, maxY: hh, width: 2 * hw, height: 2 * hh, cx: 0, cy: 0 },
+  }
+  viewport.focus(fit, 0.6, new THREE.Vector3(cx, cy, mapConfig.depth))
+};
+
 /**
  * 框选结束：把屏幕矩形内的行政区批量拾取为高亮选中。
  * - 非 Shift：直接替换为新集合，并聚焦到选区包围盒（画框缩放）。
  * - Shift：与现有集合做 toggle 累加（可正选 / 反选）。
  * 投影法取每个区域世界坐标投影到屏幕像素判断落框，框选只在 mouseup 执行一次，开销极低。
+ * ⚠️ 必须放在 zoomToSelection 之后：命中后要调它做画框缩放（箭头函数无提升）。
  */
 const onBoxEnd = (rect: { x: number; y: number; w: number; h: number } | null, shift: boolean) => {
   boxRect.value = null
@@ -967,44 +1029,26 @@ const onBoxEnd = (rect: { x: number; y: number; w: number; h: number } | null, s
   const regions = layer.regions()
   const hits: number[] = []
   const v = new THREE.Vector3()
-  for (const r of regions) {
+  regions.forEach((r) => {
     v.copy(r.world).project(camera)
     const sx = (v.x * 0.5 + 0.5) * w
     const sy = (-v.y * 0.5 + 0.5) * h
     if (sx >= rect.x && sx <= rect.x + rect.w && sy >= rect.y && sy <= rect.y + rect.h) hits.push(r.adcode)
-  }
+  })
   if (!hits.length) return
   let next: Set<number>
   if (shift) {
     next = layer.selectedSet()
-    for (const a of hits) { if (next.has(a)) next.delete(a); else next.add(a) }
+    hits.forEach((a) => {
+      if (next.has(a)) next.delete(a)
+      else next.add(a)
+    })
   } else {
     next = new Set(hits)
   }
   layer.setSelectedSet(next)
   selectedAdcodes.value = [...next]
   if (!shift && next.size > 0) zoomToSelection(next)
-};
-
-/** 画框缩放：把相机平滑聚焦到选中区域的屏幕包围盒（复用 viewport.focus 的取景算法） */
-const zoomToSelection = (set: Set<number>) => {
-  const regs = layer.regions().filter((r) => set.has(r.adcode))
-  if (regs.length < 1) return
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-  for (const r of regs) {
-    minX = Math.min(minX, r.world.x); maxX = Math.max(maxX, r.world.x)
-    minY = Math.min(minY, r.world.y); maxY = Math.max(maxY, r.world.y)
-  }
-  const cx = (minX + maxX) / 2
-  const cy = (minY + maxY) / 2
-  const hw = Math.max((maxX - minX) / 2, 6)
-  const hh = Math.max((maxY - minY) / 2, 6)
-  const fit = {
-    center: [0, 0] as [number, number],
-    scale: 1,
-    bounds: { minX: -hw, minY: -hh, maxX: hw, maxY: hh, width: 2 * hw, height: 2 * hh, cx: 0, cy: 0 },
-  }
-  viewport.focus(fit, 0.6, new THREE.Vector3(cx, cy, mapConfig.depth))
 };
 
 const picker = usePointerPick({
@@ -1062,6 +1106,8 @@ const picker = usePointerPick({
     measurePoints.value = measure.count();
   },
 });
+// 回填指针拾取器：levels 的 onLeave / 测量开关 watcher 经 bound 取用它（见 bound 注释）
+bound.picker = picker;
 
 const tooltip = computed(() => {
   const hover = picker.hovered.value;
@@ -1087,9 +1133,9 @@ const selectionStats = computed(() => {
   if (!list.length) return null
   const data = props.projectData as Record<number, any> | undefined
   let sum = 0
-  for (const a of list) sum += readCount(data?.[a])
+  list.forEach((a) => { sum += readCount(data?.[a]) })
   let total = 0
-  if (data) for (const k of Object.keys(data)) total += readCount((data as any)[k])
+  if (data) Object.keys(data).forEach((k) => { total += readCount((data as any)[k]) })
   return { count: list.length, sum, ratio: total > 0 ? sum / total : 0 }
 });
 
@@ -1151,18 +1197,6 @@ const handleSearchKeyword = async (keyword: string) => {
     return;
   }
   if (!result.drilled) selectAdcode(result.adcode);
-};
-
-/**
- * handleBack — 返回上一级（底部"返回上级"按钮）。
- * ⚠️ 坑①：返回即 pop history[] 后重建上一层地图，而非相机后退。
- * stack.length===2 表示"当前在省级、再退就回全国"，此时额外广播 reset-to-country。
- */
-const handleBack = () => {
-  selectAdcode(null);
-  // 回到全国时通知外部
-  if (stack.value.length === 2) emit('reset-to-country');
-  back();
 };
 
 /**
@@ -1544,6 +1578,16 @@ const doScreenshot = async () => {
   pushNotice('已保存截图', 'info');
 };
 
+/**
+ * niceStepOf — 把 1~10 之间的尾数归一到「1 / 2 / 5」三档（比例尺整刻度用）。
+ * @param norm 已除掉 10ⁿ 量级后的尾数（通常落在 1~10）
+ */
+const niceStepOf = (norm: number) => {
+  if (norm >= 5) return 5;
+  if (norm >= 2) return 2;
+  return 1;
+};
+
 let tickOff: (() => void) | null = null;
 
 onMounted(async () => {
@@ -1609,9 +1653,9 @@ onMounted(async () => {
       const kmPerUnit = (6371 * Math.cos((lat * Math.PI) / 180)) / scaleVal;
       const kmPerPx = wpp * kmPerUnit;
       const rawKm = kmPerPx * 100; // 目标条长约 100px
-      const mag = Math.pow(10, Math.floor(Math.log10(rawKm || 1)));
+      const mag = 10 ** Math.floor(Math.log10(rawKm || 1));
       const norm = rawKm / mag;
-      const niceKm = (norm >= 5 ? 5 : norm >= 2 ? 2 : 1) * mag;
+      const niceKm = niceStepOf(norm) * mag;
       const barPx = kmPerPx > 0 ? niceKm / kmPerPx : 0;
       const dist = cam.position.distanceTo(viewport.controls()!.target);
       const ratio = viewport.fitDistance() > 0 ? dist / viewport.fitDistance() : 1;
@@ -1910,14 +1954,14 @@ onUnmounted(() => {
   cursor: pointer;
   font: 600 12px/1 inherit;
 }
-.map-measure__btn:hover:not(:disabled) {
-  background: rgba(95, 216, 255, 0.16);
-}
 .map-measure__btn:disabled {
   opacity: 0.4;
   cursor: default;
 }
-/* CSS2D 城市标签样式见文件末尾非 scoped <style> 块：
+.map-measure__btn:hover:not(:disabled) {
+  background: rgba(95, 216, 255, 0.16);
+}
+/* CSS2D 城市标签样式见文件末尾非 scoped \3c style> 块：
    标签 DOM 由 useCss2dLabels 用 document.createElement 动态注入到
    CSS2DRenderer.domElement，scoped 样式不会命中它，故必须放全局块，
    否则会回落到浏览器默认样式（透明底 + 黑字）。 */

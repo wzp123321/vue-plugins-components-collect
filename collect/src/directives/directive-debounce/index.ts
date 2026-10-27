@@ -13,13 +13,13 @@ export const vDebounce: ObjectDirective<HTMLElement, () => void> = {
 
     el.addEventListener('click', handler)
 
-    ;(el as any).__debounceCleanup = () => {
+    ;(el as any).debounceCleanup = () => {
       if (timer) clearTimeout(timer)
       timer = null
       el.removeEventListener('click', handler)
     }
   },
   unmounted(el) {
-    ;(el as any).__debounceCleanup?.()
+    ;(el as any).debounceCleanup?.()
   },
 }

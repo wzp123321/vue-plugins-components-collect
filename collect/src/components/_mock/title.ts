@@ -25,12 +25,14 @@ export const mockTitleCategories = [
   { id: 'tc-3', name: '产品序列' },
 ];
 
-export function searchTitles(keyword: string): Promise<MockTitle[]> {
-  return new Promise((resolve) => {
+export const searchTitles = (keyword: string): Promise<MockTitle[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const k = keyword.trim().toLowerCase();
-      if (!k) return resolve([]);
+      if (!k) {
+        resolve([]);
+        return;
+      }
       resolve(mockTitles.filter((t) => t.name.toLowerCase().includes(k)));
     }, 200);
   });
-}

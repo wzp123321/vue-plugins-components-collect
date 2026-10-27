@@ -19,7 +19,7 @@ import type { HttpResult, ResolvedHttpClientConfig } from './types';
 export const createTraceId = (): string =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
 
 /** 读请求头（大小写不敏感），主要为了不覆盖调用方显式设置的值 */
 const readHeader = (cfg: InternalAxiosRequestConfig, name: string): string | undefined => {
@@ -88,13 +88,34 @@ const shouldRetryByStatus = (status: number | undefined, config: ResolvedHttpCli
 const isIdempotentMethod = (method: string | undefined): boolean =>
   ['GET', 'HEAD', 'OPTIONS'].includes((method ?? 'GET').toUpperCase());
 
-export function installInterceptors(instance: AxiosInstance, config: ResolvedHttpClientConfig): void {
+/**
+ * 401 处理：刷新令牌 → 用新令牌重试原请求。
+ * 已重试过、无 tokenManager、刷新失败都返回 null，让调用方走正常失败流程。
+ */
+const retryAfterRefresh = async (
+  instance: AxiosInstance,
+  cfg: InternalAxiosRequestConfig,
+  config: ResolvedHttpClientConfig,
+): Promise<AxiosResponse | null> => {
+  const { tokenManager } = config;
+  if (!tokenManager || cfg.authRetried) return null;
+
+  cfg.authRetried = true;
+  const newToken = await tokenManager.handleUnauthorized();
+  if (!newToken) return null;
+
+  // 清掉旧鉴权头，交给请求拦截器重新写入（重试会完整走一遍拦截器）
+  removeHeader(cfg, config.authHeaderName);
+  return instance(cfg);
+};
+
+export const installInterceptors = (instance: AxiosInstance, config: ResolvedHttpClientConfig): void => {
   /* ---------------------------- 请求 ---------------------------- */
   instance.interceptors.request.use(
     async (cfg) => {
-      cfg._traceId = createTraceId();
+      cfg.traceId = createTraceId();
       if (config.traceHeaderName) {
-        writeHeaderIfAbsent(cfg, config.traceHeaderName, cfg._traceId);
+        writeHeaderIfAbsent(cfg, config.traceHeaderName, cfg.traceId);
       }
 
       if (config.getHeaders) {
@@ -160,7 +181,7 @@ export function installInterceptors(instance: AxiosInstance, config: ResolvedHtt
       const code = body ? config.getCode(body) : undefined;
 
       // ---- 401：刷新令牌后重试一次 ----
-      if (cfg && !cfg.skipAuth && config.tokenManager && !cfg._authRetried) {
+      if (cfg && !cfg.skipAuth && config.tokenManager && !cfg.authRetried) {
         if (config.isUnauthorized({ status, code, config: cfg, body })) {
           const retried = await retryAfterRefresh(instance, cfg, config);
           if (retried) return retried;
@@ -169,11 +190,11 @@ export function installInterceptors(instance: AxiosInstance, config: ResolvedHtt
 
       // ---- 网络抖动 / 5xx：指数退避重试 ----
       if (cfg && config.retry.enabled) {
-        const count = cfg._retryCount ?? 0;
+        const count = cfg.retryCount ?? 0;
         const idempotent = isIdempotentMethod(cfg.method);
         const canRetryMethod = config.retry.idempotentOnly ? idempotent : true;
         if (canRetryMethod && count < config.retry.maxRetries && shouldRetryByStatus(status, config)) {
-          cfg._retryCount = count + 1;
+          cfg.retryCount = count + 1;
           const delay = Math.min(config.retry.baseDelayMs * 2 ** count, config.retry.maxDelayMs);
           await sleep(delay);
           return instance(cfg);
@@ -182,13 +203,23 @@ export function installInterceptors(instance: AxiosInstance, config: ResolvedHtt
 
       // ---- 归一化错误 ----
       const isTimeout = axiosError.code === 'ECONNABORTED' || /timeout/i.test(axiosError.message);
-      const message = body
-        ? (config.getMessage(body) ?? axiosError.message)
-        : isTimeout
-          ? '请求超时，请稍后重试'
-          : axiosError.message || '网络异常';
+      let message: string;
+      if (body) {
+        message = config.getMessage(body) ?? axiosError.message;
+      } else if (isTimeout) {
+        message = '请求超时，请稍后重试';
+      } else {
+        message = axiosError.message || '网络异常';
+      }
 
-      const kind: HttpError['kind'] = isTimeout ? 'timeout' : response ? 'status' : 'network';
+      let kind: HttpError['kind'];
+      if (isTimeout) {
+        kind = 'timeout';
+      } else if (response) {
+        kind = 'status';
+      } else {
+        kind = 'network';
+      }
 
       const httpError = new HttpError(message, {
         status,
@@ -204,27 +235,6 @@ export function installInterceptors(instance: AxiosInstance, config: ResolvedHtt
     },
   );
 }
-
-/**
- * 401 处理：刷新令牌 → 用新令牌重试原请求。
- * 已重试过、无 tokenManager、刷新失败都返回 null，让调用方走正常失败流程。
- */
-const retryAfterRefresh = async (
-  instance: AxiosInstance,
-  cfg: InternalAxiosRequestConfig,
-  config: ResolvedHttpClientConfig,
-): Promise<AxiosResponse | null> => {
-  const { tokenManager } = config;
-  if (!tokenManager || cfg._authRetried) return null;
-
-  cfg._authRetried = true;
-  const newToken = await tokenManager.handleUnauthorized();
-  if (!newToken) return null;
-
-  // 清掉旧鉴权头，交给请求拦截器重新写入（重试会完整走一遍拦截器）
-  removeHeader(cfg, config.authHeaderName);
-  return instance(cfg);
-};
 
 /** 便于业务侧复用同一套判定 */
 export const createCodeGetter = (order: Array<'errcode' | 'code'> = ['errcode', 'code']) => (body: HttpResult) => {

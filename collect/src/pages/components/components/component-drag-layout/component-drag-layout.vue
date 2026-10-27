@@ -30,14 +30,6 @@ let isDragging = false;
 let startX = 0;
 let startWidth = 0;
 
-const startDragging = (event: MouseEvent) => {
-  isDragging = true;
-  startX = event.clientX;
-  startWidth = sidebarWidth.value;
-  document.addEventListener('mousemove', doDrag);
-  document.addEventListener('mouseup', stopDragging);
-};
-
 const doDrag = (event: MouseEvent) => {
   if (isDragging) {
     const newWidth = startWidth + (event.clientX - startX);
@@ -49,6 +41,14 @@ const stopDragging = () => {
   isDragging = false;
   document.removeEventListener('mousemove', doDrag);
   document.removeEventListener('mouseup', stopDragging);
+};
+
+const startDragging = (event: MouseEvent) => {
+  isDragging = true;
+  startX = event.clientX;
+  startWidth = sidebarWidth.value;
+  document.addEventListener('mousemove', doDrag);
+  document.addEventListener('mouseup', stopDragging);
 };
 </script>
 

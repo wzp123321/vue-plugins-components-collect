@@ -30,6 +30,17 @@ const reOf = (src: string): RegExp | null => {
 const NO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
+ * 行主键读取助手。
+ * ⚠️ __id 是 vxe-table 消费的行字段（即页面 :row-config 的 keyField），属性名属外部约定、
+ * 不可重命名；经解构读取，键名与语义不变，同时避免 no-underscore-dangle 报错。
+ */
+const rowIdOf = (r?: { __id: string } | null): string => {
+  if (!r) return '';
+  const { __id } = r;
+  return __id ?? '';
+};
+
+/**
  * 单元格校验：规则全部来自列定义（ColDef.required / rules / cross），本层只负责执行与汇总。
  *
  * 在整体架构中的角色：作为 useGridCore 装配的子 hook，被所有"写数据"的路径复用——
@@ -41,12 +52,12 @@ const NO_DATE = /^\d{4}-\d{2}-\d{2}$/;
  *
  * @param deps 依赖注入：getColumnDefs / getRows / labelOf / firstVisibleField，借此与 core 解耦
  */
-export function useCellValidation(deps: {
+export const useCellValidation = (deps: {
   getColumnDefs: () => ColDef[];
   getRows: () => Row[];
   labelOf: (field: string) => string;
   firstVisibleField: () => string | undefined;
-}) {
+}) => {
   const { getColumnDefs, getRows, labelOf, firstVisibleField } = deps;
   const cellErrors = reactive<Record<string, string>>({});
   const errKey = (rowId: string, field: string) => `${rowId}__${field}`;
@@ -54,12 +65,14 @@ export function useCellValidation(deps: {
   /** 建立某列的值计数索引（只统计非空值） */
   const buildDupMap = (field: string): DupMap => {
     const m: DupMap = new Map();
-    for (const r of getRows()) {
+    getRows().forEach((r) => {
       const v = r[field];
-      if (isEmpty(v)) continue;
-      const k = String(v);
-      m.set(k, (m.get(k) ?? 0) + 1);
-    }
+      // 原 continue 的反条件写法：空值才不计数
+      if (!isEmpty(v)) {
+        const k = String(v);
+        m.set(k, (m.get(k) ?? 0) + 1);
+      }
+    });
     return m;
   };
 
@@ -67,26 +80,27 @@ export function useCellValidation(deps: {
   const checkCross = (row: Row, def: ColDef, value: any): string => {
     const rules = def.cross;
     if (!rules?.length) return '';
-    for (const c of rules as CrossRule[]) {
+    const cs = rules as CrossRule[];
+    for (let i = 0; i < cs.length; i++) {
+      const c = cs[i];
       const otherVal = row[c.other];
       const otherLabel = labelOf(c.other);
       if (c.kind === 'requiredIf') {
         if (!isEmpty(otherVal) && isEmpty(value)) return c.msg || `${def.label}为必填（${otherLabel}已填）`;
-        continue;
+      } else if (!isEmpty(value) && !isEmpty(otherVal)) {
+        // 其余三种都是二元比较（任一为空则跳过——空值的合法性由 required 负责，原 continue 的反条件写法）
+        if (c.kind === 'eq') {
+          if (String(value) !== String(otherVal)) return c.msg || `${def.label}需与${otherLabel}一致`;
+        } else {
+          // 数字优先按数值比，其余按字符串比（YYYY-MM-DD 可直接比较）
+          const a = Number(value);
+          const b = Number(otherVal);
+          const numeric = !Number.isNaN(a) && !Number.isNaN(b) && String(value).trim() !== '' && String(otherVal).trim() !== '';
+          const cmp = numeric ? a - b : String(value).localeCompare(String(otherVal));
+          if (c.kind === 'gte' && cmp < 0) return c.msg || `${def.label}不能早于/小于${otherLabel}`;
+          if (c.kind === 'lte' && cmp > 0) return c.msg || `${def.label}不能晚于/大于${otherLabel}`;
+        }
       }
-      // 其余三种都是二元比较：任一为空则跳过（空值的合法性由 required 负责）
-      if (isEmpty(value) || isEmpty(otherVal)) continue;
-      if (c.kind === 'eq') {
-        if (String(value) !== String(otherVal)) return c.msg || `${def.label}需与${otherLabel}一致`;
-        continue;
-      }
-      // 数字优先按数值比，其余按字符串比（YYYY-MM-DD 可直接比较）
-      const a = Number(value);
-      const b = Number(otherVal);
-      const numeric = !isNaN(a) && !isNaN(b) && String(value).trim() !== '' && String(otherVal).trim() !== '';
-      const cmp = numeric ? a - b : String(value).localeCompare(String(otherVal));
-      if (c.kind === 'gte' && cmp < 0) return c.msg || `${def.label}不能早于/小于${otherLabel}`;
-      if (c.kind === 'lte' && cmp > 0) return c.msg || `${def.label}不能晚于/大于${otherLabel}`;
     }
     return '';
   };
@@ -96,7 +110,7 @@ export function useCellValidation(deps: {
    * ctx.dup 供 revalidateAll 复用同一次建好的列索引；不传则按需建（单格编辑路径）。
    */
   const validateCell = (row: Row, field: string, ctx?: { dup?: Map<string, DupMap> }) => {
-    const key = errKey(row.__id, field);
+    const key = errKey(rowIdOf(row), field);
     const def = getColumnDefs().find((d) => d.field === field);
     if (!def) {
       delete cellErrors[key];
@@ -109,7 +123,7 @@ export function useCellValidation(deps: {
       const rules = def.rules;
       if (def.type === 'number') {
         const n = Number(value);
-        if (isNaN(n)) return `${def.label}需为数值`;
+        if (Number.isNaN(n)) return `${def.label}需为数值`;
         if (rules?.min !== undefined && n < rules.min) return `${def.label}不能小于 ${rules.min}`;
         if (rules?.max !== undefined && n > rules.max) return `${def.label}不能大于 ${rules.max}`;
       }
@@ -138,14 +152,20 @@ export function useCellValidation(deps: {
 
   /** 全量重校：清空错误表后按当前列结构逐行逐格校验（列结构变更/撤销恢复后调用） */
   const revalidateAll = () => {
-    for (const k of Object.keys(cellErrors)) delete cellErrors[k];
+    Object.keys(cellErrors).forEach((k) => {
+      delete cellErrors[k];
+    });
     const defs = getColumnDefs();
     // ⚠️ 坑：唯一性校验需要全列计数——若每格都 buildDupMap 会退化成 O(n²)。这里只为配了 unique 的列
     // 预建一次索引并传入 ctx 复用（revalidateAll 是提交前/结构变更时调用，必须避免 O(n²)）。
     const dup = new Map<string, DupMap>();
-    for (const d of defs) if (d.rules?.unique) dup.set(d.field, buildDupMap(d.field));
+    defs.forEach((d) => {
+      if (d.rules?.unique) dup.set(d.field, buildDupMap(d.field));
+    });
     const ctx = { dup };
-    for (const r of getRows()) for (const d of defs) validateCell(r, d.field, ctx);
+    getRows().forEach((r) => {
+      defs.forEach((d) => validateCell(r, d.field, ctx));
+    });
   };
 
   /**
@@ -156,8 +176,10 @@ export function useCellValidation(deps: {
   const validateRow = (row: Row) => {
     const defs = getColumnDefs();
     const dup = new Map<string, DupMap>();
-    for (const d of defs) if (d.rules?.unique) dup.set(d.field, buildDupMap(d.field));
-    for (const d of defs) validateCell(row, d.field, { dup });
+    defs.forEach((d) => {
+      if (d.rules?.unique) dup.set(d.field, buildDupMap(d.field));
+    });
+    defs.forEach((d) => validateCell(row, d.field, { dup }));
   };
 
   /** 直接写入一条错误（服务端校验回填用）：不参与规则计算，只污染错误表 */
@@ -169,7 +191,7 @@ export function useCellValidation(deps: {
   const errorList = computed(() =>
     Object.entries(cellErrors).map(([k, msg]) => {
       const [rowId, field] = k.split('__');
-      const row = getRows().find((r) => r.__id === rowId);
+      const row = getRows().find((r) => rowIdOf(r) === rowId);
       return {
         rowId,
         field,

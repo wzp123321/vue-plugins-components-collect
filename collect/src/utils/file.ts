@@ -15,7 +15,7 @@ export interface IRes<T> {
  * @param accept 允许的后缀
  * @returns 目标文件域
  */
-export function FUploadHandler(accept?: string): Promise<File> {
+export const FUploadHandler = (accept?: string): Promise<File> =>
   /**
    * // 允许的文件格式
    *   const ACCEPT_EXTENSIONS = {
@@ -25,22 +25,21 @@ export function FUploadHandler(accept?: string): Promise<File> {
    *  };
    * FUploadHandler(Object.keys(ACCEPT_EXTENSIONS).join())
    */
-  return new Promise((resolve, reject) => {
+  new Promise((resolve, reject) => {
     const element = document.createElement('input');
     element.type = 'file';
-    accept && (element.accept = accept);
+    if (accept) element.accept = accept;
     element.click();
     element.onchange = () => {
       const file = element.files?.[0];
       if (file?.size) {
         resolve(file);
       } else {
-        reject('无法选取文件');
+        reject(new Error('无法选取文件'));
       }
       element.remove();
     };
   });
-}
 
 // 校验文件
 export const verifyUpload = (
@@ -81,19 +80,38 @@ export const verifyUpload = (
 };
 
 /**
+ * 文件下载处理
+ * @param url 源路径
+ * @param name 输出文件名
+ */
+export const FDownLoadHandler = (url: string, name?: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if (url) {
+      const element = document.createElement('a');
+      element.href = url;
+      if (name) element.download = name;
+      element.click();
+      resolve();
+      element.remove();
+    } else {
+      reject(new Error(`无法下载${name || '文件'}`));
+    }
+  });
+
+/**
  * 二进制响应处理
  * @param blob 二进制流
  * @param name 输出文件名
  */
-export function FBlobHandler(blob: Blob, name?: string): Promise<void> {
-  return new Promise((resolve, reject) => {
+export const FBlobHandler = (blob: Blob, name?: string): Promise<void> =>
+  new Promise((resolve, reject) => {
     if (blob.size) {
       const reader = new FileReader();
 
       if (blob.type.includes('json')) {
         reader.onloadend = (e) => {
           const res: IRes<void> = JSON.parse(e.target?.result as string);
-          reject(res?.message ?? '未知原因');
+          reject(new Error(res?.message ?? '未知原因'));
         };
         reader.readAsText(blob);
       } else {
@@ -105,30 +123,9 @@ export function FBlobHandler(blob: Blob, name?: string): Promise<void> {
         reader.readAsDataURL(blob);
       }
     } else {
-      reject(`无法获取${name || '文件'}`);
+      reject(new Error(`无法获取${name || '文件'}`));
     }
   });
-}
-
-/**
- * 文件下载处理
- * @param url 源路径
- * @param name 输出文件名
- */
-export function FDownLoadHandler(url: string, name?: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (url) {
-      const element = document.createElement('a');
-      element.href = url;
-      name && (element.download = name);
-      element.click();
-      resolve();
-      element.remove();
-    } else {
-      reject(`无法下载${name || '文件'}`);
-    }
-  });
-}
 
 /**
  * dom导出成图片
@@ -154,28 +151,30 @@ export const handleElementToImage = async (element: HTMLElement, name: string, w
   }
 };
 
-export function formatFileSize(bytes: number, decimals: number = 2): string {
+export const formatFileSize = (bytes: number, decimals: number = 2): string => {
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / k ** i).toFixed(decimals))} ${sizes[i]}`;
 }
 
-export async function calculateFileHash(
+export const calculateFileHash = async (
   file: File,
-  chunkSize: number = 10 * 1024 * 1024,
+  chunkSize?: number,
   onProgress?: (percentage: number) => void,
-): Promise<string> {
+): Promise<string> => {
+  // 默认值放进函数体：保持 (file, chunkSize?, onProgress?) 的调用签名不变
+  const chunkBytes = chunkSize ?? 10 * 1024 * 1024;
   return new Promise((resolve, reject) => {
     const spark = new SparkMD5.ArrayBuffer();
     const fileReader = new FileReader();
-    const chunks = Math.ceil(file.size / chunkSize);
+    const chunks = Math.ceil(file.size / chunkBytes);
     let currentChunk = 0;
 
     const loadNext = () => {
-      const start = currentChunk * chunkSize;
-      const end = Math.min(start + chunkSize, file.size);
+      const start = currentChunk * chunkBytes;
+      const end = Math.min(start + chunkBytes, file.size);
       fileReader.readAsArrayBuffer(file.slice(start, end));
     };
 
@@ -194,4 +193,4 @@ export async function calculateFileHash(
 
     loadNext();
   });
-}
+};

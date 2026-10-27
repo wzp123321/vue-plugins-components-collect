@@ -82,7 +82,7 @@ export const mockSpaceAttributes: MockSpaceAttr[] = [
   },
 ];
 
-export function flatSpaceAttrs(tree: MockSpaceAttr[]): MockSpaceAttr[] {
+export const flatSpaceAttrs = (tree: MockSpaceAttr[]): MockSpaceAttr[] => {
   const out: MockSpaceAttr[] = [];
   const walk = (list: MockSpaceAttr[]) => {
     list.forEach((n) => {

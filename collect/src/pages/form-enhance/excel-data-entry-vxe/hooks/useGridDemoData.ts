@@ -13,7 +13,7 @@ import { uid, DEPARTMENTS, STATUSES, emptyValueFor } from '../types';
  *
  * @param core 核心状态实例
  */
-export function useGridDemoData(core: GridCore) {
+export const useGridDemoData = (core: GridCore) => {
   const lastGen = ref('');
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
@@ -22,7 +22,7 @@ export function useGridDemoData(core: GridCore) {
     core.searchText.value = '';
     Object.keys(core.columnFilters).forEach((k) => delete core.columnFilters[k]);
     core.sortList.value = [];
-    for (const k of Object.keys(core.cellErrors)) delete core.cellErrors[k];
+    Object.keys(core.cellErrors).forEach((k) => delete core.cellErrors[k]);
   };
   /** 预制 n 行真实感示例数据（页面初始 200 行亦走此生成器） */
   const presetData = (n = 500) => {
@@ -41,7 +41,7 @@ export function useGridDemoData(core: GridCore) {
     const arr: any[] = new Array(n);
     for (let i = 0; i < n; i++) {
       const row: any = { __id: uid(), __dirty: false };
-      for (const d of core.columnDefs.value) {
+      core.columnDefs.value.forEach((d) => {
         switch (d.field) {
           case 'name':
             row.name = FIRST[i % 10] + LAST[(i * 7) % 10];
@@ -67,7 +67,7 @@ export function useGridDemoData(core: GridCore) {
           default:
             row[d.field] = emptyValueFor(d);
         }
-      }
+      });
       arr[i] = row;
     }
     core.allRows.value = arr;

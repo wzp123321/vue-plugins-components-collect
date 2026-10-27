@@ -85,6 +85,8 @@ const onEncrypto = () => {
       case ENCRYPT_METHOD.MD5:
         cryptoText.value = Crypto.MD5(textCry.value).toString();
         break;
+      default:
+        break;
     }
   } catch (e) {
     ElMessage.error((e as any).message);

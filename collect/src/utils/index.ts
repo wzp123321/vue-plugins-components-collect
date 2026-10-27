@@ -126,9 +126,9 @@ export const copyElementWithAllStyles = (element: HTMLElement) => {
 
   const escapeClassForSelector = (cls: any) => {
     if (window.CSS && window.CSS.escape) {
-      return '.' + window.CSS.escape(cls);
+      return `.${window.CSS.escape(cls)}`;
     }
-    return '.' + cls.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    return `.${cls.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1')}`;
   };
 
   const styleSheet = document.createElement('style');
@@ -145,10 +145,12 @@ export const copyElementWithAllStyles = (element: HTMLElement) => {
     Array.from(rules).forEach((rule: any) => {
       if (rule.type === CSSRule.STYLE_RULE) {
         const selector = rule.selectorText;
-        for (const cls of usedClasses) {
+        const usedClassesArray = Array.from(usedClasses);
+        for (let i = 0; i < usedClassesArray.length; i++) {
+          const cls = usedClassesArray[i];
           const escaped = escapeClassForSelector(cls);
           if (selector && selector.includes(escaped)) {
-            cssText += rule.cssText + '\n';
+            cssText += `${rule.cssText}\n`;
             break;
           }
         }

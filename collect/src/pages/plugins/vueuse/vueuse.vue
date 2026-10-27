@@ -85,7 +85,7 @@ console.log(
 );
 console.log('格式化当前时间---------', useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss').value);
 console.log('距离当前时间差---------', useTimeAgo(new Date(2021, 0, 1)).value);
-function setPageTitle() {
+const setPageTitle = () => {
   useTitle(`title_${(Math.random() * 10000).toFixed(0)}`);
 }
 

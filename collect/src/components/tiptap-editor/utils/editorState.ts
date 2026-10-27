@@ -23,44 +23,42 @@ export interface StateCheckers {
  * @example
  * const { isActive, isHeadingActive } = createStateCheckers(editor)
  */
-export function createStateCheckers(editor: Ref<Editor | null | undefined>): StateCheckers {
-  return {
-    isActive: (name, attributes) => {
-      const instance = editor.value;
-      if (!instance) return false;
-      return attributes ? instance.isActive(name, attributes) : instance.isActive(name);
-    },
+export const createStateCheckers = (editor: Ref<Editor | null | undefined>): StateCheckers => ({
+  isActive: (name, attributes) => {
+    const instance = editor.value;
+    if (!instance) return false;
+    return attributes ? instance.isActive(name, attributes) : instance.isActive(name);
+  },
 
-    isHeadingActive: (level) => {
-      const instance = editor.value;
-      if (!instance) return false;
-      return instance.isActive('heading', { level });
-    },
+  isHeadingActive: (level) => {
+    const instance = editor.value;
+    if (!instance) return false;
+    return instance.isActive('heading', { level });
+  },
 
-    isActiveAlign: (value) => {
-      const instance = editor.value;
-      if (!instance) return false;
-      return instance.isActive({ textAlign: value });
-    },
+  isActiveAlign: (value) => {
+    const instance = editor.value;
+    if (!instance) return false;
+    return instance.isActive({ textAlign: value });
+  },
 
-    canExecute: (command) => {
-      const instance = editor.value;
-      if (!instance) return false;
-      const canObj = instance.can() as unknown as Record<
-        string,
-        ((...args: unknown[]) => boolean) | undefined
-      >;
-      const fn = canObj[command];
-      return typeof fn === 'function' ? fn() : false;
-    },
-  };
-}
+  canExecute: (command) => {
+    const instance = editor.value;
+    if (!instance) return false;
+    const canObj = instance.can() as unknown as Record<
+      string,
+      ((...args: unknown[]) => boolean) | undefined
+    >;
+    const fn = canObj[command];
+    return typeof fn === 'function' ? fn() : false;
+  },
+});
 
 /**
  * 获取当前段落样式
  * @returns 'paragraph' | 'h1' | 'h2' | 'h3'
  */
-export function getCurrentParagraphStyle(editor: Ref<Editor | null | undefined>): string {
+export const getCurrentParagraphStyle = (editor: Ref<Editor | null | undefined>): string => {
   const instance = editor.value;
   if (!instance) return 'paragraph';
   for (let level = 1; level <= 3; level += 1) {
@@ -72,9 +70,9 @@ export function getCurrentParagraphStyle(editor: Ref<Editor | null | undefined>)
 /**
  * 获取当前文本对齐方式
  */
-export function getCurrentTextAlign(
+export const getCurrentTextAlign = (
   editor: Ref<Editor | null | undefined>,
-): 'left' | 'center' | 'right' | 'justify' {
+): 'left' | 'center' | 'right' | 'justify' => {
   const instance = editor.value;
   if (!instance) return 'left';
   const alignments: Array<'left' | 'center' | 'right' | 'justify'> = [
@@ -83,8 +81,6 @@ export function getCurrentTextAlign(
     'right',
     'justify',
   ];
-  for (const align of alignments) {
-    if (instance.isActive({ textAlign: align })) return align;
-  }
-  return 'left';
+  const currentAlign = alignments.find((align) => instance.isActive({ textAlign: align }));
+  return currentAlign ?? 'left';
 }

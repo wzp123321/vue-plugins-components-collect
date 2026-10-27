@@ -117,19 +117,21 @@ export const useCss2dLabels = (options: Options) => {
       .sort((a, b) => b.value - a.value)
       .slice(0, C2D_MAX)
 
-    group = new THREE.Group()
-    group.userData = { kind: 'c2dLabels' }
-    for (const { feature, value } of ranked) {
+    // 闭包内（forEach 回调）拿不到 let 变量的赋值收窄，先用局部 const 承接
+    const g = new THREE.Group()
+    group = g
+    g.userData = { kind: 'c2dLabels' }
+    ranked.forEach(({ feature, value }) => {
       const center = anchorOf(feature)
-      if (!center || center.length !== 2) continue
+      if (!center || center.length !== 2) return
       const [x, y] = project(center)
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return
       const el = makeElement(String(feature.properties.name), String(value), '#5FC9EE')
       const label = new CSS2DObject(el)
       // 标签锚点抬到柱顶附近高度，避免压在板块上
       label.position.set(x, -y, mapConfig.spotZ + 2)
-      group.add(label)
-    }
+      g.add(label)
+    })
     group.visible = options.visible()
     root.add(group)
     // 逐个对象同步显隐：只在 sprite 模式下把每个标签也置为不可见，否则 DOM 标签会漏显

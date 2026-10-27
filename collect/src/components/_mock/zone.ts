@@ -49,17 +49,19 @@ export const mockZoneTree: MockZone[] = [
   },
 ];
 
-export function loadZoneChildren(id: string, keyword?: string): Promise<MockZone[]> {
-  return new Promise((resolve) => {
+export const loadZoneChildren = (id: string, keyword?: string): Promise<MockZone[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const find = (list: MockZone[]): MockZone | undefined => {
-        for (const n of list) {
+        for (let i = 0; i < list.length; i++) {
+          const n = list[i];
           if (n.id === id) return n;
           if (n.children) {
             const c = find(n.children);
             if (c) return c;
           }
         }
+        return undefined;
       };
       const node = find(mockZoneTree);
       const list = (node?.children || []).filter((c) => {
@@ -69,10 +71,9 @@ export function loadZoneChildren(id: string, keyword?: string): Promise<MockZone
       resolve(list);
     }, 200);
   });
-}
 
-export function searchZones(keyword: string): Promise<MockZone[]> {
-  return new Promise((resolve) => {
+export const searchZones = (keyword: string): Promise<MockZone[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const result: MockZone[] = [];
       const walk = (list: MockZone[]) => {
@@ -85,4 +86,3 @@ export function searchZones(keyword: string): Promise<MockZone[]> {
       resolve(result);
     }, 200);
   });
-}

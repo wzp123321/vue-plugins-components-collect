@@ -80,7 +80,12 @@
 </template>
 <script lang="ts" setup name="YearRangePicker">
 import { onMounted, PropType, ref, watch } from 'vue';
-import { DEFAULT_WIDTH, DEFAULT_HEIGHT, YRP_IYearVO, YRP_EPosition } from './model';
+import {
+  DEFAULT_WIDTH,
+  DEFAULT_HEIGHT,
+  YRP_IYearVO as YrpIYearVO,
+  YRP_EPosition as YrpEPosition,
+} from './model';
 
 defineOptions({
   name: 'ComponentYearRangePicker',
@@ -90,19 +95,19 @@ const emits = defineEmits(['update:modelValue', 'change']);
 const props = defineProps({
   modelValue: {
     type: Array as PropType<Date[]>,
-    default: [],
+    default: () => [],
   },
   placeholders: {
     type: Array as PropType<string[]>,
-    default: ['请选择', '请选择'],
+    default: () => ['请选择', '请选择'],
   },
   disabledDate: {
     type: Function as PropType<(value: Date) => boolean>,
   },
 });
 // 左右列表
-const leftTableList = ref<YRP_IYearVO[]>([]);
-const rightTableList = ref<YRP_IYearVO[]>([]);
+const leftTableList = ref<YrpIYearVO[]>([]);
+const rightTableList = ref<YrpIYearVO[]>([]);
 const leftValue = ref<string>('2019');
 const rightValue = ref<string>('2023');
 /**
@@ -114,7 +119,7 @@ const minYear = ref<number>(0);
 /**
  * 初始化最小年
  */
-function initMinYear() {
+const initMinYear = () => {
   const cYear = new Date().getFullYear();
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
   console.log(sYear);
@@ -125,15 +130,15 @@ function initMinYear() {
  * @param minYearValue
  * @param position
  */
-function initYearTableList(minYearValue: number, position: YRP_EPosition) {
+const initYearTableList = (minYearValue: number, position: YrpEPosition) => {
   const cYear = new Date().getFullYear();
-  let list: YRP_IYearVO[] = [];
+  const list: YrpIYearVO[] = [];
   const sYear = props?.modelValue?.length === 2 ? props?.modelValue?.[0]?.getFullYear() : 0;
   const eYear = props?.modelValue?.length === 2 ? props?.modelValue?.[1]?.getFullYear() : 0;
   for (let i = minYearValue; i < minYearValue + 12; i++) {
     const isOutOfView =
-      (position === YRP_EPosition.左 && (i === minYear.value || i === minYear.value + 12 - 1)) ||
-      (position === YRP_EPosition.右 && (i === minYear.value + 10 || i === minYear.value + 10 + 12 - 1));
+      (position === YrpEPosition.左 && (i === minYear.value || i === minYear.value + 12 - 1)) ||
+      (position === YrpEPosition.右 && (i === minYear.value + 10 || i === minYear.value + 10 + 12 - 1));
     list.push({
       value: i,
       isToday: cYear === i,
@@ -146,16 +151,16 @@ function initYearTableList(minYearValue: number, position: YRP_EPosition) {
   }
   return list;
 }
-function initInputValue() {
+const initInputValue = () => {
   leftValue.value = '';
   rightValue.value = '';
   if (props.modelValue?.length) {
-    leftValue.value = props.modelValue?.[0]?.getFullYear() + '';
-    rightValue.value = props.modelValue?.[1]?.getFullYear() + '';
+    leftValue.value = `${props.modelValue?.[0]?.getFullYear()}`;
+    rightValue.value = `${props.modelValue?.[1]?.getFullYear()}`;
   }
 }
 // 清空
-function handleClear() {
+const handleClear = () => {
   leftValue.value = '';
   rightValue.value = '';
   leftTableList.value = [];
@@ -166,10 +171,10 @@ function handleClear() {
 /**
  * 打开弹出层
  */
-function handleShow() {
+const handleShow = () => {
   initMinYear();
-  leftTableList.value = initYearTableList(minYear.value, YRP_EPosition.左);
-  rightTableList.value = initYearTableList(minYear.value + 10, YRP_EPosition.右);
+  leftTableList.value = initYearTableList(minYear.value, YrpEPosition.左);
+  rightTableList.value = initYearTableList(minYear.value + 10, YrpEPosition.右);
 }
 watch(
   () => props.modelValue,
@@ -183,8 +188,8 @@ watch(
 onMounted(() => {
   // console.log('onMounted---props.modelValue-----------', props.modelValue);
   // initMinYear();
-  // leftTableList.value = initYearTableList(minYear.value, YRP_EPosition.左);
-  // rightTableList.value = initYearTableList(minYear.value + 10, YRP_EPosition.右);
+  // leftTableList.value = initYearTableList(minYear.value, YrpEPosition.左);
+  // rightTableList.value = initYearTableList(minYear.value + 10, YrpEPosition.右);
   // console.log('minYear.value --------------------', minYear.value);
   // console.log('leftTableList.value --------------------', leftTableList.value);
   // console.log('rightTableList.value --------------------', rightTableList.value);

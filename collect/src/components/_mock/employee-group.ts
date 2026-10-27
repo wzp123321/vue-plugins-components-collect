@@ -40,12 +40,14 @@ export const mockEmployeeGroups: MockEmployeeGroup[] = [
   },
 ];
 
-export function searchEmployeeGroups(keyword: string): Promise<MockEmployeeGroup[]> {
-  return new Promise((resolve) => {
+export const searchEmployeeGroups = (keyword: string): Promise<MockEmployeeGroup[]> =>
+  new Promise((resolve) => {
     setTimeout(() => {
       const k = keyword.trim().toLowerCase();
-      if (!k) return resolve(mockEmployeeGroups);
+      if (!k) {
+        resolve(mockEmployeeGroups);
+        return;
+      }
       resolve(mockEmployeeGroups.filter((g) => g.name.toLowerCase().includes(k)));
     }, 200);
   });
-}

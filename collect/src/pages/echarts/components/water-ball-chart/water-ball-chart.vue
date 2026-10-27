@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted } from 'vue';
-import { init } from 'echarts';
+import { init } from '@/config/echarts/setup';
 import 'echarts-liquidfill';
 
 export default defineComponent({
@@ -52,7 +52,7 @@ export default defineComponent({
           },
         ],
       };
-      chart && chart.setOption(options);
+      if (chart) chart.setOption(options);
     };
     onMounted(() => {
       initChart();

@@ -12,7 +12,9 @@ export const useSpaceAttribute = (props: { modelValue: string[] }) => {
   const build = (): TreeNode[] => {
     const traverse = (data?: TreeNode[]) => {
       data?.forEach((item) => {
-        item.children?.forEach((child: any) => (child.parent = item));
+        item.children?.forEach((child: any) => {
+          child.parent = item;
+        });
         traverse(item.children);
       });
     };

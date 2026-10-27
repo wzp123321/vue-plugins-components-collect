@@ -82,9 +82,8 @@ const FALLBACK: FitProjection = {
  *   bounds 反算，不在投影器里平移，避免双重偏移导致地图偏离原点）。
  * 返回 any 是因为 d3 类型对 invert() 支持较松，调用方已知其具体形状。
  */
-const makeProjection = (center: [number, number], scale: number) => {
-  return d3.geoMercator().center(center).scale(scale).translate([0, 0]) as any
-};
+const makeProjection = (center: [number, number], scale: number) =>
+  d3.geoMercator().center(center).scale(scale).translate([0, 0]) as any
 
 /**
  * 计算一组环在投影下的包围盒（世界坐标，y 向下）。
@@ -102,19 +101,21 @@ const boundsOf = (rings: Ring[], proj: any, step = 1): FitBounds => {
   let maxX = -Infinity
   let minY = Infinity
   let maxY = -Infinity
-  for (const ring of rings) {
+  rings.forEach((ring) => {
     for (let i = 0; i < ring.length; i += step) {
       const point = proj(ring[i])
-      if (!point) continue
-      const x = point[0]
-      const y = -point[1]
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
-      if (x < minX) minX = x
-      if (x > maxX) maxX = x
-      if (y < minY) minY = y
-      if (y > maxY) maxY = y
+      if (point) {
+        const x = point[0]
+        const y = -point[1]
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          if (x < minX) minX = x
+          if (x > maxX) maxX = x
+          if (y < minY) minY = y
+          if (y > maxY) maxY = y
+        }
+      }
     }
-  }
+  })
   if (!Number.isFinite(minX)) return FALLBACK.bounds
   return {
     minX,
@@ -153,16 +154,17 @@ export const fitProjection = (geo: GeoJsonType, extent = MAP_EXTENT): FitProject
   let maxLng = -Infinity
   let minLat = Infinity
   let maxLat = -Infinity
-  for (const ring of rings) {
+  rings.forEach((ring) => {
     for (let i = 0; i < ring.length; i += 2) {
       const [lng, lat] = ring[i]
-      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
-      if (lng < minLng) minLng = lng
-      if (lng > maxLng) maxLng = lng
-      if (lat < minLat) minLat = lat
-      if (lat > maxLat) maxLat = lat
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        if (lng < minLng) minLng = lng
+        if (lng > maxLng) maxLng = lng
+        if (lat < minLat) minLat = lat
+        if (lat > maxLat) maxLat = lat
+      }
     }
-  }
+  })
 
   let center: [number, number] = [(minLng + maxLng) / 2, (minLat + maxLat) / 2]
   let scale = 100

@@ -28,11 +28,8 @@ const cloudStrategy: EmployeeGroupApiStrategy = {
   loadByMemberIds: async () => [],
 };
 
-export function getEmployeeGroupApiByMode(mode: 'standard' | 'cloud'): EmployeeGroupApiStrategy {
-  return mode === 'cloud' ? cloudStrategy : standardStrategy;
-}
+export const getEmployeeGroupApiByMode = (mode: 'standard' | 'cloud'): EmployeeGroupApiStrategy =>
+  mode === 'cloud' ? cloudStrategy : standardStrategy;
 
 /** 模板 code → 真实 id 转换(简化) */
-export async function templateCodeToId(code: string): Promise<string> {
-  return `tpl-${code}`;
-}
+export const templateCodeToId = async (code: string): Promise<string> => `tpl-${code}`;

@@ -18,7 +18,7 @@ export interface UseBigFileUploadOptions {
   notifyMerge?: (hash: string, fileName: string, totalChunks: number) => Promise<void>;
 }
 
-export function useBigFileUpload(options: UseBigFileUploadOptions) {
+export const useBigFileUpload = (options: UseBigFileUploadOptions) => {
   const {
     chunkSize = 10 * 1024 * 1024,
     concurrentUploads = 3,
@@ -40,17 +40,17 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     return (uploadedChunks.value / chunkList.value.length) * 100;
   });
 
+  const startTime = ref(0);
+
   const uploadSpeed = computed(() => {
     if (uploadProgress.value === 0 || uploadProgress.value === 100) return '0 KB/s';
     const elapsed = (Date.now() - startTime.value) / 1000;
     if (elapsed === 0) return '0 KB/s';
     const speed = (uploadedChunks.value * chunkSize) / elapsed;
-    return formatFileSize(speed) + '/s';
+    return `${formatFileSize(speed)}/s`;
   });
 
-  const startTime = ref(0);
-
-  function createChunks(file: File): ChunkInfo[] {
+  const createChunks = (file: File): ChunkInfo[] => {
     const chunks: ChunkInfo[] = [];
     const totalChunks = Math.ceil(file.size / chunkSize);
 
@@ -69,7 +69,7 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     return chunks;
   }
 
-  async function computeHash(file: File) {
+  const computeHash = async (file: File) => {
     hashProgress.value = 0;
     fileHash.value = await calculateFileHash(file, chunkSize, (percent) => {
       hashProgress.value = percent;
@@ -77,7 +77,7 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     return fileHash.value;
   }
 
-  function setupFile(file: File) {
+  const setupFile = (file: File) => {
     currentFile.value = file;
     fileHash.value = '';
     chunkList.value = [];
@@ -85,7 +85,7 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     hashProgress.value = 0;
   }
 
-  function resetUpload() {
+  const resetUpload = () => {
     uploading.value = false;
     paused.value = false;
     uploadedChunks.value = 0;
@@ -95,11 +95,11 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     });
   }
 
-  function pauseUpload() {
+  const pauseUpload = () => {
     paused.value = true;
   }
 
-  async function uploadChunk(chunk: ChunkInfo) {
+  const uploadChunk = async (chunk: ChunkInfo) => {
     chunk.status = 'uploading';
 
     const formData = new FormData();
@@ -118,14 +118,21 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
       chunk.retryCount++;
 
       if (chunk.retryCount < maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => { setTimeout(resolve, 1000); });
         chunk.status = 'pending';
         await uploadChunk(chunk);
       }
     }
   }
 
-  async function uploadChunksConcurrently() {
+  const notifyMergeComplete = async () => {
+    uploading.value = false;
+    if (notifyMerge) {
+      await notifyMerge(fileHash.value, currentFile.value!.name, chunkList.value.length);
+    }
+  }
+
+  const uploadChunksConcurrently = async () => {
     const pendingChunks = chunkList.value.filter((chunk) => chunk.status === 'pending');
 
     if (pendingChunks.length === 0) {
@@ -138,13 +145,20 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     const uploadPromises: Promise<void>[] = [];
     let currentIndex = 0;
 
+    // 暂停期间每 100ms 轮询一次，直到「还有待传分片且未被暂停」再继续。
+    // 语义等价于 while (currentIndex < pendingChunks.length && paused.value) { await sleep(100); }，
+    // 改用递归表达以避免 no-await-in-loop，轮询时机与间隔不变。
+    const waitWhilePaused = async (): Promise<void> => {
+      if (currentIndex >= pendingChunks.length || !paused.value) return;
+      await new Promise((resolve) => { setTimeout(resolve, 100); });
+      await waitWhilePaused();
+    };
+
     const uploadNextChunk = async (): Promise<any> => {
-      while (currentIndex < pendingChunks.length && paused.value) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
+      await waitWhilePaused();
 
       if (currentIndex >= pendingChunks.length || paused.value) {
-        return;
+        return undefined;
       }
 
       const chunk = pendingChunks[currentIndex];
@@ -159,6 +173,8 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
       if (!paused.value) {
         return uploadNextChunk();
       }
+
+      return undefined;
     };
 
     for (let i = 0; i < Math.min(concurrentUploads, pendingChunks.length); i++) {
@@ -175,22 +191,15 @@ export function useBigFileUpload(options: UseBigFileUploadOptions) {
     }
   }
 
-  async function notifyMergeComplete() {
-    uploading.value = false;
-    if (notifyMerge) {
-      await notifyMerge(fileHash.value, currentFile.value!.name, chunkList.value.length);
-    }
-  }
-
-  function startUpload() {
-    if (!currentFile.value || !fileHash.value) return;
+  const startUpload = () => {
+    if (!currentFile.value || !fileHash.value) return undefined;
     uploading.value = true;
     paused.value = false;
     startTime.value = Date.now();
     return uploadChunksConcurrently();
   }
 
-  async function prepareAndUpload(file: File) {
+  const prepareAndUpload = async (file: File) => {
     setupFile(file);
     chunkList.value = createChunks(file);
     await computeHash(file);

@@ -3,7 +3,7 @@
     <h1>-监听样式或类名变化</h1>
     <el-button @click="handleAdd">添加</el-button>
     <ul ref="mutationobserverRef" :style="{ color }" :class="className">
-      <li v-for="item in list">
+      <li v-for="item in list" :key="item.id">
         {{ item.name }}
       </li>
     </ul>
@@ -32,7 +32,7 @@ useMutationObserver(
   },
 );
 
-function handleAdd() {
+const handleAdd = () => {
   color.value = 'yellow';
   className.value = (Math.random() * 1000).toFixed(0);
   list.value.push({

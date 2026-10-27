@@ -52,7 +52,9 @@ const localStyle = ref<PrintStyle>(props.templateStyle);
 
 watch(
   () => props.templateStyle,
-  (v) => (localStyle.value = v),
+  (v) => {
+    localStyle.value = v;
+  }
 );
 watch(localStyle, (v) => emit('update:templateStyle', v));
 

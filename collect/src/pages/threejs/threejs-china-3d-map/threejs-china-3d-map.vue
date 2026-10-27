@@ -180,12 +180,12 @@ const bgOpacity = ref(1);
 const projectData = ref<Record<number, number>>({});
 onMounted(() => {
   const data: Record<number, number> = {};
-  for (const feature of (chinaGeo as any).features) {
+  (chinaGeo as any).features.forEach((feature: any) => {
     const adcode = Number(feature.properties.adcode);
-    if (!adcode) continue;
+    if (!adcode) return;
     // 4~83 之间的随机整数：作为数据柱高度的原始计数（base 4 避免零高柱）
     data[adcode] = 4 + Math.floor(Math.random() * 80);
-  }
+  });
   projectData.value = data;
 });
 
@@ -277,11 +277,11 @@ const onLevelChange = (info: { name: string; level: string; adcode: number | nul
   const lvl = mapRef.value?.currentLevel?.() as any;
   const feats: any[] = lvl?.geo?.features ?? [];
   const patch: Record<number, number> = {};
-  for (const f of feats) {
+  feats.forEach((f: any) => {
     const adcode = Number(f?.properties?.adcode);
-    if (!adcode) continue;
+    if (!adcode) return;
     if (projectData.value[adcode] == null) patch[adcode] = syntheticCount(adcode, f.properties.level);
-  }
+  });
   if (Object.keys(patch).length) projectData.value = { ...projectData.value, ...patch };
 };
 

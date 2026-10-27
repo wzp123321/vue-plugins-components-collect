@@ -63,21 +63,14 @@ export interface GPS_INeedConfigureDataIndexVO extends GPS_IIndexVO {
   dataId?: number;
 }
 
-/**
- * 条件组
+/*
+ * 单个条件
  */
-
-export interface GPS_IConditionGroupVO {
-  // 开始托管期
-  startPeriod: number | null;
-  // 结束托管期
-  endPeriod: number | null;
-  // 条件列表
-  conditionList: GPS_IConditionVO[];
-  // 需配置公式的标签列表
-  configuredFormulaIndexList: GPS_INeedConfigureFormulaIndexVO[];
-  // 需配置数据的标签列表
-  configuredDataIndexList: GPS_INeedConfigureDataIndexVO[];
+export interface GPS_ISingleCondition {
+  // 判断条件
+  judgementConditionList: GPS_IIndexVO[];
+  // 计算公式
+  computationalFormulaList: GPS_IIndexVO[];
 }
 
 /**
@@ -90,12 +83,18 @@ export interface GPS_IConditionVO {
   conditionList: GPS_ISingleCondition[];
 }
 
-/*
- * 单个条件
+/**
+ * 条件组
  */
-export interface GPS_ISingleCondition {
-  // 判断条件
-  judgementConditionList: GPS_IIndexVO[];
-  // 计算公式
-  computationalFormulaList: GPS_IIndexVO[];
+export interface GPS_IConditionGroupVO {
+  // 开始托管期
+  startPeriod: number | null;
+  // 结束托管期
+  endPeriod: number | null;
+  // 条件列表
+  conditionList: GPS_IConditionVO[];
+  // 需配置公式的标签列表
+  configuredFormulaIndexList: GPS_INeedConfigureFormulaIndexVO[];
+  // 需配置数据的标签列表
+  configuredDataIndexList: GPS_INeedConfigureDataIndexVO[];
 }

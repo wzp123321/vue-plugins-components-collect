@@ -66,7 +66,9 @@ const innerValue = ref<string[]>([...props.modelValue]);
 
 watch(
   () => props.modelValue,
-  (v) => (innerValue.value = [...v])
+  (v) => {
+    innerValue.value = [...v];
+  }
 );
 
 const displayText = computed(() => {

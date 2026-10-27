@@ -18,7 +18,7 @@ const initBaBy = () => {
   console.log(canvas);
   engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true); // 初始化 BABYLON 3D engine
 
-  /******* Add the create scene function ******/
+  /** ******* Add the create scene function ****** */
   const createScene = () => {
     // 创建一个场景scene
     const scene = new BABYLON.Scene(engine!);
@@ -43,11 +43,11 @@ const initBaBy = () => {
 
     return scene;
   };
-  /******* End of the create scene function ******/
-  const scene = createScene(); //Call the createScene function
+  /** ******* End of the create scene function ****** */
+  const scene = createScene(); // Call the createScene function
   console.log(scene);
   // 最后一步调用engine的runRenderLoop方案，执行scene.render()，让我们的3d场景渲染起来
-  engine.runRenderLoop(function () {
+  engine.runRenderLoop(() => {
     scene.render();
   });
 };

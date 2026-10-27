@@ -83,7 +83,7 @@ let shadowGenerator: BABYLON.ShadowGenerator | null = null;
 
 // ---------- 工具函数 ----------
 
-function addLog(msg: string) {
+const addLog = (msg: string) => {
   const timestamp = new Date().toLocaleTimeString();
   const line = `[${timestamp}] ${msg}`;
   console.log(line);
@@ -96,7 +96,7 @@ function addLog(msg: string) {
       logPanelRef.value.scrollTop = logPanelRef.value.scrollHeight;
     }
   }, 50);
-}
+};
 
 // ---------- 创建天空盒 ----------
 
@@ -108,7 +108,7 @@ function addLog(msg: string) {
  *
  * 这里使用渐变颜色替代纹理，因为没有天空贴图资源。
  */
-function createSkybox() {
+const createSkybox = () => {
   addLog('创建天空盒...');
 
   const skybox = BABYLON.MeshBuilder.CreateBox(
@@ -139,7 +139,7 @@ function createSkybox() {
 
   addLog('天空盒创建完成: 100x100 立方体, infiniteDistance=true');
   return skybox;
-}
+};
 
 // ---------- 创建 PBR 材质球体 ----------
 
@@ -164,7 +164,7 @@ interface PBRSphereConfig {
  *   - 粗糙表面不会有清晰的反射
  *   - 光滑表面像镜子
  */
-function createPBRSpheres() {
+const createPBRSpheres = () => {
   addLog('======== 创建 PBR 材质球体 ========');
 
   const configs: PBRSphereConfig[] = [
@@ -249,16 +249,15 @@ function createPBRSpheres() {
     spheres.push(sphere);
 
     addLog(
-      `PBR球体 "${cfg.name}": ` +
-        `metallic=${cfg.metallic}, roughness=${cfg.roughness}, ` +
-        `IOR=${mat.indexOfRefraction}` +
-        (cfg.alpha !== undefined ? `, alpha=${cfg.alpha}` : ''),
+      `PBR球体 "${cfg.name}": metallic=${cfg.metallic}, roughness=${cfg.roughness}, IOR=${mat.indexOfRefraction}${
+        cfg.alpha !== undefined ? `, alpha=${cfg.alpha}` : ''
+      }`,
     );
   });
 
   addLog(`PBR球体创建完成: ${spheres.length} 个, 各参数请参考右侧面板`);
   return spheres;
-}
+};
 
 // ---------- 创建反射探针 ----------
 
@@ -316,7 +315,7 @@ function createPBRSpheres() {
 
 // ---------- 构建场景 ----------
 
-function createScene() {
+const createScene = () => {
   addLog('======== 构建 PBR 材质演示场景 ========');
 
   // ---- 引擎 ----
@@ -414,19 +413,19 @@ function createScene() {
   addLog('======== 场景构建完成 ========');
   addLog(`场景状态: 网格=${scene.meshes.length}, 材质=${scene.materials.length}, 灯光=${scene.lights.length}`);
   addLog('🖱️ 鼠标旋转查看不同角度的金属/粗糙度效果');
-}
+};
 
 // ---------- 渲染循环 ----------
 
-function runRenderLoop() {
+const runRenderLoop = () => {
   engine!.runRenderLoop(() => {
     scene!.render();
   });
-}
+};
 
-function onResize() {
+const onResize = () => {
   engine?.resize();
-}
+};
 
 // ---------- 生命周期 ----------
 

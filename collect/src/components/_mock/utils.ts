@@ -39,11 +39,11 @@ export interface TreeBuilderItem {
   parent: string | null;
   children?: any[];
 }
-export function buildTree<T extends TreeBuilderItem>(list: T[], parent: string | null = null, disabledCheck?: (n: T) => boolean): T[] {
+export function buildTree<T extends TreeBuilderItem>(list: T[], disabledCheck?: (n: T) => boolean, parent: string | null = null): T[] {
   return list
     .filter((n) => n.parent === parent)
     .map((n) => ({
       ...n,
-      children: buildTree(list, n.id, disabledCheck),
+      children: buildTree(list, disabledCheck, n.id),
     }));
 }

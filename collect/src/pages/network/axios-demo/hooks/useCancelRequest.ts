@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 
 /** AbortController 请求取消 hook */
-export function useCancelRequest() {
+export const useCancelRequest = () => {
   const reqRunning = ref(false);
   const cancelStatus = ref<{ type: string; msg: string } | null>(null);
   let abortController: AbortController | null = null;

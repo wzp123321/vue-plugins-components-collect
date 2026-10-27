@@ -100,7 +100,11 @@ export const usePointerPick = (options: Options) => {
    */
   const applyCursor = (pick: PickResult | null) => {
     if (!host) return
-    host.style.cursor = options.measureMode?.() ? 'crosshair' : pick ? 'pointer' : 'default'
+    if (options.measureMode?.()) {
+      host.style.cursor = 'crosshair'
+      return
+    }
+    host.style.cursor = pick ? 'pointer' : 'default'
   }
 
   /**
@@ -221,8 +225,10 @@ export const usePointerPick = (options: Options) => {
     downY = event.clientY
     if (options.boxMode?.() && event.button === 0) {
       boxActive = true
-      boxStartX = boxCurX = event.clientX
-      boxStartY = boxCurY = event.clientY
+      boxStartX = event.clientX
+      boxCurX = event.clientX
+      boxStartY = event.clientY
+      boxCurY = event.clientY
       options.setControlsEnabled?.(false)
       options.onBoxStart?.()
     }

@@ -158,29 +158,7 @@ const menuStyle = computed(() => ({
   zIndex: 1003,
 }));
 
-function selectItem(item: SlashCommandItem) {
-  const editor = props.editor;
-  if (!editor) return;
-
-  // 先删除 / 及其后的查询文本，再执行命令
-  const pluginState = slashCommandKey.getState(editor.state) as SlashCommandState | undefined;
-  if (pluginState?.range) {
-    editor.chain().focus().deleteRange(pluginState.range).run();
-  }
-  item.action(editor);
-  hide();
-}
-
-function activate(state: SlashCommandState) {
-  if (!state.decorationPosition) return;
-  position.value = { x: state.decorationPosition.x, y: state.decorationPosition.y + 4 };
-  query.value = state.query;
-  isVisible.value = true;
-  selectedIndex.value = 0;
-  nextTick(adjustPosition);
-}
-
-function hide() {
+const hide = () => {
   // 守卫：已隐藏时直接返回。否则 hide() 内的 dispatch 会触发插件 view.update →
   // onDeactivate → hide() 再次 dispatch，形成无限递归（栈溢出）
   if (!isVisible.value) return;
@@ -196,13 +174,21 @@ function hide() {
   }
 }
 
-function updateQuery(newQuery: string) {
-  query.value = newQuery;
-  selectedIndex.value = 0;
+const selectItem = (item: SlashCommandItem) => {
+  const editor = props.editor;
+  if (!editor) return;
+
+  // 先删除 / 及其后的查询文本，再执行命令
+  const pluginState = slashCommandKey.getState(editor.state) as SlashCommandState | undefined;
+  if (pluginState?.range) {
+    editor.chain().focus().deleteRange(pluginState.range).run();
+  }
+  item.action(editor);
+  hide();
 }
 
 /** 视口边缘防溢出 */
-function adjustPosition() {
+const adjustPosition = () => {
   const el = menuRef.value;
   if (!el) return;
 
@@ -219,7 +205,28 @@ function adjustPosition() {
   position.value = { x: Math.max(margin, x), y: Math.max(margin, y) };
 }
 
-function handleKeyDown(event: KeyboardEvent) {
+const activate = (state: SlashCommandState) => {
+  if (!state.decorationPosition) return;
+  position.value = { x: state.decorationPosition.x, y: state.decorationPosition.y + 4 };
+  query.value = state.query;
+  isVisible.value = true;
+  selectedIndex.value = 0;
+  nextTick(adjustPosition);
+}
+
+const updateQuery = (newQuery: string) => {
+  query.value = newQuery;
+  selectedIndex.value = 0;
+}
+
+const scrollToSelected = () => {
+  nextTick(() => {
+    const activeItem = menuRef.value?.querySelector('.slash-command-item.active');
+    activeItem?.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+const handleKeyDown = (event: KeyboardEvent) => {
   if (!isVisible.value) return;
 
   const total = filteredItems.value.length;
@@ -249,13 +256,6 @@ function handleKeyDown(event: KeyboardEvent) {
     default:
       break;
   }
-}
-
-function scrollToSelected() {
-  nextTick(() => {
-    const activeItem = menuRef.value?.querySelector('.slash-command-item.active');
-    activeItem?.scrollIntoView({ block: 'nearest' });
-  });
 }
 
 onMounted(() => {

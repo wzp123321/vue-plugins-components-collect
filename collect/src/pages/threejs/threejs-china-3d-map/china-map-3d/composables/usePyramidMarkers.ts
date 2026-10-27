@@ -84,20 +84,22 @@ export const usePyramidMarkers = (options: Options) => {
     const data = options.projectData()
     const d = mapConfig.decor.pyramid
 
-    group = new THREE.Group()
-    group.userData = { kind: 'pyramids' }
+    // 闭包内（forEach 回调）拿不到 let 变量的赋值收窄，先用局部 const 承接
+    const g = new THREE.Group()
+    group = g
+    g.userData = { kind: 'pyramids' }
     const baseColor = new THREE.Color(options.color())
 
-    for (const feature of level.geo.features) {
+    level.geo.features.forEach((feature) => {
       const adcode = Number(feature.properties.adcode)
-      if (!adcode) continue
+      if (!adcode) return
       const value = data ? readValue(data[adcode]) : 0
       // 没有数据的城市不画棱锥，避免全国层一堆无意义的尖塔
-      if (value <= 0) continue
+      if (value <= 0) return
       const center = anchorOf(feature)
-      if (!center || center.length !== 2) continue
+      if (!center || center.length !== 2) return
       const [x, y] = project(center)
-      if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return
 
       // 棱锥高度：随数值增长（封顶），最低也有 60% 体量
       const ratio = Math.min(1, value / 60)
@@ -112,9 +114,9 @@ export const usePyramidMarkers = (options: Options) => {
       // 棱锥参与泛光（bloom 图层），尖顶会晕开
       mesh.layers.enable(mapConfig.bloomLayer)
       mesh.userData = { kind: 'pyramid', phase: Math.random() * Math.PI * 2 }
-      group.add(mesh)
+      g.add(mesh)
       spinners.push(mesh)
-    }
+    })
 
     group.visible = options.visible()
     root.add(group)
@@ -125,15 +127,14 @@ export const usePyramidMarkers = (options: Options) => {
    * @param dt      帧间隔秒
    * @param elapsed 累计时间秒
    */
-  const tick = (dt: number, elapsed: number) => {
+  const tick = (_dt: number, elapsed: number) => {
     if (!group?.visible) return
-    for (const mesh of spinners) {
+    spinners.forEach((mesh) => {
       const phase = (mesh.userData as { phase: number }).phase
       mesh.rotation.z = elapsed * 0.6 + phase
       const pulse = 1 + 0.12 * Math.sin(elapsed * 2 + phase)
       mesh.scale.set(pulse, pulse, 1)
-    }
-    void dt
+    })
   }
 
   return {

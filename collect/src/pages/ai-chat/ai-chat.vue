@@ -94,8 +94,13 @@ const pending = ref(false);
 const scrollEl = ref<HTMLElement | null>(null);
 let streamTimer: ReturnType<typeof setInterval> | null = null;
 
+const scrollBottom = async () => {
+  await nextTick();
+  scrollEl.value?.scrollTo({ top: scrollEl.value.scrollHeight });
+}
+
 /** 极简会话标题：取用户第一条消息前 12 字 */
-function appendMessage(role: ChatMessage['role'], content = ''): ChatMessage {
+const appendMessage = (role: ChatMessage['role'], content = ''): ChatMessage => {
   const msg: ChatMessage = { id: nextId(), role, content, streaming: role === 'assistant' };
   active.value.messages.push(msg);
   if (role === 'user' && active.value.messages.length === 1) {
@@ -105,7 +110,7 @@ function appendMessage(role: ChatMessage['role'], content = ''): ChatMessage {
   return msg;
 }
 
-function newSession() {
+const newSession = () => {
   sessions.value.push({ id: nextId(), title: '新会话', messages: [] });
   activeSession.value = sessions.value.length - 1;
 }
@@ -117,7 +122,7 @@ interface Block {
   text: string;
 }
 
-function parseBlocks(content: string): Block[] {
+const parseBlocks = (content: string): Block[] => {
   const blocks: Block[] = [];
   const parts = content.split(/```(?:\w*)\n?/);
   parts.forEach((part, index) => {
@@ -131,7 +136,7 @@ function parseBlocks(content: string): Block[] {
   return blocks.length > 0 ? blocks : [{ id: 0, type: 'text', text: content }];
 }
 
-function renderInline(text: string): string {
+const renderInline = (text: string): string => {
   const escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -161,7 +166,16 @@ const CANNED_ANSWERS: { match: RegExp; answer: string }[] = [
   },
 ];
 
-function send() {
+const stopStream = () => {
+  if (streamTimer) clearInterval(streamTimer);
+  streamTimer = null;
+  pending.value = false;
+  active.value.messages.forEach((msg) => {
+    msg.streaming = false;
+  });
+}
+
+const send = () => {
   const text = draft.value.trim();
   if (!text || pending.value) return;
   draft.value = '';
@@ -179,18 +193,6 @@ function send() {
     scrollBottom();
     if (cursor >= answer.length) stopStream();
   }, 30);
-}
-
-function stopStream() {
-  if (streamTimer) clearInterval(streamTimer);
-  streamTimer = null;
-  pending.value = false;
-  active.value.messages.forEach((msg) => (msg.streaming = false));
-}
-
-async function scrollBottom() {
-  await nextTick();
-  scrollEl.value?.scrollTo({ top: scrollEl.value.scrollHeight });
 }
 </script>
 

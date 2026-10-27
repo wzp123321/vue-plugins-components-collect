@@ -74,15 +74,6 @@ export const useMeasure = (options: Options) => {
     return group
   }
 
-  /** 落一个测点（世界坐标，已落到地面平面） */
-  const addPoint = (world: THREE.Vector3): number => {
-    const g = ensureGroup()
-    if (!g) return points.length
-    points.push(world.clone())
-    rebuild()
-    return points.length
-  }
-
   /** 清空全部测点 */
   const clear = () => {
     if (group) {
@@ -167,6 +158,15 @@ export const useMeasure = (options: Options) => {
       label.position.set(cx, cy, z + 2)
       group!.add(label)
     }
+  }
+
+  /** 落一个测点（世界坐标，已落到地面平面） */
+  const addPoint = (world: THREE.Vector3): number => {
+    const g = ensureGroup()
+    if (!g) return points.length
+    points.push(world.clone())
+    rebuild()
+    return points.length
   }
 
   return {

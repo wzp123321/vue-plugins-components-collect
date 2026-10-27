@@ -11,7 +11,7 @@ export interface ParabolicBall {
   progress: number;
 }
 
-export function useParabolicAnimation(ballCount = 5, duration = 400) {
+export const useParabolicAnimation = (ballCount = 5, duration = 400) => {
   const balls = ref<ParabolicBall[]>([]);
   const totalCount = ref(0);
 
@@ -28,7 +28,7 @@ export function useParabolicAnimation(ballCount = 5, duration = 400) {
     });
   }
 
-  function launch(startX: number, startY: number, endX: number, endY: number, pathY = 100) {
+  const launch = (startX: number, startY: number, endX: number, endY: number, pathY = 100) => {
     const ball: any = balls.value.find((b) => !b.show);
     if (!ball) return;
 
@@ -43,7 +43,7 @@ export function useParabolicAnimation(ballCount = 5, duration = 400) {
 
     const startTime = Date.now();
 
-    function animate() {
+    const animate = () => {
       const elapsed = Date.now() - startTime;
       ball.progress = Math.min(elapsed / duration, 1);
 
@@ -60,7 +60,7 @@ export function useParabolicAnimation(ballCount = 5, duration = 400) {
     totalCount.value++;
   }
 
-  function reset() {
+  const reset = () => {
     balls.value.forEach((b) => {
       b.show = false;
     });

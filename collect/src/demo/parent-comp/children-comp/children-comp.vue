@@ -15,7 +15,17 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, onBeforeMount, onBeforeUnmount, onUnmounted, ref } from 'vue';
+
 const hRef = ref();
+
+const value = ref('11');
+
+const testFn = () => {
+  console.log('testFn');
+};
+const testFn2 = () => {
+  console.log('testFn2');
+};
 
 onBeforeMount(() => {
   console.log('children-onBeforeMount================================>', hRef.value);
@@ -32,15 +42,6 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
   console.log('children-onUnmounted================================>');
 });
-
-const value = ref('11');
-
-const testFn = () => {
-  console.log('testFn');
-};
-function testFn2() {
-  console.log('testFn2');
-}
 </script>
 <style lang="less">
 .border-div,

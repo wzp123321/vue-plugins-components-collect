@@ -10,7 +10,7 @@ import {
   BufferGeometry,
   LinearSRGBColorSpace,
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export interface ThreeSceneContext {
   scene: Scene;
@@ -63,17 +63,17 @@ export interface UseThreeSceneOptions {
  * 卸载时的资源释放（dispose 场景内几何体 / 材质 + 控制器 + 渲染器）。
  * 各 demo 只需提供 onInit / onFrame 等回调描述自己的场景内容，不再重复基建样板。
  */
-export function useThreeScene(options: UseThreeSceneOptions) {
+export const useThreeScene = (options: UseThreeSceneOptions) => {
   const ctx: Partial<ThreeSceneContext> = {};
   let rafId = 0;
   let resizeObserver: ResizeObserver | null = null;
 
-  function containerSize() {
+  const containerSize = () => {
     const el = options.containerRef.value;
     return { w: el?.clientWidth || 800, h: el?.clientHeight || 600 };
   }
 
-  function applyResize() {
+  const applyResize = () => {
     if (!ctx.camera || !ctx.renderer) return;
     const { w, h } = containerSize();
     ctx.camera.aspect = w / h;
@@ -82,7 +82,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     options.onResize?.(ctx as ThreeSceneContext);
   }
 
-  function disposeScene() {
+  const disposeScene = () => {
     ctx.scene?.traverse((obj: Object3D) => {
       const mesh = obj as Object3D & {
         geometry?: BufferGeometry;
@@ -96,7 +96,7 @@ export function useThreeScene(options: UseThreeSceneOptions) {
     });
   }
 
-  function animate() {
+  const animate = () => {
     rafId = requestAnimationFrame(animate);
     if (!ctx.clock || !ctx.renderer || !ctx.scene || !ctx.camera || !ctx.controls) return;
     const delta = ctx.clock.getDelta();

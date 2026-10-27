@@ -8,6 +8,7 @@ import {
   AnimationClickHeart,
   AnimationAddShoppingTrolley,
 } from './index';
+
 export const customComponents: { description: string; component: any }[] = [
   {
     description: '倒数动画',

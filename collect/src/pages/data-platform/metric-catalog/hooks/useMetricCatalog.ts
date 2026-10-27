@@ -19,7 +19,7 @@ import {
   type MetricQueryResult,
 } from '../metric.api';
 
-export function useMetricCatalog() {
+export const useMetricCatalog = () => {
   // ---------- 列表 ----------
   const metrics = ref<MetricItem[]>([]);
   const listLoading = ref(false);
@@ -50,18 +50,11 @@ export function useMetricCatalog() {
   const queryLoading = ref(false);
   const result = ref<MetricQueryResult | null>(null);
 
-  /** 加载指标列表 */
-  const loadMetrics = async () => {
-    listLoading.value = true;
-    try {
-      metrics.value = await fetchMetrics();
-      const first = filteredMetrics.value[0];
-      if (first) {
-        await selectMetric(first.id);
-      }
-    } finally {
-      listLoading.value = false;
-    }
+  /** 重置试算条件与结果 */
+  const resetQuery = () => {
+    selectedDimensions.value = [];
+    dateRange.value = null;
+    result.value = null;
   };
 
   /** 选中指标：拉取详情并重置试算状态 */
@@ -79,11 +72,18 @@ export function useMetricCatalog() {
     }
   };
 
-  /** 重置试算条件与结果 */
-  const resetQuery = () => {
-    selectedDimensions.value = [];
-    dateRange.value = null;
-    result.value = null;
+  /** 加载指标列表 */
+  const loadMetrics = async () => {
+    listLoading.value = true;
+    try {
+      metrics.value = await fetchMetrics();
+      const first = filteredMetrics.value[0];
+      if (first) {
+        await selectMetric(first.id);
+      }
+    } finally {
+      listLoading.value = false;
+    }
   };
 
   /** 执行试算 */

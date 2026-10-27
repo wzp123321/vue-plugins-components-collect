@@ -1,9 +1,9 @@
 <template>
-  <div class="te-print-template-view" :class="{ 'is-print': isPrint }">
+  <div class="te-print-template-view" :class="{ 'is-print': isPrintModel }">
     <div class="tptv-toolbar">
       <el-button-group>
-        <el-button :type="!isPrint ? 'primary' : 'default'" @click="isPrint = false">预览</el-button>
-        <el-button :type="isPrint ? 'primary' : 'default'" @click="isPrint = true">打印</el-button>
+        <el-button :type="!isPrintModel ? 'primary' : 'default'" @click="isPrintModel = false">预览</el-button>
+        <el-button :type="isPrintModel ? 'primary' : 'default'" @click="isPrintModel = true">打印</el-button>
       </el-button-group>
       <span class="tptv-tip">画布 {{ template.width }}mm × {{ template.height }}mm | 缩放 {{ (scale * 100).toFixed(0) }}%</span>
     </div>
@@ -72,13 +72,17 @@ const isPrintLocal = ref(props.isPrint);
 
 watch(
   () => props.isPrint,
-  (v) => (isPrintLocal.value = v)
+  (v) => {
+    isPrintLocal.value = v;
+  }
 );
 watch(isPrintLocal, (v) => emit('update:isPrint', v));
 
-const isPrint = computed({
+const isPrintModel = computed({
   get: () => isPrintLocal.value,
-  set: (v) => (isPrintLocal.value = v),
+  set: (v) => {
+    isPrintLocal.value = v;
+  },
 });
 
 /** 计算 mm → px 的换算比, 用 1mm 的 div 测 */

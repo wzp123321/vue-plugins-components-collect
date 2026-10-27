@@ -25,12 +25,16 @@ const innerValue = ref<string[]>([...(props.value || [])]);
 
 watch(
   () => props.modelValue,
-  (v) => (visible.value = v)
+  (v) => {
+    visible.value = v;
+  }
 );
 watch(visible, (v) => emit('update:modelValue', v));
 watch(
   () => props.value,
-  (v) => (innerValue.value = [...(v || [])])
+  (v) => {
+    innerValue.value = [...(v || [])];
+  }
 );
 
 const onChange = (v: string[]) => {

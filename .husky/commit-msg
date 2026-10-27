@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 收集站（collect）的提交信息规范校验
+cd collect || exit 1
+npx --no-install commitlint --edit "$1"

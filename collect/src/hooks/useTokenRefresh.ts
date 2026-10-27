@@ -42,7 +42,7 @@ const defaultIsUnauthorized = (err: unknown): boolean =>
  * });
  * ```
  */
-export function useTokenRefresh(options: UseTokenRefreshOptions) {
+export const useTokenRefresh = (options: UseTokenRefreshOptions) => {
   const { refreshApi, onAuthFailed, storage, initTokens, isUnauthorized = defaultIsUnauthorized } = options;
 
   // refreshApi 在 hook 里不带参数，适配成 manager 需要的签名

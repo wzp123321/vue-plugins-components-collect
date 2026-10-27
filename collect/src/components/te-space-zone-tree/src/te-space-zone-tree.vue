@@ -82,14 +82,6 @@ const onNodeClick = (data: any) => {
   }
 };
 
-const startDrag = (e: MouseEvent) => {
-  dragging = true;
-  startX = e.clientX;
-  startWidth = leftWidth.value;
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
-};
-
 const onDrag = (e: MouseEvent) => {
   if (!dragging) return;
   const next = startWidth + (e.clientX - startX);
@@ -100,6 +92,14 @@ const stopDrag = () => {
   dragging = false;
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
+};
+
+const startDrag = (e: MouseEvent) => {
+  dragging = true;
+  startX = e.clientX;
+  startWidth = leftWidth.value;
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
 };
 
 onBeforeUnmount(stopDrag);

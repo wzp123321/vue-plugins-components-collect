@@ -18,6 +18,9 @@ import { basicSetup } from "codemirror";
 import { ref, shallowRef } from "vue";
 
 
+// WidgetType.ignoreEvent 默认返回 false, 这里两个 widget 统一忽略事件
+const ignoreAllEvents = () => true;
+
 // 定义一个 PlaceholderTag 类，继承自 WidgetType
 class PlaceholderTag extends WidgetType {
   // 定义一个字符串类型的 id 属性，默认值为空字符串
@@ -54,10 +57,9 @@ class PlaceholderTag extends WidgetType {
     return elt;
   }
 
-  ignoreEvent() {
-    return true;
-  }
+  ignoreEvent = ignoreAllEvents;
 }
+
 /**
  * @description 插入tag
  */
@@ -128,9 +130,7 @@ class PlaceholderFn extends WidgetType {
     return elt;
   }
 
-  ignoreEvent() {
-    return true;
-  }
+  ignoreEvent = ignoreAllEvents;
 }
 
 /**
@@ -200,12 +200,12 @@ export const baseTheme = EditorView.baseTheme({
  * @param {number} from
  * @param {number} to
  */
-function insetCompletion(
+const insetCompletion = (
   view: EditorView,
   completion: Completion,
   from: number,
   to: number
-) {
+) => {
   const content = `{{${completion.label}}}()`;
   const anchor = from + content.length - 1;
   const transaction = view.state.update({
@@ -236,7 +236,7 @@ const completions = [
  * @param {CompletionContext} context
  * @return {*}
  */
-function myCompletions(context: CompletionContext) {
+const myCompletions = (context: CompletionContext) => {
   // 匹配到以s或su或sum或i或if开头的单词
   const before = context.matchBefore(/[s](?:u(?:m)?)?|[i](?:f)?/gi);
   if (!context.explicit && !before) return null;

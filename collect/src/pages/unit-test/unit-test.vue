@@ -66,7 +66,7 @@ interface CaseResult {
 const results = ref<CaseResult[]>([]);
 
 /** 页内可跑的同款逻辑：防抖（简化版） */
-function debounce<T extends (...args: never[]) => void>(fn: T, wait = 300) {
+const debounce = <T extends (...args: never[]) => void>(fn: T, wait = 300) => {
   let timer: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timer);
@@ -75,19 +75,19 @@ function debounce<T extends (...args: never[]) => void>(fn: T, wait = 300) {
 }
 
 /** 简化版深合并 */
-function deepMerge<T extends Record<string, unknown>>(base: T, patch: Record<string, unknown>): T {
+const deepMerge = <T extends Record<string, unknown>>(base: T, patch: Record<string, unknown>): T => {
   const out = { ...base };
-  for (const [key, value] of Object.entries(patch)) {
+  Object.entries(patch).forEach(([key, value]) => {
     out[key as keyof T] = (
       value && typeof value === 'object' && !Array.isArray(value)
         ? deepMerge(out[key] as Record<string, unknown>, value as Record<string, unknown>)
         : value
     ) as T[keyof T];
-  }
+  });
   return out;
 }
 
-async function run() {
+const run = async () => {
   results.value = [];
 
   // 1. 防抖：300ms 内多次触发只执行最后一次

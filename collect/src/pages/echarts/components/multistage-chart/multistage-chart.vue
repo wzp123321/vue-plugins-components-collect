@@ -4,43 +4,28 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { init, EChartsType, EChartsOption } from 'echarts';
+import { init } from '@/config/echarts/setup';
+import type { EChartsType, EChartsOption } from '@/config/echarts/setup';
 import { computed, onMounted } from 'vue';
 
 let chartInstance: EChartsType;
 
-const chartId = computed(() => {
-  return `charts-${(Math.random() * 100000000).toFixed(0)}`;
-});
+const chartId = computed(() => `charts-${(Math.random() * 100000000).toFixed(0)}`);
 
-function initChart() {
-  const chartContainer = document.querySelector(`#${chartId.value}`);
-  if (!chartContainer) {
-    return;
-  }
-  if (chartInstance) {
-    chartInstance.dispose();
-  }
-  chartInstance = init(chartContainer as HTMLElement);
-
-  const options: EChartsOption = getChartOptions();
-  chartInstance.clear();
-  chartInstance.setOption(options);
-}
-function getChartOptions(): EChartsOption {
-  let xAxisData: string[] = [];
-  let data1: number[] = [];
-  let data2: number[] = [];
-  let data3: number[] = [];
-  let data4: number[] = [];
+const getChartOptions = (): EChartsOption => {
+  const xAxisData: string[] = [];
+  const data1: number[] = [];
+  const data2: number[] = [];
+  const data3: number[] = [];
+  const data4: number[] = [];
   for (let i = 0; i < 10; i++) {
-    xAxisData.push('Class' + i);
+    xAxisData.push(`Class${i}`);
     data1.push(+(Math.random() * 2).toFixed(2));
     data2.push(+(Math.random() * 5).toFixed(2));
     data3.push(+(Math.random() + 0.3).toFixed(2));
     data4.push(+Math.random().toFixed(2));
   }
-  var emphasisStyle = {
+  const emphasisStyle = {
     itemStyle: {
       shadowBlur: 10,
       shadowColor: 'rgba(0,0,0,0.3)',
@@ -98,7 +83,22 @@ function getChartOptions(): EChartsOption {
     ],
   };
   return option;
-}
+};
+
+const initChart = () => {
+  const chartContainer = document.querySelector(`#${chartId.value}`);
+  if (!chartContainer) {
+    return;
+  }
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+  chartInstance = init(chartContainer as HTMLElement);
+
+  const options: EChartsOption = getChartOptions();
+  chartInstance.clear();
+  chartInstance.setOption(options);
+};
 
 onMounted(() => {
   initChart();
