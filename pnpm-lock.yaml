@@ -4,6 +4,75 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@antv/x6':
+      specifier: ^2.15.1
+      version: 2.19.2
+    '@arco-iconbox/vue-te':
+      specifier: 0.0.30
+      version: 0.0.30
+    '@arco-iconbox/vue-te-side':
+      specifier: 0.0.9
+      version: 0.0.9
+    '@element-plus/icons-vue':
+      specifier: ^2.0.9
+      version: 2.3.2
+    '@floating-ui/dom':
+      specifier: ^1.0.1
+      version: 1.8.0
+    async-validator:
+      specifier: ^4.2.5
+      version: 4.2.5
+    big.js:
+      specifier: ^7.0.1
+      version: 7.0.1
+    crypto-js:
+      specifier: ^4.2.0
+      version: 4.2.0
+    dayjs:
+      specifier: ^1.11.3
+      version: 1.11.23
+    element-plus:
+      specifier: 2.3.7
+      version: 2.3.7
+    escape-html:
+      specifier: ^1.0.3
+      version: 1.0.3
+    html-to-image:
+      specifier: ^1.11.11
+      version: 1.11.13
+    lodash:
+      specifier: ^4.17.21
+      version: 4.18.1
+    lodash-es:
+      specifier: ^4.17.21
+      version: 4.18.1
+    memoize-one:
+      specifier: ^6.0.0
+      version: 6.0.0
+    moment:
+      specifier: ^2.29.4
+      version: 2.31.0
+    normalize-wheel-es:
+      specifier: ^1.2.0
+      version: 1.2.0
+    pinyin-match:
+      specifier: ^1.2.5
+      version: 1.2.10
+    resize-observer-polyfill:
+      specifier: ^1.5.1
+      version: 1.5.1
+    sortablejs:
+      specifier: ^1.15.0
+      version: 1.15.7
+    vue-virtual-scroller:
+      specifier: ^2.0.0-beta.8
+      version: 2.0.1
+    vue3-print-nb:
+      specifier: ^0.1.4
+      version: 0.1.4
+
 overrides:
   got: 11.8.2
 
@@ -18,7 +87,7 @@ importers:
         version: 4.8.25
       '@arco-iconbox/vue-te':
         specifier: ^0.0.84
-        version: 0.0.84(vue@3.5.44(typescript@5.3.3))
+        version: 0.0.84
       '@codemirror/autocomplete':
         specifier: ^6.18.6
         version: 6.20.4
@@ -154,9 +223,15 @@ importers:
       echarts:
         specifier: ^5.6.0
         version: 5.6.0
+      echarts-gl:
+        specifier: ^2.1.0
+        version: 2.1.0(echarts@5.6.0)
       echarts-liquidfill:
         specifier: ^3.1.0
         version: 3.1.0(echarts@5.6.0)
+      echarts-wordcloud:
+        specifier: ^2.1.0
+        version: 2.1.0(echarts@5.6.0)
       element-plus:
         specifier: ^2.10.5
         version: 2.14.7(vue@3.5.44(typescript@5.3.3))
@@ -326,12 +401,15 @@ importers:
       stylelint-config-recommended-scss:
         specifier: ^13.1.0
         version: 13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3))
+      stylelint-config-recommended-vue:
+        specifier: ^1.6.0
+        version: 1.6.1(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3))
       stylelint-config-standard:
         specifier: ^34.0.0
         version: 34.0.0(stylelint@15.11.0(typescript@5.3.3))
       stylelint-config-standard-vue:
         specifier: ^1.0.0
-        version: 1.0.0(postcss-html@1.8.1)(stylelint-config-recommended-scss@13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended@13.0.0(stylelint@15.11.0(typescript@5.3.3)))(stylelint@15.11.0(typescript@5.3.3))
+        version: 1.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3))
       typescript:
         specifier: 5.3.3
         version: 5.3.3
@@ -463,13 +541,13 @@ importers:
   web-component:
     dependencies:
       '@arco-iconbox/vue-te':
-        specifier: 0.0.30
-        version: 0.0.30(vue@3.5.44(typescript@4.9.5))
+        specifier: 'catalog:'
+        version: 0.0.30
       '@element-plus/icons-vue':
-        specifier: ^2.0.9
+        specifier: 'catalog:'
         version: 2.3.2(vue@3.5.44(typescript@4.9.5))
       '@floating-ui/dom':
-        specifier: ^1.0.1
+        specifier: 'catalog:'
         version: 1.8.0
       '@popperjs/core':
         specifier: npm:@sxzz/popperjs-es@^2.11.7
@@ -484,40 +562,40 @@ importers:
         specifier: ^9.1.0
         version: 9.13.0(vue@3.5.44(typescript@4.9.5))
       async-validator:
-        specifier: ^4.2.5
+        specifier: 'catalog:'
         version: 4.2.5
       dayjs:
-        specifier: ^1.11.3
+        specifier: 'catalog:'
         version: 1.11.23
       element-plus:
-        specifier: 2.3.7
+        specifier: 'catalog:'
         version: 2.3.7(vue@3.5.44(typescript@4.9.5))
       escape-html:
-        specifier: ^1.0.3
+        specifier: 'catalog:'
         version: 1.0.3
       lodash:
-        specifier: ^4.17.21
+        specifier: 'catalog:'
         version: 4.18.1
       lodash-es:
-        specifier: ^4.17.21
+        specifier: 'catalog:'
         version: 4.18.1
       lodash-unified:
         specifier: ^1.0.2
         version: 1.0.3(@types/lodash-es@4.17.12)(lodash-es@4.18.1)(lodash@4.18.1)
       memoize-one:
-        specifier: ^6.0.0
+        specifier: 'catalog:'
         version: 6.0.0
       normalize-wheel-es:
-        specifier: ^1.2.0
+        specifier: 'catalog:'
         version: 1.2.0
       pinyin-match:
-        specifier: ^1.2.5
+        specifier: 'catalog:'
         version: 1.2.10
       resize-observer-polyfill:
-        specifier: ^1.5.1
+        specifier: 'catalog:'
         version: 1.5.1
       sortablejs:
-        specifier: ^1.15.0
+        specifier: 'catalog:'
         version: 1.15.7
     devDependencies:
       '@commitlint/cli':
@@ -677,7 +755,7 @@ importers:
   web-component/packages:
     dependencies:
       '@antv/x6':
-        specifier: ^2.15.1
+        specifier: 'catalog:'
         version: 2.19.2
       '@antv/x6-plugin-scroller':
         specifier: ^2.0.10
@@ -689,14 +767,14 @@ importers:
         specifier: ^2.1.1
         version: 2.1.2(@antv/x6@2.19.2)(vue@3.5.44(typescript@5.9.3))
       '@arco-iconbox/vue-te':
-        specifier: 0.0.30
-        version: 0.0.30(vue@3.5.44(typescript@5.9.3))
+        specifier: 'catalog:'
+        version: 0.0.30
       '@arco-iconbox/vue-te-side':
-        specifier: 0.0.9
-        version: 0.0.9(vue@3.5.44(typescript@5.9.3))
+        specifier: 'catalog:'
+        version: 0.0.9
       '@zpackage/tools':
         specifier: workspace:*
-        version: link:../../zp-utils-package
+        version: link:../../zp-utils-package/packages
       asmcrypto.js:
         specifier: ^2.3.2
         version: 2.3.2
@@ -704,10 +782,10 @@ importers:
         specifier: ^1.4.0
         version: 1.20.0
       big.js:
-        specifier: ^7.0.1
+        specifier: 'catalog:'
         version: 7.0.1
       crypto-js:
-        specifier: ^4.1.1
+        specifier: 'catalog:'
         version: 4.2.0
       dagre:
         specifier: ^0.8.5
@@ -716,22 +794,22 @@ importers:
         specifier: ^6.1.0
         version: 6.1.0
       element-plus:
-        specifier: 2.3.7
+        specifier: 'catalog:'
         version: 2.3.7(vue@3.5.44(typescript@5.9.3))
       html-to-image:
-        specifier: ^1.11.11
+        specifier: 'catalog:'
         version: 1.11.13
       moment:
-        specifier: ^2.29.4
+        specifier: 'catalog:'
         version: 2.31.0
       pinyin-match:
-        specifier: ^1.2.5
+        specifier: 'catalog:'
         version: 1.2.10
       vue-virtual-scroller:
-        specifier: ^2.0.0-beta.8
+        specifier: 'catalog:'
         version: 2.0.1(vue@3.5.44(typescript@5.9.3))
       vue3-print-nb:
-        specifier: ^0.1.4
+        specifier: 'catalog:'
         version: 0.1.4(typescript@5.9.3)
 
   zp-utils-package:
@@ -745,9 +823,6 @@ importers:
       '@babel/preset-typescript':
         specifier: ^7.22.5
         version: 7.29.7(@babel/core@7.29.7)
-      '@custom/element-plus':
-        specifier: file:packages
-        version: '@zpackage/tools@file:zp-utils-package/packages'
       '@rollup/plugin-commonjs':
         specifier: ^25.0.7
         version: 25.0.8(rollup@4.65.0)
@@ -757,6 +832,9 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^11.1.6
         version: 11.1.6(rollup@4.65.0)(tslib@2.8.1)(typescript@5.9.3)
+      '@zpackage/tools':
+        specifier: workspace:*
+        version: link:packages
       '@zpackage/web-package':
         specifier: workspace:*
         version: link:../web-component/packages
@@ -781,9 +859,6 @@ importers:
       sm-crypto-v2:
         specifier: 1.15.1
         version: 1.15.1
-      ts-tools:
-        specifier: file:packages
-        version: '@zpackage/tools@file:zp-utils-package/packages'
       vue:
         specifier: ^3.2.13
         version: 3.5.44(typescript@5.9.3)
@@ -842,6 +917,25 @@ importers:
       webpack-cli:
         specifier: ^5.1.4
         version: 5.1.4(webpack@5.112.0)
+
+  zp-utils-package/packages:
+    dependencies:
+      crypto-js:
+        specifier: 'catalog:'
+        version: 4.2.0
+      minimist:
+        specifier: ^1.2.8
+        version: 1.2.8
+      mkdirp:
+        specifier: ^3.0.1
+        version: 3.0.1
+      sm-crypto-v2:
+        specifier: 1.15.1
+        version: 1.15.1
+    devDependencies:
+      '@types/sm-crypto':
+        specifier: ^0.3.4
+        version: 0.3.4
 
 packages:
 
@@ -1044,18 +1138,12 @@ packages:
 
   '@arco-iconbox/vue-te-side@0.0.9':
     resolution: {integrity: sha512-Yq3jq37axHxFvylvqCPrYGpo2CpED5Iwx2uDJtQ7nKxG+Y8IC/es9QLGVl/mH9FPxdkmwJX6G1zVqNDSg+q/UQ==}
-    peerDependencies:
-      vue: '>=3.0.0'
 
   '@arco-iconbox/vue-te@0.0.30':
     resolution: {integrity: sha512-dWPgXZV37yMdoU6l3JoC0obqkAbhSCZEVHbYIaRgRy78GNMgwkS9GTpPO2rvGlU1C+GoFnEKmDmXCqMu1CxO8A==}
-    peerDependencies:
-      vue: '>=3.0.0'
 
   '@arco-iconbox/vue-te@0.0.84':
     resolution: {integrity: sha512-5lnsdXVWVJiuIz//o5pIfiWnlYqbVHLcEMkoJs+ds16/OPVQdzifJYp8C8GgpXh7BFX2LGfQau+DapxanLYBOg==}
-    peerDependencies:
-      vue: '>=3.0.0'
 
   '@babel/code-frame@7.12.11':
     resolution: {integrity: sha512-Zt1yodBx1UcyiePMSkWnU4hPqhwq7hGi2nFL1LeA3EUl+q2LQx16MISgJ0+z7dnmgvP9QtIleuETGOiOH1RcIw==}
@@ -3754,6 +3842,9 @@ packages:
   '@types/argparse@1.0.38':
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
 
+  '@types/bigi@1.4.5':
+    resolution: {integrity: sha512-fb5MUzazrD2GRnwlStm91HVu3cZbvolX9kJruqpUBdc24eHBWrLLfyt8XN1/C5JpI0stP/MbaFQp+cJh5WOFfw==}
+
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
 
@@ -3942,6 +4033,9 @@ packages:
 
   '@types/serve-static@1.15.10':
     resolution: {integrity: sha512-tRs1dB+g8Itk72rlSI2ZrW6vZg0YrLI81iQSTkMmOqnqCaNr/8Ek4VwWcN5vZgCYWbg/JJSGBlUaYGAOP73qBw==}
+
+  '@types/sm-crypto@0.3.4':
+    resolution: {integrity: sha512-tp+KWAawUkwUWSpA3sHymerfy9P0utSyfdh7D60FJ4Aj1rhBZ2Q/nDvARUmmfQeIZZD1FKg9oAcDqecCux0npw==}
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -4852,10 +4946,6 @@ packages:
     engines: {node: '>= 8'}
     hasBin: true
 
-  '@zpackage/tools@file:zp-utils-package/packages':
-    resolution: {directory: zp-utils-package/packages, type: directory}
-    hasBin: true
-
   JSONStream@1.3.5:
     resolution: {integrity: sha512-E+iruNOY8VV9s4JEbe1aNEm6MiszPRr/UfcHMz0TQh1BXSxHK+ASV1R6W4HpjBhSeS+54PIsAMCBmwD06LLsqQ==}
     hasBin: true
@@ -5679,6 +5769,9 @@ packages:
 
   classnames@2.5.1:
     resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
+
+  claygl@1.3.0:
+    resolution: {integrity: sha512-+gGtJjT6SSHD2l2yC3MCubW/sCV40tZuSs5opdtn79vFSGUgp/lH139RNEQ6Jy078/L0aV8odCw8RSrUcMfLaQ==}
 
   clean-css@3.4.28:
     resolution: {integrity: sha512-aTWyttSdI2mYi07kWqHi24NUU9YlELFKGOAgFzZjDN1064DMAOy2FBuoyGmkKRlXkbpXd0EVHmiVkbKhKoirTw==}
@@ -6965,8 +7058,18 @@ packages:
   ecc-jsbn@0.1.2:
     resolution: {integrity: sha512-eh9O+hwRHNbG4BLTjEl3nw044CkGm5X6LoaCf7LPp7UU8Qrt47JYNi6nPX8xjW97TKGKm1ouctg0QSpZe9qrnw==}
 
+  echarts-gl@2.1.0:
+    resolution: {integrity: sha512-GxzAPTYJyOANbu7InkdGV7QLLpVyuQWNvN1yyEEIiqgM11ilAO2OkvPNgRdf854R9ZPt/C1HAgjO8Udrj61lOQ==}
+    peerDependencies:
+      echarts: ^5.1.2 || ^6.0.0
+
   echarts-liquidfill@3.1.0:
     resolution: {integrity: sha512-5Dlqs/jTsdTUAsd+K5LPLLTgrbbNORUSBQyk8PSy1Mg2zgHDWm83FmvA4s0ooNepCJojFYRITTQ4GU1UUSKYLw==}
+    peerDependencies:
+      echarts: ^5.0.1
+
+  echarts-wordcloud@2.1.0:
+    resolution: {integrity: sha512-Kt1JmbcROgb+3IMI48KZECK2AP5lG6bSsOEs+AsuwaWJxQom31RTNd6NFYI01E/YaI1PFZeueaupjlmzSQasjQ==}
     peerDependencies:
       echarts: ^5.0.1
 
@@ -12150,18 +12253,12 @@ packages:
       postcss:
         optional: true
 
-  stylelint-config-recommended-vue@2.0.0:
-    resolution: {integrity: sha512-SrGBfxgX+CmxRoFOl6HHhfKrp+6YvGnuiHj/N+/deI310eGNhix8aZOtPHG+OeqB6+5Si5BbjsZiC+kULUO1DQ==}
-    engines: {node: ^22.12 || >=24}
+  stylelint-config-recommended-vue@1.6.1:
+    resolution: {integrity: sha512-lLW7hTIMBiTfjenGuDq2kyHA6fBWd/+Df7MO4/AWOxiFeXP9clbpKgg27kHfwA3H7UNMGC7aeP3mNlZB5LMmEQ==}
+    engines: {node: ^12 || >=14}
     peerDependencies:
-      postcss-html: ^2.0.0
-      stylelint: '>=16.0.0'
-      stylelint-config-html: '>=2.0.0'
-      stylelint-config-recommended: '>=14.0.0'
-      stylelint-config-recommended-scss: '>=14.0.0'
-    peerDependenciesMeta:
-      stylelint-config-recommended-scss:
-        optional: true
+      postcss-html: ^1.0.0
+      stylelint: '>=14.0.0'
 
   stylelint-config-recommended@13.0.0:
     resolution: {integrity: sha512-EH+yRj6h3GAe/fRiyaoO2F9l9Tgg50AOFhaszyfov9v6ayXJ1IkSHwTxd7lB48FmOeSGDPLjatjO11fJpmarkQ==}
@@ -14121,21 +14218,11 @@ snapshots:
     dependencies:
       grapheme-splitter: 1.0.4
 
-  '@arco-iconbox/vue-te-side@0.0.9(vue@3.5.44(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.44(typescript@5.9.3)
+  '@arco-iconbox/vue-te-side@0.0.9': {}
 
-  '@arco-iconbox/vue-te@0.0.30(vue@3.5.44(typescript@4.9.5))':
-    dependencies:
-      vue: 3.5.44(typescript@4.9.5)
+  '@arco-iconbox/vue-te@0.0.30': {}
 
-  '@arco-iconbox/vue-te@0.0.30(vue@3.5.44(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.44(typescript@5.9.3)
-
-  '@arco-iconbox/vue-te@0.0.84(vue@3.5.44(typescript@5.3.3))':
-    dependencies:
-      vue: 3.5.44(typescript@5.3.3)
+  '@arco-iconbox/vue-te@0.0.84': {}
 
   '@babel/code-frame@7.12.11':
     dependencies:
@@ -17419,6 +17506,8 @@ snapshots:
 
   '@types/argparse@1.0.38': {}
 
+  '@types/bigi@1.4.5': {}
+
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
@@ -17626,6 +17715,10 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/node': 20.19.43
       '@types/send': 0.17.6
+
+  '@types/sm-crypto@0.3.4':
+    dependencies:
+      '@types/bigi': 1.4.5
 
   '@types/sockjs@0.3.36':
     dependencies:
@@ -19209,13 +19302,6 @@ snapshots:
     dependencies:
       isexe: 2.0.0
 
-  '@zpackage/tools@file:zp-utils-package/packages':
-    dependencies:
-      crypto-js: 4.2.0
-      minimist: 1.2.8
-      mkdirp: 3.0.1
-      sm-crypto-v2: 1.15.1
-
   JSONStream@1.3.5:
     dependencies:
       jsonparse: 1.3.1
@@ -20178,6 +20264,8 @@ snapshots:
       static-extend: 0.1.2
 
   classnames@2.5.1: {}
+
+  claygl@1.3.0: {}
 
   clean-css@3.4.28:
     dependencies:
@@ -21347,7 +21435,17 @@ snapshots:
       jsbn: 0.1.1
       safer-buffer: 2.1.2
 
+  echarts-gl@2.1.0(echarts@5.6.0):
+    dependencies:
+      claygl: 1.3.0
+      echarts: 5.6.0
+      zrender: 6.1.0
+
   echarts-liquidfill@3.1.0(echarts@5.6.0):
+    dependencies:
+      echarts: 5.6.0
+
+  echarts-wordcloud@2.1.0(echarts@5.6.0):
     dependencies:
       echarts: 5.6.0
 
@@ -27234,30 +27332,25 @@ snapshots:
     optionalDependencies:
       postcss: 8.5.31
 
-  stylelint-config-recommended-vue@2.0.0(postcss-html@1.8.1)(stylelint-config-html@2.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended-scss@13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended@13.0.0(stylelint@15.11.0(typescript@5.3.3)))(stylelint@15.11.0(typescript@5.3.3)):
+  stylelint-config-recommended-vue@1.6.1(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3)):
     dependencies:
       postcss-html: 1.8.1
       semver: 7.8.5
       stylelint: 15.11.0(typescript@5.3.3)
       stylelint-config-html: 2.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3))
       stylelint-config-recommended: 13.0.0(stylelint@15.11.0(typescript@5.3.3))
-    optionalDependencies:
-      stylelint-config-recommended-scss: 13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3))
 
   stylelint-config-recommended@13.0.0(stylelint@15.11.0(typescript@5.3.3)):
     dependencies:
       stylelint: 15.11.0(typescript@5.3.3)
 
-  stylelint-config-standard-vue@1.0.0(postcss-html@1.8.1)(stylelint-config-recommended-scss@13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended@13.0.0(stylelint@15.11.0(typescript@5.3.3)))(stylelint@15.11.0(typescript@5.3.3)):
+  stylelint-config-standard-vue@1.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3)):
     dependencies:
       postcss-html: 1.8.1
       stylelint: 15.11.0(typescript@5.3.3)
       stylelint-config-html: 2.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3))
-      stylelint-config-recommended-vue: 2.0.0(postcss-html@1.8.1)(stylelint-config-html@2.0.0(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended-scss@13.1.0(postcss@8.5.31)(stylelint@15.11.0(typescript@5.3.3)))(stylelint-config-recommended@13.0.0(stylelint@15.11.0(typescript@5.3.3)))(stylelint@15.11.0(typescript@5.3.3))
+      stylelint-config-recommended-vue: 1.6.1(postcss-html@1.8.1)(stylelint@15.11.0(typescript@5.3.3))
       stylelint-config-standard: 34.0.0(stylelint@15.11.0(typescript@5.3.3))
-    transitivePeerDependencies:
-      - stylelint-config-recommended
-      - stylelint-config-recommended-scss
 
   stylelint-config-standard@34.0.0(stylelint@15.11.0(typescript@5.3.3)):
     dependencies:
