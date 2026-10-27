@@ -96,7 +96,7 @@
 
 <script lang="ts">
 import { defineComponent, inject } from "vue";
-import { USER_TOKEN_KEY, StorageCus } from "ts-tools";
+import { USER_TOKEN_KEY, StorageCus } from "@zpackage/tools";
 
 import { stoageKey } from "../utils";
 export default defineComponent({

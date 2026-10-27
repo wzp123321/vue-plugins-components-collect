@@ -5,4 +5,47 @@ packages:
   - 'web-component/packages'
   - 'mobile-component'
   - 'zp-utils-package'
+  - 'zp-utils-package/packages'
   - 'web-component-verify'
+
+# 跨工程共享依赖版本收口（pnpm catalog）。改一处即可统一全仓解析版本；
+# 配合移除子 .npmrc 的 shamefully-hoist，可让 store 内同版本只存一份、真正去重。
+# 仅收口「全工程可用单一兼容版本」的运行时依赖，typescript/vite/@vueuse/core/
+# axios/echarts 等各工程工具链版本耦合较强，暂不在 catalog 内强制统一。
+catalog:
+  vue: ^3.5.13
+  element-plus: 2.3.7
+  '@arco-iconbox/vue-te': 0.0.30
+  '@arco-iconbox/vue-te-side': 0.0.9
+  '@element-plus/icons-vue': ^2.0.9
+  dayjs: ^1.11.3
+  lodash: ^4.17.21
+  lodash-es: ^4.17.21
+  crypto-js: ^4.2.0
+  '@antv/x6': ^2.15.1
+  pinyin-match: ^1.2.5
+  async-validator: ^4.2.5
+  '@floating-ui/dom': ^1.0.1
+  escape-html: ^1.0.3
+  html-to-image: ^1.11.11
+  big.js: ^7.0.1
+  memoize-one: ^6.0.0
+  normalize-wheel-es: ^1.2.0
+  resize-observer-polyfill: ^1.5.1
+  sortablejs: ^1.15.0
+  vue-virtual-scroller: ^2.0.0-beta.8
+  vue3-print-nb: ^0.1.4
+  moment: ^2.29.4
+
+# 以下原分散在子包 package.json 的 pnpm 配置，pnpm 要求必须放在 workspace 根才生效
+onlyBuiltDependencies:
+  - '@vue-office/docx'
+  - '@vue-office/excel'
+  - '@vue-office/pdf'
+  - vue-demi
+
+peerDependencyRules:
+  ignoreMissing:
+    - vite
+    - react
+    - react-dom

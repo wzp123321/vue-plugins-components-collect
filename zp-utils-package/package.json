@@ -1,5 +1,5 @@
 {
-	"name": "@zpackage/tools",
+	"name": "@zpackage/tools-playground",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -13,16 +13,16 @@
 		"docs:deploy": "bash scripts/docs-deploy.sh",
 		"ct": "node scripts/create-templete.js",
 		"pck:publish": "bash scripts/package-publish.sh",
-		"clean": "npm cache clean --force && rm -rf node_modules && rm package-lock.json && npm install"
+		"clean": "pnpm install"
 	},
 	"dependencies": {
 		"@babel/core": "^7.22.10",
 		"@babel/preset-env": "^7.22.10",
 		"@babel/preset-typescript": "^7.22.5",
-		"@custom/element-plus": "file:packages",
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-typescript": "^11.1.6",
+		"@zpackage/tools": "workspace:*",
 		"@zpackage/web-package": "workspace:*",
 		"axios": "^1.5.1",
 		"babel-loader": "^9.1.3",
@@ -31,7 +31,6 @@
 		"rollup-plugin-polyfill-node": "^0.13.0",
 		"rollup-plugin-typescript2": "^0.36.0",
 		"sm-crypto-v2": "1.15.1",
-		"ts-tools": "file:packages",
 		"vue": "^3.2.13",
 		"vue-loader": "^17.2.2",
 		"ws": "^8.17.0"

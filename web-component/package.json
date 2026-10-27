@@ -3,11 +3,6 @@
   "version": "0.1.0",
   "description": "天溯组件库说明文档",
   "private": "true",
-  "workspaces": [
-    "packages",
-    "example",
-    "docs"
-  ],
   "scripts": {
     "dev": "pnpm -C example dev",
     "build": "rm -rf packages/dist && pnpm run build:css && pnpm run build:js",
@@ -21,28 +16,28 @@
     "docs:gen-locale": "pnpm run -C docs gen-locale",
     "ct": "node scripts/create-templete.js",
     "pck:publish": "bash scripts/package-publish.sh",
-    "clean": "npm cache clean --force && rm -rf node_modules && rm pnpm-lock.yaml && pnpm install"
+    "clean": "pnpm install"
   },
   "dependencies": {
-    "@arco-iconbox/vue-te": "0.0.30",
-    "@element-plus/icons-vue": "^2.0.9",
-    "@floating-ui/dom": "^1.0.1",
+    "@arco-iconbox/vue-te": "catalog:",
+    "@element-plus/icons-vue": "catalog:",
+    "@floating-ui/dom": "catalog:",
     "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7",
-    "element-plus": "2.3.7",
+    "element-plus": "catalog:",
     "@types/lodash": "^4.14.182",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.0",
-    "async-validator": "^4.2.5",
-    "dayjs": "^1.11.3",
-    "escape-html": "^1.0.3",
-    "lodash": "^4.17.21",
-    "lodash-es": "^4.17.21",
+    "async-validator": "catalog:",
+    "dayjs": "catalog:",
+    "escape-html": "catalog:",
+    "lodash": "catalog:",
+    "lodash-es": "catalog:",
     "lodash-unified": "^1.0.2",
-    "memoize-one": "^6.0.0",
-    "normalize-wheel-es": "^1.2.0",
-    "pinyin-match": "^1.2.5",
-    "resize-observer-polyfill": "^1.5.1",
-    "sortablejs": "^1.15.0"
+    "memoize-one": "catalog:",
+    "normalize-wheel-es": "catalog:",
+    "pinyin-match": "catalog:",
+    "resize-observer-polyfill": "catalog:",
+    "sortablejs": "catalog:"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
@@ -104,15 +99,6 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-git"
-    }
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "vite",
-        "react",
-        "react-dom"
-      ]
     }
   },
   "lint-staged": {

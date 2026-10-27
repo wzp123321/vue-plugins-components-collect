@@ -33,7 +33,7 @@
     "ts-tools"
   ],
   "dependencies": {
-    "crypto-js": "^4.2.0",
+    "crypto-js": "catalog:",
     "minimist": "^1.2.8",
     "mkdirp": "^3.0.1",
     "sm-crypto-v2": "1.15.1"

@@ -32,24 +32,24 @@
     "ui"
   ],
   "dependencies": {
-    "@antv/x6": "^2.15.1",
+    "@antv/x6": "catalog:",
     "@antv/x6-plugin-scroller": "^2.0.10",
     "@antv/x6-plugin-snapline": "^2.1.7",
     "@antv/x6-vue-shape": "^2.1.1",
-    "@arco-iconbox/vue-te": "0.0.30",
-    "@arco-iconbox/vue-te-side": "0.0.9",
+    "@arco-iconbox/vue-te": "catalog:",
+    "@arco-iconbox/vue-te-side": "catalog:",
     "dagre": "^0.8.5",
-    "element-plus": "2.3.7",
+    "element-plus": "catalog:",
     "@zpackage/tools": "workspace:*",
     "asmcrypto.js": "^2.3.2",
     "axios": "^1.4.0",
-    "big.js": "^7.0.1",
-    "crypto-js": "^4.1.1",
+    "big.js": "catalog:",
+    "crypto-js": "catalog:",
     "echarts": "^6.1.0",
-    "html-to-image": "^1.11.11",
-    "moment": "^2.29.4",
-    "pinyin-match": "^1.2.5",
-    "vue-virtual-scroller": "^2.0.0-beta.8",
-    "vue3-print-nb": "^0.1.4"
+    "html-to-image": "catalog:",
+    "moment": "catalog:",
+    "pinyin-match": "catalog:",
+    "vue-virtual-scroller": "catalog:",
+    "vue3-print-nb": "catalog:"
   }
 }
