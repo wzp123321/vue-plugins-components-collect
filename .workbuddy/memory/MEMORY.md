@@ -45,7 +45,11 @@
 - **沙箱删除守卫（>50 文件）**杀 `pnpm dev` / `vite build`：别 `mv node_modules/.vite` 绕（触发全量重优化照样被拦）。**本机产不出完整生产包**，正确性以 `ts-check` + 四项检查为准，完整包由用户本机 `npm run build` 收口。
 - **dev server**：尾部 `&` 起的 vite 随 Bash 调用结束被回收 → 必须 `run_in_background`、不接管道。lockfile 变更后首启 re-optimize 会 `rm` 旧 deps 被拦 → 临时 `vite.verify.config.ts`：`cacheDir` 指向**全新**目录 + `optimizeDeps.include` 写全深层导入，用完删。
 - **CDP**：Chrome `--headless=new --remote-debugging-port=9222 --disable-gpu --no-sandbox`。⚠️ `/json/version` 是 **browser 级** WS，无 `Page.*` 域，必须连 `/json/list` 里 page target 的 `webSocketDebuggerUrl`。Node fetch 走代理连不上 127.0.0.1 → 用内置 `http`；`ws` 用 `createRequire` 从 `node_modules/.pnpm/ws@*/node_modules/ws` 加载。async IIFE 必须 `awaitPromise:true`。**CSS `:hover` 骗不过渲染引擎**，`dispatchEvent(mouseover)` 无效，要用 `Input.dispatchMouseEvent{type:'mouseMoved'}`。
-- **网络出口**：代理端口每会话变（`env|grep proxy`）。GitHub **间歇放行**且窗口不稳——2026-10-30 连试 28 次全 `502`/`schannel: server closed abruptly`。按「循环重试 10~20s、间以数分钟长等待」处理，但**不保证几次内成**；失败要如实告知由用户本机推送。
+- **网络出口**（2026-10-30 三测修正）：代理端口每会话变（`env|grep proxy`）。**两条路都要试，别一条走到黑**：
+  ① 走代理：`git push` 大概率 `CONNECT tunnel failed 502` / `schannel: server closed abruptly`，循环重试有时第 7 次能过；
+  ② **直连（去掉代理变量）**：`env -u https_proxy -u HTTPS_PROXY -u http_proxy -u HTTP_PROXY git push origin main` ——
+  单次约 21s 超时，但本次代理连试 28 次全败后，直连第 3 次即成功。
+  → 代理连败若干次后应尽早切直连重试；两条都不成再如实告知用户由他本机推送。
 - 安全垫片拦 `rm -rf <大目录>`：在 `&&` 链里**静默断链**（脚本没跑也没报错）。清理旧目录用 `mv`。
 - bash `/tmp` = `C:/Users/wanzh/AppData/Local/Temp`，Read/Grep 把 `/tmp` 解析成 `D:/tmp`。传路径一律用 Windows 绝对路径。
 
