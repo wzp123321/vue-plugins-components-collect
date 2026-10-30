@@ -203,7 +203,7 @@ onMounted(() => {
   box-sizing: border-box;
   padding: 6px 11px;
   border: 1px solid var(--color-text-border);
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
 
   .yrp-trigger {
     position: relative;
@@ -248,7 +248,7 @@ onMounted(() => {
     margin-left: 4px;
     color: var(--color-text-primary);
     line-height: 1;
-    background-color: #fff;
+    background-color: var(--ai-surface-solid);
 
     position: absolute;
     top: 50%;

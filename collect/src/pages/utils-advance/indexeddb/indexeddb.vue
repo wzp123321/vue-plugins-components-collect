@@ -602,7 +602,7 @@ const users = await idb.getAll('users');`;
 .code-block {
   background: #1e1e1e;
   color: #cdd;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 14px;
   font-size: 12px;
   font-family: monospace;

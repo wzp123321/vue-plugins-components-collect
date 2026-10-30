@@ -52,7 +52,7 @@ const { concurrentLoading, concurrentReqs, doConcurrent } = useConcurrentRequest
   margin-top: 8px;
   .req-item {
     padding: 6px;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     font-size: 12px;
     text-align: center;
     &.pending {

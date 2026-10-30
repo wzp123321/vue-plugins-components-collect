@@ -102,7 +102,7 @@ const log = (label: string, info: IFilterCallbackInfo): void => {
     padding: 12px;
     background: #1e1e1e;
     color: #d4d4d4;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     font-size: 12px;
     line-height: 1.6;
     margin-top: 12px;

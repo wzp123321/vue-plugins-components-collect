@@ -74,21 +74,21 @@ defineOptions({ name: 'TeProjectSelectDemo' });
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--ai-surface-solid);
+  border-radius: var(--ai-radius-sm);
   overflow: auto;
 
   .tps-demo-header {
     padding: 12px 16px;
-    border-bottom: 1px solid #ebeef5;
-    background: #fafbfc;
+    border-bottom: 1px solid var(--ai-border);
+    background: var(--ai-surface-raised);
     h3 {
       margin: 0 0 4px;
       font-size: 16px;
     }
     p {
       margin: 0;
-      color: #909399;
+      color: var(--ai-text-mute);
       font-size: 12px;
     }
   }
@@ -104,15 +104,15 @@ defineOptions({ name: 'TeProjectSelectDemo' });
   .tps-pre {
     margin: 8px 0 0;
     padding: 8px 12px;
-    background: #fafbfc;
-    border: 1px solid #ebeef5;
-    border-radius: 4px;
+    background: var(--ai-surface-raised);
+    border: 1px solid var(--ai-border);
+    border-radius: var(--ai-radius-xs);
     font-size: 12px;
-    color: #606266;
+    color: var(--ai-text-dim);
     white-space: pre-wrap;
   }
   .tps-tip {
-    color: #909399;
+    color: var(--ai-text-mute);
     font-size: 12px;
     margin: 8px 0 0;
   }

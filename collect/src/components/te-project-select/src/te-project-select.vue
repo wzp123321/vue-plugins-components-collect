@@ -81,7 +81,7 @@ defineOptions({ name: 'TeProjectSelect' });
   margin-top: 8px;
   padding: 8px 12px;
   background: #fafbfc;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   font-size: 12px;
   color: #606266;
 

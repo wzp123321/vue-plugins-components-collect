@@ -207,7 +207,7 @@ watchSyncEffect(() => {
 
   .log-badge {
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     font-size: 11px;
     background: rgba(0,0,0,0.06);
     min-width: 80px;

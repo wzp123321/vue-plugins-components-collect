@@ -132,7 +132,7 @@ const onRoam = (event: Event) => {
 .map-toolbar__segBtn {
   padding: 4px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: none;
   color: #8fb8d6;
   font-size: 12px;

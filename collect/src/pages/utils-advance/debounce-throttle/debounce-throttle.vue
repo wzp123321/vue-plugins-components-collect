@@ -327,7 +327,7 @@ const compareData = [
   height: 160px;
   overflow-y: auto;
   background: #1e1e1e;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 8px 10px;
 }
 .log-item {
@@ -352,7 +352,7 @@ const compareData = [
 .code-block {
   background: #1e1e1e;
   color: #cdd;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 14px;
   font-size: 12px;
   font-family: monospace;

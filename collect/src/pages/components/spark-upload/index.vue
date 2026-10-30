@@ -136,13 +136,13 @@ const handleFileChange = async (file: File) => {
     .log-content {
       max-height: 300px;
       overflow-y: auto;
-      background: #f5f7fa;
-      border-radius: 4px;
+      background: var(--ai-surface-raised);
+      border-radius: var(--ai-radius-xs);
       padding: 10px;
 
       .log-item {
         padding: 5px 0;
-        border-bottom: 1px solid #e4e7ed;
+        border-bottom: 1px solid var(--ai-border);
         display: flex;
         gap: 10px;
         font-size: 13px;
@@ -152,7 +152,7 @@ const handleFileChange = async (file: File) => {
         }
 
         .log-time {
-          color: #909399;
+          color: var(--ai-text-mute);
           min-width: 70px;
         }
 
@@ -161,7 +161,7 @@ const handleFileChange = async (file: File) => {
         }
 
         &.info .log-message {
-          color: #303133;
+          color: var(--ai-text);
         }
         &.success .log-message {
           color: #67c23a;

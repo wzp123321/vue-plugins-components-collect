@@ -258,7 +258,7 @@ useThreeScene({
   margin-top: 8px;
   padding: 6px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   cursor: pointer;
   font-size: 13px;
   transition: opacity 0.2s;

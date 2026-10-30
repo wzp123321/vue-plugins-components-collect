@@ -147,7 +147,7 @@ const navTitleOf = (path: string): string => allNavItems.find((item) => item.pat
     height: 22px;
     padding: 0 8px;
     border: 1px solid var(--ai-hairline);
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     background: var(--ai-surface);
     color: var(--ai-text-mute);
     font-family: var(--ai-font-mono);
@@ -240,7 +240,7 @@ const navTitleOf = (path: string): string => allNavItems.find((item) => item.pat
   &__install {
     align-self: flex-start;
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     background: var(--ai-code-bg, rgba(124, 92, 255, 0.1));
     color: var(--ai-accent);
     font-family: var(--ai-font-mono);
@@ -271,7 +271,7 @@ const navTitleOf = (path: string): string => allNavItems.find((item) => item.pat
 
   &__api {
     padding: 2px 7px;
-    border-radius: 5px;
+    border-radius: var(--ai-radius-xs);
     border: 1px solid var(--ai-hairline);
     background: var(--ai-surface-raised);
     color: var(--ai-text-mute);
@@ -308,7 +308,7 @@ const navTitleOf = (path: string): string => allNavItems.find((item) => item.pat
   &__alt {
     padding: 2px 8px;
     border: 1px solid var(--ai-hairline);
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     background: var(--ai-surface);
     color: var(--ai-text-dim);
     font-size: 11px;

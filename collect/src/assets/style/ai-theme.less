@@ -4,6 +4,27 @@
  * 浅色通过 html:not(.dark) 覆盖，主题开关由 useThemeStore 控制 html.dark。
  */
 
+/* Element Plus 桥接：控件圆角/描边/文本统一走 token，避免各页面各写一套 */
+.ai-el-bridge() {
+  --el-border-radius-base: var(--ai-radius-sm);
+  --el-border-radius-small: var(--ai-radius-xs);
+  --el-border-radius-round: 999px;
+  --el-border-color: var(--ai-border);
+  --el-border-color-light: var(--ai-border);
+  --el-border-color-lighter: var(--ai-hairline);
+  --el-border-color-extra-light: var(--ai-hairline);
+  --el-bg-color: var(--ai-surface-solid);
+  --el-bg-color-overlay: var(--ai-surface-solid);
+  --el-fill-color-blank: var(--ai-surface-solid);
+  --el-text-color-primary: var(--ai-text);
+  --el-text-color-regular: var(--ai-text-dim);
+  --el-text-color-secondary: var(--ai-text-mute);
+
+  /* 阴影：克制扁平，只保留一层很淡的扩散 */
+  --el-box-shadow-light: var(--ai-shadow-sm);
+  --el-box-shadow: var(--ai-shadow-md);
+}
+
 :root {
   color-scheme: dark;
 
@@ -38,12 +59,17 @@
   --ai-gradient: linear-gradient(135deg, #a78bfa 0%, #7c5cff 42%, #22d3ee 100%);
   --ai-gradient-soft: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(34, 211, 238, 0.1));
 
-  /* 形状 */
-  --ai-radius-lg: 18px;
-  --ai-radius-md: 12px;
-  --ai-radius-sm: 9px;
-  --ai-shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.5);
-  --ai-shadow-md: 0 14px 40px rgba(0, 0, 0, 0.32);
+  /* 形状：克制扁平——圆角收小、层级清晰，阴影只做一层扩散 */
+  --ai-radius-lg: 14px;
+  --ai-radius-md: 10px;
+  --ai-radius-sm: 8px;
+  --ai-radius-xs: 6px;
+  --ai-radius-xxs: 4px;
+  --ai-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.46);
+  --ai-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.28);
+  --ai-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.2);
+  /* 表面顶部内高光：替代纯亮描边，作为"高级感"的统一细节 */
+  --ai-ring: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
   /* 字体 */
   --ai-font-sans: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'HarmonyOS Sans SC',
@@ -56,8 +82,19 @@
   --ai-aside-w-collapsed: 72px;
 }
 
+/* 桥接变量需要在 :root / html.dark 各声明一次：
+   Element Plus 的暗色变量写在 html.dark 上，优先级高于 :root */
+:root {
+  .ai-el-bridge();
+}
+
+html.dark {
+  .ai-el-bridge();
+}
+
 html:not(.dark) {
   color-scheme: light;
+  .ai-el-bridge();
 
   --ai-bg: #f4f5fa;
   --ai-glow-violet: rgba(124, 92, 255, 0.14);
@@ -84,8 +121,10 @@ html:not(.dark) {
   --ai-accent-soft: rgba(109, 75, 255, 0.1);
   --ai-gradient: linear-gradient(135deg, #7c5cff 0%, #6366f1 45%, #0891b2 100%);
 
-  --ai-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.12);
-  --ai-shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --ai-shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.1);
+  --ai-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.07);
+  --ai-shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --ai-ring: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 html,
@@ -116,7 +155,7 @@ html:not(.dark) ::selection {
   height: 20px;
   padding: 0 5px;
   border: 1px solid var(--ai-border);
-  border-radius: 5px;
+  border-radius: var(--ai-radius-xs);
   background: var(--ai-surface-raised);
   color: var(--ai-text-mute);
   font-family: var(--ai-font-mono);

@@ -188,7 +188,7 @@ defineExpose({
 
   .mv-bar {
     height: 6px;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     background: rgba(120, 160, 255, 0.18);
     overflow: hidden;
   }

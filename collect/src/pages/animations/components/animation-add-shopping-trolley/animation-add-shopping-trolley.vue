@@ -217,7 +217,7 @@ const getBallStyle = (ball: any) => {
   background-color: #ff4e4e;
   color: white;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   font-size: 12px;
 }
 
@@ -268,7 +268,7 @@ const getBallStyle = (ball: any) => {
   background-color: #f5f5f5;
   color: #666;
   padding: 0 6px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   font-size: 12px;
   white-space: nowrap;
 }

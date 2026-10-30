@@ -603,7 +603,7 @@ onUnmounted(() => {
   margin-top: 6px;
   padding: 6px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(255, 120, 40, 0.2);
   color: #ffdbb5;
   cursor: pointer;

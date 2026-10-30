@@ -58,7 +58,7 @@ defineOptions({ name: 'QrCodeDemo' });
   flex-direction: column;
   height: 100%;
   background: #fff;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   overflow: auto;
 
   .qcd-demo-header {
@@ -84,7 +84,7 @@ defineOptions({ name: 'QrCodeDemo' });
   .qcd-pre {
     background: #fafbfc;
     border: 1px solid #ebeef5;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     padding: 12px;
     font-size: 12px;
     line-height: 1.6;

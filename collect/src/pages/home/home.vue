@@ -268,7 +268,7 @@ const openPalette = () => {
   &__chip {
     padding: 2px 8px;
     border: 1px solid var(--ai-hairline);
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     background: var(--ai-surface);
     color: var(--ai-text-mute);
     font-size: 10.5px;

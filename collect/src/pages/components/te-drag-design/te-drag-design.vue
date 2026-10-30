@@ -22,17 +22,17 @@ defineOptions({ name: 'TeDragDesignDemo' });
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--ai-surface-solid);
+  border-radius: var(--ai-radius-sm);
   overflow: hidden;
 
   .tdd-demo-header {
     padding: 12px 16px;
-    border-bottom: 1px solid #ebeef5;
-    background: #fafbfc;
+    border-bottom: 1px solid var(--ai-border);
+    background: var(--ai-surface-raised);
 
     h3 { margin: 0 0 4px; font-size: 16px; }
-    p { margin: 0; color: #909399; font-size: 12px; }
+    p { margin: 0; color: var(--ai-text-mute); font-size: 12px; }
   }
 
   .tdd-demo-stage {

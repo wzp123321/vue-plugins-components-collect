@@ -990,7 +990,7 @@ onUnmounted(() => {
   background: rgba(57, 224, 255, 0.9);
   color: #06121f;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   font-size: 12px;
   font-weight: 700;
   pointer-events: none;
@@ -1087,7 +1087,7 @@ onUnmounted(() => {
   background: transparent;
   color: #dbe6f5;
   padding: 7px 16px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   cursor: pointer;
   font-size: 13px;
 }
@@ -1118,7 +1118,7 @@ onUnmounted(() => {
   background: transparent;
   color: #aebfd6;
   padding: 5px 12px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   cursor: pointer;
   font-size: 12px;
 }
@@ -1196,7 +1196,7 @@ onUnmounted(() => {
   min-width: 0;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(120, 160, 220, 0.25);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   color: #e8f0fb;
   padding: 6px 8px;
   font-size: 12px;

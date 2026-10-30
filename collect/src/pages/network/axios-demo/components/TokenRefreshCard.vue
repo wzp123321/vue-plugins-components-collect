@@ -79,7 +79,7 @@ const {
   margin-bottom: 12px;
   padding: 10px 14px;
   background: #f5f7fa;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   font-size: 13px;
   flex-wrap: wrap;
   .token-item {
@@ -101,7 +101,7 @@ const {
   margin-top: 8px;
   padding: 4px;
   background: #1e1e2e;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   .log-time {
     color: #6c7086;
     font-size: 11px;
@@ -117,7 +117,7 @@ const {
   .log-line {
     font-size: 12px;
     padding: 4px 10px;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     font-family: monospace;
     &.info {
       background: rgba(64, 158, 255, 0.15);

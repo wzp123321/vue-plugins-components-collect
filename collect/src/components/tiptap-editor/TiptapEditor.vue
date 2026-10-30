@@ -680,7 +680,7 @@ watch(
 <style lang="less" scoped>
 .tiptap-editor {
   border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: #fff;
 }
 
@@ -781,7 +781,7 @@ watch(
     pre {
       background: #1e1e2e;
       color: #cdd6f4;
-      border-radius: 6px;
+      border-radius: var(--ai-radius-sm);
       padding: 12px;
       font-size: 12.5px;
       line-height: 1.6;
@@ -796,7 +796,7 @@ watch(
 
     code {
       background: #f0f2f5;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
       padding: 2px 5px;
       font-size: 0.92em;
       font-family: Consolas, Monaco, 'Courier New', monospace;
@@ -831,7 +831,7 @@ watch(
     img {
       max-width: 100%;
       height: auto;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
     }
 
     .ProseMirror-selectednode {

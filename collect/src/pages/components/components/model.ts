@@ -20,11 +20,11 @@ export const customComponents: { description: string; component: any }[] = [
     component: ComponentYearRangePicker,
   },
   {
-    description: '拖拽',
+    description: '拖拽布局',
     component: ComponentDragLayout,
   },
   {
-    description: '拖拽',
+    description: '布局拖拽',
     component: ComponentLayoutDrag,
   },
 ];

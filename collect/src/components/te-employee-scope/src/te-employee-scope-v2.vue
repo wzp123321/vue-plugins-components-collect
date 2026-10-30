@@ -211,7 +211,7 @@ defineOptions({ name: 'TeEmployeeScopeV2' });
   align-items: center;
   padding: 8px 12px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   transition: all 0.15s;
 
   &.checked {
@@ -241,7 +241,7 @@ defineOptions({ name: 'TeEmployeeScopeV2' });
   margin-top: 12px;
   padding: 8px 12px;
   background: #f0f9ff;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   color: #409eff;
   font-size: 13px;
 }

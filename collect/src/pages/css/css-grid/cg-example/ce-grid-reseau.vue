@@ -50,7 +50,7 @@
 
   .item {
     background-color: #aaa;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     color: #fff;
     font-size: 16px;
   }

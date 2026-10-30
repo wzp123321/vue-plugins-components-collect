@@ -75,7 +75,7 @@ const handleDelete = () => {
   width: 100%;
   margin-top: 16px;
   background-color: #fff;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   border: 1px solid rgba(0, 0, 0, 0.1);
 
   .pcg-tool {

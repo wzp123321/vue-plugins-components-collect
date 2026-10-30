@@ -68,7 +68,7 @@ defineOptions({ name: 'TePrintQrDemo' });
   flex-direction: column;
   height: 100%;
   background: #fff;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   overflow: auto;
 
   .tpq-demo-header {

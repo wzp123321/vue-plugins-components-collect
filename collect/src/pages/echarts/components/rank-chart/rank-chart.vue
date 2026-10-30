@@ -223,7 +223,7 @@ onUnmounted(() => {
     font-size: 14px;
     color: #ffffff;
     background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     max-width: 400px;
   }
 }

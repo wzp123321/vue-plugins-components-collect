@@ -228,7 +228,7 @@ const groupedProfiles = computed(() =>
     height: 22px;
     padding: 0;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     background: var(--ai-surface-hover);
     color: var(--ai-text-mute);
     font-size: 12px;

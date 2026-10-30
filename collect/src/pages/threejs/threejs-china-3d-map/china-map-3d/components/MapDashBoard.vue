@@ -413,7 +413,7 @@ const tipStyle = computed(() => {
   gap: 6px;
   padding: 4px 6px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(120, 150, 180, 0.08);
   cursor: pointer;
   text-align: left;
@@ -434,7 +434,7 @@ const tipStyle = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   font-size: 10px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -557,7 +557,7 @@ const tipStyle = computed(() => {
   position: absolute;
   transform: translate(-50%, -135%);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(6, 16, 30, 0.92);
   border: 1px solid rgba(143, 235, 255, 0.45);
   color: #cfe9ff;

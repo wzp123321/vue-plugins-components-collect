@@ -213,7 +213,7 @@ defineExpose({
   justify-content: space-between;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   cursor: pointer;
   font-size: 12px;
   color: #cfe9ff;

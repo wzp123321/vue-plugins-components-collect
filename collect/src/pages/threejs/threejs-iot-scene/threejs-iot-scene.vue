@@ -224,7 +224,7 @@ const Ring = defineComponent({
   background: transparent;
   color: #aebfd6;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   cursor: pointer;
   font-size: 13px;
 }
@@ -263,7 +263,7 @@ const Ring = defineComponent({
   color: #8aa0bd;
   background: rgba(12, 18, 30, 0.6);
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
 }
 .iot-panel {
   width: 360px;
@@ -375,7 +375,7 @@ const Ring = defineComponent({
   background: rgba(255, 90, 60, 0.18);
   color: #ff8a72;
   padding: 2px 7px;
-  border-radius: 5px;
+  border-radius: var(--ai-radius-xs);
 }
 .alarm-list .val {
   font-family: ui-monospace, monospace;

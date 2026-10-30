@@ -392,7 +392,7 @@ const collapsed = ref(true);
   flex: 1;
   padding: 4px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: none;
   color: #8fb8d6;
   font-size: 12px;
@@ -445,7 +445,7 @@ const collapsed = ref(true);
 .map-ctrl__swatch {
   width: 16px;
   height: 16px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 0 8px currentColor;
 }
@@ -462,7 +462,7 @@ const collapsed = ref(true);
 }
 .map-ctrl__color::-webkit-color-swatch {
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  border-radius: var(--ai-radius-xs);
 }
 .map-ctrl__field--slider {
   margin-top: 12px;

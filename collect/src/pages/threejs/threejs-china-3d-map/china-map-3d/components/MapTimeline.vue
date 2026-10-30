@@ -207,7 +207,7 @@ const onSlide = (e: Event) => {
 .map-timeline__speedBtn {
   padding: 3px 7px;
   border: 1px solid rgba(95, 216, 255, 0.25);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(120, 150, 180, 0.08);
   color: #9fc4e0;
   font-size: 11px;

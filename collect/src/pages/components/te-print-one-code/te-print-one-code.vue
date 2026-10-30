@@ -41,7 +41,7 @@ defineOptions({ name: 'TePrintOneCodeDemo' });
   flex-direction: column;
   height: 100%;
   background: #fff;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   overflow: auto;
 
   .tpoc-demo-header {

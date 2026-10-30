@@ -173,7 +173,7 @@ defineOptions({ name: 'TeQrcodeView' });
   align-items: center;
   padding: 8px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   cursor: pointer;
   transition: all 0.15s;
 

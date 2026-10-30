@@ -257,7 +257,7 @@ defineOptions({ name: 'TeDragDesign' });
   .tdd-right {
     width: 220px;
     background: #fff;
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     padding: 12px;
     box-sizing: border-box;
     overflow: auto;
@@ -280,7 +280,7 @@ defineOptions({ name: 'TeDragDesign' });
     gap: 8px;
     padding: 10px 12px;
     border: 1px dashed #c0c4cc;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     background: #fafafa;
     cursor: grab;
     user-select: none;
@@ -294,7 +294,7 @@ defineOptions({ name: 'TeDragDesign' });
       text-align: center;
       background: #409eff;
       color: #fff;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
       font-size: 12px;
     }
   }
@@ -358,7 +358,7 @@ defineOptions({ name: 'TeDragDesign' });
 
   .tdd-canvas-item {
     border: 2px solid transparent;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     padding: 4px;
     margin: 2px 0;
     cursor: pointer;

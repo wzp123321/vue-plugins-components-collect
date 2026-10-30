@@ -41,7 +41,7 @@ const { retryLoading, retryLogs, doRetry } = useRetryRequest();
 .log-line {
   font-size: 12px;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   &.info {
     background: #f0f9ff;
     color: #409eff;

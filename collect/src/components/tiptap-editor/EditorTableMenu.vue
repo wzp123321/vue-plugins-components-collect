@@ -78,7 +78,7 @@ const shouldShow = (bubbleProps: ShouldShowProps) => {
   padding: 6px 8px;
   background: #fff;
   border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 

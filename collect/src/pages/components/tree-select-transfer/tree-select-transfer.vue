@@ -40,17 +40,17 @@ defineOptions({ name: 'TreeSelectTransferDemo' });
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--ai-surface-solid);
+  border-radius: var(--ai-radius-sm);
   overflow: auto;
 
   .tst-demo-header {
     padding: 12px 16px;
-    border-bottom: 1px solid #ebeef5;
-    background: #fafbfc;
+    border-bottom: 1px solid var(--ai-border);
+    background: var(--ai-surface-raised);
 
     h3 { margin: 0 0 4px; font-size: 16px; }
-    p { margin: 0; color: #909399; font-size: 12px; }
+    p { margin: 0; color: var(--ai-text-mute); font-size: 12px; }
   }
 
   .tst-demo-stage {
@@ -70,18 +70,18 @@ defineOptions({ name: 'TreeSelectTransferDemo' });
   }
   .tst-frame {
     height: 360px;
-    border: 1px solid #ebeef5;
-    border-radius: 4px;
+    border: 1px solid var(--ai-border);
+    border-radius: var(--ai-radius-xs);
     overflow: hidden;
   }
   .tst-pre {
-    background: #fafbfc;
-    border: 1px solid #ebeef5;
-    border-radius: 4px;
+    background: var(--ai-surface-raised);
+    border: 1px solid var(--ai-border);
+    border-radius: var(--ai-radius-xs);
     padding: 12px;
     font-size: 12px;
     line-height: 1.6;
-    color: #303133;
+    color: var(--ai-text);
     margin: 0;
     white-space: pre-wrap;
     word-break: break-all;

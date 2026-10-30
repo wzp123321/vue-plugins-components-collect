@@ -227,7 +227,7 @@ onUnmounted(() => {
   background: #4caf50;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   cursor: pointer;
 }
 

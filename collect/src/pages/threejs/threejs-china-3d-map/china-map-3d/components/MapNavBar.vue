@@ -106,7 +106,7 @@ const canGoBack = computed(() => props.crumbs.length > 1)
 }
 .map-nav__crumbItem--link {
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   transition: color 0.15s ease, background 0.15s ease;
 }
 .map-nav__crumbItem--link:hover {

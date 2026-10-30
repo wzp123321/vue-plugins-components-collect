@@ -344,7 +344,7 @@ const log = (label: string, info: IFilterCallbackInfo): void => {
 
   .module {
     border: 1px solid #ebeef5;
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     padding: 12px 16px;
     background: #fafbfc;
 
@@ -369,7 +369,7 @@ const log = (label: string, info: IFilterCallbackInfo): void => {
     padding: 8px;
     background: #1e1e1e;
     color: #d4d4d4;
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     font-size: 12px;
     line-height: 1.5;
     max-height: 200px;

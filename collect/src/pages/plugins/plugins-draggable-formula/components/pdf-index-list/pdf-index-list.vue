@@ -88,7 +88,7 @@ const handleDragEnd = () => {
     > .pil-drag-container-item {
       cursor: pointer;
       padding: 5px 12px;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
       width: fit-content;
     }
   }

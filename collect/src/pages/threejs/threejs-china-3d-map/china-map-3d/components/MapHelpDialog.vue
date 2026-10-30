@@ -87,7 +87,7 @@ const close = () => emit('update:visible', false)
 .map-help__close {
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   border: 1px solid rgba(95, 216, 255, 0.22);
   background: rgba(120, 150, 180, 0.14);
   color: #cfe9ff;
@@ -107,7 +107,7 @@ const close = () => emit('update:visible', false)
 .map-help__keys {
   flex: 0 0 84px;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(47, 192, 255, 0.16);
   color: #bfe9ff;
   font-size: 12px;

@@ -161,7 +161,7 @@ const teleportCode = `<!-- 传送到指定 id 的容器 -->
   background: #409eff;
   color: #fff;
   padding: 12px 16px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   font-weight: 500;
   margin-top: 8px;
 }

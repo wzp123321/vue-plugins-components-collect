@@ -59,7 +59,7 @@ watch(
 .pdf-tag {
   cursor: pointer;
   padding: 3px 12px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   box-sizing: border-box;
 
   .pt-input {

@@ -399,7 +399,7 @@ const onDrop = (e: DragEvent) => {
   background: #1b2342;
   color: #aab8e8;
   border: 1px solid rgba(120, 160, 255, 0.22);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 5px 10px;
   font-size: 12px;
   cursor: pointer;
@@ -415,7 +415,7 @@ const onDrop = (e: DragEvent) => {
   background: #131a30;
   color: #dce5ff;
   border: 1px solid rgba(120, 160, 255, 0.25);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 5px 8px;
   font-size: 12px;
   outline: none;
@@ -431,7 +431,7 @@ const onDrop = (e: DragEvent) => {
     background: #131a30;
     color: #aab8e8;
     border: 1px solid rgba(120, 160, 255, 0.22);
-    border-radius: 6px;
+    border-radius: var(--ai-radius-sm);
     padding: 5px 10px;
     font-size: 12px;
     cursor: pointer;

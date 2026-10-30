@@ -38,11 +38,11 @@ const mapComponentClass = () => ['common-page-container', props.customClass];
     display: flex;
     flex-direction: column;
     border: 1px solid var(--ai-border);
-    border-radius: var(--ai-radius-lg);
+    border-radius: 0;
     background: var(--ai-surface);
     backdrop-filter: blur(20px);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      var(--ai-ring),
       var(--ai-shadow-md);
     transition:
       border-color 0.3s ease,

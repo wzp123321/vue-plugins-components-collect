@@ -93,7 +93,7 @@ const onSave = () => {
   width: 18px;
   height: 18px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   background: none;
   color: #7fa8c8;
   font-size: 14px;
@@ -114,7 +114,7 @@ const onSave = () => {
   min-width: 0;
   padding: 5px 8px;
   border: 1px solid rgba(95, 216, 255, 0.22);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(8, 20, 44, 0.9);
   color: #eaf6ff;
   font: 12px/1.2 inherit;
@@ -129,7 +129,7 @@ const onSave = () => {
 .map-bookmark__saveBtn {
   padding: 5px 10px;
   border: 1px solid rgba(47, 192, 255, 0.5);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(47, 192, 255, 0.22);
   color: #eaf6ff;
   font: 600 12px/1.2 inherit;
@@ -161,7 +161,7 @@ const onSave = () => {
   gap: 8px;
   padding: 6px 8px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(120, 150, 180, 0.1);
   color: #cfe9ff;
   font: 12px/1.2 inherit;
@@ -191,7 +191,7 @@ const onSave = () => {
   height: 20px;
   flex: none;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   background: none;
   color: #6f9fc4;
   font-size: 13px;

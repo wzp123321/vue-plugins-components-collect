@@ -1873,7 +1873,7 @@ onUnmounted(() => {
 .map-ctx__item {
   padding: 8px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: none;
   color: #cfeaff;
   font: 500 13px/1.2 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -1912,7 +1912,7 @@ onUnmounted(() => {
   padding: 3px 10px;
   background: transparent;
   border: 1px solid rgba(95, 201, 238, 0.6);
-  border-radius: 5px;
+  border-radius: var(--ai-radius-xs);
   color: #9fd6ef;
   cursor: pointer;
   font: 600 12px/1 inherit;
@@ -1949,7 +1949,7 @@ onUnmounted(() => {
   padding: 3px 9px;
   background: transparent;
   border: 1px solid rgba(95, 216, 255, 0.55);
-  border-radius: 5px;
+  border-radius: var(--ai-radius-xs);
   color: #9fd6ef;
   cursor: pointer;
   font: 600 12px/1 inherit;
@@ -1980,7 +1980,7 @@ onUnmounted(() => {
   background: rgba(6, 16, 30, 0.82);
   border: 1px solid #5fc9ee;
   border-left-width: 3px;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   color: #eaf8ff;
   font:
     600 12px/1.2 'PingFang SC',

@@ -20,7 +20,7 @@
           :default-expanded-keys="treeExpandedKeys"
           :default-checked-keys="treeCheckedKeys"
           show-checkbox
-          @check="(data, info) => handleTreeCheck(data as TstITreeNodeData, info as unknown as TstITreeCheckEvent<TstITreeNodeData>)"
+          @check="(data: TstITreeNodeData, info: TstITreeCheckEvent<TstITreeNodeData>) => handleTreeCheck(data, info)"
         />
       </div>
     </div>

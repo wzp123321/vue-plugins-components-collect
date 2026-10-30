@@ -236,7 +236,7 @@ const barColor = (v: number) => {
   flex: 0 0 auto;
   padding: 3px 10px;
   border: 1px solid rgba(95, 216, 255, 0.4);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(47, 192, 255, 0.16);
   color: #a9dcf2;
   font-size: 11px;
@@ -278,7 +278,7 @@ const barColor = (v: number) => {
   gap: 8px;
   padding: 5px 8px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(120, 150, 180, 0.08);
   cursor: pointer;
   text-align: left;
@@ -297,7 +297,7 @@ const barColor = (v: number) => {
   top: 0;
   bottom: 0;
   opacity: 0.28;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
 }
 .map-detail__bar-name {
   position: relative;
@@ -331,7 +331,7 @@ const barColor = (v: number) => {
   flex: 1;
   padding: 4px 0;
   border: 1px solid rgba(95, 216, 255, 0.25);
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   background: rgba(120, 150, 180, 0.08);
   color: #9fc4e0;
   font-size: 11px;

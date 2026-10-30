@@ -222,7 +222,7 @@ while (true) {
   max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
   .sse-event {
     display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 8px;
-    border-radius: 4px; background: #f5f7fa;
+    border-radius: var(--ai-radius-xs); background: #f5f7fa;
     .event-type { min-width: 80px; font-weight: 500; color: #409eff; }
     .event-data { flex: 1; color: #606266; }
     .event-time { color: #bbb; }

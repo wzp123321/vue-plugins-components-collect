@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
     overflow-x: auto;
 
     :deep(.gantt .bar) {
-      border-radius: 6px;
+      border-radius: var(--ai-radius-sm);
     }
 
     :deep(.bar-done) {

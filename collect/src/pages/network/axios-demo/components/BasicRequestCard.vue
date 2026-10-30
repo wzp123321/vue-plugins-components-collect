@@ -28,7 +28,7 @@ const { getLoading, postLoading, result, doGet, doPost } = useBasicRequest();
 }
 .result-box {
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   font-size: 13px;
   background: #f0f9ff;
   color: #409eff;

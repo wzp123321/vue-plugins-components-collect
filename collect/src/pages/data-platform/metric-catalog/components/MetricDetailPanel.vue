@@ -114,7 +114,7 @@ defineProps<{
   color: #2f6f4f;
   background: #f5f9f7;
   border-left: 3px solid var(--el-color-success);
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
 }
 
 .description {

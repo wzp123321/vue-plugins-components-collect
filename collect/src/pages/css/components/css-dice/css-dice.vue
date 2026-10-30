@@ -150,7 +150,7 @@
     height: 120px;
 
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
 
     .dice-circle {
       display: inline-block;

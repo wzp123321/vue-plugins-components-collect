@@ -112,7 +112,7 @@ const handleGroupAdd = () => {
     cursor: pointer;
     padding: 4px 15px;
     color: rgba(0, 0, 0, 0.65);
-    border-radius: 4px;
+    border-radius: var(--ai-radius-xs);
     border: 1px solid rgba(220, 223, 230, 1);
     box-sizing: border-box;
     background: rgba(255, 255, 255, 1);
@@ -129,7 +129,7 @@ const handleGroupAdd = () => {
     span {
       cursor: pointer;
       padding: 5px 12px;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
       border: 1px solid rgba(220, 223, 230, 1);
       background-color: #fff;
 

@@ -105,7 +105,7 @@ const dm = computed({
   margin-bottom: 8px;
   cursor: pointer;
   border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   transition: all 0.2s;
 
   &:hover {

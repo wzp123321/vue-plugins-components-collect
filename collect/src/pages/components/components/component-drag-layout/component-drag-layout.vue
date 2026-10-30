@@ -92,7 +92,7 @@ const startDragging = (event: MouseEvent) => {
 
   .cdl-main {
     flex: 1;
-    background-color: #fff;
+    background-color: var(--ai-surface-solid);
     padding: 20px;
     box-sizing: border-box;
   }

@@ -110,7 +110,7 @@ export default defineComponent({
       background-color: var(--color-default);
       color: var(--color-primary);
       font-size: 48px;
-      border-radius: 4px;
+      border-radius: var(--ai-radius-xs);
     }
 
     &-label {

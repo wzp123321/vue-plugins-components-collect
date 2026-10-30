@@ -12,7 +12,7 @@
   height: 100%;
 
   background-color: rgba(0, 12, 23, 0.867);
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   display: flex;
   overflow: hidden;
 

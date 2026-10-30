@@ -113,7 +113,7 @@ defineOptions({ name: 'TeSpaceZoneTree' });
   height: 100%;
   background: #fff;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   overflow: hidden;
 }
 

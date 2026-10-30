@@ -112,7 +112,7 @@ defineOptions({ name: 'TeIconLib' });
   width: 100px;
   height: 100px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   overflow: hidden;
 
   img {
@@ -143,7 +143,7 @@ defineOptions({ name: 'TeIconLib' });
   width: 100px;
   height: 100px;
   border: 1px dashed #c0c4cc;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -163,7 +163,7 @@ defineOptions({ name: 'TeIconLib' });
   justify-content: center;
   min-height: 320px;
   background: #fafbfc;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
 }
 
 .til-preview-img {

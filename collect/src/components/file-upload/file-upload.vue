@@ -164,7 +164,7 @@ const getChunkStatusText = (status: string) => {
         margin-top: 20px;
         padding: 15px;
         background: #f5f7fa;
-        border-radius: 4px;
+        border-radius: var(--ai-radius-xs);
 
         .info-item {
           display: flex;
@@ -221,7 +221,7 @@ const getChunkStatusText = (status: string) => {
 
           .chunk-item {
             padding: 10px;
-            border-radius: 4px;
+            border-radius: var(--ai-radius-xs);
             text-align: center;
             font-size: 12px;
             border: 1px solid #dcdfe6;

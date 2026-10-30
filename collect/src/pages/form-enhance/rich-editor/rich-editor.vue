@@ -272,7 +272,7 @@ const onTiptapChange = (payload: { html: string; json: unknown; characters: numb
   padding: 8px;
   border: 1px solid #e4e7ed;
   border-bottom: none;
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--ai-radius-sm) var(--ai-radius-sm) 0 0;
   background: #fafafa;
 }
 
@@ -302,7 +302,7 @@ const onTiptapChange = (payload: { html: string; json: unknown; characters: numb
 
 .html-preview {
   background: #f5f7fa;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   padding: 12px;
   font-size: 12px;
   font-family: monospace;
