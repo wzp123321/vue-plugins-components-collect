@@ -36,6 +36,48 @@
 ## 接缝本（现学必记，时间倒序）
 定位：收集站收「世界上有什么」，这里收「和我的环境/数据/约束怎么接」。现学 >10 分钟，学会后 2 分钟内记一条，≤5 行，新条目在最上方。
 
+### 2026-10-30 Univer 列标入口 × 内置浮层样式
+- **无列头点击回调**：FWorksheet 只给 selection/命令事件；点列标会整列选中 → 用 a1 正则 `/^([A-Z]+)1:\1(\d+)$/` + 行数≥`SHEET_ROW_COUNT` 判"整列"来等价实现"点列头开列配置"。
+- `getA1Notation()` **不用 `C:C` 简写**，整列返回 `C1:C20000`（实测），别按 Excel 简写写正则。
+- 右键菜单/下拉/筛选面板全是 **Tailwind 原子类，没有 `univer-menu` 语义类名**；唯一锚点是 Popup 容器 `.univer-popup`（createPortal 跨出 scoped 范围）→ 只能写非 scoped 块按 `.univer-text-sm/base` 压字号，改容器 font-size 无效。
+- headless Chrome 跑本页 **canvas 恒 0×0**（有无 `--disable-gpu` 都一样，resize/zoom 唤不醒）→ 验逻辑靠注入 `sheetApi.selection.value`，真点击只能在用户本机。
+
+### 2026-10-30 Univer 录入台（`data-platform/univer-entry`，纯 OSS 六 preset）
+- **`@univerjs/preset-sheets-find-replace` 在本组合里是空壳**：`api.createTextFinderAsync(q)` 能拿到实例，但 `findAll()` 对任何关键词都返回 0（连单元格原值都搜不到），且 `matchCaseAsync`/`matchEntireCellAsync` **永不 resolve**（会把 UI 卡在 loading）。→ 查找替换只能自研：一次 `getRange(表头下第一行,0,数据行数,列数).getValues()` 读全表，内存里做子串/整格/大小写匹配，命中用 A1 表达。
+- **`@univerjs/preset-sheets-advanced` 会带进 28 个 `@univerjs-pro/*`**，纯开源方案不能装；可用 OSS 只有 core / sort / filter / find-replace / data-validation / conditional-formatting 六个。
+- **数据验证、条件格式、列宽、冻结全挂在「具体列区间」上**，列一删一挪就失效 → 任何结构变更后必须整轮重下发（表头→列宽→显隐→验证→数据条→冻结），漏一步是**静默失效**（不报错、下拉不弹、数据条不显示）。
+- **无行对象**：脏标记靠基线快照逐格签名比对（`\u0001` 拼接各列）；增删列/移序只能"读整表→改模型→整块 setValues"，不能增量。
+- `merge()` 只保留左上角值，会吞数据；合并必须挡掉表头行与跨表头边界。`FRange` 有 `merge/mergeAcross/mergeVertically/breakApart/isMerged/getMergeData`。
+- 结构性缺口（改不了）：无分页视图、无多级表头（表头就是第 1 行单元格）。
+
+### 2026-10-30 VTable 录入台三轮（全量对齐 vxe，组件拆 `bi-entry/*` + `vt-bi-entry.vue`）
+- `selectCells` 只吃 **`CellRange[]`**（`[{start:{col,row},end:{col,row}}]`），不是 4 个数字；`selectCell(col,row)` 才是单格。
+- 填充柄/键盘流/条件格式**全是内置开关**，别自己写拖拽：`excelOptions.fillHandle` + `mousedown_fill_handle`/`drag_fill_handle_end`/`dblclick_fill_handle`；`keyboardOptions{ moveFocusCellOnTab, editCellOnEnter, copySelected, pasteValueToCell, shiftMultiSelect, ctrlMultiSelect, selectAllOnCtrlA }`；条件格式用 `cellType:'progressbar'`（`min`/`max`/`dependField`）。复制选框 `showCopyCellBorder`。
+- 分层：`schema.ts`（数据契约）+ `useBiColumns/Validation/Query/History/Actions/IO` 六个组合式 + `vt-bi-entry.vue` 只做装配。跨模块循环依赖用**后置赋值的 hook 变量**（`let onStructure = () => undefined` 在函数全部定义后再赋值）破 airbnb `no-use-before-define`。
+- 锚「行身份」不要用行索引：撤销/标红/选中全挂 `rowId`（`colFields` 维护 col 索引↔field 映射）。
+
+### 2026-10-30 沙箱里跑 dev server 验业务页（本工程唯一可行配方）
+- 尾部 `&` 起的 vite **会随 Bash 调用结束被回收**（表现为 curl 先 200 后 502）→ 必须 `run_in_background: true`。
+- 新增依赖后首轮 optimize 会提交成功，但页面级深层导入（`element-plus/es/components/*/style/css`、`@visactor/*`、`exceljs`）会触发**二次 re-optimize**，提交阶段 `rm` 旧 deps（>50 文件）被安全守卫拦死。
+- 解法：临时 `vite.verify.config.ts` 三件套 —— ① `cacheDir` 指**全新**目录（无旧 deps 可删，提交=rename）；② `optimizeDeps.include` 把上列深层导入写全（掐掉二次轮）；③ 用完删。
+- 启动时那串 `vue-cropper / @wangeditor / mitt / pinia-plugin-persistedstate could not be resolved` 是本仓库既有缺包告警，**不致命**。
+
+
+### 2026-10-30 VTable + vtable-editors 首轮接入（BI 数据录入）
+- `@visactor/vtable` 1.26.8 的 `autoFit` 已从类型移除 → 列宽自适应改用 `widthMode:'adaptive'`（类型+运行时都认，原 `autoFit:true` 会 ts 报错）。
+- 单元格 `style` 回调 `StylePropertyFunctionArg` **没有 `field`**（仅 row/col/table/value）→ 内联标红用 `col` 索引回查 `COLS[col].field`，别写 args.field。
+- 复选框列 `cellType:'checkbox'`：值存 record 字段；`change_cell_value` 对勾选未必触发，需**同时监听 `checkbox_state_change`** 写回并刷新统计。
+- 结构变化用 `table.setRecords(records)`（**有这方法**，详见下方二轮条目）；单元格编辑原地提交，单格刷新用 `updateCellContent(col,row)`。
+- `@visactor/vtable-editors` 只内置 Input/TextArea/Date/List 四种编辑器（**无 NumberEditor**）→ 数值校验在 `change_cell_value` 自做；`register.editor('name', new X())` 注册后列配 `editor:'name'`。
+- Canvas 表格放 `el-tabs` 里：**别在隐藏 pane 里初始化**（display:none 得 0 尺寸画布）。做法：`v-if` 首次进入该 tab 才挂载 + `@tab-change` 里 `await nextTick()` 后调组件 `defineExpose` 的 `resize()`（`table.resize()`），再次切回也要 resize。
+
+### 2026-10-30 VTable 录入台二轮（对齐 vxe 录入能力，落点同上）
+- **推翻上条**：1.26.8 **有 `setRecords`/`addRecord`/`deleteRecords`/`updateRecords`/`updatePagination`/`updateSortState`/`updateFilterRules`/`getFilteredRecords`/`mergeCells`/`selectCell`/`scrollToCell`** —— 全在 `es/ListTable.d.ts` 与 `ts-types/base-table.d.ts`；早前只翻了后者才误判"只能 release 重建"。
+- `change_cell_value` 在**新值已写入 record 之后**触发 → 回调里读 `rec[field]` 拿到的是新值；撤销要的旧值只能取事件自带的 `args.rawValue`。
+- 标红别用「错误表 + 行索引」：分页/过滤/排序后索引必错位。改在列 `style` 回调里**实时校验 `args.value`**，天然跟着数据走；错误面板另做一次全量扫描，不进编辑热路径。
+- 状态栏/汇总别用 `computed` 追 record 内部字段（shallowRef 数组引用不变 → 不重算）→ 用 ref + 显式刷新，结构/选区变化交给 `watch(displayRecords)`。
+- airbnb `no-underscore-dangle` 会拦住 `__id/__selected/__dirty` 这类字段名（读 `r.__x` 和解构都报）→ 内部行字段改普通命名 `rowId/selected/changed`，VTable 不挑字段名。
+
 ### 2026-10-21 CDP 探针 × Vue 内部状态（三个 Silent-Fail）
 - `Runtime.evaluate` 里 async IIFE 必须传 `awaitPromise:true`，否则拿回 Promise、`result.value` 恒 undefined。
 - `instance.setupState` 是 proxyRefs，**读取即解包**（再 `.value` 恒 undefined）；判断绑定改用 `instance.proxy.$refs.xxx`。

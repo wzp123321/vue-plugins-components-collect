@@ -34,3 +34,8 @@ auto-imports.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# 沙箱内验证用的临时产物，不入库
+.verify
+.npm-cache
+collect/vite.verify.config.ts
