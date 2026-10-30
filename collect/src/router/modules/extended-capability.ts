@@ -70,11 +70,6 @@ const extendedRoutes: RouteRecordRaw[] = [
     meta: { name: '国际化' },
     component: () => import('../../pages/i18n-demo/i18n-demo.vue'),
   },
-  {
-    path: '/teacher-manage',
-    meta: { name: '教师信息 CRUD' },
-    component: () => import('../../pages/teacher/teacher-manage/teacher-manage.vue'),
-  },
 ];
 
 export default extendedRoutes;

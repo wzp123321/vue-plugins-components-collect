@@ -113,7 +113,7 @@ const showHits = ref(false);
   align-items: center;
   gap: 10px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--ai-radius-sm);
   font-size: 12px;
   cursor: pointer;
 }

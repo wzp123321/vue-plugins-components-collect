@@ -88,7 +88,6 @@ export default ({ mode }) => {
             if (/[\\/]node_modules[\\/](vxe-table|vxe-pc-ui|xe-utils)[\\/]/.test(id)) return 'vxe';
             if (/[\\/]node_modules[\\/]@tiptap[\\/]/.test(id)) return 'tiptap';
             if (/[\\/]node_modules[\\/](codemirror|@codemirror)[\\/]/.test(id)) return 'codemirror';
-            if (/[\\/]node_modules[\\/](jspreadsheet-ce|jsuites)[\\/]/.test(id)) return 'jspreadsheet';
             if (/[\\/]node_modules[\\/]@logicflow[\\/]/.test(id)) return 'logicflow';
             if (/[\\/]node_modules[\\/]frappe-gantt[\\/]/.test(id)) return 'frappe-gantt';
             if (/[\\/]node_modules[\\/]@vue-office[\\/]/.test(id)) return 'vue-office';

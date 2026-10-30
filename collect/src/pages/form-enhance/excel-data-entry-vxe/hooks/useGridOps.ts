@@ -5,7 +5,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
 import type { CellSelection } from './useCellSelection';
-import type { GridDraft } from './useGridDraft';
 import { type ColDef, type ColType, emptyValueFor } from '../types';
 import { aggregateCells } from './aggregate';
 
@@ -33,20 +32,18 @@ const clearDirty = (r: { __dirty: boolean }): void => {
  * 在整体架构中的角色：行选中（复选框）移除后，所有"批量作用域"都收敛到 useCellSelection 的框选矩形，
  * 本层是框选区域的消费方（selectionRows / selectionCount / selectionStats）。它写数据前统一
  * `snap()` 入撤销栈，并负责把"列结构变更 / 数据变动"后的全量重校（revalidateAll）串起来。
- * 与 useGridScroll（跳转）、useGridDraft（提交后清草稿）协作。
+ * 与 useGridScroll（跳转）协作。
  *
  * @param core  核心状态实例
  * @param tableRef vxe 实例（scrollToRow 定位）
  * @param scroll 滚动定位实例（scrollToCell 供校验面板/查找跳转）
  * @param sel   自研选区状态机（批量操作的作用域来源）
- * @param draft 草稿实例（提交成功后清草稿；可选）
  */
 export const useGridOps = (
   core: GridCore,
   tableRef: Ref<any>,
   scroll: GridScroll,
   sel: CellSelection,
-  draft?: GridDraft,
 ) => {
   const snap = () => core.pushSnapshot(core.snapshotNow());
 
@@ -412,21 +409,50 @@ export const useGridOps = (
         ElMessage.error(`服务端校验未通过 ${serverErrs.length} 处，已在表格标红`);
         return;
       }
-      // 3) 通过：清脏标记 + 清草稿
+      // 3) 通过：清脏标记
       rows.forEach((r) => {
         clearDirty(r);
       });
-      draft?.clearDraft();
       ElMessage.success(`已提交 ${payload.length} 条记录（mock）`);
     } finally {
       submitting.value = false;
     }
   };
 
+  // ===================== 单元格合并（基于当前选区） =====================
+  // ⚠️ 索引换算走 vxe 的 getRowIndex/getColumnIndex（自动适配序号列与多级表头下的父列占位），
+  // 不直接用 rect 下标 +1，否则多级表头下父列挤占索引会导致合并错位。
+  const mergeSelection = () => {
+    const rect = sel.selRect.value;
+    if (!rect) {
+      ElMessage.warning('请先框选要合并的单元格区域');
+      return;
+    }
+    const rows = core.processedRows.value;
+    const vis = core.visibleDefs.value;
+    const startRow = rows[rect.topIdx];
+    const startField = vis[rect.leftIdx]?.field;
+    if (!startRow || !startField) return;
+    const colObj = tableRef.value?.getColumnByField?.(startField);
+    if (!colObj) return;
+    const row = tableRef.value.getRowIndex(startRow);
+    const col = tableRef.value.getColumnIndex(colObj);
+    if (row < 0 || col < 0) return;
+    const rowspan = rect.bottomIdx - rect.topIdx + 1;
+    const colspan = rect.rightIdx - rect.leftIdx + 1;
+    tableRef.value.setMergeCells([{ row, col, rowspan, colspan }]);
+    ElMessage.success(`已合并 ${rowspan} 行 × ${colspan} 列`);
+  };
+  const clearAllMerges = () => {
+    tableRef.value?.clearMergeCells?.();
+  };
+
   return {
     // 框选选区（行操作/批量填充的作用域）
     selectionRows,
     selectionCount,
+    mergeSelection,
+    clearAllMerges,
     selectionStats,
     // 行操作
     addRow,

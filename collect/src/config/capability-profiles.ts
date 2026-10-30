@@ -314,6 +314,39 @@ chart.setOption({
     alternatives: ['/echarts'],
   },
   {
+    path: '/vtable',
+    usage: {
+      install: 'pnpm add @visactor/vtable @visactor/vtable-editors',
+      keyApi: [
+        'new ListTable({ container, records, columns, theme })',
+        'register.editor(name, new InputEditor() | TextAreaEditor | DateInputEditor | ListEditor({ values }))',
+        "列配置 editor: 'name' 启用编辑；editCellTrigger 控制触发方式（默认双击）",
+        "table.on('change_cell_value', cb) 监听编辑结果",
+      ],
+      snippet: `import { ListTable, register, themes } from '@visactor/vtable';
+import { InputEditor, ListEditor } from '@visactor/vtable-editors';
+
+register.editor('name', new InputEditor());
+register.editor('gender', new ListEditor({ values: ['女', '男'] }));
+
+const table = new ListTable({
+  container: el, records, autoFit: true,
+  theme: isDark ? themes.DARK : themes.BRIGHT,
+  columns: [
+    { field: 'name', title: '姓名', editor: 'name' },
+    { field: 'gender', title: '性别', editor: 'gender' },
+  ],
+});`,
+    },
+    positioning: 'VTable（VisActor）：纯 Canvas 高性能表格，配套 vtable-editors 提供单元格编辑',
+    needs: [
+      { text: '超大数据量表格（百万级）且要流畅滚动', level: 'fits' },
+      { text: '需要单元格就地编辑（文本/多行/日期/下拉）', level: 'fits', comment: '编辑能力由 @visactor/vtable-editors 提供' },
+      { text: '已有 vxe-table / AG Grid 成熟方案', level: 'partial', comment: '混用多套表格库会增加包体与维护成本，选型要想清楚' },
+    ],
+    alternatives: ['/form-excel-data-entry-vxe'],
+  },
+  {
     path: '/canvas-advance',
     positioning: 'Canvas 2D 绘图进阶：原生画布动画与绘制技巧',
     needs: [
@@ -632,7 +665,7 @@ app.use(VxeTable).use(VxeUI);
       { text: '多人协同编辑同一张表', level: 'no', comment: '纯前端实现，协同要自建协议' },
       { text: '导出为真实 Excel 文件', level: 'partial', comment: '配合 /form-export-to-excel' },
     ],
-    alternatives: ['/plugins-jspreadsheet-ce', '/form-export-to-excel'],
+    alternatives: ['/form-export-to-excel'],
   },
   {
     path: '/form-export-to-excel',
@@ -671,26 +704,6 @@ import '@vue-office/pdf/lib/index.css';
       { text: '文件下载与重命名', level: 'fits' },
       { text: '预览超大文件（百页 PDF）', level: 'partial', comment: '加载耗时明显，考虑分页/缩略图' },
     ],
-  },
-  {
-    path: '/plugins-jspreadsheet-ce',
-    usage: {
-      install: 'pnpm add jspreadsheet-ce jsuites',
-      keyApi: ['jspreadsheet(el, { data, columns })', '列类型/公式', 'CE 免费，高级功能在付费版', '与 vxe 二选一'],
-      snippet: `import jspreadsheet from 'jspreadsheet-ce';
-import 'jspreadsheet-ce/dist/jspreadsheet.css';
-jspreadsheet(el, {
-  data: [['A1', 'B1']],
-  columns: [{ type: 'text', title: '名称', width: 120 }],
-});`,
-    },
-    positioning: 'jspreadsheet-ce 在线表格：轻量类 Excel 电子表格',
-    needs: [
-      { text: '页面内嵌轻量在线表格（公式/列类型）', level: 'fits' },
-      { text: '与 vxe-table 二选一怎么选', level: 'partial', comment: '重录入校验用 vxe，重电子表格公式用 jspreadsheet' },
-      { text: '免费商用', level: 'fits', comment: 'CE 版免费，但高级功能在付费版' },
-    ],
-    alternatives: ['/form-excel-data-entry-vxe'],
   },
   {
     path: '/vue3SlideVerify',

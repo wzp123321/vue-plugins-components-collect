@@ -30,6 +30,7 @@ const makeEditRenderer = (Comp: any) => (renderOpts: any, params: any) => {
     h(Comp, {
       modelValue: row[field],
       options: renderOpts.options || [],
+      dateFormat: renderOpts.dateFormat,
       'onUpdate:modelValue': (v: any) => {
         row[field] = v;
         Object.assign(row, { __dirty: true });

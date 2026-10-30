@@ -12,7 +12,7 @@ const { colDialogVisible, colForm, confirmAddCol } = props.ops;
 </script>
 
 <template>
-  <!-- class="dt-dlg" 让弹窗继承主题变量（--dt-*，见 theme.css） -->
+  <!-- class="dt-dlg" 让弹窗继承主题变量（--dt-*，见 assets/style/bi-entry.less） -->
   <el-dialog v-model="colDialogVisible" title="新增自定义列" width="420px" class="dt-dlg">
     <el-form label-width="80px">
       <el-form-item label="列名" required>

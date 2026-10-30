@@ -20,7 +20,7 @@
 
   关键架构约定（详见各对应代码处 ⚠️ 注释）：
     - cell-area 是 vxe pro 功能，OSS 版无实现 → 选区（框选/整行/整列/全选）全部自研（useCellSelection）。
-    - 编辑单元格必须用 element-plus 组件（见 theme.css / 下方 .dt-el-editor 样式），输入框无边框、
+    - 编辑单元格必须用 element-plus 组件（见下方 .dt-el-editor 样式），输入框无边框、
       编辑不高亮整列。
     - 列宽只认 px；% 宽会被 XEUtils.toInteger 截断成整数百分比（列宽换算在 useGridColumns）。
     - vxe 表头事件名是 header-cell-click，列宽变更事件名是 column-resizable-change（不可拼错）。
@@ -30,17 +30,17 @@
   ============================================================================
 -->
 <template>
-  <div class="dt-page" ref="gridWrapper">
+  <div class="dt-page bi-page" ref="gridWrapper">
     <!-- 顶部标题 -->
-    <div class="dt-header">
-      <div class="dt-title">
-        <span class="dt-logo">表</span>
+    <div class="dt-header bi-header">
+      <div class="dt-title bi-title">
+        <span class="dt-logo bi-logo">表</span>
         <div>
           <h3>网页端 Excel 数据录入台</h3>
-          <p class="dt-sub">vxe-table · 数据中台录入台 · 虚拟滚动 / 框选 / 填充 / 校验</p>
+          <p class="dt-sub bi-sub">vxe-table · 数据中台录入台 · 虚拟滚动 / 框选 / 填充 / 校验</p>
         </div>
       </div>
-      <div class="dt-stats">
+      <div class="dt-stats bi-stats">
         <span class="stat-pill"><b>{{ processedRows.length.toLocaleString() }}</b> 行</span>
         <span class="stat-pill warn"><b>{{ dirtyCount }}</b> 改动</span>
         <span class="stat-pill danger"><b>{{ errorCount }}</b> 错误</span>
@@ -61,7 +61,7 @@
     <GridFillBar :core="core" :ops="ops" />
 
     <!-- 表格 -->
-    <div class="dt-grid" ref="gridBox">
+    <div class="dt-grid bi-panel" ref="gridBox">
       <VxeTable
         ref="tableRef"
         :data="pagedRows"
@@ -72,6 +72,8 @@
         :filter-config="{ remote: true }"
         :tooltip-config="{ mode: 'title' }"
         :row-config="{ keyField: '__id', isHover: true }"
+        :cell-config="{ height: 36 }"
+        :header-cell-config="{ height: 38 }"
         :column-config="{ resizable: true }"
         :show-overflow="true"
         :border="true"
@@ -114,12 +116,12 @@
     <GridHelpDialog :visible="helpVisible" @close="helpVisible = false" />
 
     <!-- 状态栏 -->
-    <div class="dt-statusbar">
+    <div class="dt-statusbar bi-statusbar">
       <span class="sb-item pos">{{ posLabel }}</span>
       <span class="sb-item">行数 <b>{{ processedRows.length.toLocaleString() }}</b></span>
-      <span class="sb-item">改动 <b class="c-warn">{{ dirtyCount }}</b></span>
-      <span class="sb-item">选中 <b class="c-ok">{{ selectionCount }}</b></span>
-      <span class="sb-item">错误 <b class="c-danger">{{ errorCount }}</b></span>
+      <span class="sb-item">改动 <b :class="{ 'c-warn': dirtyCount > 0 }">{{ dirtyCount }}</b></span>
+      <span class="sb-item">选中 <b :class="{ 'c-ok': selectionCount > 0 }">{{ selectionCount }}</b></span>
+      <span class="sb-item">错误 <b :class="{ 'c-danger': errorCount > 0 }">{{ errorCount }}</b></span>
       <!-- 状态栏统计双轨之一：当前列全量统计（计数/求和/平均/最大/最小） -->
       <template v-if="activeStats">
         <span class="sb-sep" />
@@ -140,7 +142,7 @@
         <span class="sb-item">最大 <b>{{ selectionStats.max }}</b></span>
         <span class="sb-item">最小 <b>{{ selectionStats.min }}</b></span>
       </template>
-      <span class="sb-tip">提示：拖动框选单元格 · 点序号格选中整行 · 点列头选中整列 · 直接键入即编辑 · 双击/F2 编辑 · Ctrl+方向键跳边界 · PageUp/Down 翻屏 · Ctrl+D 向下填充 / Ctrl+R 向右填充 · Ctrl+A 全选 · 拖右下角 ▢ 向上下左右填充（双击=填到末行）· F1 快捷键帮助</span>
+      <span class="sb-tip">F1 快捷键 · 拖右下角方块填充（双击填到底）· Ctrl+D 向下 / Ctrl+R 向右填充 · 右键菜单</span>
     </div>
 
     <!-- 分页（仅分页模式） -->
@@ -158,6 +160,7 @@
     <!-- 弹窗与抽屉 -->
     <AddColumnDialog :ops="ops" />
     <ColumnManagerDrawer :core="core" :ops="ops" />
+    <ColumnConfigDrawer :core="core" :ops="ops" :field="configField" v-model:visible="configDrawer" />
     <ErrorDrawer :core="core" :ops="ops" />
     <TemplateDialog :tpl="tpl" />
 
@@ -170,7 +173,6 @@
 import { ref, nextTick, onMounted, computed, watch } from 'vue';
 import { VxeTable } from 'vxe-table';
 import 'vxe-table/es/style.css';
-import './theme.css';
 import { registerAllRenderers } from './components/cells';
 import GridToolbar from './components/GridToolbar.vue';
 import GridFindBar from './components/GridFindBar.vue';
@@ -180,12 +182,12 @@ import GridContextMenu from './components/GridContextMenu.vue';
 import GridHelpDialog from './components/GridHelpDialog.vue';
 import AddColumnDialog from './components/AddColumnDialog.vue';
 import ColumnManagerDrawer from './components/ColumnManagerDrawer.vue';
+import ColumnConfigDrawer from './components/ColumnConfigDrawer.vue';
 import ErrorDrawer from './components/ErrorDrawer.vue';
 import TemplateDialog from './components/TemplateDialog.vue';
 import { useGridCore, rowIdOf, dirtyOf } from './hooks/useGridCore';
 import { useGridColumns } from './hooks/useGridColumns';
 import { useGridScroll } from './hooks/useGridScroll';
-import { useGridDraft } from './hooks/useGridDraft';
 import { useGridOps } from './hooks/useGridOps';
 import { useGridTemplates } from './hooks/useGridTemplates';
 import { useGridDemoData } from './hooks/useGridDemoData';
@@ -212,9 +214,7 @@ const core = useGridCore();
 const scroll = useGridScroll(core, tableRef);
 const gridColumns = useGridColumns(core, tableRef);
 const sel = useCellSelection(core, tableRef, gridWrapper);
-// 草稿先于 ops 装配：提交成功时需要清草稿，故把 draft 注入 ops
-const draft = useGridDraft(core);
-const ops = useGridOps(core, tableRef, scroll, sel, draft);
+const ops = useGridOps(core, tableRef, scroll, sel);
 const tpl = useGridTemplates(core);
 const demo = useGridDemoData(core);
 const io = useGridIO(core, fileInputRef, sel);
@@ -248,6 +248,14 @@ const { onFileChange } = io;
 const { gridHeight, fillHandle, startFill, helpVisible, copyMarquee } = mouse;
 // ---- 框选统计（头部 pill 与状态栏共用） ----
 const { selectionCount, selectionStats } = ops;
+
+// 列头点击配置抽屉（单列）：点列头打开该列的配置抽屉（列名/类型/类型专属配置）
+const configDrawer = ref(false);
+const configField = ref('');
+const openColumnConfig = (field: string) => {
+  configField.value = field;
+  configDrawer.value = true;
+};
 
 // ---- 活动格坐标指示（Excel 名称框语义：第几行 / 第几列 + 列名） ----
 /**
@@ -310,12 +318,13 @@ const clearAllQuery = () => {
 // 排序已改为 trigger:'default'（只在点列头排序图标时排序），故点表头不会再被排序动作抢走；
 // 仍用 vxe 给出的 triggerSort/triggerFilter/triggerResizable 兜底，避免点排序/筛选图标时误选整列
 /**
- * onHeaderClick —— 表头单元格点击处理：根据列类型与点击区域决定"全选/选整列"。
+ * onHeaderClick —— 表头单元格点击处理：序号列=全选；数据列=打开该列的配置抽屉。
  * @param column vxe 列对象（含 type/field）
  * @param triggerSort/triggerFilter/triggerResizable vxe 透出的点击落点标志，落在排序/筛选/拖拽手柄上时为 true
  * 坑点：
  *   1) vxe 表头事件名是 header-cell-click（@header-cell-click），不可拼错；
- *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"选整列"。
+ *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"打开列配置"；
+ *   3) 点数据列表头改为打开列配置抽屉（需求：列设置改由点列头触发），故不再在此选整列。
  */
 const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }: any) => {
   if (!column || triggerSort || triggerFilter || triggerResizable) return;
@@ -330,7 +339,8 @@ const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }:
     }
     return;
   }
-  if (column.field) sel.selectColumn(column.field);
+  // 数据列：打开该列的配置抽屉（列名/类型/类型专属配置）
+  if (column.field) openColumnConfig(column.field);
 };
 
 onMounted(() => {
@@ -340,8 +350,6 @@ onMounted(() => {
   nextTick(mouse.syncGridHeight);
   tpl.loadTemplates();
   nextTick(mouse.refreshFillHandle);
-  // 存在未提交草稿时询问是否恢复（恢复后自行重校）
-  draft.checkDraft();
 });
 
 // 条件格式（数值列数据条）由渲染器读 RT 桥的统计快照渲染，vxe 不会因 RT 变化自动重绘，
@@ -436,74 +444,10 @@ const onCellClick = (params: any) => {
 </script>
 
 <style lang="less" scoped>
-/* 主题变量（--dt-*）见 theme.css：挂在 .dt-page 与 teleport 弹窗的 .dt-dlg 上 */
-.dt-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 14px 16px 16px;
-  box-sizing: border-box;
-  background: var(--dt-bg);
-  font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: var(--dt-text);
-  transition: background .25s ease, color .25s ease;
-}
-
-.dt-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.dt-title { display: flex; align-items: center; gap: 12px; }
-.dt-logo {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: linear-gradient(135deg, #3b5bdb, #5b8def);
-  color: #fff; font-weight: 700; font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 91, 219, 0.35);
-}
-.dt-title h3 { margin: 0; font-size: 17px; color: var(--dt-text); font-weight: 650; }
-.dt-sub { margin: 2px 0 0; font-size: 12px; color: var(--dt-sub); }
-
-.dt-stats { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.stat-pill {
-  background: var(--dt-panel); border: 1px solid var(--dt-border); border-radius: 999px;
-  padding: 4px 12px; font-size: 12px; color: var(--dt-sub);
-}
-.stat-pill b { color: var(--dt-text); margin-right: 2px; }
-.stat-pill.warn b { color: var(--dt-warn); }
-.stat-pill.danger b { color: var(--dt-danger); }
-.stat-pill.ok b { color: var(--dt-ok); }
-.stat-pill.info { color: var(--dt-primary); border-color: #c5cdf7; background: var(--dt-primary-soft); }
-html.dark .stat-pill.info { border-color: #2c3a66; }
-
-.dt-grid {
-  position: relative;
-  flex: 1;
-  min-height: 320px;
-  border: 1px solid var(--dt-border);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--dt-panel);
-  box-shadow: var(--dt-shadow);
-}
+/* 页面骨架（.bi-page / .bi-header / .stat-pill / .bi-panel / .bi-statusbar）与色板（--bi-*）
+   由全局 assets/style/bi-entry.less 提供，三套录入台共用；此处只留 vxe 专有部分。
+   .dt-page / .dt-grid 等类名保留在模板上：仍被下方 html.dark 的 :deep() 覆盖规则引用。 */
 .dt-pager { margin-top: 10px; display: flex; justify-content: flex-end; }
-
-/* 状态栏 */
-.dt-statusbar {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  margin-top: 10px; padding: 8px 12px;
-  background: var(--dt-panel); border: 1px solid var(--dt-border); border-radius: 10px;
-  font-size: 12px; color: var(--dt-sub);
-}
-.dt-statusbar .sb-item b { color: var(--dt-text); margin: 0 2px; }
-.dt-statusbar .sb-item.pos { color: var(--dt-primary); font-weight: 650; font-variant-numeric: tabular-nums; }
-.dt-statusbar .sb-item .c-warn { color: var(--dt-warn); }
-.dt-statusbar .sb-item .c-danger { color: var(--dt-danger); }
-.dt-statusbar .sb-item .c-ok { color: var(--dt-ok); }
-.dt-statusbar .sb-sep { width: 1px; height: 14px; background: var(--dt-border); }
-.dt-statusbar .sb-tip { margin-left: auto; opacity: .8; }
 
 /* 填充手柄 */
 .dt-fillhandle {
@@ -531,11 +475,51 @@ html.dark .stat-pill.info { border-color: #2c3a66; }
 // copiedRect（mouse 状态机维护的独立快照）提供位置/尺寸，本 overlay 只负责绘制动画。
 @keyframes dt-march { to { stroke-dashoffset: -12; } }
 
-/* 表格视觉美化 */
-:deep(.vxe-table) { font-size: 13px; color: var(--dt-text); background: var(--dt-panel); }
-:deep(.vxe-table .vxe-header--column) { background: var(--dt-header-bg); font-weight: 600; color: var(--dt-sub); }
+/* 表格视觉：表头作为「列标签条」，字色比正文深一阶、字重 600、底部一条实线；
+   网格线降到最淡，让数据本身成为视觉主体（数据平台的通用做法） */
+:deep(.vxe-table) {
+  font-size: 13px;
+  color: var(--dt-text);
+  background: var(--dt-panel);
+  --vxe-ui-font-color: var(--dt-text);
+  --vxe-ui-table-border-color: var(--bi-border-soft);
+  --vxe-ui-table-header-background-color: var(--bi-head-bg);
+}
+:deep(.vxe-table .vxe-header--column) {
+  background: var(--dt-header-bg);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dt-text);
+  letter-spacing: 0.2px;
+  border-bottom: 1px solid var(--bi-border);
+}
+:deep(.vxe-table .vxe-header--row) { box-shadow: inset 0 -1px 0 var(--bi-border); }
+
+/* 表头工具图标：整列可编辑是常态（铅笔无信息量，直接隐藏）；
+   排序箭头与筛选漏斗降到 30% 透明，hover 列头才恢复——否则每个列头挂 3 个图标，
+   一屏十几列就是一片小图标噪声 */
+/* 网格：去掉竖向单元格线，只保留行间横线（数据表只靠横线分行最好读；列宽固定，
+   列与列靠留白区分）。冻结列、表头底线单独保留，否则冻结区会和滚动区糊成一片 */
+:deep(.vxe-table .vxe-body--column),
+:deep(.vxe-table .vxe-header--column) { border-right: 0; }
+:deep(.vxe-table .vxe-body--row .vxe-body--column) { border-bottom: 1px solid var(--bi-border); }
+:deep(.vxe-table .fixed-left--wrapper .vxe-body--column),
+:deep(.vxe-table .fixed-right--wrapper .vxe-body--column) { border-right: 1px solid var(--bi-border-soft); }
+
+:deep(.vxe-table .vxe-cell--edit-icon) { display: none; }
+:deep(.vxe-table .vxe-cell--sort),
+:deep(.vxe-table .vxe-cell--filter) {
+  opacity: 0.3;
+  transition: opacity 0.12s ease;
+}
+:deep(.vxe-table .vxe-header--column:hover .vxe-cell--sort),
+:deep(.vxe-table .vxe-header--column:hover .vxe-cell--filter) { opacity: 1; }
+/* 已生效的排序 / 筛选必须常显，否则用户不知道当前列被筛过 */
+:deep(.vxe-table .vxe-cell--sort.is-active),
+:deep(.vxe-table .vxe-cell--filter.is-active),
+:deep(.vxe-table .vxe-cell--filter.is-active .vxe-filter--btn) { opacity: 1; color: var(--dt-primary); }
 :deep(.vxe-table .vxe-body--row:hover) { background: var(--dt-hover); }
-:deep(.vxe-table .vxe-body--row.row-dirty) { box-shadow: inset 3px 0 0 var(--dt-warn); }
+:deep(.vxe-table .vxe-body--row.row-dirty) { box-shadow: inset 2px 0 0 var(--dt-warn); }
 :deep(.vxe-table .vxe-body--column.cell-error) { background-color: rgba(245,63,63,.1) !important; }
 :deep(.vxe-table .vxe-body--column.cell-error .vxe-cell) { color: var(--dt-danger); }
 :deep(.vxe-table .vxe-body--column.cell-found) { background-color: rgba(255,180,46,.16) !important; }
@@ -543,12 +527,12 @@ html.dark .stat-pill.info { border-color: #2c3a66; }
 @keyframes dtflash { from { background-color: var(--dt-primary) !important; } to { background-color: var(--dt-primary-soft) !important; } }
 /* 十字高亮（活动格所在行/列）：background-image 与 cell-sel / cell-error 的 background-color 叠加，
    不争抢同一属性，故无论是否在选区内都能看见 */
-:deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(59, 91, 219, 0.055), rgba(59, 91, 219, 0.055)); }
-:deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(59, 91, 219, 0.09), rgba(59, 91, 219, 0.09)); }
-:deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(59, 91, 219, 0.12), rgba(59, 91, 219, 0.12)); }
-html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(107, 138, 253, 0.07), rgba(107, 138, 253, 0.07)); }
-html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(107, 138, 253, 0.11), rgba(107, 138, 253, 0.11)); }
-html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(107, 138, 253, 0.15), rgba(107, 138, 253, 0.15)); }
+:deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(43, 92, 246, 0.055), rgba(43, 92, 246, 0.055)); }
+:deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(43, 92, 246, 0.09), rgba(43, 92, 246, 0.09)); }
+:deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(43, 92, 246, 0.12), rgba(43, 92, 246, 0.12)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-row) { background-image: linear-gradient(rgba(111, 141, 255, 0.07), rgba(111, 141, 255, 0.07)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-col) { background-image: linear-gradient(rgba(111, 141, 255, 0.11), rgba(111, 141, 255, 0.11)); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-image: linear-gradient(rgba(111, 141, 255, 0.15), rgba(111, 141, 255, 0.15)); }
 
 /* 单元格框选（自研选区）：选区内淡色底，矩形四边由自定义属性拼出区域外框（角格两条） */
 :deep(.vxe-table .vxe-body--column.cell-sel) {
@@ -561,7 +545,7 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 :deep(.vxe-table .vxe-body--column.sel-r) { --sel-r: inset -1.5px 0 0 0 var(--dt-primary); }
 /* 活动格（currentCell）在选区内恢复本色底，与淡色底的其余选区格区分（置于 cell-sel 之后以覆盖淡色底） */
 :deep(.vxe-table .vxe-body--column.cell-sel.cell-active) { background-color: var(--dt-panel) !important; }
-:deep(.vxe-table .fixed-left--wrapper) { box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.12); }
+:deep(.vxe-table .fixed-left--wrapper) { box-shadow: 4px 0 10px -6px rgb(16 24 40 / 8%); }
 :deep(.vxe-table .vxe-header--column.dt-col-req .vxe-cell::after) { content: '*'; color: var(--dt-danger); margin-left: 2px; }
 :deep(.vxe-table .vxe-footer--row) { background: var(--dt-header-bg); font-weight: 600; color: var(--dt-text); }
 /* ===== 单元格编辑器（element-plus）：融入单元格——无边框、透明底、撑满格高、文字随单元格主题 =====
@@ -585,10 +569,10 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 
 /* 单元格显示渲染 */
 :deep(.dt-tag) {
-  display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px;
-  border: 1px solid transparent; line-height: 18px; white-space: nowrap;
+  display: inline-block; padding: 0 7px; border-radius: 4px; font-size: 12px;
+  border: 1px solid transparent; line-height: 19px; white-space: nowrap;
 }
-:deep(.dt-num) { display: inline-block; width: 100%; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+:deep(.dt-num) { display: inline-block; width: 100%; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
 :deep(.dt-num-plain) { color: var(--dt-text); }
 :deep(.dt-date) { color: var(--dt-sub); }
 :deep(.dt-text) { color: var(--dt-text); }
@@ -598,10 +582,10 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 }
 :deep(.dt-bar-cell .dt-bar) {
   position: absolute; left: 0; top: 0; bottom: 0;
-  background: linear-gradient(90deg, rgba(59,91,219,.28), rgba(59,91,219,.12));
-  border-right: 1px solid rgba(59,91,219,.45); z-index: 0;
+  background: rgba(43, 92, 246, 0.16);
+  border-right: 1px solid rgba(43, 92, 246, 0.38); z-index: 0;
 }
-html.dark :deep(.dt-bar-cell .dt-bar) { background: linear-gradient(90deg, rgba(107,138,253,.34), rgba(107,138,253,.12)); border-right-color: rgba(107,138,253,.55); }
+html.dark :deep(.dt-bar-cell .dt-bar) { background: rgba(111, 141, 255, 0.22); border-right-color: rgba(111, 141, 255, 0.5); }
 :deep(.dt-bar-cell .dt-num) { position: relative; z-index: 1; }
 
 /* 深色主题下 vxe 边框/底色覆盖 */

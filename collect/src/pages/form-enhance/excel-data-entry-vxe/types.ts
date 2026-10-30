@@ -72,7 +72,14 @@ export interface ColDef {
   frozen?: boolean;
   /** 基准宽（px）；实际显示宽由 useGridColumns 按容器宽度等比换算 */
   width?: number;
+  /** 日期列显示/编辑格式，默认 DEFAULT_DATE_FORMAT；存储始终按 YYYY-MM-DD 规范 */
+  dateFormat?: string;
+  /** 表头分组（多级表头）：相同 group 名且连续的列汇聚到一个父表头下；不填则单层表头 */
+  group?: string;
 }
+
+// 日期列默认格式：存储与内部计算统一用 YYYY-MM-DD，dateFormat 只影响单元格显示与编辑框呈现
+export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
 
 // 行结构：__id 是行唯一标识（vxe row-config.keyField 绑定它），__dirty 标记是否有改动。
 // ⚠️ 坑：构造/复制新行时务必剥离 __id / __dirty，否则复制出来的行会与源行主键重复、

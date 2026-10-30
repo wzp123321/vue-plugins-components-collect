@@ -99,7 +99,7 @@ watch([text, picked], syncToColumn, { deep: true, immediate: true });
 .dt-filter-hint code {
   background: #f5f6f8;
   border: 1px solid #e6e8ee;
-  border-radius: 4px;
+  border-radius: var(--ai-radius-xs);
   padding: 0 3px;
   font-size: 11px;
 }

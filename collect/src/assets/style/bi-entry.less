@@ -1,0 +1,338 @@
+/*
+ * BI 录入台统一外观层（三套录入台共用：vxe / VTable / Univer）
+ * ============================================================================
+ * 视觉取向：数据平台的克制风格——冷灰底 + 白面板，层次靠 1px 细线与灰阶明度，
+ * 不靠渐变、彩色投影、大圆角。主色只出现在「当前位置 / 关键动作」上。
+ *
+ * 为什么放在全局而不是各组件的 scoped style 里：
+ *   三套的页面骨架（标题块 / 统计 pill / 内容面板 / 状态栏）此前各自实现一份，
+ *   取值互相漂移。统一到本文件后：色板只定义一次（--bi-*），骨架只定义一次（.bi-*）。
+ *
+ * 命名空间约定：
+ *   --bi-*   唯一色板来源；下面再把 --dt-*（vxe 版）、--ue-*（Univer 版）、--el-*（VTable 版
+ *            子组件用的是 Element Plus 变量）映射到同一套值，实现「改一处、三处生效」。
+ *   页面根元素挂 .bi-page，弹窗/抽屉传送到 body 后另挂 .dt-dlg / .ue-dlg 以继承同一套变量
+ *   （自定义属性不跨 DOM 树继承）。
+ *
+ * ⚠️ VTable 是 Canvas 渲染，取不到 CSS 变量，重建时用 getComputedStyle 读 --bi-* 再喂给
+ *    TableTheme（见 vt-bi-entry.vue buildTableTheme）——所以色值仍然只有这一处。
+ */
+
+.dt-page,
+.dt-dlg,
+.ue-page,
+.ue-dlg,
+.vt-bi,
+.vtable {
+  /* ---- 灰阶：页面底 → 面板 → 表头/工具带，三阶明度差控制在 2%~3% ---- */
+  --bi-bg: #f4f5f7;
+  --bi-panel: #fff;
+  --bi-head-bg: #f7f8fa;
+  --bi-border: #e5e7ec;
+  --bi-border-soft: #eef0f4;
+  --bi-text: #1d2129;
+  --bi-sub: #86909c;
+
+  /* ---- 语义色：只保留一套，不在业务里另造 ---- */
+  --bi-primary: #2b5cf6;
+  --bi-primary-soft: #eef2ff;
+  --bi-danger: #f53f3f;
+  --bi-warn: #ff8f1f;
+  --bi-ok: #00b42a;
+
+  --bi-hover: #f7f9fc;
+  --bi-input-bg: #fff;
+  --bi-shadow: 0 1px 2px rgb(16 24 40 / 4%);
+
+  /* ---- 度量：三套共用，改这里就是三页一起改 ---- */
+  --bi-radius: 8px;
+  --bi-radius-sm: 6px;
+  --bi-gap: 10px;
+  --bi-row-h: 34px;
+}
+
+/* ===== 命名空间别名：vxe 版（--dt-*）===== */
+.dt-page,
+.dt-dlg {
+  --dt-bg: var(--bi-bg);
+  --dt-panel: var(--bi-panel);
+  --dt-border: var(--bi-border);
+  --dt-header-bg: var(--bi-head-bg);
+  --dt-text: var(--bi-text);
+  --dt-sub: var(--bi-sub);
+  --dt-primary: var(--bi-primary);
+  --dt-primary-soft: var(--bi-primary-soft);
+  --dt-danger: var(--bi-danger);
+  --dt-warn: var(--bi-warn);
+  --dt-ok: var(--bi-ok);
+  --dt-hover: var(--bi-hover);
+  --dt-input-bg: var(--bi-input-bg);
+  --dt-shadow: var(--bi-shadow);
+}
+
+/* ===== 命名空间别名：Univer 版（--ue-*）===== */
+.ue-page,
+.ue-dlg {
+  --ue-bg: var(--bi-bg);
+  --ue-panel: var(--bi-panel);
+  --ue-border: var(--bi-border);
+  --ue-border-soft: var(--bi-border-soft);
+  --ue-head-bg: var(--bi-head-bg);
+  --ue-text: var(--bi-text);
+  --ue-sub: var(--bi-sub);
+  --ue-primary: var(--bi-primary);
+  --ue-primary-soft: var(--bi-primary-soft);
+  --ue-danger: var(--bi-danger);
+  --ue-warn: var(--bi-warn);
+  --ue-ok: var(--bi-ok);
+  --ue-hover: var(--bi-hover);
+  --ue-shadow: var(--bi-shadow);
+}
+
+/* ===== 命名空间别名：VTable 版（子组件写的是 Element Plus 变量）===== */
+.vt-bi {
+  --el-color-primary: var(--bi-primary);
+  --el-color-danger: var(--bi-danger);
+  --el-border-color: var(--bi-border);
+  --el-border-color-light: var(--bi-border);
+  --el-border-color-lighter: var(--bi-border-soft);
+  --el-text-color-primary: var(--bi-text);
+  --el-text-color-regular: var(--bi-sub);
+  --el-text-color-secondary: var(--bi-sub);
+  --el-fill-color-blank: var(--bi-panel);
+  --el-fill-color-light: var(--bi-head-bg);
+  --el-bg-color-overlay: var(--bi-panel);
+}
+
+html.dark {
+  .dt-page,
+  .dt-dlg,
+  .ue-page,
+  .ue-dlg,
+  .vt-bi,
+  .vtable {
+    --bi-bg: #0e1014;
+    --bi-panel: #16191f;
+    --bi-head-bg: #1a1e25;
+    --bi-border: #272c35;
+    --bi-border-soft: #20242c;
+    --bi-text: #e6e8ec;
+    --bi-sub: #8f95a3;
+    --bi-primary: #6f8dff;
+    --bi-primary-soft: #1c2440;
+    --bi-danger: #f76560;
+    --bi-warn: #ffb454;
+    --bi-ok: #3dcb6e;
+    --bi-hover: #1e232b;
+    --bi-input-bg: #0e1014;
+    --bi-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+  }
+}
+
+/* ============================================================
+ * 页面骨架（三套共用类）
+ * ============================================================ */
+.bi-page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 12px 14px 14px;
+  background: var(--bi-bg);
+  color: var(--bi-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* 标题块：页头做成一条「工具带」，靠细分隔线与内容区划开 */
+.bi-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--bi-border-soft);
+}
+
+.bi-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* 标识块：弱化为浅底主色，不用渐变与彩色投影（那是后台模板的做法） */
+.bi-logo {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--bi-radius-sm);
+  background: var(--bi-primary-soft);
+  color: var(--bi-primary);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bi-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--bi-text);
+  line-height: 1.4;
+}
+
+.bi-sub {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--bi-sub);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 统计段：不再用胶囊，改成紧凑方标（数据平台里指标是"读数"不是"标签"） */
+.bi-stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stat-pill {
+  background: var(--bi-panel);
+  border: 1px solid var(--bi-border);
+  border-radius: var(--bi-radius-sm);
+  padding: 2px 9px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--bi-sub);
+  white-space: nowrap;
+}
+
+.stat-pill b {
+  color: var(--bi-text);
+  margin-right: 2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-pill.warn b { color: var(--bi-warn); }
+.stat-pill.danger b { color: var(--bi-danger); }
+.stat-pill.ok b { color: var(--bi-ok); }
+
+.stat-pill.info {
+  color: var(--bi-primary);
+  border-color: var(--bi-primary-soft);
+  background: var(--bi-primary-soft);
+}
+
+/* 内容面板：表格/画布外框。层次靠边框 + 2% 明度差，不叠投影 */
+.bi-panel {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 240px;
+  border: 1px solid var(--bi-border);
+  border-radius: var(--bi-radius);
+  overflow: hidden;
+  background: var(--bi-panel);
+  box-shadow: var(--bi-shadow);
+}
+
+/* 工具栏：一条横向「操作带」，分组之间用 1px 竖线分隔（ribbon 的通用形态）。
+   三套此前各写一份（padding / radius / 分割线间距都不同），统一到这里，页面只挂类。 */
+.bi-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  margin-bottom: var(--bi-gap);
+  background: var(--bi-panel);
+  border: 1px solid var(--bi-border);
+  border-radius: var(--bi-radius);
+  box-shadow: var(--bi-shadow);
+}
+
+.bi-toolbar .el-divider--vertical {
+  margin: 0 6px;
+  height: 16px;
+}
+
+.bi-toolbar .el-button {
+  margin-left: 0;
+}
+
+/* 工具栏内的分组：组内 4px，组间靠 divider 拉开 */
+.bi-toolbar .tb-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bi-toolbar .tb-label {
+  font-size: 12px;
+  color: var(--bi-sub);
+  white-space: nowrap;
+}
+
+/* 状态栏：比面板低一阶明度，形成"页脚"感 */
+.bi-statusbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: var(--bi-gap);
+  padding: 6px 12px;
+  background: var(--bi-head-bg);
+  border: 1px solid var(--bi-border-soft);
+  border-radius: var(--bi-radius-sm);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--bi-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.bi-statusbar .sb-item b {
+  color: var(--bi-text);
+  margin: 0 2px;
+  font-weight: 600;
+}
+
+.bi-statusbar .sb-item.pos {
+  color: var(--bi-primary);
+  font-weight: 600;
+}
+
+/* 颜色语义工具类要压过上面 `b` 的默认色，故挂在 .sb-item 下（与模板结构一致） */
+.bi-statusbar .sb-item .c-warn { color: var(--bi-warn); }
+.bi-statusbar .sb-item .c-danger { color: var(--bi-danger); }
+.bi-statusbar .sb-item .c-ok { color: var(--bi-ok); }
+
+.bi-statusbar .sb-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--bi-border);
+}
+
+/* 右侧快捷键提示：站点全局是 nowrap，长提示会把页面撑出横向滚动条。
+   收成「可压缩 + 单行省略」——提示本身是辅助信息，完整的在 F1 帮助里。 */
+.bi-statusbar .sb-tip {
+  margin-left: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0.75;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

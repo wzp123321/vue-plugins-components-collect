@@ -17,6 +17,8 @@ import './assets/css/common.less';
 import './assets/style/global.less';
 import './assets/style/dark-theme.css';
 import './assets/style/ai-theme.less';
+// 三套 BI 录入台（vxe / VTable / Univer）共用的色板与页面骨架
+import './assets/style/bi-entry.less';
 // iconfont symbol 注入（window._iconfont_svg_string_*），供 <svg><use> 使用
 import './assets/iconfont-symbol.js';
 

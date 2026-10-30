@@ -87,7 +87,7 @@ importers:
         version: 4.8.25
       '@arco-iconbox/vue-te':
         specifier: ^0.0.84
-        version: 0.0.84
+        version: 0.0.84(vue@3.5.44(typescript@5.3.3))
       '@codemirror/autocomplete':
         specifier: ^6.18.6
         version: 6.20.4
@@ -181,6 +181,12 @@ importers:
       '@visactor/vchart':
         specifier: ^2.1.7
         version: 2.2.0
+      '@visactor/vtable':
+        specifier: 1.26.8
+        version: 1.26.8
+      '@visactor/vtable-editors':
+        specifier: 1.26.8
+        version: 1.26.8
       '@vue-office/docx':
         specifier: ^1.6.3
         version: 1.6.3(vue-demi@0.14.10(vue@3.5.44(typescript@5.3.3)))(vue@3.5.44(typescript@5.3.3))
@@ -542,7 +548,7 @@ importers:
     dependencies:
       '@arco-iconbox/vue-te':
         specifier: 'catalog:'
-        version: 0.0.30
+        version: 0.0.30(vue@3.5.44(typescript@4.9.5))
       '@element-plus/icons-vue':
         specifier: 'catalog:'
         version: 2.3.2(vue@3.5.44(typescript@4.9.5))
@@ -768,10 +774,10 @@ importers:
         version: 2.1.2(@antv/x6@2.19.2)(vue@3.5.44(typescript@5.9.3))
       '@arco-iconbox/vue-te':
         specifier: 'catalog:'
-        version: 0.0.30
+        version: 0.0.30(vue@3.5.44(typescript@5.9.3))
       '@arco-iconbox/vue-te-side':
         specifier: 'catalog:'
-        version: 0.0.9
+        version: 0.0.9(vue@3.5.44(typescript@5.9.3))
       '@zpackage/tools':
         specifier: workspace:*
         version: link:../../zp-utils-package/packages
@@ -1138,12 +1144,18 @@ packages:
 
   '@arco-iconbox/vue-te-side@0.0.9':
     resolution: {integrity: sha512-Yq3jq37axHxFvylvqCPrYGpo2CpED5Iwx2uDJtQ7nKxG+Y8IC/es9QLGVl/mH9FPxdkmwJX6G1zVqNDSg+q/UQ==}
+    peerDependencies:
+      vue: '>=3.0.0'
 
   '@arco-iconbox/vue-te@0.0.30':
     resolution: {integrity: sha512-dWPgXZV37yMdoU6l3JoC0obqkAbhSCZEVHbYIaRgRy78GNMgwkS9GTpPO2rvGlU1C+GoFnEKmDmXCqMu1CxO8A==}
+    peerDependencies:
+      vue: '>=3.0.0'
 
   '@arco-iconbox/vue-te@0.0.84':
     resolution: {integrity: sha512-5lnsdXVWVJiuIz//o5pIfiWnlYqbVHLcEMkoJs+ds16/OPVQdzifJYp8C8GgpXh7BFX2LGfQau+DapxanLYBOg==}
+    peerDependencies:
+      vue: '>=3.0.0'
 
   '@babel/code-frame@7.12.11':
     resolution: {integrity: sha512-Zt1yodBx1UcyiePMSkWnU4hPqhwq7hGi2nFL1LeA3EUl+q2LQx16MISgJ0+z7dnmgvP9QtIleuETGOiOH1RcIw==}
@@ -4296,6 +4308,15 @@ packages:
   '@visactor/vscale@1.0.28':
     resolution: {integrity: sha512-VT0mQ1L5gE6cpeaJKVmy8+RdOpVcT0wSRsbDyV1aK026Jt3cTm656A+tcY/iKCbQZu/mYw2d7wWCPYs708pAtA==}
 
+  '@visactor/vtable-editors@1.26.8':
+    resolution: {integrity: sha512-GByZqB6N6UPcdGDyTXiRbsV3n7vexhIwbk/AYOkqW7jQ1vvTa7TzE0P2NF5lSvtlCxr954CAJ+hSkL1pGzAqsg==}
+
+  '@visactor/vtable@1.26.8':
+    resolution: {integrity: sha512-wwutbNN3UMw7/POsAjOTDK4mEWgFIX3Y+O6ZzahJTeS1jVcI0NiqmNjhi/3cL7v+ZVc55kdyl4bXsvNcRxJGYA==}
+
+  '@visactor/vutils-extension@2.0.22':
+    resolution: {integrity: sha512-PRxjplZF1/Qdsflb1hYh9DGGJdblq91yIG7CCC6MIlMMSlDYEAMJzJ9y2clnR1MgWa2AsAtMtuu+MSdG3DctUA==}
+
   '@visactor/vutils-extension@2.2.0':
     resolution: {integrity: sha512-9euSU3zkbpQGhbDthIDY3ymSwUa9o0c/SOrWExQw5w5sGy44ZkkEhGjgWwh1CE7w1g3uk8OtehHlsT4cX6zFkw==}
 
@@ -6481,6 +6502,9 @@ packages:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
     engines: {node: '>=4'}
     hasBin: true
+
+  cssfontparser@1.2.1:
+    resolution: {integrity: sha512-6tun4LoZnj7VN6YeegOVb67KBX/7JJsqvj+pv3ZA7F878/eN33AbGa5b/S/wXxS/tcp8nc40xRUrsPlxIyNUPg==}
 
   cssnano-preset-default@5.2.14:
     resolution: {integrity: sha512-t0SFesj/ZV2OTylqQVOrFgEh5uanxbO6ZAdeCrNsUQ6fVuXwYTxJPNAGvGTxHbD68ldIJNec7PyYZDBrfDQ+6A==}
@@ -9558,6 +9582,9 @@ packages:
 
   lodash.values@2.4.1:
     resolution: {integrity: sha512-fQwubKvj2Nox2gy6YnjFm8C1I6MIlzKUtBB+Pj7JGtloGqDDL5CPRr4DUUFWPwXWwAl2k3f4C3Aw8H1qAPB9ww==}
+
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   lodash@4.17.23:
     resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
@@ -14218,11 +14245,21 @@ snapshots:
     dependencies:
       grapheme-splitter: 1.0.4
 
-  '@arco-iconbox/vue-te-side@0.0.9': {}
+  '@arco-iconbox/vue-te-side@0.0.9(vue@3.5.44(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.44(typescript@5.9.3)
 
-  '@arco-iconbox/vue-te@0.0.30': {}
+  '@arco-iconbox/vue-te@0.0.30(vue@3.5.44(typescript@4.9.5))':
+    dependencies:
+      vue: 3.5.44(typescript@4.9.5)
 
-  '@arco-iconbox/vue-te@0.0.84': {}
+  '@arco-iconbox/vue-te@0.0.30(vue@3.5.44(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.44(typescript@5.9.3)
+
+  '@arco-iconbox/vue-te@0.0.84(vue@3.5.44(typescript@5.3.3))':
+    dependencies:
+      vue: 3.5.44(typescript@5.3.3)
 
   '@babel/code-frame@7.12.11':
     dependencies:
@@ -18124,6 +18161,29 @@ snapshots:
     dependencies:
       '@visactor/vutils': 1.0.28
 
+  '@visactor/vtable-editors@1.26.8': {}
+
+  '@visactor/vtable@1.26.8':
+    dependencies:
+      '@visactor/vdataset': 1.0.28
+      '@visactor/vrender': 1.1.12
+      '@visactor/vrender-animate': 1.1.12
+      '@visactor/vrender-components': 1.1.12
+      '@visactor/vrender-core': 1.1.12
+      '@visactor/vrender-kits': 1.1.12
+      '@visactor/vscale': 1.0.28
+      '@visactor/vtable-editors': 1.26.8
+      '@visactor/vutils': 1.0.28
+      '@visactor/vutils-extension': 2.0.22
+      cssfontparser: 1.2.1
+      gifuct-js: 2.1.2
+      lodash: 4.17.21
+
+  '@visactor/vutils-extension@2.0.22':
+    dependencies:
+      '@visactor/vdataset': 1.0.28
+      '@visactor/vutils': 1.0.28
+
   '@visactor/vutils-extension@2.2.0':
     dependencies:
       '@visactor/vdataset': 1.0.28
@@ -20849,6 +20909,8 @@ snapshots:
   css-what@6.2.2: {}
 
   cssesc@3.0.0: {}
+
+  cssfontparser@1.2.1: {}
 
   cssnano-preset-default@5.2.14(postcss@8.5.31):
     dependencies:
@@ -24402,6 +24464,8 @@ snapshots:
   lodash.values@2.4.1:
     dependencies:
       lodash.keys: 2.4.1
+
+  lodash@4.17.21: {}
 
   lodash@4.17.23: {}
 

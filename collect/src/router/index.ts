@@ -36,6 +36,9 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/demo',
+    meta: {
+      name: 'Chrome TTS 语音播报',
+    },
     component: () => import('../demo/demo.vue'),
   },
   ...componentRoutes,

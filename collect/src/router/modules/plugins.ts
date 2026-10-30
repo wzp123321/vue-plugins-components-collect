@@ -36,13 +36,6 @@ const pluginRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/plugins/plugins-little/plugins-little.vue'),
   },
-  {
-    path: '/plugins-jspreadsheet-ce',
-    meta: {
-      name: 'jspreadsheet电子表格',
-    },
-    component: () => import('../../pages/plugins/plugins-jspreadsheet-ce/plugins-jspreadsheet-ce.vue'),
-  },
 ];
 
 export default pluginRoutes;

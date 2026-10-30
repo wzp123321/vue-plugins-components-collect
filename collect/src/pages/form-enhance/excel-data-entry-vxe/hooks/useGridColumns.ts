@@ -8,10 +8,10 @@ import type { GridCore } from './useGridCore';
  * date→dt-el-date、其余→dt-el-text。统一由 element-plus 组件实现（输入框无边框、编辑不高亮整列）。
  * @param d 列类型与下拉选项
  */
-const makeEditRender = (d: { type: string; options?: string[] }) => {
+const makeEditRender = (d: { type: string; options?: string[]; dateFormat?: string }) => {
   if (d.type === 'number') return { name: 'dt-el-number' };
   if (d.type === 'select') return { name: 'dt-el-select', options: d.options ?? [] };
-  if (d.type === 'date') return { name: 'dt-el-date' };
+  if (d.type === 'date') return { name: 'dt-el-date', dateFormat: d.dateFormat };
   return { name: 'dt-el-text' };
 };
 
@@ -78,7 +78,8 @@ export const useGridColumns = (core: GridCore, tableRef: Ref<any>) => {
     const cols: any[] = [{ type: 'seq', width: SEQ_WIDTH, fixed: 'left', title: '#', align: 'center' }];
     const vis = core.columnDefs.value.filter((d) => d.visible);
     const widths = allocWidths();
-    vis.forEach((d, i) => {
+    // 先生成每个可见列的叶子列配置（与单列时一致），再按 group 聚合父表头
+    const leafCols = vis.map((d, i) => {
       const col: any = {
         field: d.field,
         title: d.label,
@@ -90,7 +91,7 @@ export const useGridColumns = (core: GridCore, tableRef: Ref<any>) => {
         // ⚠️ 必填星号挂在表头上：vxe 的 className 只作用于 body 单元格，表头专属 headerClassName
         // （见 vxe-pc-ui/types/components/column.d.ts: className=给单元格、headerClassName=给表头）
         headerClassName: d.required ? 'dt-col-req' : '',
-        cellRender: { name: 'dt-cell-display', ctype: d.type, options: d.options ?? [], field: d.field },
+        cellRender: { name: 'dt-cell-display', ctype: d.type, options: d.options ?? [], field: d.field, dateFormat: d.dateFormat },
         // 自定义筛选面板：vxe 默认只支持"候选值复选"，文本/数字/日期列没有筛选入口。
         // 统一挂 dt-filter 渲染器（见 components/cells/FilterPanel.vue），普通列给空 filters 让表头出现筛选按钮
         filterRender: { name: 'dt-filter' },
@@ -101,8 +102,28 @@ export const useGridColumns = (core: GridCore, tableRef: Ref<any>) => {
         col.filters = [];
       }
       col.editRender = makeEditRender(d);
-      cols.push(col);
+      return col;
     });
+    // 连续同 group 的列汇聚到一个父表头（children）；无 group 的单列直接平铺。
+    // 父列宽度由子列宽度自动求和，无需单独设置（故 allocWidths 仍按叶子列总宽等比例分配）。
+    let i = 0;
+    while (i < leafCols.length) {
+      const g = vis[i].group;
+      if (g) {
+        let j = i;
+        while (j + 1 < leafCols.length && vis[j + 1].group === g) j++;
+        cols.push({
+          title: g,
+          align: 'center',
+          headerClassName: 'dt-group-head',
+          children: leafCols.slice(i, j + 1),
+        });
+        i = j + 1;
+      } else {
+        cols.push(leafCols[i]);
+        i++;
+      }
+    }
     return cols;
   };
   const columns = computed(() => buildColumns());
