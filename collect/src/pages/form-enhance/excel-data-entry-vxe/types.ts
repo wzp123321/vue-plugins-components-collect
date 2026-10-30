@@ -13,73 +13,66 @@
 //   - useGridTemplates：把 ColDef[] 序列化为 Tpl 持久化到 localStorage；
 //   - ColumnManagerDrawer / RuleDialog / AddColumnDialog：可视化编辑这些结构。
 
-// 列类型枚举：决定单元格用哪个显示渲染器与哪个 element-plus 编辑渲染器。
-export type ColType = 'text' | 'number' | 'select' | 'date';
+/* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
+   utils/bi-entry.ts：这里 import 进来再用，同时原样转发给上层，
+   保证三套 schema 对外暴露的类型名和语义一致，改口径只改一处。 */
+import {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  crossError,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  normalizeDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+  type BiColLike,
+  type ColRule,
+  type ColType,
+  type CrossKind,
+  type CrossRule,
+} from '@/utils/bi-entry';
 
-/**
- * 单列校验规则（声明式）：加列、改列都能直接配规则，不必改校验代码。
- * 空值一律跳过（必填由 required 单独判定），避免"没填就报格式错"。
- *
- * 设计约定：这里只描述规则本身，不描述错误提示的渲染位置——校验失败时由
- * useGridCore 汇总到 cellErrors / errorList，主组件用 cellClassName 标红、ErrorDrawer 列清单。
- */
-export interface ColRule {
-  /** 数字最小值（含） */
-  min?: number;
-  /** 数字最大值（含） */
-  max?: number;
-  /** 文本最小长度 */
-  minLen?: number;
-  /** 文本最大长度 */
-  maxLen?: number;
-  /** 正则源（不带斜杠），配合 patternMsg 给出可读提示 */
-  pattern?: string;
-  patternMsg?: string;
-  /** 值在整列内唯一（工号/邮箱等）；与空值无关，空值不参与 */
-  unique?: boolean;
-}
+export type { ColRule, ColType, CrossKind, CrossRule };
+export {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  crossError,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  normalizeDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+};
 
-/** 跨列规则：只支持最常用的四种，够覆盖"结束日期≥开始日期"这类需求 */
-export type CrossKind = 'gte' | 'lte' | 'eq' | 'requiredIf';
-
-export interface CrossRule {
-  kind: CrossKind;
-  /** 参照列 field */
-  other: string;
-  msg?: string;
-}
 
 /**
  * 单列定义（录入台列结构的原子单元）。
  *
+ * 字段全部来自 `BiColLike`（三套录入台共用的最小列结构），这里只多做一件事：
+ * 把 `visible` 提为必填 —— vxe 侧列的显隐是显式状态，不给默认值。
+ *
  * ⚠️ 坑：width 只认 px（vxe 内部用 XEUtils.toInteger 解析，% 宽会被截断成整数百分比导致
  * 列宽异常）；fit prop 可能已被 vxe 废弃，不要用，列宽由 useGridColumns 按容器宽度等比换算。
  */
-export interface ColDef {
-  field: string;
-  label: string;
-  type: ColType;
-  /** select 类型的可选项（同时用作列筛选器候选） */
-  options?: string[];
-  required?: boolean;
-  /** 单列校验规则（见 ColRule） */
-  rules?: ColRule;
-  /** 跨列校验规则：本列与 other 列的大小/相等/条件必填关系 */
-  cross?: CrossRule[];
-  /** 是否可见（列设置抽屉切换，不可见的列不参与查询/复制/统计） */
+export interface ColDef extends BiColLike {
   visible: boolean;
-  /** 冻结在左侧（vxe fixed: 'left'） */
-  frozen?: boolean;
-  /** 基准宽（px）；实际显示宽由 useGridColumns 按容器宽度等比换算 */
-  width?: number;
-  /** 日期列显示/编辑格式，默认 DEFAULT_DATE_FORMAT；存储始终按 YYYY-MM-DD 规范 */
-  dateFormat?: string;
-  /** 表头分组（多级表头）：相同 group 名且连续的列汇聚到一个父表头下；不填则单层表头 */
-  group?: string;
 }
-
-// 日期列默认格式：存储与内部计算统一用 YYYY-MM-DD，dateFormat 只影响单元格显示与编辑框呈现
-export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
 
 // 行结构：__id 是行唯一标识（vxe row-config.keyField 绑定它），__dirty 标记是否有改动。
 // ⚠️ 坑：构造/复制新行时务必剥离 __id / __dirty，否则复制出来的行会与源行主键重复、
@@ -110,9 +103,6 @@ export const GIVEN = ['伟', '芳', '娜', '秀英', '敏', '静', '丽', '强',
 export const CITIES = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '苏州'];
 
 // 单调递增序号，配合时间戳保证每行 id 全局唯一（同毫秒内多次生成也不会撞）
+// （emptyValueFor 已上提到 utils/bi-entry.ts，这里不再自造一份）
 let seq = 0;
 export const uid = () => `row_${Date.now().toString(36)}_${seq++}`;
-
-// 列类型的空值默认值：一律留空（数字→null，其余→空串）。
-// 新增行/插入行/模板应用/加列回填都只应有序号列有值，下拉不预选首项（预选会掩盖"未填写"）
-export const emptyValueFor = (d: ColDef): any => (d.type === 'number' ? null : '');

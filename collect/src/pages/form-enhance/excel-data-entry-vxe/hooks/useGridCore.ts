@@ -16,8 +16,8 @@ import {
   SURNAMES,
   GIVEN,
   CITIES,
-  emptyValueFor,
 } from '../types';
+import { cloneRows, emptyValueFor } from '@/utils/bi-entry';
 
 /**
  * 行主键 / 脏标记 / 惰性求值触碰助手。
@@ -181,7 +181,7 @@ export const useGridCore = () => {
   });
 
   // ===================== 历史（子 hook） =====================
-  const cloneRows = (rows: Row[]) => rows.map((r) => ({ ...r }));
+  // cloneRows / emptyValueFor 来自 utils/bi-entry.ts（三套录入台共用）
   const cloneDefs = () => JSON.parse(JSON.stringify(columnDefs.value)) as ColDef[];
   /** 全量快照（行 + 列结构），供撤销栈 push；各 mutating 操作前统一调用 */
   const snapshotNow = (): Snap => ({ rows: cloneRows(allRows.value), defs: cloneDefs() });

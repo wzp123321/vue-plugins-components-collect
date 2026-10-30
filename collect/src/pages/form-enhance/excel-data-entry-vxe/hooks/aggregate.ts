@@ -3,6 +3,7 @@
 // - 空串 / null / 非数值一律跳过（不能把 '' 当 0、把 'abc' 当 NaN 算进求和）
 // - 一次扫描算多列（列汇总/条件格式），避免"每列各扫一遍"
 // - 结果统一保留 2 位小数，避免浮点尾数（0.1+0.2）出现在状态栏
+import { numOf, round2 } from '@/utils/bi-entry';
 import type { Row } from '../types';
 
 export interface NumAgg {
@@ -21,17 +22,7 @@ export interface Acc {
   max: number;
 }
 
-const round2 = (n: number) => Number(n.toFixed(2));
-
-/**
- * 取有效数值：空值与不可转数的值返回 null。
- * 集中在这里判断，避免各处重复写 `v !== null && v !== '' && !isNaN(Number(v))`（原来有 6 处）。
- */
-export const numOf = (v: any): number | null => {
-  if (v === null || v === undefined || v === '') return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-};
+// round2 / numOf 来自 utils/bi-entry.ts（三套录入台共用），这里不再自造，避免口径漂移。
 
 export const newAcc = (): Acc => ({ count: 0, sum: 0, min: Infinity, max: -Infinity });
 

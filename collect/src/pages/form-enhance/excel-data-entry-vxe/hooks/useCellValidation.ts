@@ -6,12 +6,11 @@
 // - 唯一性校验需要全列计数：单格校验时按需建一次该列索引；revalidateAll 时按列预建并复用，
 //   避免 1 万行 × 1 万格退化成 O(n²)
 import { reactive, computed } from 'vue';
-import type { ColDef, Row, CrossRule } from '../types';
+import { crossError, isBlank } from '@/utils/bi-entry';
+import type { ColDef, Row } from '../types';
 
 /** 列内值计数索引（值 → 出现次数），仅供 unique 规则使用 */
 type DupMap = Map<string, number>;
-
-const isEmpty = (v: any) => v === null || v === undefined || v === '';
 
 // 正则编译带缓存：同一列每次校验都 new RegExp 在大表逐格校验时开销可观
 const reCache = new Map<string, RegExp | null>();
@@ -68,41 +67,12 @@ export const useCellValidation = (deps: {
     getRows().forEach((r) => {
       const v = r[field];
       // 原 continue 的反条件写法：空值才不计数
-      if (!isEmpty(v)) {
+      if (!isBlank(v)) {
         const k = String(v);
         m.set(k, (m.get(k) ?? 0) + 1);
       }
     });
     return m;
-  };
-
-  /** 跨列规则判定：返回错误消息（空串表示通过） */
-  const checkCross = (row: Row, def: ColDef, value: any): string => {
-    const rules = def.cross;
-    if (!rules?.length) return '';
-    const cs = rules as CrossRule[];
-    for (let i = 0; i < cs.length; i++) {
-      const c = cs[i];
-      const otherVal = row[c.other];
-      const otherLabel = labelOf(c.other);
-      if (c.kind === 'requiredIf') {
-        if (!isEmpty(otherVal) && isEmpty(value)) return c.msg || `${def.label}为必填（${otherLabel}已填）`;
-      } else if (!isEmpty(value) && !isEmpty(otherVal)) {
-        // 其余三种都是二元比较（任一为空则跳过——空值的合法性由 required 负责，原 continue 的反条件写法）
-        if (c.kind === 'eq') {
-          if (String(value) !== String(otherVal)) return c.msg || `${def.label}需与${otherLabel}一致`;
-        } else {
-          // 数字优先按数值比，其余按字符串比（YYYY-MM-DD 可直接比较）
-          const a = Number(value);
-          const b = Number(otherVal);
-          const numeric = !Number.isNaN(a) && !Number.isNaN(b) && String(value).trim() !== '' && String(otherVal).trim() !== '';
-          const cmp = numeric ? a - b : String(value).localeCompare(String(otherVal));
-          if (c.kind === 'gte' && cmp < 0) return c.msg || `${def.label}不能早于/小于${otherLabel}`;
-          if (c.kind === 'lte' && cmp > 0) return c.msg || `${def.label}不能晚于/大于${otherLabel}`;
-        }
-      }
-    }
-    return '';
   };
 
   /**
@@ -118,8 +88,8 @@ export const useCellValidation = (deps: {
     }
     const value = row[field];
     const msg = ((): string => {
-      if (def.required && isEmpty(value)) return `${def.label}必填`;
-      if (isEmpty(value)) return '';
+      if (def.required && isBlank(value)) return `${def.label}必填`;
+      if (isBlank(value)) return '';
       const rules = def.rules;
       if (def.type === 'number') {
         const n = Number(value);
@@ -144,7 +114,7 @@ export const useCellValidation = (deps: {
         const map = ctx?.dup?.get(field) ?? buildDupMap(field);
         if ((map.get(String(value)) ?? 0) > 1) return `${def.label}「${s}」重复`;
       }
-      return checkCross(row, def, value);
+      return crossError(row, def, value, labelOf);
     })();
     if (msg) cellErrors[key] = msg;
     else delete cellErrors[key];

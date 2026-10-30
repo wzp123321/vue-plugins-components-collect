@@ -7,9 +7,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import * as XLSX from 'xlsx';
 import { rowIdOf, type GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
+import { formatDate, normalizeDate, pad2 } from '@/utils/bi-entry';
 import type { ColDef, Row } from '../types';
-
-const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /**
  * 行标脏助手：__dirty 是 vxe 消费的行字段（属性名属外部约定、不可重命名），
@@ -19,23 +18,10 @@ const markDirty = (r: { __dirty: boolean }): void => {
   Object.assign(r, { __dirty: true });
 };
 
-/** Date → YYYY-MM-DD（取本地年月日：xlsx 的 cellDates 用本地时区构造 Date） */
-const formatDate = (d: Date): string => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-
+// pad2 / formatDate / normalizeDate 来自 utils/bi-entry.ts（三套录入台共用）。
 // ⚠️ 坑：日期列粘贴值规范化——手工编辑经 el-date-picker 天然合法，粘贴是唯一能写入非法日期的入口，
 // 故必须在此对齐约束（与 date-picker 的 value-format 一致）。接受 2024-01-05 / 2024/1/5 / 2024年1月5日，
-// 统一为 YYYY-MM-DD；含闰年/月份天数校验，无法解析返回 null（交由上层跳过并提示）。
-const normalizeDate = (raw: string): string | null => {
-  const m = raw.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})日?$/);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const d = Number(m[3]);
-  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
-  const dt = new Date(y, mo - 1, d);
-  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
-  return `${y}-${pad2(mo)}-${pad2(d)}`;
-};
+// 统一为 YYYY-MM-DD；含闰年/月份天数校验，无法解析返回 null（交由上层跳过并计数提示）。
 
 /** 导入归一化的单格结果：ok=false 表示该值不符合列类型（由调用方跳过并计数） */
 type ImportCell = { ok: true; value: any } | { ok: false };

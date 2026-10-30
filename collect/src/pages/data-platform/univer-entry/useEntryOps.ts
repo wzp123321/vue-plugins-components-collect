@@ -14,9 +14,10 @@
 import { ref } from 'vue';
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { HEADER_ROW, emptyValueFor, isBlank, makeEmptyRecord, toCellValue, type ColDef, type ColType, type EntryRecord } from './schema';
+import { HEADER_ROW, emptyValueFor, makeEmptyRecord, toCellValue, type ColDef, type ColType, type EntryRecord } from './schema';
 import type { EntrySheet } from './useEntrySheet';
 import type { CellError, EntryRules } from './useEntryRules';
+import { rowIsEmpty as rowIsEmptyOf } from '@/utils/bi-entry';
 
 /** 模板：只有列结构，没有数据（加载时再决定数据保留与否） */
 export interface ColumnTemplate {
@@ -128,7 +129,8 @@ export const useEntryOps = (
   };
 
   // ===================== 数据质量 =====================
-  const rowIsEmpty = (rec: EntryRecord): boolean => defs.value.every((d) => isBlank(rec[d.field]));
+  // 空行判定走 utils/bi-entry.ts 的统一口径（按 defs 的业务列逐格判空）
+  const rowIsEmpty = (rec: EntryRecord): boolean => rowIsEmptyOf(defs.value, rec);
   const emptyRowCount = (): number => sheetApi.readRecords(defs.value).filter(rowIsEmpty).length;
 
   /** 一键删除空行（所有可见列都为空） */

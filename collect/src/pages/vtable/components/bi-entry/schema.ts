@@ -15,64 +15,61 @@
  * ⚠️ 约定：rowId / selected / changed / rowNo 是行元信息，永远不参与校验与导出的业务列。
  */
 
-/** 列类型：决定单元格显示与编辑器。只做四类，与 vxe / Univer 两套对齐 */
-export type ColType = 'text' | 'number' | 'select' | 'date';
+/* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
+   utils/bi-entry.ts：这里 import 进来再用，同时原样转发给上层，
+   保证三套 schema 对外暴露的类型名和语义一致，改口径只改一处。 */
+import {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+  type BiColLike,
+  type ColRule,
+  type ColType,
+  type CrossKind,
+  type CrossRule,
+} from '@/utils/bi-entry';
 
-/** 单列校验规则（声明式）。空值一律跳过，必填由 required 单独判定 */
-export interface ColRule {
-  /** 数字下限（含） */
-  min?: number;
-  /** 数字上限（含） */
-  max?: number;
-  /** 必须为整数 */
-  integer?: boolean;
-  /** 文本最小长度 */
-  minLen?: number;
-  /** 文本最大长度 */
-  maxLen?: number;
-  /** 正则源（不带斜杠），配合 patternMsg 给可读提示 */
-  pattern?: string;
-  patternMsg?: string;
-  /** 值在整列内唯一（工号 / 邮箱等）；空值不参与 */
-  unique?: boolean;
-}
+export type { ColRule, ColType, CrossKind, CrossRule };
+export {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+};
 
-/** 跨列规则：只做最常用的四种，覆盖「结束日期 ≥ 开始日期」这类需求 */
-export type CrossKind = 'gte' | 'lte' | 'eq' | 'requiredIf';
-
-export interface CrossRule {
-  kind: CrossKind;
-  /** 参照列 field */
-  other: string;
-  msg?: string;
-}
-
-/** 单列定义（列结构原子单元） */
-export interface BiCol {
-  field: string;
-  label: string;
-  type: ColType;
-  /** select 的可选项（同时作为筛选项来源） */
-  options?: string[];
-  required?: boolean;
-  rules?: ColRule;
-  cross?: CrossRule[];
+/** 单列定义（列结构原子单元）：字段 / 展示 / 校验 / 视图四组属性 */
+export interface BiCol extends BiColLike {
   /** 是否可见（列设置抽屉切换；不可见列不参与查询/复制/统计） */
   visible: boolean;
-  /** 冻结在左侧（VTable frozenColCount 换算时使用） */
-  frozen?: boolean;
   /** 基准宽（px），实际宽按容器等比分配 */
   width: number;
-  /** 日期列显示格式，默认 YYYY-MM-DD（存储恒为 YYYY-MM-DD） */
-  dateFormat?: string;
-  /** 表头分组名：同名且连续的列汇聚到一个父表头 */
-  group?: string;
 }
 
 /**
  * 行数据：元信息 + 任意业务字段。
  * 继承 Record<string, unknown> 是为了让运行时可编辑的 schema 能按 field 动态读写，
- * 同时保留 rowId/selected/changed/rowNo 的强类型。
+ * 同时保留 rowId / selected / changed / rowNo 的强类型。
  */
 export interface BiRow extends Record<string, unknown> {
   rowId: string;
@@ -81,12 +78,6 @@ export interface BiRow extends Record<string, unknown> {
   /** 行号（结构变更时重排；与 vxe 的序号列语义一致） */
   rowNo: number;
 }
-
-/** 行元信息字段：不参与校验 / 导出 / 查询 */
-export const META_FIELDS = ['rowId', 'selected', 'changed', 'rowNo'] as const;
-export const isMetaField = (field: string) => (META_FIELDS as readonly string[]).includes(field);
-
-export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
 
 /** 列类型中文文案 */
 export const typeLabel: Record<ColType, string> = {
@@ -213,49 +204,6 @@ export const makeCol = (type: ColType, field: string, label: string): BiCol => (
   dateFormat: type === 'date' ? DEFAULT_DATE_FORMAT : undefined,
 });
 
-// ============================ 工具 ============================
-export const pad2 = (n: number) => String(n).padStart(2, '0');
-
-export const formatDate = (d: Date): string => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-
-/** 严格日期校验：YYYY-MM-DD 且真实存在（挡掉 2026-02-30） */
-export const isRealDate = (s: string): boolean => {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  if (!m) {
-    return false;
-  }
-  const dt = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  return dt.getFullYear() === Number(m[1]) && dt.getMonth() === Number(m[2]) - 1 && dt.getDate() === Number(m[3]);
-};
-
-/** 按格式串渲染日期（只替换 YYYY/MM/DD 令牌，非规范值原样返回） */
-export const renderDate = (value: unknown, fmt?: string): string => {
-  const s = String(value ?? '');
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-  if (!m) {
-    return s;
-  }
-  return (fmt || DEFAULT_DATE_FORMAT).replace(/YYYY/g, m[1]).replace(/MM/g, m[2]).replace(/DD/g, m[3]);
-};
-
-export const round2 = (n: number) => Number(n.toFixed(2));
-
-export const numOf = (v: unknown): number | null => {
-  if (v === null || v === undefined || v === '') {
-    return null;
-  }
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-};
-
-export const isBlank = (v: unknown) => v === null || v === undefined || v === '';
-
-/** 时间戳名（导出文件名用） */
-export const tsName = () => {
-  const d = new Date();
-  return `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
-};
-
 let seq = 0;
 /** 行 id：时间戳 + 自增，保证同毫秒内也唯一 */
 export const nextRowId = () => {
@@ -272,9 +220,6 @@ export const nextColField = (cols: readonly BiCol[]): string => {
   }
   return `c${i}`;
 };
-
-/** 按列类型给空值：数字 → null，其余 → 空串 */
-export const emptyValueFor = (col: BiCol): unknown => (col.type === 'number' ? null : '');
 
 /** 空行：只填元信息与各列空值 */
 export const makeEmptyRow = (cols: readonly BiCol[], rowNo = 0): BiRow => {
@@ -306,16 +251,6 @@ export const normalizeRow = (cols: readonly BiCol[], raw: Record<string, unknown
 };
 
 /** 深拷贝行（浅拷贝行即够：值都是标量） */
-export const cloneRows = (rows: readonly BiRow[]): BiRow[] => rows.map((r) => ({ ...r }));
-
-/** 每行的业务字段签名（去重 / 判空用；不含元信息） */
-export const rowSignature = (cols: readonly BiCol[], row: BiRow): string =>
-  cols.map((c) => String(row[c.field] ?? '')).join('\u0001');
-
-/** 整行业务列是否全空 */
-export const rowIsEmpty = (cols: readonly BiCol[], row: BiRow): boolean =>
-  cols.every((c) => isBlank(row[c.field]));
-
 /** 下拉选项稳定配色：按选项下标取色，保证同一选项颜色恒定。
  *  Canvas 只能给「整格」上底色（vxe 版是格内小标签），所以亮度必须压到很低——
  *  整格铺 14% 饱和色在深色底上会变成马赛克块，压到 9%~12% 才是一层"色带"。

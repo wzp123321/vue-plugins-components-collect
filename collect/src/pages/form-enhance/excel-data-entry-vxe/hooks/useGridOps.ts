@@ -5,8 +5,9 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
 import type { CellSelection } from './useCellSelection';
-import { type ColDef, type ColType, emptyValueFor } from '../types';
+import { type ColDef, type ColType, type Row } from '../types';
 import { aggregateCells } from './aggregate';
+import { emptyValueFor, rowIsEmpty, rowSignature } from '@/utils/bi-entry';
 
 /**
  * 行主键 / 脏标记访问助手。
@@ -141,16 +142,15 @@ export const useGridOps = (
 
   // ===================== 数据质量：空行 / 重复行 =====================
   // 只按"可见列全为空"判定空行：隐藏列里残留的值不阻止清理（用户视角就是空行）
-  const rowIsEmpty = (r: any) => core.visibleDefs.value.every((d) => r[d.field] === null || r[d.field] === undefined || r[d.field] === '');
-  const emptyRowCount = () => core.allRows.value.filter(rowIsEmpty).length;
-  // 整行签名：按可见列拼全值，用于找出"每一列都完全相同"的重复行
-  const dupSignature = (r: any) => core.visibleDefs.value.map((d) => String(r[d.field] ?? '')).join('\u0001');
+  // 空行 / 行签名统一走 utils/bi-entry.ts，口径与 VTable / Univer 两套一致
+  const rowIsEmptyNow = (r: Row) => rowIsEmpty(core.visibleDefs.value, r);
+  const emptyRowCount = () => core.allRows.value.filter(rowIsEmptyNow).length;
   const dupGroups = (): string[][] => {
     const m = new Map<string, string[]>();
     core.allRows.value.forEach((r) => {
       // 空行不计入重复，交给空行清理处理（原 continue 的反条件写法）
-      if (!rowIsEmpty(r)) {
-        const k = dupSignature(r);
+      if (!rowIsEmptyNow(r)) {
+        const k = rowSignature(core.visibleDefs.value, r);
         const g = m.get(k);
         if (g) g.push(rowIdOf(r));
         else m.set(k, [rowIdOf(r)]);
@@ -167,7 +167,7 @@ export const useGridOps = (
       return;
     }
     snap();
-    core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
+    core.allRows.value = core.allRows.value.filter((r) => !rowIsEmptyNow(r));
     core.revalidateAll();
     core.bumpData();
     ElMessage.success(`已删除 ${n} 个空行`);
@@ -368,7 +368,7 @@ export const useGridOps = (
     const emptyN = emptyRowCount();
     if (emptyN) {
       snap();
-      core.allRows.value = core.allRows.value.filter((r) => !rowIsEmpty(r));
+      core.allRows.value = core.allRows.value.filter((r) => !rowIsEmptyNow(r));
       core.bumpData();
       ElMessage.info(`已移除并忽略 ${emptyN} 个空行`);
     }

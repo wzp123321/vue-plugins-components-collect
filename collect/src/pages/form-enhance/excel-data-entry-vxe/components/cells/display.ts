@@ -14,18 +14,7 @@
 //   - 样式类 .dt-tag / .dt-num / .dt-bar-cell / .dt-date / .dt-text 由主组件 style 块提供（色值走 --dt-* → 全局 --bi-*）。
 import { h } from 'vue';
 import { RT } from './runtime';
-import { DEFAULT_DATE_FORMAT } from '../../types';
-
-// 把规范存储值（YYYY-MM-DD）按列配置格式展示：仅做 YYYY/MM/DD 令牌替换，
-// 存储非规范值时回退原串（不强行构造）。dateFormat 只影响展示，不改存储。
-const formatDate = (value: any, fmt?: string): string => {
-  if (value == null || value === '') return '';
-  const s = String(value);
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return s;
-  const f = fmt || DEFAULT_DATE_FORMAT;
-  return f.replace(/YYYY/g, m[1]).replace(/MM/g, m[2]).replace(/DD/g, m[3]);
-};
+import { renderDate } from '@/utils/bi-entry';
 
 // select 选项色板：8 套固定配色，循环取用。顺序即"选项在列表中的索引"对应的颜色。
 const TAG_PALETTE = [
@@ -69,7 +58,7 @@ const renderCellDisplay = (renderOpts: any, params: any) => {
     }
     return [h('span', { class: 'dt-num dt-num-plain' }, String(num))];
   }
-  if (ctype === 'date') return [h('span', { class: 'dt-date' }, formatDate(value, renderOpts.dateFormat))];
+  if (ctype === 'date') return [h('span', { class: 'dt-date' }, renderDate(value, renderOpts.dateFormat))];
   // 兜底：文本等其它类型，null/undefined 渲染为空串
   return [h('span', { class: 'dt-text' }, value == null ? '' : String(value))];
 };

@@ -15,49 +15,59 @@
 //   - 列顺序 == 网格列顺序（A、B、C…），列增删移位会整体重写表头与数据。
 // ============================================================================
 
-/** 列类型：决定数据验证形态与输入约束 */
-export type ColType = 'text' | 'number' | 'select' | 'date';
+/* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
+   utils/bi-entry.ts：这里 import 进来再用，同时原样转发给上层，
+   保证三套 schema 对外暴露的类型名和语义一致，改口径只改一处。 */
+import {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  crossError,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  normalizeDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+  type BiColLike,
+  type ColRule,
+  type ColType,
+  type CrossKind,
+  type CrossRule,
+} from '@/utils/bi-entry';
+
+export type { ColRule, ColType, CrossKind, CrossRule };
+export {
+  DEFAULT_DATE_FORMAT,
+  cloneRows,
+  crossError,
+  emptyValueFor,
+  formatDate,
+  isBlank,
+  isMetaField,
+  isRealDate,
+  normalizeDate,
+  numOf,
+  pad2,
+  renderDate,
+  round2,
+  rowIsEmpty,
+  rowSignature,
+  tsName,
+};
 
 /**
- * 单列声明式校验规则。
- * 空值一律跳过（必填由 required 单独判定），避免"没填就报格式错"。
+ * 单列定义（录入台列结构的原子单元）。
+ * 继承 BiColLike：三套录入台的列模型共享同一套字段名与语义，
+ * 共用函数（跨列规则 / 空值 / 日期归一）才能直接吃进来。
  */
-export interface ColRule {
-  /** 数字最小值（含） */
-  min?: number;
-  /** 数字最大值（含） */
-  max?: number;
-  /** 文本最小长度 */
-  minLen?: number;
-  /** 文本最大长度 */
-  maxLen?: number;
-  /** 正则源（不带斜杠），配合 patternMsg 给出可读提示 */
-  pattern?: string;
-  patternMsg?: string;
-  /** 值在整列内唯一（工号/邮箱等）；空值不参与 */
-  unique?: boolean;
-}
-
-/** 跨列规则：只保留最常用的四种，覆盖"结束日期 ≥ 开始日期"这类需求 */
-export type CrossKind = 'gte' | 'lte' | 'eq' | 'requiredIf';
-
-export interface CrossRule {
-  kind: CrossKind;
-  /** 参照列 field */
-  other: string;
-  msg?: string;
-}
-
-/** 单列定义（录入台列结构的原子单元） */
-export interface ColDef {
-  field: string;
-  label: string;
-  type: ColType;
-  /** select 类型的可选项 */
-  options?: string[];
-  required?: boolean;
-  rules?: ColRule;
-  cross?: CrossRule[];
+export interface ColDef extends BiColLike {
   /** 基准列宽（px） */
   width: number;
   /** 是否在网格中可见（隐藏列保留数据，只 hideColumn） */
@@ -98,27 +108,6 @@ export const CITIES = ['北京', '上海', '广州', '深圳', '杭州', '成都
 
 /** 日期列存储口径：一律 YYYY-MM-DD（显示与校验都以此为准） */
 export const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-const pad2 = (n: number): string => String(n).padStart(2, '0');
-
-/**
- * 宽松日期归一化：接受 2024-01-05 / 2024/1/5 / 2024年1月5日，统一为 YYYY-MM-DD。
- * 含闰年与月份天数校验，无法解析返回 null（由调用方跳过并提示）。
- */
-export const normalizeDate = (raw: string): string | null => {
-  const m = raw.match(/^(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})日?$/);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const d = Number(m[3]);
-  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
-  const dt = new Date(y, mo - 1, d);
-  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
-  return `${y}-${pad2(mo)}-${pad2(d)}`;
-};
-
-/** 列类型的空值：数字留 null，其余留空串（下拉不预选首项，避免掩盖"未填写"） */
-export const emptyValueFor = (d: ColDef): unknown => (d.type === 'number' ? null : '');
 
 /** 按列结构造一条空记录 */
 export const makeEmptyRecord = (defs: ColDef[]): EntryRecord => {
@@ -191,8 +180,7 @@ export const genSampleRecords = (n: number, defs: ColDef[] = DEFAULT_COLS): Entr
   return list;
 };
 
-/** 空值判定：null / undefined / 空串都算"没填" */
-export const isBlank = (v: unknown): boolean => v === null || v === undefined || v === '';
+
 
 /** 写入网格前的出参归一化：数字转 number（空→空串），其余转字符串 */
 export const toCellValue = (d: ColDef, v: unknown): string | number => {

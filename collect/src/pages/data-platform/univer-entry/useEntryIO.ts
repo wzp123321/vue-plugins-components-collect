@@ -17,10 +17,8 @@ import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import * as XLSX from 'xlsx';
 import { HEADER_ROW, isBlank, normalizeDate, fromCellValue, type ColDef, type EntryRecord } from './schema';
+import { formatDate, pad2 } from '@/utils/bi-entry';
 import type { EntrySheet } from './useEntrySheet';
-
-const pad2 = (n: number): string => String(n).padStart(2, '0');
-const formatDate = (d: Date): string => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 /** 导入单格归一化结果：ok=false 表示该值不符合列类型（由调用方跳过并计数） */
 type ImportCell = { ok: true; value: unknown } | { ok: false };
