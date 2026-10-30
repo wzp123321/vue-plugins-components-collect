@@ -113,6 +113,54 @@ export interface ProjectInfo {
 
 export type DashboardLevel = 'national' | 'province'
 
+/** 地图着色 / 排行可切换的指标维度 */
+export type MetricKey = 'power' | 'projectCount' | 'alarmCount'
+
+/** 时间筛选范围（影响发电量统计口径） */
+export type TimeRangeKey = 'all' | 'year' | 'month' | 'week'
+
+export const METRIC_OPTIONS: { value: MetricKey; label: string }[] = [
+  { value: 'power', label: '发电量' },
+  { value: 'projectCount', label: '项目数' },
+  { value: 'alarmCount', label: '告警数' },
+]
+
+export const TIME_RANGE_OPTIONS: { value: TimeRangeKey; label: string }[] = [
+  { value: 'all', label: '全部时间' },
+  { value: 'year', label: '近一年' },
+  { value: 'month', label: '近一月' },
+  { value: 'week', label: '近一周' },
+]
+
+/** 时间范围对应的发电量折算系数（确定性 mock，无需随机） */
+const TIME_SCALES: Record<TimeRangeKey, number> = {
+  all: 1,
+  year: 0.92,
+  month: 0.16,
+  week: 0.04,
+}
+
+/** 搜索结果：全国视角为省份，省份视角为城市 */
+export interface SearchPlace {
+  kind: 'province' | 'city'
+  key: string
+  label: string
+  sub: string
+  name: string
+  adcode?: string
+  city?: CityStat
+}
+
+/** 全国视角省级统计 */
+export interface ProvinceStat {
+  name: string
+  adcode: number
+  power: number
+  projectCount: number
+  alarmCount: number
+  alarm: boolean
+}
+
 /**
  * 确定性伪随机：同一 adcode 每次刷新结果一致，演示页避免数据乱跳
  */
@@ -138,18 +186,34 @@ const loadProvinceGeo = async (adcode: string): Promise<any | null> => {
     }
 }
 
-const buildCityStats = (features: any[]): CityStat[] =>
+const buildCityStats = (features: any[], scale = 1): CityStat[] =>
     features
       .filter((feature) => feature?.properties?.center)
       .map((feature) => {
         const { adcode, name, center } = feature.properties
-        const power = Math.round(20 + seededValue(adcode, 1) * 480)
+        const power = Math.round((20 + seededValue(adcode, 1) * 480) * scale)
         const projectCount = 2 + Math.floor(seededValue(adcode, 2) * 16)
         const alarmCount = Math.floor(seededValue(adcode, 3) * 5)
         const profitState = (1 + Math.floor(seededValue(adcode, 4) * 4)) as CP_EProfitState
         return { adcode, name, center, power, projectCount, alarmCount, profitState }
       })
       .sort((a, b) => b.power - a.power)
+
+/** 全国视角：省级统计（power 随筛选时间折算，其余维度固定） */
+const buildProvinceStats = (features: any[], scale = 1): ProvinceStat[] =>
+    features
+      .filter((f) => f?.properties?.adcode && (f.properties.centroid || f.properties.center))
+      .map((f) => {
+        const { adcode, name } = f.properties
+        return {
+          name,
+          adcode,
+          power: Math.round((120 + seededValue(adcode, 1) * 880) * scale),
+          projectCount: 3 + Math.floor(seededValue(adcode, 2) * 20),
+          alarmCount: Math.floor(seededValue(adcode, 3) * 9),
+          alarm: seededValue(adcode, 9) > 0.82,
+        }
+      })
 
 const buildProjects = (cities: CityStat[]): ProjectInfo[] => {
     const list: ProjectInfo[] = []
@@ -187,12 +251,17 @@ const nationalTooltip = (): EChartsOption['tooltip'] => ({
       borderWidth: 1,
       formatter: (params: any) => {
         if (params.seriesType !== 'map') return ''
-        const power = params.data?.value ?? 0
+        const data = params.data || {}
+        const power = data.power ?? data.value ?? 0
+        const projectCount = data.projectCount ?? '-'
+        const alarmCount = data.alarmCount ?? '-'
         const drillable = PROVINCE_OPTIONS.some((o) => o.name === params.name)
         return `
           <div style="padding:10px 14px;color:#d6e8ff;font-size:12px;min-width:170px;line-height:1.8;">
             <div style="font-size:14px;font-weight:600;color:#ffffff;margin-bottom:6px;">${params.name}</div>
             <div style="display:flex;justify-content:space-between;"><span>发电量</span><span style="color:#7fe3f0;">${power} GWh</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>项目数</span><span style="color:#7fe3f0;">${projectCount}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>告警数</span><span style="color:${Number(alarmCount) ? '#ff7a45' : '#7fe3f0'};">${alarmCount}</span></div>
           <div style="color:${drillable ? '#7fe3f0' : '#9ec9ff'};margin-top:4px;">${drillable ? '▸ 点击下钻到省份' : '暂未收录下级地图'}</div>
         </div>
       `
@@ -245,6 +314,10 @@ class ChartDashboardService {
 
   static readonly profitLabels = PROFIT_LABELS
 
+  static readonly metricOptions = METRIC_OPTIONS
+
+  static readonly timeRangeOptions = TIME_RANGE_OPTIONS
+
   private customId = ref<string>('')
 
   public myEchart?: EChartsType
@@ -260,8 +333,25 @@ class ChartDashboardService {
   /** 当前省名称（省份视图） */
   public currentProvinceName = ref('')
 
+  /** 当前着色 / 排行指标 */
+  public metric = ref<MetricKey>('power')
+
+  /** 当前时间筛选 */
+  public timeRange = ref<TimeRangeKey>('all')
+
+  /** 数据版本号：视图切换、指标/时间变化、下钻时自增，供页面派生告警列表 */
+  public version = ref(0)
+
   /** 全国视角：各省发电量（seeded），用于着色 */
-  private provincePowers: { name: string; adcode: number; power: number }[] = []
+  private provincePowers: ProvinceStat[] = []
+
+  /** 省份视角下当前省的 GeoJSON features，切换时间口径时复用 */
+  private currentProvinceFeatures: any[] = []
+
+  /** 地图缩放与中心（工具条控制） */
+  private geoZoom = 1
+
+  private geoCenter?: [number, number]
 
   /** 当前省城市统计（按发电量降序），ref 化供外层 computed 追踪 */
   private cityStats = ref<CityStat[]>([])
@@ -312,13 +402,10 @@ class ChartDashboardService {
     this.onLevelChange?.('national')
 
     const features: any[] = (chinaNational as any).features || []
-    this.provincePowers = features
-      .filter((f) => f?.properties?.adcode)
-      .map((f) => {
-        const { adcode, name } = f.properties
-        return { name, adcode, power: Math.round(120 + seededValue(adcode, 1) * 880) }
-      })
-    const maxPower = this.provincePowers.reduce((m, p) => Math.max(m, p.power), 100)
+    // 过滤掉无中心点的要素：china.json 含九段线（adcode 100000_JD、name 为空）这类
+    // 仅用于描边的要素，缺少 center/centroid，进入 provincePowers 后会让散点/告警取坐标时崩溃
+    this.provincePowers = buildProvinceStats(features, TIME_SCALES[this.timeRange.value])
+    const maxPower = this.metricMaxOf(this.provincePowers)
 
     this.option = {}
     this.option.grid = mapGrid()
@@ -375,7 +462,13 @@ class ChartDashboardService {
         itemStyle: { areaColor: '#ffd666', borderColor: '#ffffff', borderWidth: 2 },
       },
       select: { disabled: true },
-      data: this.provincePowers.map((p) => ({ name: p.name, value: p.power })),
+      data: this.provincePowers.map((p) => ({
+        name: p.name,
+        value: this.getMetricValue(p),
+        power: p.power,
+        projectCount: p.projectCount,
+        alarmCount: p.alarmCount,
+      })),
     }
 
     // 省级项目散点（取各省 centroid 附近的 seeded 点）
@@ -408,7 +501,7 @@ class ChartDashboardService {
       symbol: `image://${mapConfig.mark.alarm}`,
       symbolSize: [22, 20],
       data: this.provincePowers
-        .filter((p) => seededValue(p.adcode, 9) > 0.82)
+        .filter((p) => p.alarm)
         .map((p) => {
           const feat = features.find((f) => f.properties.adcode === p.adcode)
           const c = (feat?.properties?.centroid || feat?.properties?.center) as [number, number]
@@ -417,7 +510,10 @@ class ChartDashboardService {
     }
 
     this.option.series = [mapSeries, projectSeries, alarmSeries] as any
+    this.geoZoom = 1
+    this.geoCenter = undefined
     this.myEchart?.setOption(this.option, true)
+    this.version.value++
   }
   // #endregion
 
@@ -436,12 +532,16 @@ class ChartDashboardService {
     this.level.value = 'province'
     this.onLevelChange?.('province')
     echarts.registerMap(adcode, geo as any)
+    this.currentProvinceFeatures = geo.features
+    this.geoZoom = 1
+    this.geoCenter = undefined
 
-    this.cityStats.value = buildCityStats(geo.features)
+    this.cityStats.value = buildCityStats(geo.features, TIME_SCALES[this.timeRange.value])
     this.projects.value = buildProjects(this.cityStats.value)
     this.applyOption()
     this.onCitiesChange?.(this.cityStats.value)
     this.onCitySelect?.(null)
+    this.version.value++
   }
 
   backToNational() {
@@ -470,6 +570,7 @@ class ChartDashboardService {
     this.option.geo = this.mapGeo()
     this.option.series = this.mapSeries()
     this.myEchart?.setOption(this.option, true)
+    this.version.value++
   }
   // #endregion
 
@@ -482,7 +583,7 @@ class ChartDashboardService {
   // #endregion
 
   private mapVisualMap(): EChartsOption['visualMap'] {
-    const maxPower = this.cityStats.value.reduce((max, city) => Math.max(max, city.power), 100)
+    const maxPower = this.metricMaxOf(this.cityStats.value)
     return {
       show: true,
       type: 'continuous',
@@ -548,7 +649,7 @@ class ChartDashboardService {
       },
       data: this.cityStats.value.map((city) => ({
         name: city.name,
-        value: city.power,
+        value: this.getMetricValue(city),
         city,
       })),
     }
@@ -683,6 +784,143 @@ class ChartDashboardService {
       projectCount: this.projects.value.length,
       alarmCount: this.projects.value.filter((project) => project.alarm).length,
     }
+  }
+  // #endregion
+
+  // #region 指标 / 时间 / 搜索 / 地图工具
+  getMetricValue(item: Pick<CityStat, 'power' | 'projectCount' | 'alarmCount'>): number {
+    switch (this.metric.value) {
+      case 'projectCount':
+        return item.projectCount
+      case 'alarmCount':
+        return item.alarmCount
+      default:
+        return item.power
+    }
+  }
+
+  private metricMaxOf(list: Pick<CityStat, 'power' | 'projectCount' | 'alarmCount'>[]): number {
+    return list.reduce((max, item) => Math.max(max, this.getMetricValue(item)), 1)
+  }
+
+  /** 切换着色 / 排行指标 */
+  setMetric(key: MetricKey) {
+    if (this.metric.value === key) return
+    this.metric.value = key
+    this.refreshView()
+  }
+
+  /** 切换时间口径，按范围重新折算发电量并刷新视图 */
+  setTimeRange(key: TimeRangeKey) {
+    if (this.timeRange.value === key) return
+    this.timeRange.value = key
+    if (this.level.value === 'national') {
+      this.renderNational()
+      return
+    }
+    this.rebuildProvinceData()
+  }
+
+  private rebuildProvinceData() {
+    if (!this.currentProvinceFeatures.length) return
+    this.cityStats.value = buildCityStats(this.currentProvinceFeatures, TIME_SCALES[this.timeRange.value])
+    this.projects.value = buildProjects(this.cityStats.value)
+    this.selectedCityName.value = ''
+    this.applyOption()
+    this.onCitiesChange?.(this.cityStats.value)
+    this.onCitySelect?.(null)
+  }
+
+  private refreshView() {
+    if (this.level.value === 'national') {
+      this.renderNational()
+      return
+    }
+    this.applyOption()
+    if (this.selectedCityName.value) this.selectCity(this.selectedCityName.value)
+  }
+
+  /** 搜索省份 / 城市，返回候选项 */
+  searchPlaces(keyword: string): SearchPlace[] {
+    const kw = keyword.trim().toLowerCase()
+    if (!kw) return []
+    if (this.level.value === 'national') {
+      return PROVINCE_OPTIONS.filter((option) => option.name.toLowerCase().includes(kw))
+        .slice(0, 20)
+        .map((option) => ({
+          kind: 'province' as const,
+          key: option.adcode,
+          label: option.name,
+          sub: '省级行政区',
+          name: option.name,
+          adcode: option.adcode,
+        }))
+    }
+    return this.cityStats.value
+      .filter((city) => city.name.toLowerCase().includes(kw))
+      .slice(0, 20)
+      .map((city) => ({
+        kind: 'city' as const,
+        key: String(city.adcode),
+        label: city.name,
+        sub: `${city.power} GWh · 项目 ${city.projectCount}`,
+        name: city.name,
+        city,
+      }))
+  }
+
+  /** 搜索选中：全国下钻省份，省份视角定位城市 */
+  focusPlace(place: SearchPlace) {
+    if (place.kind === 'province') {
+      this.drillToProvince(place.key, place.name)
+      return
+    }
+    if (place.city) {
+      this.selectCity(place.city.name)
+      this.focusCoordinate(place.city.center, 2)
+    }
+  }
+
+  /** 告警定位：选中城市并把地图移到项目坐标 */
+  focusProject(project: ProjectInfo) {
+    const city = this.cityStats.value.find((item) => item.name === project.cityName) || null
+    if (city) this.selectCity(city.name)
+    this.focusCoordinate(project.coordinate, 2.6)
+    this.myEchart?.dispatchAction({ type: 'highlight', seriesIndex: 2, name: project.name })
+  }
+
+  /** 全国视角告警省份列表 */
+  getNationalAlarms(): ProvinceStat[] {
+    return this.provincePowers.filter((item) => item.alarm).sort((a, b) => b.power - a.power)
+  }
+
+  zoomIn() {
+    this.setZoom(this.geoZoom + 0.3)
+  }
+
+  zoomOut() {
+    this.setZoom(this.geoZoom - 0.3)
+  }
+
+  resetView() {
+    this.geoZoom = 1
+    this.geoCenter = undefined
+    this.refreshView()
+  }
+
+  private setZoom(value: number) {
+    this.geoZoom = Math.min(4, Math.max(0.6, Number(value.toFixed(2))))
+    this.applyGeoView()
+  }
+
+  private focusCoordinate(center: [number, number], zoom: number) {
+    this.geoCenter = center
+    this.geoZoom = zoom
+    this.applyGeoView()
+  }
+
+  private applyGeoView() {
+    this.myEchart?.setOption({ geo: { zoom: this.geoZoom, center: this.geoCenter } } as any)
   }
   // #endregion
 

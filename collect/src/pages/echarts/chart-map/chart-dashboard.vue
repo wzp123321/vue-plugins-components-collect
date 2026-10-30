@@ -33,7 +33,7 @@
     </div>
 
     <div class="cd-body">
-      <div class="cd-map-wrap">
+      <div class="cd-map-wrap" ref="mapWrapRef">
         <div class="cd-map-container" :id="dashboardService.customChartId"></div>
         <div v-if="level === 'province'" class="cd-map-legend">
           <span class="cd-map-legend-title">盈利状态</span>
@@ -45,6 +45,34 @@
             <i class="cd-map-legend-icon cd-map-legend-icon--alarm"></i>告警
           </span>
         </div>
+
+        <cm-controls
+          :metric="metric"
+          :metric-options="metricOptions"
+          :time-range="timeRange"
+          :time-options="timeRangeOptions"
+          :level="level"
+          :alarm-count="alarmItems.length"
+          :alarm-open="alarmVisible"
+          :is-fullscreen="isFullscreen"
+          :search="dashboardService.searchPlaces.bind(dashboardService)"
+          @metric-change="handleMetricChange"
+          @time-change="handleTimeRangeChange"
+          @search-select="handleSearchSelect"
+          @toggle-alarm="handleToggleAlarm"
+          @zoom-in="dashboardService.zoomIn"
+          @zoom-out="dashboardService.zoomOut"
+          @reset-view="dashboardService.resetView"
+          @toggle-fullscreen="handleToggleFullscreen"
+        />
+
+        <cm-alarm-center
+          :visible="alarmVisible"
+          :items="alarmItems"
+          :active-id="activeAlarmId"
+          @close="alarmVisible = false"
+          @locate="handleAlarmLocate"
+        />
       </div>
 
       <aside class="cd-side">
@@ -73,7 +101,7 @@
 
         <!-- 省份视角：TOP10 排行 + 项目明细 -->
         <template v-else>
-          <h6 class="cd-side-title">城市发电量排行 TOP 10</h6>
+          <h6 class="cd-side-title">城市{{ metricLabel }}排行 TOP 10</h6>
           <ul class="cd-side-list">
             <li
               v-for="(city, index) in topCities"
@@ -89,7 +117,7 @@
               <span class="cd-side-list-bar-track">
                 <span class="cd-side-list-bar" :style="{ width: powerPercent(city) + '%' }"></span>
               </span>
-              <span class="cd-side-list-value">{{ city.power }}</span>
+              <span class="cd-side-list-value">{{ metricValueOf(city) }}</span>
             </li>
           </ul>
           <div class="cd-side-detail">
@@ -147,11 +175,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ChartDashboardService, { CityStat, ProjectInfo } from './chart-dashboard.service'
+import type { MetricKey, SearchPlace, TimeRangeKey } from './chart-dashboard.service'
+import type { AlarmItem } from './components/cm-alarm-center.vue'
 import mapConfig from './map/map-config.json'
 import CmBar from './components/cm-bar.vue'
 import CmGauge from './components/cm-gauge.vue'
+import CmControls from './components/cm-controls.vue'
+import CmAlarmCenter from './components/cm-alarm-center.vue'
 
 defineOptions({ name: 'ChartDashboard' })
 
@@ -163,6 +195,13 @@ const currentAdcode = dashboardService.currentAdcode
 
 const provinceOptions = ChartDashboardService.provinceOptions
 const profitLabels = ChartDashboardService.profitLabels
+const metric = dashboardService.metric
+const timeRange = dashboardService.timeRange
+const metricOptions = ChartDashboardService.metricOptions
+const timeRangeOptions = ChartDashboardService.timeRangeOptions
+const metricLabel = computed(
+  () => metricOptions.find((item) => item.value === metric.value)?.label ?? '发电量',
+)
 const profitLegend = [
   { state: 1, label: profitLabels[1], icon: (mapConfig as any).mark.deficit },
   { state: 2, label: profitLabels[2], icon: (mapConfig as any).mark.low },
@@ -173,11 +212,54 @@ const profitLegend = [
 const rankedCities = ref<CityStat[]>([])
 const selectedCity = ref<CityStat | null>(null)
 
+/** 地图浮层状态 */
+const mapWrapRef = ref<HTMLElement | null>(null)
+const alarmVisible = ref(false)
+const activeAlarmId = ref('')
+const isFullscreen = ref(false)
+
+const metricValueOf = (city: CityStat) => {
+  switch (metric.value) {
+    case 'projectCount':
+      return city.projectCount
+    case 'alarmCount':
+      return city.alarmCount
+    default:
+      return city.power
+  }
+}
+
 const maxPower = computed(() =>
-  rankedCities.value.reduce((max, city) => Math.max(max, city.power), 1),
+  rankedCities.value.reduce((max, city) => Math.max(max, metricValueOf(city)), 1),
 )
-const powerPercent = (city: CityStat) => Math.round((city.power / maxPower.value) * 100)
-const topCities = computed(() => rankedCities.value.slice(0, 10))
+const powerPercent = (city: CityStat) => Math.round((metricValueOf(city) / maxPower.value) * 100)
+const topCities = computed(() =>
+  [...rankedCities.value].sort((a, b) => metricValueOf(b) - metricValueOf(a)).slice(0, 10),
+)
+
+const alarmItems = ref<AlarmItem[]>([])
+/**
+ * 告警列表不是纯派生值：service 内部的 version 计数在切指标 / 时间 / 下钻时自增，
+ * 只有读到它才会重算，所以用 watch 显式订阅，而不是 computed 里丢一个"为了建依赖"的读操作。
+ */
+const refreshAlarms = () => {
+  if (level.value === 'national') {
+    alarmItems.value = dashboardService.getNationalAlarms().map((item) => ({
+      id: String(item.adcode),
+      name: item.name,
+      sub: `${item.power} GWh`,
+      tag: '省级',
+    }))
+    return
+  }
+  alarmItems.value = dashboardService.getAlarmProjects().map((project) => ({
+    id: project.id,
+    name: project.name,
+    sub: project.cityName,
+    tag: '告警',
+  }))
+}
+watch([level, () => dashboardService.version.value], refreshAlarms, { immediate: true })
 
 const detailProjects = computed<ProjectInfo[]>(() =>
   selectedCity.value
@@ -212,14 +294,58 @@ const handleBackToNational = () => {
   dashboardService.backToNational()
 }
 
+const handleMetricChange = (value: MetricKey) => {
+  dashboardService.setMetric(value)
+}
+
+const handleTimeRangeChange = (value: TimeRangeKey) => {
+  dashboardService.setTimeRange(value)
+}
+
+const handleSearchSelect = (item: SearchPlace) => {
+  dashboardService.focusPlace(item)
+}
+
+const handleToggleAlarm = () => {
+  alarmVisible.value = !alarmVisible.value
+}
+
+const handleAlarmLocate = (item: AlarmItem) => {
+  activeAlarmId.value = item.id
+  if (level.value === 'national') {
+    const province = provinceOptions.find((option) => option.adcode === item.id)
+    if (province) dashboardService.drillToProvince(province.adcode, province.name)
+    return
+  }
+  const project = dashboardService.getAlarmProjects().find((entry) => entry.id === item.id)
+  if (project) dashboardService.focusProject(project)
+}
+
+const handleFullscreenChange = () => {
+  isFullscreen.value = Boolean(document.fullscreenElement)
+  nextTick(() => dashboardService.resize())
+}
+
+const handleToggleFullscreen = async () => {
+  const target = mapWrapRef.value
+  if (!target) return
+  if (document.fullscreenElement) {
+    await document.exitFullscreen()
+  } else {
+    await target.requestFullscreen()
+  }
+}
+
 const handleResize = () => dashboardService.resize()
 
 onMounted(() => {
   dashboardService.initCharts()
   window.addEventListener('resize', handleResize)
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
   dashboardService.dispose()
 })
 </script>
@@ -359,8 +485,8 @@ onUnmounted(() => {
         gap: 14px;
         padding: 8px 14px;
         background: rgba(6, 39, 65, 0.55);
-        border: 1px solid rgba(54, 129, 255, 0.35);
-        border-radius: 4px;
+        border: 1px solid rgba(54, 129, 255, 0.22);
+        border-radius: var(--ai-radius-sm);
         font-size: 12px;
         color: #d6e8ff;
 
@@ -402,7 +528,8 @@ onUnmounted(() => {
       padding: 14px;
       box-sizing: border-box;
       background-image: linear-gradient(to right, rgba(170, 184, 206, 0.1), rgba(122, 150, 251, 0.1));
-      border-radius: 4px;
+      border: 1px solid rgba(54, 129, 255, 0.18);
+      border-radius: var(--ai-radius-md);
       backdrop-filter: blur(4px);
       overflow: hidden;
 
@@ -418,7 +545,7 @@ onUnmounted(() => {
         display: flex;
         flex-direction: column;
         background: rgba(6, 39, 65, 0.35);
-        border-radius: 4px;
+        border-radius: var(--ai-radius-sm);
         padding: 10px;
 
         :deep(.cm-bar),
@@ -439,7 +566,7 @@ onUnmounted(() => {
           flex-direction: column;
           gap: 2px;
           padding: 8px;
-          border-radius: 4px;
+          border-radius: var(--ai-radius-sm);
           background: rgba(6, 39, 65, 0.45);
 
           .cd-summary-label {
@@ -477,7 +604,7 @@ onUnmounted(() => {
           align-items: center;
           gap: 8px;
           padding: 7px 8px;
-          border-radius: 4px;
+          border-radius: var(--ai-radius-sm);
           cursor: pointer;
           transition: background 0.2s;
 
@@ -492,7 +619,7 @@ onUnmounted(() => {
             line-height: 18px;
             text-align: center;
             font-size: 12px;
-            border-radius: 2px;
+            border-radius: var(--ai-radius-xxs);
             color: #9ec9ff;
             background: rgba(54, 129, 255, 0.2);
 
@@ -562,7 +689,7 @@ onUnmounted(() => {
             flex-direction: column;
             gap: 2px;
             padding: 8px;
-            border-radius: 4px;
+            border-radius: var(--ai-radius-sm);
             background: rgba(6, 39, 65, 0.45);
 
             .cd-side-detail-summary-label {
