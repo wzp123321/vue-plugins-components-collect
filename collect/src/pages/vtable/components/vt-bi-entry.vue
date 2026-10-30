@@ -635,6 +635,8 @@ const HELP_ROWS = [
 let onStructure: () => void = () => undefined;
 let onCells: () => void = () => undefined;
 let onRestored: () => void = () => undefined;
+/** 点表头 → 打开该列配置：内部要调 openColConfig（定义在后面），同样后置赋值 */
+let onHeaderCell: (col: number, row: number) => void = () => undefined;
 
 // ============================ 数据与模块装配 ============================
 const { cols, visibleCols, numberCols, labelOf, colOf, addCol, removeCol, updateCol, moveCol, resetCols, templates, loadTemplates, saveTemplate, removeTemplate, loadTemplate } =
@@ -1052,9 +1054,14 @@ const onCheckboxChange = (args: CheckboxArg) => {
   table?.renderWithRecreateCells();
 };
 
-const onClickCell = (args: { col: number; row: number }) => {
+const onClickCell = (args: { col: number; row: number; cellLocation?: string }) => {
   activeCell.value = { col: args.col, row: args.row };
   menu.show = false;
+  // 点表头 = 配这一列，对齐 vxe 的 header-cell-click 与 Univer 的点列标。
+  // ⚠️ CellLocation 的取值是 'columnHeader'（不是 'colHeader'），写错会静默失效。
+  if (args.cellLocation === 'columnHeader') {
+    onHeaderCell(args.col, args.row);
+  }
 };
 
 const onSelectedChanged = (args?: { ranges?: CellRange[] }) => {
@@ -1995,6 +2002,30 @@ const openColConfig = (col: BiCol) => {
   });
   crossDraft.value = (col.cross ?? []).map((r) => ({ ...r }));
   colConfigVisible.value = true;
+};
+
+/**
+ * 点表头 → 打开该列配置（三套录入台统一入口；vxe 走 header-cell-click，
+ * Univer 走「点列标后的整列选中」信号，这里直接拿 click_cell 的 cellLocation）。
+ *
+ * col 下标含前置的「#」「选择」两列，必须先用 fieldAt 反查真实字段；
+ * 分组表头是多行结构，只有最后一行是叶子行——父表头横跨多列，
+ * 无法判定要配哪一列，直接忽略。
+ */
+const headerRowCount = computed(() => (groupColumns(visibleCols.value).some((g) => g.title) ? 2 : 1));
+
+onHeaderCell = (col: number, row: number) => {
+  if (row !== headerRowCount.value - 1) {
+    return;
+  }
+  const field = fieldAt(col);
+  if (!field || isMetaField(field)) {
+    return;
+  }
+  const target = cols.value.find((c) => c.field === field);
+  if (target) {
+    openColConfig(target);
+  }
 };
 
 const applyColConfig = () => {
