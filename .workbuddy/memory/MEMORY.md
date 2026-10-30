@@ -22,7 +22,7 @@
 - **亿赛通透明加密**：本工程 `.md` 被加密。读用 `head -c N "$f"`；判密文 `tr -dc '\0' < "$f" | wc -c`（>0 即密文）；写用 Edit/Write 或 bash `>` 才产明文。
 - **沙箱删除守卫（>50 文件）**杀 `pnpm dev` / `vite build`：① 别靠 `mv node_modules/.vite` 绕——触发全量重优化，optimizer 提交阶段 `rm deps_temp_*` 照样被拦（ready 后 ERR_CONNECTION_REFUSED）；缓存别动，已移开的移回。② 整包 `vite build` 在 bundle 阶段必被 SIGTERM，dev server 遇新依赖即被杀 → **本机产不出完整生产包**，正确性以 `ts-check` + transform 零报错为准，完整包由用户本机 `npm run build` 收口。
 - **浏览器验证（headless + CDP）**：dev server 必须 `run_in_background` 且不接管道截断。Chrome `--headless=new --remote-debugging-port=9222 --disable-gpu --no-sandbox` + 同链内跑 CDP 脚本 + taskkill（常驻启动会被回收）。Node fetch 走代理连不上 127.0.0.1，CDP HTTP 端用内置 `http` 模块。**`captureScreenshot` 在 `--disable-gpu` 下丢文本**，验 DOM 用 `Runtime.evaluate`。
-- **网络出口（2026-10-26 实测）**：沙箱代理 `127.0.0.1:51322` 对 GitHub 返 `CONNECT tunnel failed 502`（只放行白名单）；直连 `github.com:443` 全超时（试 6 个 IP）。→ **`git push` 本会话不可能成功**，只能本地提交；推送需用户恢复代理/VPN。`codeload.github.com` 直连可达。
+- **网络出口（2026-10-30 复测，覆盖 10-26 结论）**：代理端口每会话变（本次 `127.0.0.1:55342`，取 `env | grep proxy`），对 GitHub **间歇放行**——单次 `git push` 大概率 `CONNECT tunnel failed 502`，**循环重试 6~10 次（间隔 10s+）必能成功**（本次第 7 次通过）；直连 `github.com:443` 仍不通（21s 超时）。`git fetch` 同样按此重试。推送偶尔返回 `schannel: server closed abruptly`，属同类抖动，重试即可。
 
 ## 全仓 lint 硬约定（2026-10-26 起长期有效）
 - **风格**：`collect/src` 函数一律箭头函数；**不许用 eslint-disable 掩盖**，必须真修。现存 disable 只允许在 auto-imports.d.ts / components.d.ts / env.d.ts 三个生成物。
