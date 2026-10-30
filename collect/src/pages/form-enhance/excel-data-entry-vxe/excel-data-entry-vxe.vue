@@ -507,17 +507,28 @@ const onCellClick = (params: any) => {
 :deep(.vxe-table .fixed-right--wrapper .vxe-body--column) { border-right: 1px solid var(--bi-border-soft); }
 
 :deep(.vxe-table .vxe-cell--edit-icon) { display: none; }
-:deep(.vxe-table .vxe-cell--sort),
-:deep(.vxe-table .vxe-cell--filter) {
-  opacity: 0.3;
+/* 表头工具图标：整列可编辑是常态（铅笔无信息量，直接隐藏）；
+   排序箭头与筛选漏斗默认完全透明，hover 该列头时才显形——否则每个列头挂 3 个图标，
+   一屏十几列就是一片小图标噪声。
+   ⚠️ 透明必须压在图标元素上，不能压在 .vxe-cell--sort 容器上：
+      父级 opacity:0 会把子级一起裁掉，子级再写 opacity:1 也救不回来。
+   ⚠️ 激活态类名是 .sort--active（挂在图标上）与 .is--filter-active（挂在 th 上），
+      写成 .is-active 会静默失效（曾经踩过）。 */
+:deep(.vxe-table .vxe-cell--sort .vxe-sort--asc-btn),
+:deep(.vxe-table .vxe-cell--sort .vxe-sort--desc-btn),
+:deep(.vxe-table .vxe-cell--filter .vxe-filter--btn) {
+  opacity: 0;
   transition: opacity 0.12s ease;
 }
-:deep(.vxe-table .vxe-header--column:hover .vxe-cell--sort),
-:deep(.vxe-table .vxe-header--column:hover .vxe-cell--filter) { opacity: 1; }
+:deep(.vxe-table .vxe-header--column:hover .vxe-cell--sort .vxe-sort--asc-btn),
+:deep(.vxe-table .vxe-header--column:hover .vxe-cell--sort .vxe-sort--desc-btn),
+:deep(.vxe-table .vxe-header--column:hover .vxe-cell--filter .vxe-filter--btn) { opacity: 1; }
 /* 已生效的排序 / 筛选必须常显，否则用户不知道当前列被筛过 */
-:deep(.vxe-table .vxe-cell--sort.is-active),
-:deep(.vxe-table .vxe-cell--filter.is-active),
-:deep(.vxe-table .vxe-cell--filter.is-active .vxe-filter--btn) { opacity: 1; color: var(--dt-primary); }
+:deep(.vxe-table .vxe-cell--sort .sort--active) { opacity: 1; color: var(--dt-primary); }
+:deep(.vxe-table .vxe-header--column.is--filter-active .vxe-cell--filter .vxe-filter--btn) {
+  opacity: 1;
+  color: var(--dt-primary);
+}
 :deep(.vxe-table .vxe-body--row:hover) { background: var(--dt-hover); }
 :deep(.vxe-table .vxe-body--row.row-dirty) { box-shadow: inset 2px 0 0 var(--dt-warn); }
 :deep(.vxe-table .vxe-body--column.cell-error) { background-color: rgba(245,63,63,.1) !important; }
