@@ -156,6 +156,7 @@
 | 列宽拖拽     | ⬤                        | ⬤                        | ⬤                     |                       |
 | 列宽随容器自适应 | ○ 容器宽等比换算                | ○ `allocWidths`          | ◇                     | Univer 要算好再下发，每次重建重算  |
 | 列显隐      | ○                        | ○                        | ◐ 原生隐藏 + 自研面板         |                       |
+| 点表头打开列设置 | ○ `header-cell-click`    | ○ `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | ○ 点列标整列选中（A1 信号） | 三套入口齐了 |
 | 列移序      | ◐ 原生顺序 + 自研拖拽            | ◐                        | ◐ `moveColumn` 整表重写   |                       |
 | 合并单元格    | ◐ `setMergeCells` + 自研框选 | ◐ `mergeCells`           | ◐ `FRange.merge`，限数据区 |                       |
 | 右键菜单     | ○ `GridContextMenu`      | ◇                        | ⬤                     | VTable 要自绘 Canvas 浮层  |

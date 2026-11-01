@@ -26,6 +26,16 @@
 - **VTable 版**：证明 Canvas 大表性能，但编辑 / 校验 / 填充仍需大量自研补齐。
 - **Univer 版**：把表格语义交给内核（虚拟滚动、选区、复制粘贴、填充柄、撤销、筛选、排序、数据验证、条件格式），自研只做业务层（列定义、校验规则、提交、导入导出、模板）。
 
+### 1.1 三套共享代码层
+
+空值判定、数值转换、日期归一、行签名、跨列规则这些「三套共用、口径必须一致」的纯函数，
+统一放在 `src/utils/bi-entry.ts`（导出 `ColType` / `ColRule` / `CrossRule` / `BiColLike` 等类型，
+以及 `isBlank` / `numOf` / `round2` / `renderDate` / `normalizeDate` / `emptyValueFor` /
+`cloneRows` / `rowSignature` / `rowIsEmpty` / `crossError`）。
+
+三套的 `schema.ts`（VTable / Univer）与 vxe 的 `types.ts` 只做转发，对外暴露的类型名与语义不变；
+改口径只改一处，避免数字列空值 `null` 还是空串这类差异在三处各自漂移。
+
 ## 2. 能力差异
 
 只列**有差异或带实现细节**的。三套一致的部分不逐条列：行操作（新增 / 插入 / 删除 / 复制 / 清空 / 删空行 / 去重）、列操作（增删改、改类型与选项、必填标记、列宽、移序、localStorage 列模板）都已实现。某项是插件给的还是我们写的，见选型指南第四章。
@@ -43,6 +53,7 @@
 | 合并单元格 | 框选合并 / 一键全取消 | `mergeCells` / `unmergeCells` | `FRange.merge` / `breakApart`，限数据区 |
 | 右键菜单 | 自研 `GridContextMenu` | 无 | 原生 |
 | 亮 / 暗主题 | CSS 变量 | `getComputedStyle` 读 `--bi-*` 转 `TableTheme` | `toggleDarkMode` + `MutationObserver` 跟 `html.dark` |
+| 点表头打开列设置 | `header-cell-click` | `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | 点列标整列选中（A1 信号） |
 
 行操作的唯一差异是**插入方向**：vxe 上方、VTable 下方、Univer 上方。
 
@@ -192,6 +203,7 @@ const applyChrome = () => {
 **vxe**
 - 列宽只认 px，百分比宽会被截断，`fit` 不要用；列宽按容器等比换算，容器尺寸变化要自己重算。
 - 文本类校验发生在值已写入之后，要拦非法值在 `edit-closed` 里 reject。
+- 表头排序/筛选图标默认隐藏，hover 列头或该列激活时才显示。透明度必须压在图标元素（`.vxe-sort--asc-btn` 等）上，不能压在 `.vxe-cell--sort` 容器上——父级 `opacity:0` 会把子级一起裁掉；激活态类名是 `.sort--active`（图标上）与 `.is--filter-active`（th 上），写成 `.is-active` 会静默失效。
 
 **VTable**
 - 在隐藏的 tab 里初始化会拿到 0 宽，列宽退化成保底值（右边缘留空）。必须容器可见后 `resize()`，宽度差 >4px 就重建。
@@ -199,6 +211,7 @@ const applyChrome = () => {
 - 单元格样式回调 `StylePropertyFunctionArg` 里没有 `field`，要用 `col` 索引回查。
 - 内置编辑器只有 4 种，没有 NumberEditor，数值校验自己写。
 - 切 tab 时控制台可能冒 `ListTableAll.getElement` null（ResizeObserver 与 `rebuild()` 竞态），不阻断渲染。
+- 点表头打开列设置的判定靠 `click_cell` 的 `cellLocation==='columnHeader'`（**不是** `'colHeader'`），写错静默失效；分组表头是两行结构，只有叶子行能判定到列，父表头点击要忽略。
 
 **Univer**
 - 表头就是第 1 行，没有独立列元数据；列宽、校验、条件格式全挂在「具体列区间」上，删列挪列即失效。
