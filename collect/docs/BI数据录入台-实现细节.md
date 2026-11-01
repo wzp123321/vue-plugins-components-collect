@@ -200,7 +200,15 @@ const applyChrome = () => {
 | 条件格式补齐 | 色阶、图标集、公式规则：`UCfBuilder` 扩 `setColorScale` / `setIconSet` |
 | **Pro 才能做** | 透视表、图表、`exchange`（保样式导入导出）、打印 PDF、协作。`@univerjs/preset-sheets-advanced` 会带进 28 个 `@univerjs-pro/*`，纯开源不能装 |
 
-## 6. 踩坑清单
+## 6. 样式与主题一致性
+
+色板唯一来源是 `assets/style/bi-entry.less` 的 `--bi-*`，三套别名 `--dt-*`（vxe）/ `--ue-*`（Univer）/ `--el-*`（VTable）都映射到它；改一处三处生效。
+
+- **vxe**：原生 CSS 变量，经 `:deep()` 覆写 `.vxe-*`；行悬停、表头图标 hover 显隐、跨列十字高亮、选区/错误/查找高亮都挂在 `--bi-*`。
+- **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；本次补上了行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
+- **Univer**：`useEntrySheet.setDark()` 现在整体 `setTheme({...defaultTheme, gray, primary, highlight})`，`gray`/`primary` 由 `--bi-*` 的明暗两档映射（灰阶 0≈画布底、100≈表头底、400≈网格线、800≈正文；品牌尺 500=选区主色；`highlight` 映射到查找高亮的橙底）。`toggleDarkMode` 同步给 React 浮层。⚠️ `setTheme` 是整体替换（不合并），必须全量透传 `defaultTheme`。
+
+## 7. 踩坑清单
 
 **vxe**
 - 列宽只认 px，百分比宽会被截断，`fit` 不要用；列宽按容器等比换算，容器尺寸变化要自己重算。

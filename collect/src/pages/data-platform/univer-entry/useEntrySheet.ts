@@ -19,7 +19,7 @@
 //   - 脏标记没有行对象可挂，改用"命令执行 → 去抖 → 与基线快照逐格比对"，见页面层 recomputeDirty。
 // ============================================================================
 import { ref, shallowRef } from 'vue';
-import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
+import { createUniver, LocaleType, mergeLocales, defaultTheme } from '@univerjs/presets';
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverCoreZhCN from '@univerjs/preset-sheets-core/locales/zh-CN';
 import { UniverSheetsSortPreset } from '@univerjs/preset-sheets-sort';
@@ -45,6 +45,47 @@ import {
   type EntryRecord,
 } from './schema';
 import type { UApi, UIRange, USheet } from './univer-types';
+
+/**
+ * Univer 主题：以官方 defaultTheme 为基底，只替换「灰阶」与「品牌色」两把尺，
+ * 让 Univer 画布的观感与另外两套（vxe / VTable）的 --bi-* 色板对齐。
+ *
+ * ⚠️ setTheme 是整体替换（ThemeService 不合并），所以必须 {...defaultTheme, gray:{...}, primary:{...}}
+ *   全量透传其它色尺，只动我们要改的两把。改色尺即改三套统一观感，不碰业务逻辑。
+ * ⚠️ 灰阶索引语义：0≈画布底/面板，100≈表头底，400≈网格线，700≈次级文字，800≈正文；
+ *   品牌尺 500 是选区/强调主色。Univer 内部按这些索引取色，给出平滑过渡即可。
+ */
+const buildUniverTheme = (dark: boolean) => {
+  const gray = dark
+    ? {
+        0: '#16191f', 50: '#1a1e25', 100: '#1a1e25', 200: '#20242c', 300: '#20242c',
+        400: '#272c35', 500: '#323843', 600: '#4a515d', 700: '#8f95a3', 800: '#e6e8ec',
+        900: '#c9cdd4', 1000: '#ffffff',
+      }
+    : {
+        0: '#ffffff', 50: '#f9fafb', 100: '#f7f8fa', 200: '#f1f2f4', 300: '#eef0f4',
+        400: '#e5e7ec', 500: '#d6d9e0', 600: '#bcc1cc', 700: '#86909c', 800: '#1d2129',
+        900: '#0e1116', 1000: '#000000',
+      };
+  const primary = dark
+    ? {
+        50: '#1c2440', 100: '#243056', 200: '#2e3d72', 300: '#3d4d92', 400: '#586cbf',
+        500: '#6f8dff', 600: '#5a78f0', 700: '#4a66d8', 800: '#3a54b8', 900: '#2e449a',
+      }
+    : {
+        50: '#eef2ff', 100: '#e2e9ff', 200: '#c9d6ff', 300: '#a9bcff', 400: '#7d97ff',
+        500: '#2b5cf6', 600: '#1f4ee0', 700: '#1a40bd', 800: '#153399', 900: '#102678',
+      };
+  // 查找高亮：与 vxe 的 .cell-found（橙底）同源，避免三套查找高亮各一色
+  const highlightBackground = {} as Record<number, { color: string; alpha: number }>;
+  for (let i = 1; i <= 16; i += 1) highlightBackground[i] = { color: '#ff8f1f', alpha: 0.18 };
+  return {
+    ...defaultTheme,
+    gray,
+    primary,
+    highlight: { background: highlightBackground },
+  };
+};
 
 /** 选区快照：状态栏与批量操作的作用域来源 */
 export interface SelectionInfo {
@@ -170,9 +211,16 @@ export const useEntrySheet = () => {
     ready.value = false;
   };
 
-  /** 明暗主题：跟随站点 html.dark（Univer 的 UI 层是 React，靠自身主题系统切换） */
+  /**
+   * 明暗主题：跟随站点 html.dark。
+   *   - setTheme：用我们的品牌灰阶/品牌色整体替换画布配色（含选区、网格线、表头底色）；
+   *   - toggleDarkMode：同步给 Univer 的 React 浮层（右键菜单 / 下拉），保证浮层也走暗色。
+   * 两者各管一层，互不复写——画布颜色完全由 buildUniverTheme 决定。
+   */
   const setDark = (dark: boolean) => {
-    apiInstance?.toggleDarkMode(dark);
+    if (!apiInstance) return;
+    apiInstance.setTheme(buildUniverTheme(dark));
+    apiInstance.toggleDarkMode(dark);
   };
 
   /** Facade API 出口：查找替换等少数能力需要直接调 univerAPI（没有对应的 sheet 方法） */

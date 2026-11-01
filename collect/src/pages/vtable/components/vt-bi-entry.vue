@@ -1109,18 +1109,33 @@ const buildTableTheme = () => {
   cellPalette.errBg = dark ? 'rgba(247, 101, 96, 0.18)' : 'rgba(245, 63, 63, 0.1)';
   cellPalette.errFg = cssVar('--bi-danger', '#f53f3f');
   cellPalette.flashBg = cssVar('--bi-primary-soft', dark ? '#1c2440' : '#eef2ff');
+  // 悬停行 / 选中行列的淡色底：从 --bi-* 取，与 vxe 的 --dt-hover / 选区青蓝同源
+  const hoverBg = cssVar('--bi-hover', dark ? '#1e232b' : '#f7f9fc');
+  const selTint = dark ? 'rgba(111, 141, 255, 0.1)' : 'rgba(43, 92, 246, 0.06)';
+  const primary = cssVar('--bi-primary', dark ? '#6f8dff' : '#2b5cf6');
   return new themes.TableTheme(
     {
       underlayBackgroundColor: panel,
       // 字号与 vxe 版对齐（正文 13 / 表头 12.5），网格线用最淡一阶，
       // 表头字色用正文色而非次级色——表头是列标签，比正文更需要清晰
-      defaultStyle: { color: text, bgColor: panel, borderColor: borderSoft, fontSize: 13 },
+      defaultStyle: {
+        color: text,
+        bgColor: panel,
+        borderColor: borderSoft,
+        fontSize: 13,
+        // 行悬停高亮：只染行底，不碰边框（避免与单元格网格线打架）
+        hover: { inlineRowBgColor: hoverBg },
+        // 选中态：行列双向淡色底（与 vxe 的 .cell-sel 同源，弱化版）
+        select: { inlineRowBgColor: selTint, inlineColumnBgColor: selTint },
+      },
       headerStyle: {
         color: text,
         bgColor: headBg,
         borderColor: border,
         fontSize: 12.5,
         fontWeight: 600,
+        hover: { cellBgColor: hoverBg },
+        select: { inlineColumnBgColor: selTint },
       },
       // 分组表头（多级表头的父行）必须单独配：不配就走 base 主题的深色组头，
       // 与自定义的浅色底拼在一起会「上深下浅」断层
@@ -1130,10 +1145,30 @@ const buildTableTheme = () => {
         borderColor: border,
         fontSize: 12.5,
         fontWeight: 600,
+        hover: { cellBgColor: hoverBg },
       },
       bodyStyle: { color: text, bgColor: panel, borderColor: borderSoft, fontSize: 13 },
       // 去掉内置主题的圆角与投影：外框由 .bi-panel 统一提供，避免「卡片套卡片」
       frameStyle: { borderColor: border, borderLineWidth: 0, cornerRadius: 0, shadowBlur: 0 },
+      // 选区描边用品牌色（不用内置的灰蓝），与另外两套的选中观感对齐
+      selectionStyle: {
+        cellBorderColor: primary,
+        cellBorderLineWidth: 2,
+        inlineRowBgColor: selTint,
+        inlineColumnBgColor: selTint,
+        selectionFillMode: 'overlay',
+      },
+      // 滚动条：滑块用半透明品牌色，轨道透明（Hover 才浮现，由 visible 控制）
+      scrollStyle: {
+        scrollSliderColor: dark ? 'rgba(143, 149, 163, 0.45)' : 'rgba(29, 33, 41, 0.28)',
+        scrollRailColor: 'transparent',
+        visible: 'scrolling',
+      },
+      // 表头排序图标改用品牌色（默认是 Univer 蓝，与我们的主色不一致）
+      functionalIconsStyle: {
+        sort_color: primary,
+        sort_color_opacity: '0.55',
+      },
     },
     base,
   );

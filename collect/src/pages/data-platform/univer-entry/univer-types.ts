@@ -109,4 +109,6 @@ export interface UApi {
   undo(): void;
   redo(): void;
   toggleDarkMode(dark: boolean): void;
+  /** 整体替换主题（不合并）：传入 {...defaultTheme, gray:{...}, primary:{...}} 全量对象 */
+  setTheme(theme: unknown): void;
 }
