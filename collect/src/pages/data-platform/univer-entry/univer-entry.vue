@@ -383,30 +383,51 @@ const genData = (n: number) => {
 </script>
 
 <style lang="less">
-/* Univer 的浮层（右键菜单 / 单元格下拉 / 筛选面板）由 React + Tailwind 原子类渲染，DOM 上没有
-   "univer-menu" 这类语义类名，唯一可靠的锚点是 Popup 容器 .univer-popup（createPortal 到 body，
-   scoped 样式够不到，故本块不 scoped）。
-   菜单项原本是 text-sm(14px) / min-h-8(32px)，比本页正文 12.5px 大一档，并排看像另一个产品；
-   这里统一收到 12.5px / 28px，与录入台密度对齐。 */
+/* Univer 浮层（右键菜单 / 单元格下拉 / 筛选面板）由 React + Tailwind 原子类渲染，createPortal
+   到 body，scoped 样式够不到，故本块不 scoped。
+   ⚠️ 两个坑（之前那版修复是死代码，没生效）：
+   1) 弹层根容器不是 .univer-popup 这个类，而是带随机后缀的 id="univer-popup-portal-xxxx"；
+      .univer-popup 在 UI 包里没有 CSS 规则，旧选择器一条都匹配不到。
+   2) 浮层文本字号由 .univer-text-* 工具类控制且用 rem 单位（相对根 html，不随容器 font-size 缩放），
+      所以「只压容器 font-size」对文本无效，必须逐一覆盖这些工具类并加 !important 才能压过 Univer 自身规则。
+   原默认 base=16px / sm=14px / 2xl=24px，比本页正文 12.5px 大一档，并排看像另一个产品；
+   统一收到 12.5px / 18px，与录入台密度对齐。末尾 * 兜底：无论菜单用 Tailwind 工具类还是
+   CSS-module 固定字号，都强制收口，避免再出现"改了没生效"。 */
+[id^="univer-popup-portal-"],
 .univer-popup {
   font-size: 12.5px;
   line-height: 18px;
 }
 
-/* 菜单项按钮/可点击行：压高度（原 min-h-8 = 32px） */
-.univer-popup button {
-  min-height: 28px;
+[id^="univer-popup-portal-"] .univer-text-xs,
+.univer-popup .univer-text-xs,
+[id^="univer-popup-portal-"] .univer-text-sm,
+.univer-popup .univer-text-sm,
+[id^="univer-popup-portal-"] .univer-text-base,
+.univer-popup .univer-text-base,
+[id^="univer-popup-portal-"] .univer-text-lg,
+.univer-popup .univer-text-lg,
+[id^="univer-popup-portal-"] .univer-text-2xl,
+.univer-popup .univer-text-2xl {
+  font-size: 12.5px !important;
+  line-height: 18px !important;
 }
 
-/* 字号：Tailwind 的 text-sm/text-base/text-xs 是固定 px 类，必须按类名逐一压，
-   只改容器的 font-size 会被子元素自身类名覆盖 */
-.univer-popup .univer-text-sm,
-.univer-popup .univer-text-base,
-.univer-popup .univer-text-xs,
+/* 菜单项按钮 / 可点击行：压高度（原 min-h-8 = 32px）与字号，去除默认大间距造成的松散感 */
+[id^="univer-popup-portal-"] button,
 .univer-popup button,
+[id^="univer-popup-portal-"] li,
 .univer-popup li {
-  font-size: 12.5px;
-  line-height: 18px;
+  min-height: 28px !important;
+  font-size: 12.5px !important;
+  line-height: 18px !important;
+}
+
+/* 兜底：popup 内所有文本统一收口（覆盖任何 Tailwind 工具类 / CSS-module 固定字号） */
+[id^="univer-popup-portal-"] *,
+.univer-popup * {
+  font-size: 12.5px !important;
+  line-height: 18px !important;
 }
 </style>
 

@@ -1109,9 +1109,11 @@ const buildTableTheme = () => {
   cellPalette.errBg = dark ? 'rgba(247, 101, 96, 0.18)' : 'rgba(245, 63, 63, 0.1)';
   cellPalette.errFg = cssVar('--bi-danger', '#f53f3f');
   cellPalette.flashBg = cssVar('--bi-primary-soft', dark ? '#1c2440' : '#eef2ff');
-  // 悬停行 / 选中行列的淡色底：从 --bi-* 取，与 vxe 的 --dt-hover / 选区青蓝同源
-  const hoverBg = cssVar('--bi-hover', dark ? '#1e232b' : '#f7f9fc');
-  const selTint = dark ? 'rgba(111, 141, 255, 0.1)' : 'rgba(43, 92, 246, 0.06)';
+  // 悬停行 / 列头：暗黑用清晰的蓝灰抬升 #29364D（与 VTable 内置暗黑默认悬停同源，
+  // 比此前 --bi-hover 的 #1e232b 更干净不脏）；白天沿用浅灰。vxe 版经 --bi-hover 同步同色。
+  const hoverBg = cssVar('--bi-hover', dark ? '#29364D' : '#f7f9fc');
+  // 选区行列引导底：统一 0.06（暗黑不再用 0.1，避免行列交叉处叠成偏重蓝块）
+  const selTint = dark ? 'rgba(111, 141, 255, 0.06)' : 'rgba(43, 92, 246, 0.06)';
   const primary = cssVar('--bi-primary', dark ? '#6f8dff' : '#2b5cf6');
   return new themes.TableTheme(
     {
@@ -1125,8 +1127,8 @@ const buildTableTheme = () => {
         fontSize: 13,
         // 行悬停高亮：只染行底，不碰边框（避免与单元格网格线打架）
         hover: { inlineRowBgColor: hoverBg },
-        // 选中态：行列双向淡色底（与 vxe 的 .cell-sel 同源，弱化版）
-        select: { inlineRowBgColor: selTint, inlineColumnBgColor: selTint },
+        // 选中态底色不再在此重复设置——统一交给 selectionStyle，避免与 selectionStyle 的
+        // 行列双向底叠加成偏重蓝块（之前两处都写 row/col tint 是暗黑选区发丑的根因之一）
       },
       headerStyle: {
         color: text,
