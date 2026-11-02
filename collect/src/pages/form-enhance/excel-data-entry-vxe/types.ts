@@ -11,7 +11,8 @@
 //   - useGridCore：基于 ColDef / Row / ColRule / CrossRule 做校验与统计；
 //   - components/cells：根据 ColType 选择显示/编辑渲染器；
 //   - useGridTemplates：把 ColDef[] 序列化为 Tpl 持久化到 localStorage；
-//   - ColumnManagerDrawer / RuleDialog / AddColumnDialog：可视化编辑这些结构。
+//   - ColumnManagerDrawer / AddColumnDialog：可视化编辑这些结构（单列细项走共享抽屉
+//     components/bi-column-drawer，三套录入台同一份 UI）。
 
 /* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
    utils/bi-entry.ts：这里 import 进来再用，同时原样转发给上层，

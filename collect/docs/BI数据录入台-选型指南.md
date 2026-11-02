@@ -68,7 +68,7 @@
 | 多级表头 | ◐ `group` | ◐ `groupColumns` | ✕ | **Univer 表头即第 1 行数据，架构做不到** |
 | 列宽随容器自适应 | ○ 等比换算 | ○ `allocWidths` | ◇ | Univer 要算好再下发，每次重建重算 |
 | 列显隐 | ○ | ○ | ◐ 原生隐藏 + 自研面板 | |
-| 点表头打开列设置 | ○ `header-cell-click` | ○ `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | ○ 点列标整列选中（A1 信号） | 三套入口齐了 |
+| 点表头打开列配置 | ○ `header-cell-click` | ○ `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | ○ 点列标整列选中（A1 信号） | 三套触发机制不同，但弹出的抽屉是同一份（`components/bi-column-drawer`） |
 | 右键菜单 | ○ `GridContextMenu` | ◇ | ⬤ | VTable 要自绘 Canvas 浮层 |
 | **单元格编辑** | | | | |
 | Excel 式键盘流 | ○ `useGridKeys` | ⬤ `keyboardOptions` | ⬤ | vxe 全自研、成本中等 |

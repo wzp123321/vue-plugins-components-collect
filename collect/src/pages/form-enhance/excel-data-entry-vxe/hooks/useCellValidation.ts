@@ -94,6 +94,8 @@ export const useCellValidation = (deps: {
       if (def.type === 'number') {
         const n = Number(value);
         if (Number.isNaN(n)) return `${def.label}需为数值`;
+        // 整数规则：共享列配置抽屉里三种列类型都开放了这个开关，口径必须三套一致
+        if (rules?.integer && !Number.isInteger(n)) return `${def.label}需为整数`;
         if (rules?.min !== undefined && n < rules.min) return `${def.label}不能小于 ${rules.min}`;
         if (rules?.max !== undefined && n > rules.max) return `${def.label}不能大于 ${rules.max}`;
       }

@@ -121,6 +121,8 @@ export const useEntryRules = (sheetApi: EntrySheet) => {
           if (d.type === 'number') {
             const n = Number(value);
             if (Number.isNaN(n)) msg = `${d.label}需为数值`;
+            // 整数规则：共享列配置抽屉里三种列类型都开放了这个开关，口径必须三套一致
+            else if (d.rules?.integer && !Number.isInteger(n)) msg = `${d.label}需为整数`;
             else if (d.rules?.min !== undefined && n < d.rules.min) msg = `${d.label}不能小于 ${d.rules.min}`;
             else if (d.rules?.max !== undefined && n > d.rules.max) msg = `${d.label}不能大于 ${d.rules.max}`;
           }

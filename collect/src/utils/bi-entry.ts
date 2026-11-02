@@ -71,6 +71,43 @@ export const META_FIELDS = ['rowId', 'selected', 'changed', 'rowNo'] as const;
 export const isMetaField = (field: string): boolean =>
   (META_FIELDS as readonly string[]).includes(field);
 
+/**
+ * 裁剪规则对象：删掉空值项，全空则返回 undefined。
+ * 列定义里不留 `rules: {}` 这种空壳——否则「已配置校验规则」的高亮判定会误报，
+ * 导出/存模板也会多出一堆无意义字段。三套录入台的列配置抽屉统一走这里。
+ */
+export const compactRules = (r?: ColRule): ColRule | undefined => {
+  if (!r) {
+    return undefined;
+  }
+  const out: ColRule = {};
+  if (r.min !== undefined && r.min !== null) {
+    out.min = r.min;
+  }
+  if (r.max !== undefined && r.max !== null) {
+    out.max = r.max;
+  }
+  if (r.integer) {
+    out.integer = true;
+  }
+  if (r.minLen !== undefined && r.minLen !== null) {
+    out.minLen = r.minLen;
+  }
+  if (r.maxLen !== undefined && r.maxLen !== null) {
+    out.maxLen = r.maxLen;
+  }
+  if (r.pattern) {
+    out.pattern = r.pattern;
+  }
+  if (r.patternMsg) {
+    out.patternMsg = r.patternMsg;
+  }
+  if (r.unique) {
+    out.unique = true;
+  }
+  return Object.keys(out).length ? out : undefined;
+};
+
 export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
 
 export const pad2 = (n: number): string => String(n).padStart(2, '0');

@@ -11,8 +11,8 @@
  * 命名空间约定：
  *   --bi-*   唯一色板来源；下面再把 --dt-*（vxe 版）、--ue-*（Univer 版）、--el-*（VTable 版
  *            子组件用的是 Element Plus 变量）映射到同一套值，实现「改一处、三处生效」。
- *   页面根元素挂 .bi-page，弹窗/抽屉传送到 body 后另挂 .dt-dlg / .ue-dlg 以继承同一套变量
- *   （自定义属性不跨 DOM 树继承）。
+ *   页面根元素挂 .bi-page，弹窗/抽屉传送到 body 后另挂 .dt-dlg / .ue-dlg / .bi-dlg 以继承同一套变量
+ *   （自定义属性不跨 DOM 树继承）。.bi-dlg 是三套共用的列配置抽屉（components/bi-column-drawer）。
  *
  * ⚠️ VTable 是 Canvas 渲染，取不到 CSS 变量，重建时用 getComputedStyle 读 --bi-* 再喂给
  *    TableTheme（见 vt-bi-entry.vue buildTableTheme）——所以色值仍然只有这一处。
@@ -22,6 +22,7 @@
 .dt-dlg,
 .ue-page,
 .ue-dlg,
+.bi-dlg,
 .vt-bi,
 .vtable {
   /* ---- 灰阶：页面底 → 面板 → 表头/工具带，三阶明度差控制在 2%~3% ---- */
@@ -89,8 +90,60 @@
   --ue-shadow: var(--bi-shadow);
 }
 
-/* ===== 命名空间别名：VTable 版（子组件写的是 Element Plus 变量）===== */
-.vt-bi {
+/* ===== 共享列配置抽屉（三套共用的 components/bi-column-drawer）=====
+ * 它既不属于 vxe 的 .dt-dlg 也不属于 Univer 的 .ue-dlg，单独挂 .bi-dlg。
+ * 抽屉内部是 Element Plus 控件，所以直接把 --el-* 指到 --bi-*，
+ * 保证三套点列头弹出的抽屉是同一副观感（含暗黑，靠上面 html.dark 里的 --bi-* 覆盖）。 */
+.bi-dlg {
+  --el-color-primary: var(--bi-primary);
+  --el-color-primary-light-9: var(--bi-primary-soft);
+  --el-color-danger: var(--bi-danger);
+  --el-border-color: var(--bi-border);
+  --el-border-color-light: var(--bi-border);
+  --el-border-color-lighter: var(--bi-border-soft);
+  --el-text-color-primary: var(--bi-text);
+  --el-text-color-regular: var(--bi-sub);
+  --el-text-color-secondary: var(--bi-sub);
+  --el-text-color-placeholder: var(--bi-sub);
+  --el-fill-color-blank: var(--bi-panel);
+  --el-fill-color-light: var(--bi-head-bg);
+  --el-bg-color: var(--bi-panel);
+  --el-bg-color-overlay: var(--bi-panel);
+  --el-drawer-bg-color: var(--bi-panel);
+}
+
+/* 抽屉/弹窗里的「文字按钮」要真的是文字
+ * ----------------------------------------------------------------------------
+ * 站点主题（dark-theme.css）把 .el-button 一律压成实心块（带 !important），
+ * 于是 <el-button text> 在录入台的抽屉里会变成一排紫色方块——"＋ 添加选项 / 配置 / 删除该列"
+ * 这类低强调动作反而比表单控件更抢眼。这里只在这三个抽屉作用域内还原 EP 的 text 观感，
+ * 不动全局按钮规范。 */
+.dt-dlg,
+.ue-dlg,
+.bi-dlg {
+  .el-button.is-text {
+    padding: 0 6px;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .el-button--primary.is-text,
+  .el-button--primary.is-text:hover {
+    color: var(--bi-primary) !important;
+  }
+
+  .el-button--danger.is-text,
+  .el-button--danger.is-text:hover {
+    color: var(--bi-danger) !important;
+  }
+
+  .el-button.is-text:hover {
+    background: var(--bi-hover) !important;
+  }
+}
+
+/* ===== 命名空间别名：VTable 版（子组件写的是 Element Plus 变量）===== */.vt-bi {
   --el-color-primary: var(--bi-primary);
   --el-color-danger: var(--bi-danger);
   --el-border-color: var(--bi-border);
@@ -109,6 +162,7 @@ html.dark {
   .dt-dlg,
   .ue-page,
   .ue-dlg,
+  .bi-dlg,
   .vt-bi,
   .vtable {
     --bi-bg: #0e1014;

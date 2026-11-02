@@ -159,7 +159,7 @@
 
     <!-- 弹窗与抽屉 -->
     <AddColumnDialog :ops="ops" />
-    <ColumnManagerDrawer :core="core" :ops="ops" />
+    <ColumnManagerDrawer :core="core" :ops="ops" @config="openColumnConfig" />
     <ColumnConfigDrawer :core="core" :ops="ops" :field="configField" v-model:visible="configDrawer" />
     <ErrorDrawer :core="core" :ops="ops" />
     <TemplateDialog :tpl="tpl" />

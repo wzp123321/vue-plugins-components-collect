@@ -55,7 +55,7 @@
 | 合并单元格 | 框选合并 / 一键全取消 | `mergeCells` / `unmergeCells` | `FRange.merge` / `breakApart`，限数据区 |
 | 右键菜单 | 自研 `GridContextMenu` | 无 | 原生 |
 | 亮 / 暗主题 | CSS 变量 | `getComputedStyle` 读 `--bi-*` 转 `TableTheme` | `toggleDarkMode` + `MutationObserver` 跟 `html.dark` |
-| 点表头打开列设置 | `header-cell-click` | `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | 点列标整列选中（A1 信号） |
+| 点表头打开列配置 | `header-cell-click` | `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | 点列标整列选中（A1 信号） |
 
 行操作的唯一差异是**插入方向**：vxe 上方、VTable 下方、Univer 上方。
 
@@ -78,7 +78,7 @@
 | --- | --- | --- | --- |
 | 下拉值域 | 编辑器约束 | `ListEditor` | `requireValueInList` 原生拦截 |
 | 数字 min / max | 自研 | 自研 | 同步下发 `requireNumberBetween` |
-| 数字必须整数 | 无 `rules.integer` | `rules.integer` | 无 |
+| 数字必须整数 | `rules.integer` | `rules.integer` | `rules.integer` |
 | 日期必须真实 | `isRealDate` | `isRealDate` | 只过正则，`2026-02-30` 会通过 |
 | 整列唯一 | 自研 | 自研 | 预建索引，O(n) |
 | 跨列规则 | `gte / lte / eq / requiredIf` | 同 | 同 |
@@ -200,7 +200,38 @@ const applyChrome = () => {
 | 条件格式补齐 | 色阶、图标集、公式规则：`UCfBuilder` 扩 `setColorScale` / `setIconSet` |
 | **Pro 才能做** | 透视表、图表、`exchange`（保样式导入导出）、打印 PDF、协作。`@univerjs/preset-sheets-advanced` 会带进 28 个 `@univerjs-pro/*`，纯开源不能装 |
 
-## 6. 样式与主题一致性
+## 6. 列配置交互（三套共用一份 UI）
+
+单列配置的界面**只有一份**：`src/components/bi-column-drawer/`。三套录入台只做「列定义 ⇄ 草稿」的映射（入参类型就是 `utils/bi-entry.ts` 的 `BiColLike`），不再各写一份，否则立刻漂移成三种观感。
+
+### 6.1 交互规格（改这里等于改三套）
+
+| 项 | 规格 |
+| --- | --- |
+| 容器 | 右侧 `el-drawer`，宽 440px，挂 `.bi-dlg` 继承 `--bi-*` 色板（含暗黑） |
+| 标题 | `列配置 · <列名>`，列名取打开时快照，输入时不跟着抖 |
+| 提交 | 草稿模式：改动先落本地，**确定**才整体回写；取消 / 遮罩 / Esc / × 一律丢弃 |
+| 分区顺序 | 基本信息 → 类型专属（下拉选项 / 数值范围 / 日期格式）→ 校验规则 → 跨列规则 → 列状态（+ 列宽 / 表头分组）→ 删除该列 |
+| 必填校验 | 列名非空；下拉列至少一个非空选项。空规则由 `compactRules` 裁掉，不留 `rules: {}` 空壳 |
+
+两个入口分工固定，三套一致：
+
+- **列设置**（工具栏）：全量列表，只做增删 / 移序 / 显隐 / 冻结，改动即时生效；
+- **列配置**（点列头，或列设置列表里的「配置」）：单列，走上面的共享抽屉。
+
+### 6.2 引擎能力开关
+
+能力差异靠 `caps` 控制显隐，不做「按钮在、点了没反应」的假统一：
+
+| caps | vxe | VTable | Univer | 原因 |
+| --- | --- | --- | --- | --- |
+| `frozen` | ✅ | ✅ | — | Univer 只支持冻结首列（`xSplit`），不是任意列 |
+| `group` | ✅ | ✅ | — | Univer 无多级表头，表头即第 1 行 |
+| `width` | — | — | ✅ | vxe 按容器等比换算 + 拖拽；VTable 的 `width` 是等比基准不是像素 |
+
+其余项（列名 / 类型 / 必填 / 显示 / 选项 / 日期格式 / 数值区间 / 整数 / 长度 / 正则 / 唯一 / 跨列规则 / 删除）三套完全一致。
+
+## 7. 样式与主题一致性
 
 色板唯一来源是 `assets/style/bi-entry.less` 的 `--bi-*`，三套别名 `--dt-*`（vxe）/ `--ue-*`（Univer）/ `--el-*`（VTable）都映射到它；改一处三处生效。
 
@@ -208,7 +239,7 @@ const applyChrome = () => {
 - **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；本次补上了行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
 - **Univer**：`useEntrySheet.setDark()` = **恒喂亮色基调主题** + `toggleDarkMode(dark)`。Univer 的暗色是**反色**实现的：`CanvasColorService.getRenderColor()` 先按主题键解析真实颜色，再在 `darkMode` 为真时用反色矩阵翻转。所以「暗色主题 + 打开暗黑开关」会把已暗的颜色翻成亮色、画布反而发白（本仓踩过两次的坑）；正确组合只有「亮色主题 + 开关」。主题里 `primary` 取品牌蓝、`highlight.background[i].color` 必须填**主题键路径**（如 `orange.400`；填十六进制会解析成 `theme["#ff8f1f"]` → undefined）。同理**写进单元格的颜色（表头底色）恒写亮色值**，让它参与统一反转；按 `html.dark` 写深色会在暗黑下翻成亮色。⚠️ `setTheme` 是整体替换（不合并），必须全量透传 `defaultTheme`。
 
-## 7. 踩坑清单
+## 8. 踩坑清单
 
 **vxe**
 - 列宽只认 px，百分比宽会被截断，`fit` 不要用；列宽按容器等比换算，容器尺寸变化要自己重算。

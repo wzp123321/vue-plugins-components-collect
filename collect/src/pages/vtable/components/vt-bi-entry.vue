@@ -301,7 +301,7 @@
     </div>
 
     <!-- ===================== 校验抽屉 ===================== -->
-    <el-drawer v-model="errDrawer" title="校验未通过" size="420px">
+    <el-drawer v-model="errDrawer" title="校验未通过" size="420px" class="bi-dlg">
       <el-empty v-if="!errorItems.length" description="没有校验错误" :image-size="80" />
       <div v-else class="vt-bi__errlist">
         <div v-for="e in errorItems" :key="e.key" class="vt-bi__errrow" @click="jumpToError(e)">
@@ -313,7 +313,7 @@
     </el-drawer>
 
     <!-- ===================== 列设置抽屉 ===================== -->
-    <el-drawer v-model="colDrawer" title="列设置" size="560px">
+    <el-drawer v-model="colDrawer" title="列设置" size="560px" class="bi-dlg">
       <div class="vt-bi__colebar">
         <el-select v-model="newColType" size="small" class="vt-bi__coleselect">
           <el-option v-for="(l, t) in typeLabel" :key="t" :label="l" :value="t" />
@@ -364,81 +364,18 @@
       </el-table>
     </el-drawer>
 
-    <!-- ===================== 单列配置（校验规则 / 跨列规则） ===================== -->
-    <el-dialog v-model="colConfigVisible" title="列配置" width="640px" append-to-body>
-      <el-form v-if="editingCol" label-width="96px" size="small" class="vt-bi__ruleform">
-        <el-form-item label="列名">
-          <el-input v-model="editingCol.label" />
-        </el-form-item>
-        <el-form-item v-if="editingCol.type === 'select'" label="可选项">
-          <el-select v-model="editingCol.options" multiple filterable allow-create default-first-option placeholder="回车新增选项" class="vt-bi__full">
-            <el-option v-for="o in editingCol.options ?? []" :key="o" :label="o" :value="o" />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="editingCol.type === 'date'" label="显示格式">
-          <el-select v-model="editingCol.dateFormat" class="vt-bi__full">
-            <el-option label="YYYY-MM-DD" value="YYYY-MM-DD" />
-            <el-option label="YYYY/MM/DD" value="YYYY/MM/DD" />
-            <el-option label="MM-DD" value="MM-DD" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="表头分组">
-          <el-input v-model="editingCol.group" placeholder="同名的连续列会合并成父表头" />
-        </el-form-item>
-        <el-form-item label="必填">
-          <el-switch v-model="editingCol.required" />
-        </el-form-item>
-        <el-form-item v-if="editingCol.type === 'number'" label="数值规则">
-          <div class="vt-bi__ruleline">
-            <el-input-number v-model="rulesDraft.min" :controls="false" placeholder="最小" size="small" />
-            <el-input-number v-model="rulesDraft.max" :controls="false" placeholder="最大" size="small" />
-            <el-checkbox v-model="rulesDraft.integer">整数</el-checkbox>
-          </div>
-        </el-form-item>
-        <el-form-item label="长度限制">
-          <div class="vt-bi__ruleline">
-            <el-input-number v-model="rulesDraft.minLen" :controls="false" :min="0" placeholder="最小长度" size="small" />
-            <el-input-number v-model="rulesDraft.maxLen" :controls="false" :min="0" placeholder="最大长度" size="small" />
-          </div>
-        </el-form-item>
-        <el-form-item label="正则">
-          <div class="vt-bi__ruleline">
-            <el-input v-model="rulesDraft.pattern" placeholder="正则源（不带斜杠），如 ^\d{6}$" />
-            <el-input v-model="rulesDraft.patternMsg" placeholder="不匹配时的提示" />
-          </div>
-        </el-form-item>
-        <el-form-item label="唯一">
-          <el-checkbox v-model="rulesDraft.unique">整列不可重复</el-checkbox>
-        </el-form-item>
-        <el-form-item label="跨列规则">
-          <div class="vt-bi__crosslist">
-            <div v-for="(r, i) in crossDraft" :key="i" class="vt-bi__crossrow">
-              <el-select v-model="r.kind" size="small" class="vt-bi__crosskind">
-                <el-option label="≥ 参照列" value="gte" />
-                <el-option label="≤ 参照列" value="lte" />
-                <el-option label="= 参照列" value="eq" />
-                <el-option label="参照列非空时必填" value="requiredIf" />
-              </el-select>
-              <el-select v-model="r.other" size="small" placeholder="参照列" class="vt-bi__crossother">
-                <el-option v-for="c in cols.filter((x) => x.field !== editingCol?.field)" :key="c.field" :label="c.label" :value="c.field" />
-              </el-select>
-              <el-input v-model="r.msg" size="small" placeholder="提示文案" />
-              <el-button size="small" text type="danger" :icon="Delete" @click="crossDraft.splice(i, 1)" />
-            </div>
-            <el-button size="small" text type="primary" :icon="Plus" @click="crossDraft.push({ kind: 'gte', other: '', msg: '' })">
-              添加跨列规则
-            </el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button size="small" @click="colConfigVisible = false">取消</el-button>
-        <el-button size="small" type="primary" @click="applyColConfig">保存</el-button>
-      </template>
-    </el-dialog>
+    <!-- ===================== 单列配置（三套共用抽屉，交互唯一定义处） ===================== -->
+    <BiColumnDrawer
+      v-model:visible="colConfigVisible"
+      :column="colConfigTarget"
+      :siblings="cols"
+      :caps="{ frozen: true, group: true }"
+      @confirm="applyColConfig"
+      @remove="onRemoveConfigCol"
+    />
 
     <!-- ===================== 筛选 / 排序抽屉 ===================== -->
-    <el-drawer v-model="queryDrawer" title="筛选 / 排序" size="420px">
+    <el-drawer v-model="queryDrawer" title="筛选 / 排序" size="420px" class="bi-dlg">
       <div class="vt-bi__querybox">
         <el-select v-model="queryField" size="small" placeholder="选择列" class="vt-bi__coleselect">
           <el-option v-for="c in visibleCols" :key="c.field" :label="c.label" :value="c.field" />
@@ -530,10 +467,10 @@ import {
   typeLabel,
   type BiCol,
   type BiRow,
-  type ColRule,
   type ColType,
-  type CrossRule,
 } from './bi-entry/schema';
+import BiColumnDrawer from '@/components/bi-column-drawer/bi-column-drawer.vue';
+import type { ColumnDraft } from '@/components/bi-column-drawer/types';
 import { ROWNO_WIDTH, SELECT_WIDTH, allocWidths, groupColumns, useBiColumns } from './bi-entry/useBiColumns';
 import { useBiValidation, type ErrItem } from './bi-entry/useBiValidation';
 import { useBiQuery } from './bi-entry/useBiQuery';
@@ -1975,9 +1912,8 @@ const onSubmit = () => {
 };
 
 // ============================ 列设置 ============================
-const editingCol = ref<BiCol | null>(null);
-const rulesDraft = reactive<ColRule>({});
-const crossDraft = ref<CrossRule[]>([]);
+/** 点列头 / 点列表里「配置」时要配的那一列（共享抽屉的入参） */
+const colConfigTarget = ref<BiCol | null>(null);
 
 const openAddCol = () => {
   const before = historyApi.snapshot('新增列');
@@ -2026,18 +1962,7 @@ const onColTypeChange = (col: BiCol) => {
 };
 
 const openColConfig = (col: BiCol) => {
-  editingCol.value = col;
-  Object.assign(rulesDraft, {
-    min: col.rules?.min,
-    max: col.rules?.max,
-    integer: col.rules?.integer,
-    minLen: col.rules?.minLen,
-    maxLen: col.rules?.maxLen,
-    pattern: col.rules?.pattern,
-    patternMsg: col.rules?.patternMsg,
-    unique: col.rules?.unique,
-  });
-  crossDraft.value = (col.cross ?? []).map((r) => ({ ...r }));
+  colConfigTarget.value = col;
   colConfigVisible.value = true;
 };
 
@@ -2065,32 +1990,38 @@ onHeaderCell = (col: number, row: number) => {
   }
 };
 
-const applyColConfig = () => {
-  const col = editingCol.value;
+/**
+ * 共享抽屉确认：整体回写列定义后整表重校 + 重建。
+ * 草稿里的 rules / cross 已由抽屉裁剪（空值不落盘），这里不再二次清洗。
+ */
+const applyColConfig = (d: ColumnDraft) => {
+  const col = colConfigTarget.value;
   if (!col) {
     return;
   }
-  const rules: ColRule = {};
-  const keys: Array<keyof ColRule> = ['min', 'max', 'integer', 'minLen', 'maxLen', 'pattern', 'patternMsg', 'unique'];
-  keys.forEach((k) => {
-    const v = rulesDraft[k];
-    if (v !== undefined && v !== null && v !== '') {
-      (rules as Record<string, unknown>)[k] = v;
-    }
-  });
   updateCol(col.field, {
-    rules,
-    cross: crossDraft.value.filter((r) => r.other),
-    label: col.label,
-    type: col.type,
-    options: col.options,
-    dateFormat: col.dateFormat,
-    group: col.group,
-    required: col.required,
+    label: d.label,
+    type: d.type,
+    required: !!d.required,
+    visible: d.visible,
+    frozen: !!d.frozen,
+    group: d.group,
+    dateFormat: d.dateFormat,
+    options: d.options,
+    rules: d.rules,
+    cross: d.cross,
   });
-  colConfigVisible.value = false;
   validation.scanAll(records.value);
   rebuild();
+};
+
+/** 共享抽屉里点「删除该列」：沿用列设置里的删除链路（入撤销栈 + 清理校验/查询态） */
+const onRemoveConfigCol = () => {
+  const col = colConfigTarget.value;
+  if (!col) {
+    return;
+  }
+  onRemoveCol(col);
 };
 
 const onSaveTemplate = async () => {
@@ -2485,43 +2416,6 @@ defineExpose({ resize });
 
   &__coleselect {
     width: 150px;
-  }
-
-  &__ruleform {
-    max-height: 60vh;
-    overflow: auto;
-  }
-
-  &__ruleline {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-
-    > * {
-      flex: 1;
-    }
-  }
-
-  &__crosslist {
-    width: 100%;
-  }
-
-  &__crossrow {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-
-  &__crosskind {
-    width: 150px;
-    flex: 0 0 auto;
-  }
-
-  &__crossother {
-    width: 140px;
-    flex: 0 0 auto;
   }
 
   &__querybox {

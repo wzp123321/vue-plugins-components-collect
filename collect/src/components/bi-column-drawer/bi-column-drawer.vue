@@ -1,0 +1,381 @@
+<!--
+  列配置抽屉（三套 BI 录入台共用 · 单列配置）
+  ============================================================================
+  职责：点列头 / 点列表里的「配置」后，只配置**这一列**。
+  交互（三套必须一致，本组件即唯一定义处）：
+    · 容器：右侧 el-drawer，宽 440px，挂 .bi-dlg 继承 BI 色板；
+    · 标题：「列配置 · 列名」（列名取打开时的快照，输入框改动不带着标题跳）；
+    · 提交：草稿模式——改动先落在本地，点「确定」才整体回写，点「取消 / 遮罩 / Esc」丢弃；
+    · 分区顺序固定：基本信息 → 类型专属 → 校验规则 → 跨列规则 → 显示与视图 → 删除该列。
+  引擎差异只允许出现在**能力**上（caps）：冻结 / 表头分组 / 列宽，不做假统一。
+
+  协作：各引擎把 colDef 映射成 :column 传进来，@confirm 里整体回写并重建表格。
+-->
+<template>
+  <el-drawer
+    :model-value="visible"
+    :title="title"
+    size="440px"
+    class="bi-dlg"
+    @close="close"
+    @update:model-value="(v: boolean) => emit('update:visible', v)"
+  >
+    <div v-if="column" class="bcd">
+      <el-form label-width="76px" label-position="left" size="small" class="bcd-form">
+        <el-form-item label="列名">
+          <el-input v-model="draft.label" maxlength="20" placeholder="列名" />
+        </el-form-item>
+        <el-form-item label="数据类型">
+          <el-select v-model="draft.type" style="width: 100%">
+            <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
+          </el-select>
+        </el-form-item>
+
+        <!-- ===== 类型专属：下拉选项 ===== -->
+        <el-form-item v-if="draft.type === 'select'" label="下拉选项">
+          <div class="bcd-options">
+            <div v-for="(_, i) in draft.options" :key="i" class="bcd-option">
+              <el-input v-model="draft.options[i]" placeholder="选项文本" />
+              <el-button text type="danger" :disabled="draft.options.length <= 1" @click="removeOption(i)">✕</el-button>
+            </div>
+            <el-button text type="primary" @click="addOption">＋ 添加选项</el-button>
+            <div class="bcd-hint">单元格以下拉形式录入，值必须落在选项内</div>
+          </div>
+        </el-form-item>
+
+        <!-- ===== 类型专属：数值范围 ===== -->
+        <el-form-item v-if="draft.type === 'number'" label="数值范围">
+          <div class="bcd-range">
+            <el-input-number v-model="minRule" :controls="false" placeholder="最小" class="bcd-num" />
+            <span class="bcd-tilde">~</span>
+            <el-input-number v-model="maxRule" :controls="false" placeholder="最大" class="bcd-num" />
+            <el-checkbox v-model="integerRule">整数</el-checkbox>
+          </div>
+        </el-form-item>
+
+        <!-- ===== 类型专属：日期格式 ===== -->
+        <el-form-item v-if="draft.type === 'date'" label="显示格式">
+          <el-select v-model="draft.dateFormat" filterable allow-create default-first-option style="width: 100%">
+            <el-option v-for="f in DATE_FORMATS" :key="f" :label="f" :value="f" />
+          </el-select>
+        </el-form-item>
+
+        <!-- ===== 校验规则 ===== -->
+        <el-form-item v-if="draft.type === 'text'" label="长度限制">
+          <div class="bcd-range">
+            <el-input-number v-model="minLenRule" :controls="false" :min="0" placeholder="最短" class="bcd-num" />
+            <span class="bcd-tilde">~</span>
+            <el-input-number v-model="maxLenRule" :controls="false" :min="0" placeholder="最长" class="bcd-num" />
+          </div>
+        </el-form-item>
+        <el-form-item v-if="draft.type === 'text'" label="正则">
+          <div class="bcd-col">
+            <el-input v-model="draft.rules.pattern" placeholder="正则源（不带斜杠），如 ^\d{11}$" />
+            <el-input v-model="draft.rules.patternMsg" placeholder="不匹配时的提示文案" />
+          </div>
+        </el-form-item>
+        <el-form-item label="整列唯一">
+          <el-checkbox v-model="draft.rules.unique">同列取值不可重复（工号 / 邮箱等）</el-checkbox>
+        </el-form-item>
+
+        <!-- ===== 跨列规则 ===== -->
+        <el-form-item label="跨列规则">
+          <div class="bcd-cross">
+            <div v-for="(r, i) in draft.cross" :key="i" class="bcd-crossrow">
+              <el-select v-model="r.kind" class="bcd-crosskind">
+                <el-option v-for="k in CROSS_KINDS" :key="k.value" :label="k.label" :value="k.value" />
+              </el-select>
+              <el-select v-model="r.other" placeholder="参照列" class="bcd-crossother">
+                <el-option
+                  v-for="s in otherColumns"
+                  :key="s.field"
+                  :label="s.label"
+                  :value="s.field"
+                />
+              </el-select>
+              <div class="bcd-crossrow2">
+                <el-input v-model="r.msg" placeholder="不通过时的提示（留空走默认文案）" />
+                <el-button text type="danger" @click="draft.cross.splice(i, 1)">✕</el-button>
+              </div>
+            </div>
+            <el-button text type="primary" :disabled="!otherColumns.length" @click="addCross">＋ 添加跨列规则</el-button>
+            <div v-if="!otherColumns.length" class="bcd-hint">表里只有这一列，暂无可参照的列</div>
+          </div>
+        </el-form-item>
+
+        <!-- ===== 显示与视图（能力差异走 caps） ===== -->
+        <el-form-item label="列状态">
+          <div class="bcd-flags">
+            <el-switch v-model="draft.required" inline-prompt active-text="必" inactive-text="选" />
+            <el-switch v-model="draft.visible" inline-prompt active-text="显" inactive-text="隐" />
+            <el-switch
+              v-if="caps.frozen"
+              v-model="draft.frozen"
+              inline-prompt
+              active-text="冻"
+              inactive-text="松"
+            />
+            <span class="bcd-hint">必填 / 显示 / 冻结</span>
+          </div>
+        </el-form-item>
+        <el-form-item v-if="caps.width" label="列宽">
+          <div class="bcd-range">
+            <el-input-number v-model="draft.width" :controls="false" :min="60" :step="10" class="bcd-num" />
+            <span class="bcd-unit">px</span>
+          </div>
+        </el-form-item>
+        <el-form-item v-if="caps.group" label="表头分组">
+          <el-input v-model="draft.group" placeholder="留空=单层表头；相邻同名列归到一个父表头" />
+        </el-form-item>
+      </el-form>
+
+      <div class="bcd-danger">
+        <el-button text type="danger" @click="onRemove">删除该列</el-button>
+      </div>
+    </div>
+    <div v-else class="bcd-empty">列不存在或已被删除</div>
+
+    <template #footer>
+      <el-button @click="close">取消</el-button>
+      <el-button type="primary" @click="confirm">确定</el-button>
+    </template>
+  </el-drawer>
+</template>
+
+<script setup lang="ts">
+// 说明：抽屉是纯 UI 层，不碰任何引擎 API。所有读写都走 draft，确认后由父级整体回写。
+import { computed, reactive, ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { compactRules, DEFAULT_DATE_FORMAT, type BiColLike, type ColType, type CrossKind } from '@/utils/bi-entry';
+import type { ColumnCaps, ColumnDraft, DraftState } from './types';
+
+defineOptions({ name: 'BiColumnDrawer' });
+
+const props = defineProps<{
+  visible: boolean;
+  /** 要配置的列（真实列定义；打开时拷入草稿，外部变化不影响正在编辑的内容） */
+  column?: BiColLike | null;
+  /** 引擎能力开关：不传即一律不显示对应项 */
+  caps?: ColumnCaps;
+  /** 同表其它列：跨列规则的参照列候选 */
+  siblings?: BiColLike[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:visible', v: boolean): void;
+  (e: 'confirm', draft: ColumnDraft): void;
+  (e: 'remove'): void;
+}>();
+
+/** 四种列类型：这是产品口径，不跟随各引擎的类型枚举命名 */
+const TYPES: { value: ColType; label: string }[] = [
+  { value: 'text', label: '文本' },
+  { value: 'number', label: '数字' },
+  { value: 'select', label: '下拉' },
+  { value: 'date', label: '日期' },
+];
+
+/** 日期格式预设：存储恒为 YYYY-MM-DD，这里只决定展示与编辑框呈现 */
+const DATE_FORMATS = ['YYYY-MM-DD', 'YYYY/MM/DD', 'YYYY年MM月DD日', 'MM/DD/YYYY', 'DD-MM-YYYY'];
+
+/** 跨列规则四种关系：文案对齐「日期先后 / 数值大小 / 相等 / 条件必填」四类真实需求 */
+const CROSS_KINDS: { value: CrossKind; label: string }[] = [
+  { value: 'gte', label: '不早于 / 不小于（≥）' },
+  { value: 'lte', label: '不晚于 / 不大于（≤）' },
+  { value: 'eq', label: '需与参照列一致（=）' },
+  { value: 'requiredIf', label: '参照列已填则本列必填' },
+];
+
+const draft = reactive<DraftState>({
+  field: '',
+  label: '',
+  type: 'text',
+  required: false,
+  visible: true,
+  options: [],
+  rules: {},
+  cross: [],
+  dateFormat: DEFAULT_DATE_FORMAT,
+});
+
+const caps = computed<ColumnCaps>(() => props.caps ?? {});
+const otherColumns = computed(() => (props.siblings ?? []).filter((s) => s.field !== draft.field));
+
+/** 标题里的列名取「打开时」的快照：跟着输入框实时变会让标题抖动 */
+const titleLabel = ref('');
+const title = computed(() => (titleLabel.value ? `列配置 · ${titleLabel.value}` : '列配置'));
+
+/** 打开（或换了一列）时把真实定义拷进草稿：数组/对象深拷一层，避免编辑过程中污染表格 */
+const fillFrom = (col: BiColLike) => {
+  draft.field = col.field;
+  draft.label = col.label;
+  draft.type = col.type;
+  draft.required = !!col.required;
+  draft.visible = col.visible !== false;
+  draft.frozen = !!col.frozen;
+  draft.width = col.width;
+  draft.group = col.group ?? '';
+  draft.dateFormat = col.dateFormat || DEFAULT_DATE_FORMAT;
+  draft.options = [...(col.options ?? [])];
+  draft.rules = { ...(col.rules ?? {}) };
+  draft.cross = (col.cross ?? []).map((c) => ({ ...c }));
+};
+
+watch(
+  () => [props.visible, props.column?.field] as const,
+  ([visible]) => {
+    if (!visible || !props.column) {
+      return;
+    }
+    fillFrom(props.column);
+    titleLabel.value = props.column.label;
+  },
+  { immediate: true },
+);
+
+// ===================== 数值类规则的可写代理 =====================
+// 直接 v-model 到 draft.rules.min 会留下 `min: null` 这类脏值，且清空后 rules 变成空对象；
+// 统一走代理：清空即 delete，空壳由 compactRules 在 confirm 时收口。
+const numberRule = (key: 'min' | 'max' | 'minLen' | 'maxLen') => computed<number | undefined>({
+  get: () => draft.rules[key],
+  set: (v) => {
+    if (v === undefined || v === null) {
+      delete draft.rules[key];
+    } else {
+      draft.rules[key] = v;
+    }
+  },
+});
+
+const minRule = numberRule('min');
+const maxRule = numberRule('max');
+const minLenRule = numberRule('minLen');
+const maxLenRule = numberRule('maxLen');
+
+const integerRule = computed<boolean>({
+  get: () => !!draft.rules.integer,
+  set: (v) => {
+    if (v) {
+      draft.rules.integer = true;
+    } else {
+      delete draft.rules.integer;
+    }
+  },
+});
+
+// ===================== 列表增删 =====================
+const addOption = () => draft.options.push('');
+
+const removeOption = (i: number) => draft.options.splice(i, 1);
+
+const addCross = () => draft.cross.push({ kind: 'gte', other: '', msg: '' });
+
+// ===================== 提交 =====================
+const close = () => emit('update:visible', false);
+
+/**
+ * 确定：校验 → 裁剪 → 交出草稿 → 关抽屉。
+ * 只在这里做「形不形成一次合法列定义」的判定，业务侧（是否重校 / 是否入撤销栈）由各引擎自己负责。
+ */
+const confirm = () => {
+  const label = draft.label.trim();
+  if (!label) {
+    ElMessage.warning('请输入列名');
+    return;
+  }
+  const options = draft.type === 'select'
+    ? draft.options.map((o) => o.trim()).filter(Boolean)
+    : undefined;
+  if (draft.type === 'select' && !options?.length) {
+    ElMessage.warning('下拉列至少填一个选项');
+    return;
+  }
+  emit('confirm', {
+    field: draft.field,
+    label,
+    type: draft.type,
+    required: draft.required,
+    visible: draft.visible,
+    frozen: caps.value.frozen ? !!draft.frozen : undefined,
+    width: caps.value.width ? draft.width : undefined,
+    group: caps.value.group ? draft.group?.trim() || undefined : undefined,
+    dateFormat: draft.type === 'date' ? draft.dateFormat || DEFAULT_DATE_FORMAT : undefined,
+    options,
+    rules: compactRules(draft.rules),
+    cross: draft.cross.filter((c) => c.other).map((c) => ({ ...c, msg: c.msg?.trim() || undefined })),
+  });
+  close();
+};
+
+const onRemove = () => {
+  emit('remove');
+  close();
+};
+</script>
+
+<style scoped>
+/* 「＋ 添加」这类文字按钮的观感由全局 assets/style/bi-entry.less 统一还原（.bi-dlg 作用域），
+ * 这里只管抽屉内部布局。 */
+.bcd-form {
+  padding-right: 2px;
+}
+.bcd-options,
+.bcd-cross,
+.bcd-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+/* 纵向堆叠容器里的按钮默认会被拉满整行，"＋ 添加选项"变成一条横条——靠左还给文字宽度 */
+.bcd-options > .el-button,
+.bcd-cross > .el-button {
+  align-self: flex-start;
+}
+.bcd-option,
+.bcd-range,
+.bcd-crossrow2,
+.bcd-flags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bcd-range {
+  gap: 8px;
+}
+.bcd-num {
+  width: 108px;
+}
+.bcd-tilde,
+.bcd-unit,
+.bcd-hint {
+  font-size: 12px;
+  color: var(--bi-sub);
+}
+.bcd-crossrow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--bi-border);
+  border-radius: 6px;
+  background: var(--bi-hover);
+}
+.bcd-crosskind {
+  width: 100%;
+}
+.bcd-crossother {
+  width: 100%;
+}
+.bcd-danger {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bi-border-soft);
+}
+.bcd-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--bi-sub);
+}
+</style>

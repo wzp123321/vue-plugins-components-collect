@@ -1,11 +1,17 @@
 <script setup lang="ts">
-// 列设置抽屉：新增列 + 逐列改定义（名称/类型/必填/宽度/显隐/移序/删除/校验规则/跨列规则）
-// 纯 UI 层：所有改动都通过 ops.updateColumn 落到"列定义 → 重写表头 + 重下发验证"这条链路上。
-// ⚠️ 这里刻意用 @change（失焦/回车才提交）而非 v-model：每次改列定义都会重写整表数据，
-//    逐字符触发会把表格打回重绘风暴。
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+// 列设置抽屉（Univer 版 · 全量管理）：新增列 / 移序 / 显隐 / 必填 / 删除 + 逐列「配置」入口
+// ---------------------------------------------------------------------------
+// 与另两套的分工完全一致：
+//   · 本抽屉 = 列表级管理（增删移序显隐），入口在工具栏「列设置」；
+//   · 单列配置抽屉 = components/bi-column-drawer（三套共用），入口是点列标或本列表的「配置」。
+// 这里不再内联规则/列宽编辑——那会变成第二套"改列定义"的 UI，跟共享抽屉两处漂移
+// （此前正是这么漂的：Univer 内联折叠表单、vxe 有独立规则弹窗、VTable 是居中弹窗）。
+//
+// ⚠️ 管理类开关用 @update（点一下即生效）而非草稿：它们各自是一条独立命令，
+//    用户预期是"立刻看到表格变化"；要整体编辑列定义时走「配置」里的草稿 + 确定。
+import { computed, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import type { ColDef, ColType, CrossKind } from '../schema';
+import type { ColDef, ColType } from '../schema';
 import { typeLabel } from '../schema';
 import type { EntryOps } from '../useEntryOps';
 
@@ -15,28 +21,20 @@ const props = defineProps<{
   visible: boolean;
   defs: ColDef[];
   ops: EntryOps;
-  /** 打开时要定位的列 field（点列标触发）：滚动到该列 + 展开其规则 + 短暂高亮 */
-  focusField?: string;
 }>();
 
-const emit = defineEmits<{ (e: 'update:visible', v: boolean): void; (e: 'close'): void }>();
+const emit = defineEmits<{
+  (e: 'update:visible', v: boolean): void;
+  /** 请求打开单列配置（页面挂共享抽屉） */
+  (e: 'config', field: string): void;
+}>();
 
 const types: ColType[] = ['text', 'number', 'select', 'date'];
-const crossKinds: { value: CrossKind | ''; label: string }[] = [
-  { value: '', label: '无跨列规则' },
-  { value: 'gte', label: '不早于/小于（≥）' },
-  { value: 'lte', label: '不晚于/大于（≤）' },
-  { value: 'eq', label: '需与参照列一致（=）' },
-  { value: 'requiredIf', label: '参照列已填则本列必填' },
-];
 
-// 新增列表单
+/** 新增列表单 */
 const addForm = reactive({ label: '', type: 'text' as ColType, options: '', required: false });
 
-const close = () => {
-  emit('update:visible', false);
-  emit('close');
-};
+const close = () => emit('update:visible', false);
 
 const onAdd = () => {
   const label = addForm.label.trim();
@@ -55,67 +53,12 @@ const onAdd = () => {
   addForm.required = false;
 };
 
-/** 更新单列规则中的某个字段（undefined 表示清空该规则） */
-const patchRule = (d: ColDef, key: string, raw: string | number | boolean | null) => {
-  const rules = { ...(d.rules ?? {}) } as Record<string, unknown>;
-  if (raw === null || raw === '') delete rules[key];
-  else rules[key] = raw;
-  props.ops.updateColumn(d.field, { rules: Object.keys(rules).length ? rules : undefined });
-};
-
-/** 跨列规则：单条（参照列 + 关系），空选择表示清除 */
-const patchCross = (d: ColDef, kind: CrossKind | '', other: string) => {
-  if (!kind || !other) {
-    props.ops.updateColumn(d.field, { cross: undefined });
-    return;
-  }
-  props.ops.updateColumn(d.field, { cross: [{ kind, other }] });
-};
-
-const crossKindOf = (d: ColDef): CrossKind | '' => d.cross?.[0]?.kind ?? '';
-const crossOtherOf = (d: ColDef): string => d.cross?.[0]?.other ?? '';
-
-// 展开态：默认收起，避免一屏堆满输入框
-const openFields = ref<string[]>([]);
-
-// ===================== 点列标 → 定位到该列 =====================
-// 与 vxe 版一致：点列头打开"这一列"的配置。这里复用全量列表，靠滚动 + 展开 + 高亮表达"就是这列"，
-// 不再单独做一份单列抽屉（两套结构会漂移）。
-const listRef = ref<HTMLElement>();
-/** 当前聚焦列（用于标题 + 高亮）；高亮单独一个变量，2 秒后只清高亮、标题保持 */
-const focusedField = ref('');
-const highlightField = ref('');
-
-/** 抽屉标题带上当前聚焦列名，避免列表太长看不出定位到哪列 */
-const drawerTitle = computed(() => {
-  const d = props.defs.find((x) => x.field === focusedField.value);
-  return d ? `列设置 · ${d.label}` : '列设置';
-});
-
-watch(
-  () => [props.visible, props.focusField] as const,
-  ([visible, field], old) => {
-    // 只在"打开"或"换了一列"时定位；单纯关抽屉不复位，避免闪烁
-    if (!visible || !field) return;
-    const opened = !old || !old[0];
-    if (!opened && old[1] === field) return;
-    focusedField.value = field;
-    highlightField.value = field;
-    openFields.value = [field];
-    nextTick(() => {
-      const el = listRef.value?.querySelector<HTMLElement>(`[data-field="${field}"]`);
-      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      window.setTimeout(() => {
-        if (highlightField.value === field) highlightField.value = '';
-      }, 2000);
-    });
-  },
-  { immediate: true },
-);
+/** 已隐藏列数：提示用户"隐藏列仍在，只是不显示"，避免以为数据丢了 */
+const hiddenCount = computed(() => props.defs.filter((d) => !d.visible).length);
 </script>
 
 <template>
-  <el-drawer :model-value="visible" :title="drawerTitle" size="520px" class="ue-dlg" @close="close" @update:model-value="(v: boolean) => emit('update:visible', v)">
+  <el-drawer :model-value="visible" title="列设置" size="520px" class="ue-dlg" @close="close" @update:model-value="(v: boolean) => emit('update:visible', v)">
     <div class="cd-add">
       <div class="cd-add-title">新增列</div>
       <div class="cd-add-row">
@@ -135,26 +78,22 @@ watch(
       />
     </div>
 
-    <div class="cd-list" ref="listRef">
-      <div
-        v-for="(d, i) in defs"
-        :key="d.field"
-        class="cd-item"
-        :class="{ 'is-focus': highlightField === d.field }"
-        :data-field="d.field"
-      >
+    <div class="cd-tip">点「配置」编辑该列的类型专属项与校验规则；开关类改动即时生效。</div>
+
+    <div class="cd-list">
+      <div v-for="(d, i) in defs" :key="d.field" class="cd-item" :class="{ 'is-hidden': !d.visible }">
         <div class="cd-item-head">
           <span class="cd-index">{{ i + 1 }}</span>
           <el-input
             :model-value="d.label"
             size="small"
-            style="width: 120px"
+            class="cd-name"
             @change="(v: string) => ops.updateColumn(d.field, { label: v })"
           />
           <el-select
             :model-value="d.type"
             size="small"
-            style="width: 88px"
+            class="cd-type"
             @change="(v: ColType) => ops.updateColumn(d.field, { type: v })"
           >
             <el-option v-for="t in types" :key="t" :label="typeLabel[t]" :value="t" />
@@ -163,6 +102,9 @@ watch(
             <el-switch
               :model-value="d.required"
               size="small"
+              inline-prompt
+              active-text="必"
+              inactive-text="选"
               @update:model-value="(v: boolean | string | number) => ops.updateColumn(d.field, { required: Boolean(v) })"
             />
           </el-tooltip>
@@ -177,113 +119,20 @@ watch(
             />
           </el-tooltip>
           <div class="cd-item-actions">
-            <el-button size="small" text :disabled="i === 0" @click="ops.moveColumn(i, -1)">←</el-button>
-            <el-button size="small" text :disabled="i === defs.length - 1" @click="ops.moveColumn(i, 1)">→</el-button>
-            <el-button size="small" text type="danger" @click="ops.removeColumn(d.field)">删</el-button>
+            <el-button size="small" text :disabled="i === 0" title="上移" @click="ops.moveColumn(i, -1)">←</el-button>
+            <el-button size="small" text :disabled="i === defs.length - 1" title="下移" @click="ops.moveColumn(i, 1)">→</el-button>
+            <el-button size="small" text type="primary" @click="emit('config', d.field)">配置</el-button>
+            <el-button size="small" text type="danger" title="删除该列" @click="ops.removeColumn(d.field)">删</el-button>
           </div>
         </div>
-
-        <el-collapse v-model="openFields" class="cd-collapse">
-          <el-collapse-item :name="d.field">
-            <template #title>
-              <span class="cd-collapse-title">校验规则 / 列宽{{ d.rules || d.cross ? ' · 已配置' : '' }}</span>
-            </template>
-            <div class="cd-rules">
-              <template v-if="d.type === 'number'">
-                <el-input
-                  :model-value="d.rules?.min ?? ''"
-                  placeholder="最小值"
-                  size="small"
-                  style="width: 110px"
-                  @change="(v: string) => patchRule(d, 'min', v === '' ? null : Number(v))"
-                />
-                <el-input
-                  :model-value="d.rules?.max ?? ''"
-                  placeholder="最大值"
-                  size="small"
-                  style="width: 110px"
-                  @change="(v: string) => patchRule(d, 'max', v === '' ? null : Number(v))"
-                />
-              </template>
-              <template v-if="d.type === 'text'">
-                <el-input
-                  :model-value="d.rules?.minLen ?? ''"
-                  placeholder="最小长度"
-                  size="small"
-                  style="width: 110px"
-                  @change="(v: string) => patchRule(d, 'minLen', v === '' ? null : Number(v))"
-                />
-                <el-input
-                  :model-value="d.rules?.maxLen ?? ''"
-                  placeholder="最大长度"
-                  size="small"
-                  style="width: 110px"
-                  @change="(v: string) => patchRule(d, 'maxLen', v === '' ? null : Number(v))"
-                />
-              </template>
-              <el-input
-                :model-value="d.rules?.pattern ?? ''"
-                placeholder="正则源（不带斜杠），如 ^\d{11}$"
-                size="small"
-                style="width: 200px"
-                @change="(v: string) => patchRule(d, 'pattern', v)"
-              />
-              <el-input
-                :model-value="d.rules?.patternMsg ?? ''"
-                placeholder="正则不匹配时的提示"
-                size="small"
-                style="width: 180px"
-                @change="(v: string) => patchRule(d, 'patternMsg', v)"
-              />
-              <el-checkbox
-                :model-value="!!d.rules?.unique"
-                size="small"
-                @update:model-value="(v: boolean | string | number) => patchRule(d, 'unique', v ? true : null)"
-              >
-                列内唯一
-              </el-checkbox>
-              <div class="cd-rules-row">
-                <el-select
-                  :model-value="crossKindOf(d)"
-                  size="small"
-                  style="width: 190px"
-                  @change="(v: CrossKind | '') => patchCross(d, v, crossOtherOf(d))"
-                >
-                  <el-option v-for="k in crossKinds" :key="k.value" :label="k.label" :value="k.value" />
-                </el-select>
-                <el-select
-                  :model-value="crossOtherOf(d)"
-                  size="small"
-                  placeholder="参照列"
-                  style="width: 130px"
-                  :disabled="!crossKindOf(d)"
-                  @change="(v: string) => patchCross(d, crossKindOf(d), v)"
-                >
-                  <el-option v-for="o in defs.filter((x) => x.field !== d.field)" :key="o.field" :label="o.label" :value="o.field" />
-                </el-select>
-                <el-input
-                  :model-value="d.width"
-                  size="small"
-                  style="width: 100px"
-                  @change="(v: string) => ops.updateColumn(d.field, { width: Math.max(60, Number(v) || 120) })"
-                >
-                  <template #prepend>宽</template>
-                </el-input>
-              </div>
-              <div v-if="d.type === 'select'" class="cd-rules-row">
-                <el-input
-                  :model-value="(d.options ?? []).join(',')"
-                  size="small"
-                  style="width: 100%"
-                  placeholder="下拉选项，用逗号分隔"
-                  @change="(v: string) => ops.updateColumn(d.field, { options: v.split(/[,，]/).map((s) => s.trim()).filter(Boolean) })"
-                />
-              </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
+        <div class="cd-item-meta">
+          <el-tag v-if="d.rules || d.cross" size="small" type="warning" effect="plain">已配校验</el-tag>
+          <el-tag v-if="!d.visible" size="small" type="info" effect="plain">已隐藏</el-tag>
+        </div>
       </div>
     </div>
+
+    <div v-if="hiddenCount" class="cd-hint">有 {{ hiddenCount }} 列处于隐藏状态：数据仍在，导出会按可见列输出。</div>
   </el-drawer>
 </template>
 
@@ -305,6 +154,12 @@ watch(
   align-items: center;
   gap: 8px;
 }
+.cd-tip,
+.cd-hint {
+  font-size: 12px;
+  color: var(--ue-sub);
+  margin-bottom: 8px;
+}
 .cd-list {
   display: flex;
   flex-direction: column;
@@ -315,17 +170,28 @@ watch(
   border-radius: 10px;
   padding: 8px 10px;
   background: var(--ue-panel);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* 点列标定位过来的那一列：2 秒高亮，让人一眼看到"就是这列" */
-.cd-item.is-focus {
-  border-color: var(--ue-primary, #2b5cf6);
-  box-shadow: 0 0 0 3px rgb(43 92 246 / 12%);
+.cd-item.is-hidden {
+  opacity: 0.72;
 }
 .cd-item-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+.cd-name {
+  flex: 1 1 auto;
+  min-width: 76px;
+}
+.cd-type {
+  flex: 0 0 auto;
+  width: 76px;
+}
+.cd-item-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  padding-left: 26px;
 }
 .cd-index {
   width: 18px;
@@ -336,25 +202,5 @@ watch(
   margin-left: auto;
   display: flex;
   gap: 2px;
-}
-.cd-collapse {
-  margin-top: 4px;
-  border: none;
-}
-.cd-collapse-title {
-  font-size: 12px;
-  color: var(--ue-sub);
-}
-.cd-rules {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-.cd-rules-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
 }
 </style>

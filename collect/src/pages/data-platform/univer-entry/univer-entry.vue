@@ -92,7 +92,15 @@
       </span>
     </div>
 
-    <ColumnDrawer v-model:visible="columnDrawer" :defs="defs" :ops="ops" :focus-field="columnFocus" @close="onColumnDrawerClose" />
+    <ColumnDrawer v-model:visible="columnDrawer" :defs="defs" :ops="ops" @config="openColumnConfig" />
+    <BiColumnDrawer
+      v-model:visible="columnConfigVisible"
+      :column="columnConfigTarget"
+      :siblings="defs"
+      :caps="{ width: true }"
+      @confirm="onColumnConfigConfirm"
+      @remove="onColumnConfigRemove"
+    />
     <ErrorDrawer v-model:visible="errorDrawer" :errors="rules.errors.value" :rules="rules" />
     <FillDialog v-model:visible="fillVisible" :defs="defs" :ops="ops" />
     <HelpDialog v-model:visible="helpVisible" />
@@ -105,6 +113,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus';
 import EntryToolbar from './components/EntryToolbar.vue';
 import ColumnDrawer from './components/ColumnDrawer.vue';
+import BiColumnDrawer from '@/components/bi-column-drawer/bi-column-drawer.vue';
+import type { ColumnDraft } from '@/components/bi-column-drawer/types';
 import ErrorDrawer from './components/ErrorDrawer.vue';
 import FillDialog from './components/FillDialog.vue';
 import FindBar from './components/FindBar.vue';
@@ -131,8 +141,10 @@ const rules = useEntryRules(sheetApi);
 const find = useEntryFind(sheetApi, defs);
 
 const columnDrawer = ref(false);
-/** 点列标时带过去的列 field：抽屉打开后滚动并展开这一列 */
-const columnFocus = ref('');
+/** 点列标 → 单列配置（与另两套同一份共享抽屉）；工具栏「列设置」仍走全量列表 */
+const columnConfigVisible = ref(false);
+const columnConfigField = ref('');
+const columnConfigTarget = computed(() => defs.value.find((d) => d.field === columnConfigField.value) ?? null);
 const errorDrawer = ref(false);
 const fillVisible = ref(false);
 const helpVisible = ref(false);
@@ -236,6 +248,9 @@ watch(
  *    早期只认 "E1:E20000" 导致正则永不命中、抽屉打不开（"Univer 好像不支持"的真相）。
  *    两种都认：简写 "E:E" 直接判定；全量 "E1:E20000" 需行数达到底部（避免 A1:A10 这类选段误触）。
  * 不会误触的情况：单元格单击（C5）、拖拽选区（A1:C9）、点行标（A5:BD5）、左上角全选（A1:BD20000）。
+ *
+ * 打开的是**单列配置抽屉**（components/bi-column-drawer，三套共用），
+ * 与 vxe / VTable 完全同一套交互；工具栏的「列设置」仍是全量列表抽屉。
  */
 /** 列字母 → 0-based 索引（A=0, Z=25, AA=26…），不依赖 getRange 对简写的解析 */
 const colIndexOfLetters = (letters: string): number =>
@@ -257,15 +272,41 @@ watch(
     const d = defs.value[col];
     if (!d) return;
     lastHeaderCol.value = col;
-    columnFocus.value = d.field;
-    columnDrawer.value = true;
+    columnConfigField.value = d.field;
+    columnConfigVisible.value = true;
   },
 );
 
 /** 抽屉关闭后复位，否则同一列第二次点击不会再弹 */
-const onColumnDrawerClose = () => {
-  lastHeaderCol.value = -1;
-  columnFocus.value = '';
+watch(columnConfigVisible, (v) => {
+  if (!v) lastHeaderCol.value = -1;
+});
+
+/** 列设置（全量列表）里点「配置」：打开同一份单列配置抽屉 */
+const openColumnConfig = (field: string) => {
+  columnConfigField.value = field;
+  columnConfigVisible.value = true;
+};
+
+/** 共享抽屉确认：改列定义走 ops.updateColumn（重写表头 + 重下发验证 + 重校） */
+const onColumnConfigConfirm = (d: ColumnDraft) => {
+  const target = columnConfigTarget.value;
+  ops.updateColumn(d.field, {
+    label: d.label,
+    type: d.type,
+    required: !!d.required,
+    visible: d.visible,
+    width: d.width ?? target?.width ?? 120,
+    dateFormat: d.type === 'date' ? d.dateFormat : undefined,
+    options: d.type === 'select' ? d.options : undefined,
+    rules: d.rules,
+    cross: d.cross?.length ? d.cross : undefined,
+  });
+};
+
+/** 共享抽屉里点「删除该列」 */
+const onColumnConfigRemove = () => {
+  if (columnConfigField.value) ops.removeColumn(columnConfigField.value);
 };
 
 // ===================== 主题 =====================
