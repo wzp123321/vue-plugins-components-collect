@@ -312,57 +312,46 @@
       </div>
     </el-drawer>
 
-    <!-- ===================== 列设置抽屉 ===================== -->
-    <el-drawer v-model="colDrawer" title="列设置" size="560px" class="bi-dlg">
-      <div class="vt-bi__colebar">
-        <el-select v-model="newColType" size="small" class="vt-bi__coleselect">
-          <el-option v-for="(l, t) in typeLabel" :key="t" :label="l" :value="t" />
-        </el-select>
-        <el-button size="small" type="primary" :icon="Plus" @click="onAddCol">新增列</el-button>
-        <el-button size="small" plain @click="onSaveTemplate">存为模板</el-button>
-        <el-select v-model="tplPick" size="small" placeholder="加载模板" class="vt-bi__coleselect" @change="onLoadTemplate">
-          <el-option v-for="t in templates" :key="t.name" :label="t.name" :value="t.name" />
-        </el-select>
-        <el-button size="small" plain :disabled="!tplPick" @click="onRemoveTemplate">删除模板</el-button>
-      </div>
+    <!-- ===================== 列设置抽屉（三套共用组件） ===================== -->
+    <BiColumnManager
+      v-model:visible="colDrawer"
+      :cols="cols"
+      :caps="{ frozen: true, retype: true, add: false }"
+      @rename="onColRename"
+      @retype="onColRetype"
+      @toggle="onColToggle"
+      @move="onMoveCol"
+      @config="openColConfigAt"
+      @remove="onRemoveField"
+    >
+      <template #tools>
+        <el-dropdown trigger="click" @command="onAddColOf">
+          <el-button size="small" type="primary" :icon="Plus">新增列</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(l, t) in typeLabel" :key="t" :command="t">{{ l }}列</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
 
-      <el-table :data="cols" size="small" border height="calc(100% - 56px)">
-        <el-table-column label="列名" min-width="120">
-          <template #default="{ row }">
-            <el-input v-model="row.label" size="small" @change="onColMetaChange" />
+        <el-dropdown trigger="click" @command="onTplCommand">
+          <el-button size="small" plain>列模板</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="save">存为模板</el-dropdown-item>
+              <el-dropdown-item command="load-title" divided disabled>点名字加载</el-dropdown-item>
+              <el-dropdown-item v-for="t in templates" :key="`l-${t.name}`" :command="`load:${t.name}`">
+                {{ t.name }}
+              </el-dropdown-item>
+              <el-dropdown-item command="del-title" divided disabled>删除模板</el-dropdown-item>
+              <el-dropdown-item v-for="t in templates" :key="`d-${t.name}`" :command="`del:${t.name}`">
+                {{ t.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
           </template>
-        </el-table-column>
-        <el-table-column label="类型" width="94">
-          <template #default="{ row }">
-            <el-select v-model="row.type" size="small" @change="onColTypeChange(row as unknown as BiCol)">
-              <el-option v-for="(l, t) in typeLabel" :key="t" :label="l" :value="t" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="可见" width="60" align="center">
-          <template #default="{ row }">
-            <el-switch v-model="row.visible" size="small" @change="rebuild" />
-          </template>
-        </el-table-column>
-        <el-table-column label="冻结" width="60" align="center">
-          <template #default="{ row }">
-            <el-switch v-model="row.frozen" size="small" @change="rebuild" />
-          </template>
-        </el-table-column>
-        <el-table-column label="序" width="86" align="center">
-          <template #default="{ $index }">
-            <el-button size="small" text :icon="ArrowUp" :disabled="$index === 0" @click="onMoveCol($index, -1)" />
-            <el-button size="small" text :icon="ArrowDown" :disabled="$index === cols.length - 1" @click="onMoveCol($index, 1)" />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="128" align="center">
-          <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="openColConfig(row as unknown as BiCol)">配置</el-button>
-            <el-button size="small" text type="danger" @click="onRemoveCol(row as unknown as BiCol)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-drawer>
+        </el-dropdown>
+      </template>
+    </BiColumnManager>
 
     <!-- ===================== 单列配置（三套共用抽屉，交互唯一定义处） ===================== -->
     <BiColumnDrawer
@@ -470,6 +459,7 @@ import {
   type ColType,
 } from './bi-entry/schema';
 import BiColumnDrawer from '@/components/bi-column-drawer/bi-column-drawer.vue';
+import BiColumnManager from '@/components/bi-column-manager/bi-column-manager.vue';
 import type { ColumnDraft } from '@/components/bi-column-drawer/types';
 import { ROWNO_WIDTH, SELECT_WIDTH, allocWidths, groupColumns, useBiColumns } from './bi-entry/useBiColumns';
 import { useBiValidation, type ErrItem } from './bi-entry/useBiValidation';
@@ -1046,9 +1036,8 @@ const buildTableTheme = () => {
   cellPalette.errBg = dark ? 'rgba(247, 101, 96, 0.18)' : 'rgba(245, 63, 63, 0.1)';
   cellPalette.errFg = cssVar('--bi-danger', '#f53f3f');
   cellPalette.flashBg = cssVar('--bi-primary-soft', dark ? '#1c2440' : '#eef2ff');
-  // 悬停行 / 列头：暗黑用清晰的蓝灰抬升 #29364D（与 VTable 内置暗黑默认悬停同源，
-  // 比此前 --bi-hover 的 #1e232b 更干净不脏）；白天沿用浅灰。vxe 版经 --bi-hover 同步同色。
-  const hoverBg = cssVar('--bi-hover', dark ? '#29364D' : '#f7f9fc');
+  // 悬停行 / 列头：取 --bi-hover（暗黑为中性灰抬升一阶，不偏蓝），三套同色
+  const hoverBg = cssVar('--bi-hover', dark ? '#2e3137' : '#f7f9fc');
   // 选区行列引导底：统一 0.06（暗黑不再用 0.1，避免行列交叉处叠成偏重蓝块）
   const selTint = dark ? 'rgba(111, 141, 255, 0.06)' : 'rgba(43, 92, 246, 0.06)';
   const primary = cssVar('--bi-primary', dark ? '#6f8dff' : '#2b5cf6');
@@ -1062,10 +1051,7 @@ const buildTableTheme = () => {
         bgColor: panel,
         borderColor: borderSoft,
         fontSize: 13,
-        // 行悬停高亮：只染行底，不碰边框（避免与单元格网格线打架）
-        hover: { inlineRowBgColor: hoverBg },
-        // 选中态底色不再在此重复设置——统一交给 selectionStyle，避免与 selectionStyle 的
-        // 行列双向底叠加成偏重蓝块（之前两处都写 row/col tint 是暗黑选区发丑的根因之一）
+        // 选中态底色不在此设置——统一交给 selectionStyle，避免与它的行列双向底叠成偏重蓝块
       },
       headerStyle: {
         color: text,
@@ -1086,7 +1072,16 @@ const buildTableTheme = () => {
         fontWeight: 600,
         hover: { cellBgColor: hoverBg },
       },
-      bodyStyle: { color: text, bgColor: panel, borderColor: borderSoft, fontSize: 13 },
+      // 行悬停必须写在 bodyStyle 上，且 cellBgColor 与 inlineRowBgColor 同值：
+      // 内置 DARK 主题在 bodyStyle.hover.cellBgColor 里写死了 #29364D，
+      // 只给行级的 inlineRowBgColor 会被逐格上色盖住（表现为改不动、整行发蓝）。
+      bodyStyle: {
+        color: text,
+        bgColor: panel,
+        borderColor: borderSoft,
+        fontSize: 13,
+        hover: { cellBgColor: hoverBg, inlineRowBgColor: hoverBg },
+      },
       // 去掉内置主题的圆角与投影：外框由 .bi-panel 统一提供，避免「卡片套卡片」
       frameStyle: { borderColor: border, borderLineWidth: 0, cornerRadius: 0, shadowBlur: 0 },
       // 选区描边用品牌色（不用内置的灰蓝），与另外两套的选中观感对齐
@@ -1924,8 +1919,6 @@ const openAddCol = () => {
   ElMessage.success('已新增列');
 };
 
-const onAddCol = () => openAddCol();
-
 const onRemoveCol = (col: BiCol) => {
   const before = historyApi.snapshot('删除列');
   removeCol(col.field);
@@ -2068,6 +2061,81 @@ const onRemoveTemplate = () => {
   removeTemplate(tplPick.value);
   tplPick.value = '';
   ElMessage.success('已删除模板');
+};
+
+// ===================== 列设置抽屉（共享组件的事件映射） =====================
+// 抽屉本体在 components/bi-column-manager（三套共用），这里只负责把「按字段」的
+// 事件还原成 VTable 这边「按列对象」的操作，并保持原有的重校验 / 重建顺序。
+const colByField = (field: string) => cols.value.find((c) => c.field === field);
+
+const onColRename = (field: string, label: string) => {
+  const col = colByField(field);
+  if (!col) {
+    return;
+  }
+  col.label = label;
+  onColMetaChange();
+};
+
+const onColRetype = (field: string, type: ColType) => {
+  const col = colByField(field);
+  if (!col) {
+    return;
+  }
+  col.type = type;
+  onColTypeChange(col);
+};
+
+const onColToggle = (field: string, flag: 'required' | 'visible' | 'frozen') => {
+  const col = colByField(field);
+  if (!col) {
+    return;
+  }
+  if (flag === 'required') {
+    col.required = !col.required;
+    validation.scanAll(records.value);
+  } else if (flag === 'visible') {
+    col.visible = !col.visible;
+  } else {
+    col.frozen = !col.frozen;
+  }
+  rebuild();
+};
+
+const onRemoveField = (field: string) => {
+  const col = colByField(field);
+  if (col) {
+    onRemoveCol(col);
+  }
+};
+
+const openColConfigAt = (field: string) => {
+  const col = colByField(field);
+  if (col) {
+    openColConfig(col);
+  }
+};
+
+/** 新增列下拉：选类型即建（列名沿用引擎的自动编号） */
+const onAddColOf = (type: ColType) => {
+  newColType.value = type;
+  openAddCol();
+};
+
+/** 列模板下拉：save / load:<名> / del:<名> */
+const onTplCommand = (cmd: string) => {
+  if (cmd === 'save') {
+    onSaveTemplate();
+    return;
+  }
+  if (cmd.startsWith('load:')) {
+    onLoadTemplate(cmd.slice(5));
+    return;
+  }
+  if (cmd.startsWith('del:')) {
+    tplPick.value = cmd.slice(4);
+    onRemoveTemplate();
+  }
 };
 
 // ============================ 草稿 ============================
