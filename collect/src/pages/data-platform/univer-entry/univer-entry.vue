@@ -231,19 +231,28 @@ watch(
 // ===================== 点列标 → 打开该列配置 =====================
 /**
  * Univer 没有"列头点击"回调（FWorksheet 只暴露 selection 变更与命令事件），
- * 但点列标（A/B/C 那一行）会整列选中，A1 形如 "C1:C20000"——用这个信号等价实现
- * vxe 版 header-cell-click → 打开列配置。
- * ⚠️ 判定只能用"具体行列范围"：Univer 的 getA1Notation 不用 "C:C" 简写（实测返回 C1:C20000）。
- * 不会误触的情况：单元格单击（C5）、拖拽选区（A1:C9）、点行标（A5:BD5）、左上角全选。
+ * 但点列标（A/B/C 那一行）会整列选中，用这个信号等价实现 vxe 版 header-cell-click → 打开列配置。
+ * ⚠️ 整列选中的 A1 是**简写 "E:E"**（实测 selA1 === "E:E"），不是 "E1:E20000"；
+ *    早期只认 "E1:E20000" 导致正则永不命中、抽屉打不开（"Univer 好像不支持"的真相）。
+ *    两种都认：简写 "E:E" 直接判定；全量 "E1:E20000" 需行数达到底部（避免 A1:A10 这类选段误触）。
+ * 不会误触的情况：单元格单击（C5）、拖拽选区（A1:C9）、点行标（A5:BD5）、左上角全选（A1:BD20000）。
  */
+/** 列字母 → 0-based 索引（A=0, Z=25, AA=26…），不依赖 getRange 对简写的解析 */
+const colIndexOfLetters = (letters: string): number =>
+  [...letters].reduce((n, ch) => n * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+
 const lastHeaderCol = ref(-1);
 watch(
   () => sheetApi.selection.value?.a1,
   (a1) => {
     if (!a1) return;
-    const m = /^([A-Z]+)1:\1(\d+)$/.exec(a1);
-    if (!m || Number(m[2]) < SHEET_ROW_COUNT) return;
-    const col = sheetApi.columnOfA1(a1);
+    const shorthand = /^([A-Z]+):\1$/.exec(a1);
+    const full = /^([A-Z]+)1:\1(\d+)$/.exec(a1);
+    let letters = '';
+    if (shorthand) letters = shorthand[1];
+    else if (full && Number(full[2]) >= SHEET_ROW_COUNT) letters = full[1];
+    if (!letters) return;
+    const col = colIndexOfLetters(letters);
     if (col < 0 || col === lastHeaderCol.value) return;
     const d = defs.value[col];
     if (!d) return;
@@ -295,6 +304,9 @@ const seedData = (records: ReturnType<typeof genSampleRecords>, label: string) =
 onMounted(async () => {
   await nextTick();
   if (!containerRef.value) return;
+  // 本应用 :root 字号被大屏方案放大到 ~78px，会把 Univer 的 rem 尺寸放大 ~4.88 倍；
+  // 进本页时恢复 16px（样式见下方 html.univer-normal-rem），离开时移除，不影响其它页面。
+  document.documentElement.classList.add('univer-normal-rem');
   sheetApi.init(containerRef.value);
   syncTheme();
   // 站点主题切换（html.dark）时同步给 Univer
@@ -309,6 +321,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
   themeObserver?.disconnect();
   themeObserver = null;
+  document.documentElement.classList.remove('univer-normal-rem');
   sheetApi.destroy();
 });
 
@@ -387,86 +400,60 @@ const genData = (n: number) => {
 </script>
 
 <style lang="less">
-/* Univer 浮层（右键菜单 / 单元格下拉 / 筛选面板）由 React + Tailwind 原子类渲染，createPortal
-   到 body，scoped 样式够不到，故本块不 scoped。
-   ⚠️ 两个坑（之前那版修复是死代码，没生效）：
-   1) 弹层根容器不是 .univer-popup 这个类，而是带随机后缀的 id="univer-popup-portal-xxxx"；
-      .univer-popup 在 UI 包里没有 CSS 规则，旧选择器一条都匹配不到。
-   2) 浮层文本字号由 .univer-text-* 工具类控制且用 rem 单位（相对根 html，不随容器 font-size 缩放），
-      所以「只压容器 font-size」对文本无效，必须逐一覆盖这些工具类并加 !important 才能压过 Univer 自身规则。
-   原默认 base=16px / sm=14px / 2xl=24px，比本页正文 12.5px 大一档，并排看像另一个产品；
-   统一收到 12.5px / 18px，与录入台密度对齐。末尾 * 兜底：无论菜单用 Tailwind 工具类还是
-   CSS-module 固定字号，都强制收口，避免再出现"改了没生效"。 */
-[id^="univer-popup-portal-"],
+/* Univer 浮层（右键菜单 / 单元格下拉 / 筛选面板）由 React + Tailwind 原子类渲染，createPortal 到 body，
+   实际挂在 <section class="univer-popup"> 下，scoped 样式够不到，故本块不 scoped。
+   ⚠️ 锚点是 `.univer-popup` 这个类；`#univer-popup-portal-*` 只是个空容器（实测 0 子节点），
+      早期按它写选择器是死代码，别再回去。
+   ⚠️ 弹层"字改小了、框还是巨大"的真正根因：本应用 common.less 里
+      `:root { font-size: calc(100vh / 10.8) }`（大屏自适应模板）把根字号顶到 ~78px，
+      而 Univer 的 Tailwind 全用 rem（gap / padding / min-w / size 全被放大 ~4.88 倍）。
+      rem 恒定相对根字号，压容器 font-size 治不了 → 必须在进入本页时把根字号恢复 16px。
+      本页与外壳布局均为 px，实测侧边栏 / 表格不受影响；离开本页即移除，不污染其它页面。 */
+html.univer-normal-rem {
+  font-size: 16px;
+}
+
 .univer-popup {
   font-size: 12.5px;
   line-height: 18px;
 }
 
-[id^="univer-popup-portal-"] .univer-text-xs,
 .univer-popup .univer-text-xs,
-[id^="univer-popup-portal-"] .univer-text-sm,
 .univer-popup .univer-text-sm,
-[id^="univer-popup-portal-"] .univer-text-base,
 .univer-popup .univer-text-base,
-[id^="univer-popup-portal-"] .univer-text-lg,
 .univer-popup .univer-text-lg,
-[id^="univer-popup-portal-"] .univer-text-2xl,
 .univer-popup .univer-text-2xl {
   font-size: 12.5px !important;
   line-height: 18px !important;
 }
 
-/* 菜单项按钮 / 可点击行：压高度（原 min-h-8 = 32px）与字号，去除默认大间距造成的松散感 */
-[id^="univer-popup-portal-"] button,
-.univer-popup button,
-[id^="univer-popup-portal-"] li,
-.univer-popup li {
-  min-height: 24px !important;
-  font-size: 12.5px !important;
-  line-height: 18px !important;
-}
-
-/* 右键菜单项（Univer ContextMenuPanel 的 default 变体）专属大间距覆盖：
-   图1 下拉框的项是 design DropdownMenuItem（univer-py-1.5，本就紧凑），而右键菜单项是
-   univer-min-h-8(32px) + 面板 univer-min-w-52(208px)，所以图2 显得"边距很大"。
-   下面按 Univer 真实 Tailwind 类精确压，scoped 在 popup 容器内，不动图1 之外的组件。 */
-/* 菜单项高度：min-h-8(32px) → 24px（消除项与分隔线之间过大的上下留白） */
-[id^="univer-popup-portal-"] .univer-min-h-8,
+/* 密度收紧到与下拉框一致的紧凑档（锚点只用 .univer-popup，按 Univer 真实 Tailwind 类覆盖） */
+/* 菜单项高度 min-h-8(32px) → 24px；顶部图标行按钮 size-8/7 → 24/22px */
 .univer-popup .univer-min-h-8 {
   min-height: 24px !important;
 }
-/* 顶部图标行按钮：size-8(32px) → 24px，size-7(28px) → 22px（收紧图标行） */
-[id^="univer-popup-portal-"] .univer-size-8,
 .univer-popup .univer-size-8 {
   width: 24px !important;
   height: 24px !important;
 }
-[id^="univer-popup-portal-"] .univer-size-7,
 .univer-popup .univer-size-7 {
   width: 22px !important;
   height: 22px !important;
 }
-/* 菜单面板宽度：min-w-52(208px) → 184px（去除右侧过宽留白） */
-[id^="univer-popup-portal-"] .univer-min-w-52,
+/* 面板宽度 min-w-52(208px) → 184px；项水平内边距 px-2(8px) → 6px；分组 py-1(4px) → 2px */
 .univer-popup .univer-min-w-52 {
   min-width: 184px !important;
 }
-/* 菜单项水平内边距：px-2(8px) → 6px（去除右端箭头前的宽留白，与图1 对齐） */
-[id^="univer-popup-portal-"] .univer-px-2,
 .univer-popup .univer-px-2 {
   padding-left: 6px !important;
   padding-right: 6px !important;
 }
-/* 菜单分组上下内边距：py-1(4px) → 2px（进一步收紧组间/分隔线间距） */
-[id^="univer-popup-portal-"] .univer-py-1,
 .univer-popup .univer-py-1 {
   padding-top: 2px !important;
   padding-bottom: 2px !important;
 }
 
 /* 兜底：popup 内所有文本统一收口（覆盖任何 Tailwind 工具类 / CSS-module 固定字号） */
-[id^="univer-popup-portal-"] *,
 .univer-popup * {
   font-size: 12.5px !important;
   line-height: 18px !important;

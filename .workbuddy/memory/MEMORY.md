@@ -25,9 +25,10 @@
 - `preset-sheets-advanced` 带 28 个 `@univerjs-pro/*`，纯开源不能装。
 - 数据验证/条件格式/列宽/冻结**全挂在具体列区间**，结构变更后必须整轮重下发，漏一步**静默失效**。
 - 无行对象，脏标记靠基线快照签名比对；`merge()` 只留左上角值会吞数据，须挡表头行与跨表头边界。
-- **无列头点击回调** → 用「点列标后整列选中」的 A1 信号 `/^([A-Z]+)1:\1(\d+)$/` 等价实现；`getA1Notation()` 整列返回 `C1:C20000`（**不是** `C:C`）。
-- 内置浮层（右键菜单/下拉/筛选面板）由 React + Tailwind 原子类渲染，createPortal 到 body 跨出 scoped。**真实锚点不是 `.univer-popup`（UI 包无此 CSS 规则，旧选择器是死代码），是带随机后缀的弹层根 id `univer-popup-portal-xxxx`**。文本字号用 `.univer-text-*`（rem，相对根 html），只压容器 font-size 无效；须覆盖这些工具类 + `!important`，必要时 `* ` 兜底。已修进 `univer-entry.vue` 非 scoped `<style>`。
-- **右键菜单比下拉框松（密度不一致）的根因**：图1 下拉框的项是 design `DropdownMenuItem`（`univer-py-1.5`，本就紧凑）；而右键菜单项是 UI 的 `ContextMenuPanel` default 变体，项高 `univer-min-h-8`(32px) + 面板 `univer-min-w-52`(208px) + 顶部图标行按钮 `univer-size-8`(32px/`size-7`28px)。**只压 font-size 不够**，须按真实 Tailwind 类精确压：`univer-min-h-8→24px`、`univer-size-8→24px`/`size-7→22px`、`univer-min-w-52→184px`、`univer-px-2→6px`、`univer-py-1→2px`，全部 scoped 在 `[id^="univer-popup-portal-"]` 下 `!important`。
+- **无列头点击回调** → 用「点列标后整列选中」的 A1 信号等价实现。**整列选中的 A1 是简写 `E:E`（不是 `E1:E20000`，实测 `selA1 === "E:E"`）**；只认全量的正则会永不命中 → 抽屉打不开（即"Univer 好像不支持"的真相）。两条都认，列索引自己按字母 reduce 算，别依赖 `getRange` 解析简写。
+- 内置浮层（右键菜单/下拉/筛选面板）由 React + Tailwind 原子类渲染，createPortal 到 body 跨出 scoped。**真锚点就是 `.univer-popup`（实测弹层是 `<section class="univer-popup univer-fixed">` 挂 body 下）；`#univer-popup-portal-*` 是空容器（0 子节点），按它写选择器全是死代码**。
+- **"字改小了、框还巨大"的真正根因（本仓特有）**：`assets/css/common.less` 的大屏模板 `:root { font-size: calc(100vh / 10.8) }` 把根字号顶到 ~78px，而 Univer 的 Tailwind 全用 rem（gap/padding/min-w/size 被放大 ~4.88 倍）。rem 恒相对根字号，压容器 font-size 治不了。修法：进页 `documentElement.classList.add('univer-normal-rem')` 把根字号恢复 16px、离开时移除（本页与外壳全 px，实测布局无影响）。
+- **右键菜单比下拉框松（密度不一致）**：下拉框项是 design `DropdownMenuItem`（`univer-py-1.5` 本紧凑）；右键菜单是 UI `ContextMenuPanel` default 变体，项高 `univer-min-h-8`(32px) + 面板 `univer-min-w-52`(208px) + 顶部图标行 `univer-size-8`/`size-7`。只压 font-size 不够，须按真实 Tailwind 类压：`min-h-8→24px`、`size-8→24`/`size-7→22`、`min-w-52→184`、`px-2→6`、`py-1→2`，scoped 在 `.univer-popup` 下 `!important`。**改完必须 CDP 实测 computed style（gap 应为 4px、项高 24px、面板 184×~300），否则容易自欺**。
 - 结构性缺口：无分页视图、无多级表头。
 - **暗黑主题（关键坑）**：Univer 画布底色/文字/网格线全由 `ThemeService` 当前主题的 `gray` 尺度驱动（场景主背景取 `gray.0`）。`setTheme(obj)` 是整体替换并会触发画布重渲染（`currentTheme$` 订阅里 `markDirty`）。**绝不要拿亮色 `defaultTheme` 手搓灰阶当暗色用**——容易漏掉场景主背景那一档，结果"主题对象传了、画布仍白"。正确做法：暗色以官方 `darkBlueTheme` 为基底（从 `@univerjs/presets` 经 `export *` 透传可 import），只把 `gray.0/50/100/200` 微调成与另两套一致的中性深灰，再叠品牌 `primary` 与查找高亮。亮色用 `defaultTheme`。
 - **`highlight.background[i].color` 必须填主题键路径**（如 `"orange.400"`），Univer 渲染时按 `get(theme, color)` 解析；填十六进制字符串会解析成 `theme["#ff8f1f"]` → undefined 而失效。alpha 仿官方两档 0.28/0.14。
@@ -74,4 +75,4 @@
 - **airbnb `no-underscore-dangle`** 拦 `__id/__selected/__dirty` → 改 `rowId/selected/changed`。
 - **@visactor/vchart v2**：`resize()` 需 2 参 → `autoFit:true`；`ISpec` 未导出 → `ConstructorParameters<typeof VChart>[0]`；双轴须 `type:'common'` + `series[].id` + `axes[].seriesId`；缩略轴顶层 `dataZoom`；柱图 `xField/yField`；轴指示 `crosshair` 非 `axisPointer`。
 - **已下线**：AG Grid v32 —— 主题类必须挂**祖先**元素，否则列头行高塌 0。
-- **Univer 浮层字体过大**：根因是旧 `.univer-popup` 锚点在 UI 包无 CSS 规则（弹层根其实是 `id=univer-popup-portal-xxxx`），叠加文本 `.univer-text-*`（rem）只压容器 font-size 无效 → 覆盖全部失效、菜单回退默认大字号。修法见 `univer-entry.vue` 非 scoped `<style>`：锚点取 `[id^="univer-popup-portal-"]` + `.univer-popup` 兜底，逐一覆盖 `.univer-text-{xs,sm,base,lg,2xl}` 并 `!important`，末尾 `* ` 兜底收口 12.5px/18px。
+- **Univer 浮层过大排查顺序**（先查根字号，再查类名，别本末倒置）：① CDP 读 `getComputedStyle(document.documentElement).fontSize`——本仓被大屏模板顶到 ~78px，rem 间距全放大；② 再确认锚点是否 `.univer-popup`；③ 最后才调 Tailwind 类的密度。只调 font-size 会得到"字小了框巨大"的假修复。

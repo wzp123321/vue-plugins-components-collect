@@ -206,7 +206,7 @@ const applyChrome = () => {
 
 - **vxe**：原生 CSS 变量，经 `:deep()` 覆写 `.vxe-*`；行悬停、表头图标 hover 显隐、跨列十字高亮、选区/错误/查找高亮都挂在 `--bi-*`。
 - **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；本次补上了行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
-- **Univer**：`useEntrySheet.setDark()` 现在整体 `setTheme({...defaultTheme, gray, primary, highlight})`，`gray`/`primary` 由 `--bi-*` 的明暗两档映射（灰阶 0≈画布底、100≈表头底、400≈网格线、800≈正文；品牌尺 500=选区主色；`highlight` 映射到查找高亮的橙底）。`toggleDarkMode` 同步给 React 浮层。⚠️ `setTheme` 是整体替换（不合并），必须全量透传 `defaultTheme`。
+- **Univer**：`useEntrySheet.setDark()` 整体 `setTheme(...)`。亮色用官方 `defaultTheme`，**暗色以官方 `darkBlueTheme` 为基底**（画布底色由 `gray` 尺度驱动，拿亮色主题手搓灰阶会漏掉场景主背景那一档，出现"主题传了、画布仍白"），只把 `gray.0/50/100/200` 微调成与另两套一致的中性深灰，再叠品牌 `primary` 与查找高亮（`highlight.background[i].color` 必须填**主题键路径**如 `orange.400`，填十六进制会解析成 `theme["#ff8f1f"]` → undefined）。`toggleDarkMode` 只发信号、不改画布配色，须与 `setTheme` 一起调；表头底色是 `setBackground` 写进单元格的，不随 `setTheme` 变，主题切换后要重下发。⚠️ `setTheme` 是整体替换（不合并），必须全量透传基底主题。
 
 ## 7. 踩坑清单
 
@@ -234,3 +234,5 @@ const applyChrome = () => {
 - 粘贴越界不拦，数据写进没有定义的列后 `readRecords` 读不回来 —— 静默丢数据。
 - `SHEET_ROW_COUNT` / `SHEET_COLUMN_COUNT` 是建表一次性尺寸（当前 20000 × 60），改大要重建工作簿。
 - React 是硬依赖（`react@19` + `react-dom@19`），`UniverSheetsCorePreset` 内部用 React 渲染弹层。
+- 点列标后**整列选中的 A1 是简写 `E:E`**（不是 `E1:E20000`），只认全量格式的正则永不命中、抽屉打不开；列索引按字母自算，别依赖 `getRange` 解析简写。
+- Univer 的浮层/Tailwind 全用 `rem`，**根字号一变（本仓大屏模板 `:root{font-size:calc(100vh/10.8)}` 顶到 ~78px）所有间距尺寸放大 ~4.88 倍**，只压 `font-size` 会得到「字小了框还巨大」。进本页时把根字号恢复 16px，离开移除。
