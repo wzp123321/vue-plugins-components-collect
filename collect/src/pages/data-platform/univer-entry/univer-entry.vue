@@ -422,9 +422,47 @@ const genData = (n: number) => {
 .univer-popup button,
 [id^="univer-popup-portal-"] li,
 .univer-popup li {
-  min-height: 28px !important;
+  min-height: 24px !important;
   font-size: 12.5px !important;
   line-height: 18px !important;
+}
+
+/* 右键菜单项（Univer ContextMenuPanel 的 default 变体）专属大间距覆盖：
+   图1 下拉框的项是 design DropdownMenuItem（univer-py-1.5，本就紧凑），而右键菜单项是
+   univer-min-h-8(32px) + 面板 univer-min-w-52(208px)，所以图2 显得"边距很大"。
+   下面按 Univer 真实 Tailwind 类精确压，scoped 在 popup 容器内，不动图1 之外的组件。 */
+/* 菜单项高度：min-h-8(32px) → 24px（消除项与分隔线之间过大的上下留白） */
+[id^="univer-popup-portal-"] .univer-min-h-8,
+.univer-popup .univer-min-h-8 {
+  min-height: 24px !important;
+}
+/* 顶部图标行按钮：size-8(32px) → 24px，size-7(28px) → 22px（收紧图标行） */
+[id^="univer-popup-portal-"] .univer-size-8,
+.univer-popup .univer-size-8 {
+  width: 24px !important;
+  height: 24px !important;
+}
+[id^="univer-popup-portal-"] .univer-size-7,
+.univer-popup .univer-size-7 {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* 菜单面板宽度：min-w-52(208px) → 184px（去除右侧过宽留白） */
+[id^="univer-popup-portal-"] .univer-min-w-52,
+.univer-popup .univer-min-w-52 {
+  min-width: 184px !important;
+}
+/* 菜单项水平内边距：px-2(8px) → 6px（去除右端箭头前的宽留白，与图1 对齐） */
+[id^="univer-popup-portal-"] .univer-px-2,
+.univer-popup .univer-px-2 {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+/* 菜单分组上下内边距：py-1(4px) → 2px（进一步收紧组间/分隔线间距） */
+[id^="univer-popup-portal-"] .univer-py-1,
+.univer-popup .univer-py-1 {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
 }
 
 /* 兜底：popup 内所有文本统一收口（覆盖任何 Tailwind 工具类 / CSS-module 固定字号） */

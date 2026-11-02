@@ -27,6 +27,7 @@
 - 无行对象，脏标记靠基线快照签名比对；`merge()` 只留左上角值会吞数据，须挡表头行与跨表头边界。
 - **无列头点击回调** → 用「点列标后整列选中」的 A1 信号 `/^([A-Z]+)1:\1(\d+)$/` 等价实现；`getA1Notation()` 整列返回 `C1:C20000`（**不是** `C:C`）。
 - 内置浮层（右键菜单/下拉/筛选面板）由 React + Tailwind 原子类渲染，createPortal 到 body 跨出 scoped。**真实锚点不是 `.univer-popup`（UI 包无此 CSS 规则，旧选择器是死代码），是带随机后缀的弹层根 id `univer-popup-portal-xxxx`**。文本字号用 `.univer-text-*`（rem，相对根 html），只压容器 font-size 无效；须覆盖这些工具类 + `!important`，必要时 `* ` 兜底。已修进 `univer-entry.vue` 非 scoped `<style>`。
+- **右键菜单比下拉框松（密度不一致）的根因**：图1 下拉框的项是 design `DropdownMenuItem`（`univer-py-1.5`，本就紧凑）；而右键菜单项是 UI 的 `ContextMenuPanel` default 变体，项高 `univer-min-h-8`(32px) + 面板 `univer-min-w-52`(208px) + 顶部图标行按钮 `univer-size-8`(32px/`size-7`28px)。**只压 font-size 不够**，须按真实 Tailwind 类精确压：`univer-min-h-8→24px`、`univer-size-8→24px`/`size-7→22px`、`univer-min-w-52→184px`、`univer-px-2→6px`、`univer-py-1→2px`，全部 scoped 在 `[id^="univer-popup-portal-"]` 下 `!important`。
 - 结构性缺口：无分页视图、无多级表头。
 - **暗黑主题（关键坑）**：Univer 画布底色/文字/网格线全由 `ThemeService` 当前主题的 `gray` 尺度驱动（场景主背景取 `gray.0`）。`setTheme(obj)` 是整体替换并会触发画布重渲染（`currentTheme$` 订阅里 `markDirty`）。**绝不要拿亮色 `defaultTheme` 手搓灰阶当暗色用**——容易漏掉场景主背景那一档，结果"主题对象传了、画布仍白"。正确做法：暗色以官方 `darkBlueTheme` 为基底（从 `@univerjs/presets` 经 `export *` 透传可 import），只把 `gray.0/50/100/200` 微调成与另两套一致的中性深灰，再叠品牌 `primary` 与查找高亮。亮色用 `defaultTheme`。
 - **`highlight.background[i].color` 必须填主题键路径**（如 `"orange.400"`），Univer 渲染时按 `get(theme, color)` 解析；填十六进制字符串会解析成 `theme["#ff8f1f"]` → undefined 而失效。alpha 仿官方两档 0.28/0.14。
