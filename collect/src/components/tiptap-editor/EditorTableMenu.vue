@@ -76,8 +76,8 @@ const shouldShow = (bubbleProps: ShouldShowProps) => {
   flex-direction: column;
   gap: 4px;
   padding: 6px 8px;
-  background: #fff;
-  border: 1px solid #e4e7ed;
+  background: var(--ai-surface-solid);
+  border: 1px solid var(--ai-border);
   border-radius: var(--ai-radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -92,6 +92,6 @@ const shouldShow = (bubbleProps: ShouldShowProps) => {
   width: 44px;
   flex-shrink: 0;
   font-size: 11px;
-  color: #909399;
+  color: var(--color-text-disable);
 }
 </style>

@@ -145,7 +145,8 @@ const handleError = (e: unknown) => {
     }
 
     li:hover {
-      background-color: rgba(0, 0, 0, 0.08);
+      /* 同上：黑色叠加在暗底上不可见，改用随主题翻转的叠加层令牌 */
+      background-color: var(--color-text-background);
     }
 
     li.active {

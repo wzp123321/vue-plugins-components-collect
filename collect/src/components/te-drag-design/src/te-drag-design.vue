@@ -249,14 +249,18 @@ defineOptions({ name: 'TeDragDesign' });
   display: flex;
   width: 100%;
   height: 100%;
-  background: #f5f7fa;
+  /* 页面底与左右面板走 --ai-* 令牌：这三层原先写死 #f5f7fa / #fff，
+     暗色下变成整块白工作区，而文字用的是继承来的浅色 → 白底白字。
+     手机屏幕（.tdd-phone-screen）仍保持白色：它是"设备预览"，不是页面背景。 */
+  background: var(--ai-bg);
   gap: 12px;
   padding: 12px;
 
   .tdd-left,
   .tdd-right {
     width: 220px;
-    background: #fff;
+    background: var(--ai-surface-solid);
+    border: 1px solid var(--ai-border);
     border-radius: var(--ai-radius-sm);
     padding: 12px;
     box-sizing: border-box;
@@ -279,9 +283,9 @@ defineOptions({ name: 'TeDragDesign' });
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    border: 1px dashed #c0c4cc;
+    border: 1px dashed var(--ai-border-strong);
     border-radius: var(--ai-radius-xs);
-    background: #fafafa;
+    background: var(--ai-surface-raised);
     cursor: grab;
     user-select: none;
     font-size: 13px;
@@ -292,7 +296,7 @@ defineOptions({ name: 'TeDragDesign' });
       height: 22px;
       line-height: 22px;
       text-align: center;
-      background: #409eff;
+      background: var(--color-primary);
       color: #fff;
       border-radius: var(--ai-radius-xs);
       font-size: 12px;
@@ -310,6 +314,8 @@ defineOptions({ name: 'TeDragDesign' });
   .tdd-phone-frame {
     position: relative;
     background: #1c1c1e;
+    /* 暗色底与机壳都是近黑，靠一圈 hairline 把轮廓提出来 */
+    border: 1px solid var(--ai-border);
     border-radius: 36px;
     padding: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);

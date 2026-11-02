@@ -270,20 +270,21 @@ const onTiptapChange = (payload: { html: string; json: unknown; characters: numb
   flex-wrap: wrap;
   gap: 4px;
   padding: 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--ai-border);
   border-bottom: none;
   border-radius: var(--ai-radius-sm) var(--ai-radius-sm) 0 0;
-  background: #fafafa;
+  background: var(--ai-surface-raised);
 }
 
 .editor-content {
   min-height: 200px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--ai-border);
   border-radius: 0 0 6px 6px;
   padding: 12px;
   outline: none;
   line-height: 1.8;
   font-size: 14px;
+  color: var(--color-text-primary);
 
   &:focus {
     border-color: #409eff;
@@ -297,16 +298,16 @@ const onTiptapChange = (payload: { html: string; json: unknown; characters: numb
   align-items: center;
   padding: 8px 0;
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-disable);
 }
 
 .html-preview {
-  background: #f5f7fa;
+  background: var(--color-text-background);
   border-radius: var(--ai-radius-sm);
   padding: 12px;
   font-size: 12px;
   font-family: monospace;
-  color: #666;
+  color: var(--color-text-primary);
   word-break: break-all;
   max-height: 120px;
   overflow-y: auto;
@@ -317,14 +318,14 @@ const onTiptapChange = (payload: { html: string; json: unknown; characters: numb
     font-weight: 600;
     font-size: 13px;
     margin-bottom: 6px;
-    color: #303133;
+    color: var(--color-text-title);
   }
 }
 
 .tiptap-status {
   margin-top: 10px;
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-disable);
 }
 
 .code-block {

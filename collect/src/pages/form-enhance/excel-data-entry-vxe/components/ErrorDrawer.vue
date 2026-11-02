@@ -41,15 +41,17 @@ const { errDrawer, jumpToError } = props.ops;
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border: 1px solid #ffd6d6;
+  /* 用「语义色的低透明度叠加」而不是写死浅粉：同一个值在亮色下是淡粉卡片，
+   * 在暗色下是暗红卡片，一套值吃两个主题，不会在深色抽屉里甩出一块亮粉。 */
+  border: 1px solid rgb(245 63 63 / 22%);
   border-radius: 8px;
-  background: #fff5f5;
+  background: rgb(245 63 63 / 6%);
   cursor: pointer;
   transition: all 0.15s;
 }
 .err-item:hover {
   border-color: var(--dt-danger);
-  background: #ffece8;
+  background: rgb(245 63 63 / 12%);
 }
 .err-idx {
   font-weight: 700;
@@ -62,6 +64,6 @@ const { errDrawer, jumpToError } = props.ops;
 }
 .err-msg {
   font-size: 12px;
-  color: #d4380d;
+  color: var(--dt-danger);
 }
 </style>

@@ -204,7 +204,8 @@ onMounted(() => {
         }
 
         li:hover {
-          background-color: rgba(0, 0, 0, 0.05);
+          /* 用令牌而不是 rgba(0,0,0,.05)：暗色下黑色叠加层等于没有，hover 会完全无反馈 */
+          background-color: var(--color-text-background);
 
           .tst-right-list-close {
             display: inline-block;

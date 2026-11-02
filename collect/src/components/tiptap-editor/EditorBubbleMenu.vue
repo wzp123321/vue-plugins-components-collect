@@ -153,8 +153,8 @@ const removeLink = () => {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background: #fff;
-  border: 1px solid #e4e7ed;
+  background: var(--ai-surface-solid);
+  border: 1px solid var(--ai-border);
   border-radius: var(--ai-radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -182,7 +182,7 @@ const removeLink = () => {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--ai-border-strong);
   cursor: pointer;
   padding: 0;
 }

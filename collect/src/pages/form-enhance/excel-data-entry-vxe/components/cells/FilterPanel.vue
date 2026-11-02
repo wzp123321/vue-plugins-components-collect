@@ -77,11 +77,14 @@ watch([text, picked], syncToColumn, { deep: true, immediate: true });
 </template>
 
 <style scoped>
-/* 面板挂在 vxe 的筛选弹层里（脱离 .dt-page，且 vxe 未接暗色主题），故用固定浅色面板配色而非主题变量 */
+/* 面板虽然渲染在 vxe 的筛选弹层里，但弹层就在 .dt-page 内的 .vxe-table 下（实测
+ * `closest('.dt-page')` 为真），所以能继承 --bi-* 色板；早先按「脱离页面、拿不到变量」
+ * 处理、写死浅色值，结果暗色下是一个亮白浮层。这里统一回主题变量。 */
 .dt-filter-panel {
-  width: 212px;
+  width: 240px;
   padding: 2px 4px;
-  color: #1f2329;
+  color: var(--bi-text);
+  white-space: normal;
 }
 .dt-filter-options {
   display: flex;
@@ -94,13 +97,18 @@ watch([text, picked], syncToColumn, { deep: true, immediate: true });
   margin-top: 6px;
   font-size: 11.5px;
   line-height: 1.6;
-  color: #8a909c;
+  color: var(--bi-sub);
+  /* 全站有一条 `* { white-space: nowrap }`，它**直接**作用到每个元素、优先级高于继承 ——
+   * 只在 .dt-filter-panel 上写 normal 传不下来，提示仍会被压成 432px 一行、溢出到弹层外被裁。
+   * 必须写在提示自身。 */
+  white-space: normal;
 }
 .dt-filter-hint code {
-  background: #f5f6f8;
-  border: 1px solid #e6e8ee;
+  background: var(--bi-head-bg);
+  border: 1px solid var(--bi-border);
   border-radius: var(--ai-radius-xs);
   padding: 0 3px;
   font-size: 11px;
+  white-space: nowrap;
 }
 </style>

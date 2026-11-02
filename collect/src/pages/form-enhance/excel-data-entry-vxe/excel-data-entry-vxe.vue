@@ -529,7 +529,12 @@ const onCellClick = (params: any) => {
   opacity: 1;
   color: var(--dt-primary);
 }
-:deep(.vxe-table .vxe-body--row:hover) { background: var(--dt-hover); }
+/* 行悬停：底色必须同时落到 td 上。
+ * vxe 把悬停色刷在 `.vxe-body--row.row--hover > .vxe-body--column`，
+ * 取的是变量 --vxe-ui-table-row-hover-background-color（默认 #f5f7fa）。
+ * 只写 tr 的 background 会被 td 完全盖住——暗色下整行反而变成一条亮色白带。 */
+:deep(.vxe-table .vxe-body--row:hover),
+:deep(.vxe-table .vxe-body--row.row--hover > .vxe-body--column) { background-color: var(--dt-hover); }
 :deep(.vxe-table .vxe-body--row.row-dirty) { box-shadow: inset 2px 0 0 var(--dt-warn); }
 :deep(.vxe-table .vxe-body--column.cell-error) { background-color: rgba(245,63,63,.1) !important; }
 :deep(.vxe-table .vxe-body--column.cell-error .vxe-cell) { color: var(--dt-danger); }

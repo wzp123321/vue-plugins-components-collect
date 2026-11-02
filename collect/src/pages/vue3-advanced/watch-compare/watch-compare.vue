@@ -39,7 +39,7 @@
               <span class="log-msg">{{ log.msg }}</span>
               <span class="log-time">{{ log.time }}</span>
             </div>
-            <div v-if="!logs.length" style="color:#999;text-align:center;padding:20px">
+            <div v-if="!logs.length" class="log-empty">
               点击上方按钮开始触发监听...
             </div>
           </div>
@@ -191,25 +191,33 @@ watchSyncEffect(() => {
   overflow-y: auto;
 }
 
+.log-empty {
+  color: var(--color-text-disable);
+  text-align: center;
+  padding: 20px;
+}
+
 .log-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-text-divider);
   font-size: 13px;
 
-  &.watch { background: #f0f9ff; }
-  &.watch-multi { background: #fff7e6; }
-  &.watchEffect { background: #f6ffed; }
-  &.watch-deep { background: #fff0f6; }
-  &.watch-getter { background: #f9f0ff; }
+  /* 五种 watch 用「语义色 + 低透明度」叠加，一套值吃亮暗两主题：
+   * 亮色下接近原来的浅色底，暗色下是同色相的淡淡高亮，不会再糊成一片白块。 */
+  &.watch { background: rgb(64 158 255 / 8%); }
+  &.watch-multi { background: rgb(230 162 60 / 10%); }
+  &.watchEffect { background: rgb(103 194 58 / 10%); }
+  &.watch-deep { background: rgb(235 47 150 / 8%); }
+  &.watch-getter { background: rgb(114 46 209 / 8%); }
 
   .log-badge {
     padding: 2px 6px;
     border-radius: var(--ai-radius-xs);
     font-size: 11px;
-    background: rgba(0,0,0,0.06);
+    background: var(--color-text-background);
     min-width: 80px;
     text-align: center;
     flex-shrink: 0;
@@ -217,11 +225,11 @@ watchSyncEffect(() => {
 
   .log-msg {
     flex: 1;
-    color: #303133;
+    color: var(--color-text-primary);
   }
 
   .log-time {
-    color: #999;
+    color: var(--color-text-disable);
     font-size: 11px;
     flex-shrink: 0;
   }
@@ -243,7 +251,7 @@ watchSyncEffect(() => {
   p {
     font-size: 12px;
     line-height: 1.8;
-    color: #555;
+    color: var(--color-text-primary);
   }
 }
 </style>

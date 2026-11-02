@@ -179,7 +179,8 @@ const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isInter
   &-visible {
     width: 200px;
     height: 200px;
-    background-color: rgba(0, 0, 0, 0.08);
+    /* 演示「进入可见区」的底块：黑色叠加在暗色下会看不见，用随主题翻转的令牌 */
+    background-color: var(--color-text-background);
   }
 }
 </style>

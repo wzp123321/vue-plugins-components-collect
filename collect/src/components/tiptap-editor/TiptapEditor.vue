@@ -679,9 +679,9 @@ watch(
 
 <style lang="less" scoped>
 .tiptap-editor {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--ai-border);
   border-radius: var(--ai-radius-sm);
-  background: #fff;
+  background: var(--ai-surface-solid);
 }
 
 .tiptap-toolbar {
@@ -689,8 +689,8 @@ watch(
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  background: #fafafa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--ai-surface-raised);
+  border-bottom: 1px solid var(--ai-border);
 }
 
 .toolbar-row {
@@ -714,7 +714,7 @@ watch(
     outline: none;
     line-height: 1.8;
     font-size: 14px;
-    color: #303133;
+    color: var(--color-text-primary);
 
     > * + * {
       margin-top: 8px;
@@ -768,9 +768,9 @@ watch(
     }
 
     blockquote {
-      border-left: 3px solid #dcdfe6;
+      border-left: 3px solid var(--ai-border-strong);
       padding-left: 12px;
-      color: #606266;
+      color: var(--color-text-primary);
     }
 
     /* 格式刷激活时的光标提示（类名由 formatPainter 扩展挂在 view.dom 上） */
@@ -795,11 +795,16 @@ watch(
     }
 
     code {
-      background: #f0f2f5;
+      background: var(--color-text-background);
       border-radius: var(--ai-radius-xs);
       padding: 2px 5px;
       font-size: 0.92em;
       font-family: Consolas, Monaco, 'Courier New', monospace;
+    }
+
+    /* 任务列表的原生复选框跟随主题主色，否则暗色下是白色小方块 */
+    input[type='checkbox'] {
+      accent-color: var(--el-color-primary);
     }
 
     table {
@@ -811,7 +816,7 @@ watch(
 
       td,
       th {
-        border: 1px solid #d0d5dd;
+        border: 1px solid var(--ai-border-strong);
         padding: 6px 10px;
         vertical-align: top;
         position: relative;
@@ -819,7 +824,7 @@ watch(
       }
 
       th {
-        background: #f5f7fa;
+        background: var(--ai-surface-raised);
         font-weight: 600;
       }
 
@@ -840,13 +845,13 @@ watch(
 
     hr {
       border: none;
-      border-top: 2px solid #e4e7ed;
+      border-top: 2px solid var(--ai-border);
       margin: 12px 0;
     }
 
     p.is-editor-empty:first-child::before {
       content: attr(data-placeholder);
-      color: #a8abb2;
+      color: var(--color-text-disable);
       float: left;
       height: 0;
       pointer-events: none;
@@ -862,6 +867,13 @@ watch(
       pointer-events: none;
     }
 
+    /* 高亮底色来自 Word 式浅色调色板，而暗色主题下正文是浅字 → 黄底浅字看不清。
+     * Highlight 扩展会在 <mark> 上内联 `color: inherit`，普通规则压不住，必须 !important；
+     * 用户在高亮里另设字色时，内层 span 自己的 inline 颜色仍然叠加在上面。 */
+    mark {
+      color: #1f2329 !important;
+    }
+
     .resize-cursor {
       cursor: col-resize;
     }
@@ -873,9 +885,9 @@ watch(
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--ai-border);
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-disable);
 }
 
 .footer-controls {
@@ -885,8 +897,8 @@ watch(
 }
 
 .tiptap-output {
-  border-top: 1px solid #e4e7ed;
-  background: #f5f7fa;
+  border-top: 1px solid var(--ai-border);
+  background: var(--ai-surface-raised);
   padding: 12px;
   max-height: 160px;
   overflow: auto;
@@ -895,7 +907,7 @@ watch(
     margin: 0;
     font-size: 12px;
     font-family: Consolas, Monaco, 'Courier New', monospace;
-    color: #606266;
+    color: var(--color-text-primary);
     white-space: pre-wrap;
     word-break: break-all;
   }
@@ -917,7 +929,7 @@ watch(
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--ai-border-strong);
   cursor: pointer;
   padding: 0;
 }

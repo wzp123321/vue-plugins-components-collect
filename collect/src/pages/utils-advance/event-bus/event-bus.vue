@@ -271,20 +271,21 @@ const compareData = [
 .event-bus-page {
   padding: 20px;
   h5 { margin: 0 0 8px; font-size: 20px; }
-  .page-desc { color: #666; font-size: 13px; margin-bottom: 20px; line-height: 1.7; code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; } }
+  .page-desc { color: var(--color-text-primary); font-size: 13px; margin-bottom: 20px; line-height: 1.7; code { background: var(--color-text-background); padding: 2px 6px; border-radius: 3px; } }
 }
 .card-header { display: flex; align-items: center; justify-content: space-between; }
 .arch-diagram {
   display: flex; align-items: center; justify-content: center; gap: 20px; padding: 20px 0;
   .arch-node {
-    width: 160px; padding: 16px; border-radius: 12px; text-align: center; border: 2px solid #ddd;
+    width: 160px; padding: 16px; border-radius: 12px; text-align: center; border: 2px solid var(--ai-border-strong);
     cursor: pointer; transition: all 0.2s;
     &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    &.sender { border-color: #409eff; background: #ecf5ff; }
-    &.receiver { border-color: #67c23a; background: #f0f9eb; }
+    /* 收发双方用「语义色 + 低透明度」叠加，一套值吃亮暗两主题，暗色下不再是两块亮色卡片 */
+    &.sender { border-color: #409eff; background: rgb(64 158 255 / 10%); }
+    &.receiver { border-color: #67c23a; background: rgb(103 194 58 / 10%); }
     .node-icon { font-size: 32px; margin-bottom: 8px; }
     .node-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-    .node-hint { font-size: 11px; color: #999; }
+    .node-hint { font-size: 11px; color: var(--color-text-disable); }
     .received-msg { font-size: 11px; color: #67c23a; font-weight: 600; word-break: break-all; }
   }
   .arch-arrows {
@@ -297,17 +298,17 @@ const compareData = [
 .sender-form { margin-bottom: 16px; }
 .subscribe-info {
   margin-bottom: 12px;
-  .sub-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: 12px; } }
-  .sub-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; &.active { background: #67c23a; } }
+  .sub-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--color-text-divider); font-size: 13px; code { background: var(--color-text-background); padding: 1px 5px; border-radius: 3px; font-size: 12px; } }
+  .sub-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-disable); &.active { background: #67c23a; } }
 }
-.log-title { font-size: 12px; color: #999; margin-bottom: 6px; }
+.log-title { font-size: 12px; color: var(--color-text-disable); margin-bottom: 6px; }
 .emit-log, .recv-log { min-height: 80px; }
 .log-item {
-  display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #f5f5f5;
-  .log-time { font-size: 11px; color: #bbb; font-family: monospace; min-width: 36px; }
-  .log-content { font-size: 12px; color: #333; flex: 1; }
+  display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--color-text-divider);
+  .log-time { font-size: 11px; color: var(--color-text-disable); font-family: monospace; min-width: 36px; }
+  .log-content { font-size: 12px; color: var(--color-text-primary); flex: 1; }
 }
-.empty-log { font-size: 12px; color: #ccc; text-align: center; padding: 16px 0; }
+.empty-log { font-size: 12px; color: var(--color-text-disable); text-align: center; padding: 16px 0; }
 .code-block {
   background: #1e1e1e; color: #cdd; border-radius: 6px; padding: 14px;
   font-size: 12px; font-family: monospace; line-height: 1.7;

@@ -111,8 +111,10 @@ defineOptions({ name: 'TeSpaceZoneTree' });
 .te-space-zone-tree {
   display: flex;
   height: 100%;
-  background: #fff;
-  border: 1px solid #ebeef5;
+  /* 容器底色跟着主题走：写死 #fff 时，暗色下的树节点用的是深色令牌，
+     于是出现「白底里嵌一块黑树」的割裂（且文字色也是浅的，白底白字） */
+  background: var(--ai-surface-solid);
+  border: 1px solid var(--ai-border);
   border-radius: var(--ai-radius-xs);
   overflow: hidden;
 }
@@ -122,7 +124,7 @@ defineOptions({ name: 'TeSpaceZoneTree' });
   display: flex;
   flex-direction: column;
   padding: 8px;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--ai-border);
   overflow: hidden;
 }
 
@@ -139,7 +141,7 @@ defineOptions({ name: 'TeSpaceZoneTree' });
   background: transparent;
   transition: background 0.2s;
 
-  &:hover { background: #409eff; }
+  &:hover { background: var(--color-primary); }
 }
 
 .tszt-right {

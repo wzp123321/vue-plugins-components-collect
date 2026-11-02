@@ -278,8 +278,8 @@ defineExpose({ activate, hide, updateQuery, isVisible });
   width: 248px;
   max-height: 320px;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #e4e7ed;
+  background: var(--ai-surface-solid);
+  border: 1px solid var(--ai-border);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
@@ -303,7 +303,7 @@ defineExpose({ activate, hide, updateQuery, isVisible });
 
   &:hover,
   &.active {
-    background: #ecf5ff;
+    background: rgb(64 158 255 / 14%);
   }
 }
 
@@ -314,12 +314,12 @@ defineExpose({ activate, hide, updateQuery, isVisible });
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--ai-border-strong);
   border-radius: var(--ai-radius-xs);
-  background: #fafafa;
+  background: var(--ai-surface-raised);
   font-size: 12px;
   font-weight: 600;
-  color: #606266;
+  color: var(--color-text-primary);
 }
 
 .slash-command-item-content {
@@ -330,18 +330,18 @@ defineExpose({ activate, hide, updateQuery, isVisible });
 
 .slash-command-item-title {
   font-size: 13px;
-  color: #303133;
+  color: var(--color-text-title);
 }
 
 .slash-command-item-desc {
   font-size: 11px;
-  color: #909399;
+  color: var(--color-text-disable);
 }
 
 .slash-command-empty {
   padding: 16px;
   text-align: center;
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-disable);
 }
 </style>

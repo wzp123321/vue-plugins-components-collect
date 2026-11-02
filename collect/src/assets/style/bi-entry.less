@@ -177,9 +177,52 @@ html.dark {
     --bi-danger: #f76560;
     --bi-warn: #ffb454;
     --bi-ok: #3dcb6e;
-    --bi-hover: #29364D;
+    /* 暗色悬停：面板 #16191f → #2e3137，三通道等幅 +24，色相完全不动，
+     * 所以「看得出」但不会被误读成选中/主色态。
+     * 不用偏蓝的 #29364d（R/G/B 差 19/29/46，像被选中），也压不到 #232832
+     * （差 13/15/19，实测在 1x 屏上几乎找不到当前行）。 */
+    --bi-hover: #2e3137;
     --bi-input-bg: #0e1014;
     --bi-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+  }
+}
+
+/* ===== vxe-table 内置暗色变量 =====
+ * 本仓没有引 vxe 的 dark 主题，它的 `--vxe-ui-*` 全部停在亮色档；暗色下凡是
+ * 走这些变量的「状态色」都会在深底上刷亮：行/列 hover、当前行/列、条纹行、
+ * 勾选行、加载遮罩、弹层描边……行 hover 那条已经踩过一次（整行变白带）。
+ * 逐条写 :deep() 补丁既漏又难维护，所以直接把变量映射到 --bi-*：
+ * 以后 vxe 哪个内置态被用到，都自动对齐，不用再补一条选择器。
+ * 变量清单对齐 vxe-table/styles/theme/dark.scss。 */
+html.dark {
+  .dt-page,
+  .dt-dlg {
+    --vxe-ui-layout-background-color: var(--bi-panel);
+    --vxe-ui-font-color: var(--bi-text);
+    --vxe-ui-font-disabled-color: var(--bi-sub);
+    --vxe-ui-base-popup-border-color: var(--bi-border);
+    --vxe-ui-input-border-color: var(--bi-border);
+    --vxe-ui-input-placeholder-color: var(--bi-sub);
+    --vxe-ui-input-disabled-background-color: var(--bi-head-bg);
+    --vxe-ui-loading-background-color: rgb(14 16 20 / 55%);
+    --vxe-ui-table-header-background-color: var(--bi-head-bg);
+    --vxe-ui-table-footer-background-color: var(--bi-head-bg);
+    --vxe-ui-table-border-color: var(--bi-border-soft);
+    --vxe-ui-table-row-hover-background-color: var(--bi-hover);
+    --vxe-ui-table-row-striped-background-color: var(--bi-panel);
+    --vxe-ui-table-row-hover-striped-background-color: var(--bi-hover);
+    --vxe-ui-table-row-current-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-row-hover-current-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-row-radio-checked-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-row-hover-radio-checked-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-row-checkbox-checked-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-row-hover-checkbox-checked-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-column-hover-background-color: var(--bi-hover);
+    --vxe-ui-table-column-current-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-column-hover-current-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-cell-area-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-cell-area-status-background-color: var(--bi-primary-soft);
+    --vxe-ui-table-checkbox-range-background-color: var(--bi-primary-soft);
   }
 }
 
