@@ -206,7 +206,7 @@ const applyChrome = () => {
 
 - **vxe**：原生 CSS 变量，经 `:deep()` 覆写 `.vxe-*`；行悬停、表头图标 hover 显隐、跨列十字高亮、选区/错误/查找高亮都挂在 `--bi-*`。
 - **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；本次补上了行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
-- **Univer**：`useEntrySheet.setDark()` 整体 `setTheme(...)`。亮色用官方 `defaultTheme`，**暗色以官方 `darkBlueTheme` 为基底**（画布底色由 `gray` 尺度驱动，拿亮色主题手搓灰阶会漏掉场景主背景那一档，出现"主题传了、画布仍白"），只把 `gray.0/50/100/200` 微调成与另两套一致的中性深灰，再叠品牌 `primary` 与查找高亮（`highlight.background[i].color` 必须填**主题键路径**如 `orange.400`，填十六进制会解析成 `theme["#ff8f1f"]` → undefined）。`toggleDarkMode` 只发信号、不改画布配色，须与 `setTheme` 一起调；表头底色是 `setBackground` 写进单元格的，不随 `setTheme` 变，主题切换后要重下发。⚠️ `setTheme` 是整体替换（不合并），必须全量透传基底主题。
+- **Univer**：`useEntrySheet.setDark()` = **恒喂亮色基调主题** + `toggleDarkMode(dark)`。Univer 的暗色是**反色**实现的：`CanvasColorService.getRenderColor()` 先按主题键解析真实颜色，再在 `darkMode` 为真时用反色矩阵翻转。所以「暗色主题 + 打开暗黑开关」会把已暗的颜色翻成亮色、画布反而发白（本仓踩过两次的坑）；正确组合只有「亮色主题 + 开关」。主题里 `primary` 取品牌蓝、`highlight.background[i].color` 必须填**主题键路径**（如 `orange.400`；填十六进制会解析成 `theme["#ff8f1f"]` → undefined）。同理**写进单元格的颜色（表头底色）恒写亮色值**，让它参与统一反转；按 `html.dark` 写深色会在暗黑下翻成亮色。⚠️ `setTheme` 是整体替换（不合并），必须全量透传 `defaultTheme`。
 
 ## 7. 踩坑清单
 

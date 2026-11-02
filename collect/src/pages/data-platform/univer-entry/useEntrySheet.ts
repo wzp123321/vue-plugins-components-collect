@@ -19,7 +19,7 @@
 //   - 脏标记没有行对象可挂，改用"命令执行 → 去抖 → 与基线快照逐格比对"，见页面层 recomputeDirty。
 // ============================================================================
 import { ref, shallowRef } from 'vue';
-import { createUniver, LocaleType, mergeLocales, defaultTheme, darkBlueTheme } from '@univerjs/presets';
+import { createUniver, LocaleType, mergeLocales, defaultTheme } from '@univerjs/presets';
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverCoreZhCN from '@univerjs/preset-sheets-core/locales/zh-CN';
 import { UniverSheetsSortPreset } from '@univerjs/preset-sheets-sort';
@@ -36,6 +36,7 @@ import '@univerjs/preset-sheets-core/lib/index.css';
 import {
   ENTRY_FONT_SIZE,
   ENTRY_ROW_HEIGHT,
+  HEADER_BG_LIGHT,
   HEADER_ROW,
   SHEET_COLUMN_COUNT,
   SHEET_ROW_COUNT,
@@ -47,14 +48,17 @@ import {
 import type { UApi, UIRange, USheet } from './univer-types';
 
 /**
- * Univer 主题：整体替换（ThemeService 不合并，必须全量透传）。
- *   - 亮色：官方 defaultTheme（白底）为基底 + 品牌 primary + 品牌查找高亮；
- *   - 暗色：官方 darkBlueTheme 为基底（这是 Univer 设计好的完整暗色主题，画布底色 / 文字 /
- *     网格线全部走暗尺，能稳定渲出暗画布），只把「画布底 / 面板」几档灰阶微调成与另两套
- *     (vxe / VTable) 一致的中性深灰，避免 Univer 偏藏蓝。
+ * Univer 主题：整体替换（ThemeService 不合并，必须全量透传 official defaultTheme）。
  *
- * ⚠️ 不要把亮色 defaultTheme 手动改灰阶当暗色用——Univer 画布底色由主题 gray 尺度驱动，
- *   手搓灰阶容易漏掉场景主背景那一档，结果「主题对象传了但画布仍白」。直接用官方暗色主题最稳。
+ * ⚠️ 暗色**不要另传一套暗色主题**。Univer 的暗色是「反色」实现的：
+ *   `CanvasColorService.getRenderColor()` 先按主题键解析出真实颜色，再在 `themeService.darkMode`
+ *   为真时用反色矩阵把颜色翻过来。所以「暗色主题 + 打开暗黑开关」= 把已经很暗的颜色再翻成亮色，
+ *   画布反而是白的（踩过两次的坑）。正确组合只有一种：**始终喂亮色基调主题 + toggleDarkMode(dark)**
+ *   —— 白底翻黑、深字翻浅，React 浮层也同步走暗色，画布与浮层口径一致。
+ *
+ * ⚠️ 同理，任何「写进单元格的颜色」（如表头底色）都要写**亮色值**，让它被统一反转；
+ *   若按 html.dark 写深色，反转后会变成亮色，表头在暗黑下反而发白。
+ *
  * ⚠️ highlight.background[i].color 必须是「主题键路径」（如 "orange.400"），Univer 渲染时
  *   按 get(theme, color) 解析；填十六进制字符串会被解析成 theme["#ff8f1f"] → undefined 而失效。
  */
@@ -63,26 +67,12 @@ const BRAND_PRIMARY_LIGHT = {
   50: '#eef2ff', 100: '#e2e9ff', 200: '#c9d6ff', 300: '#a9bcff', 400: '#7d97ff',
   500: '#2b5cf6', 600: '#1f4ee0', 700: '#1a40bd', 800: '#153399', 900: '#102678',
 };
-const BRAND_PRIMARY_DARK = {
-  50: '#1c2440', 100: '#243056', 200: '#2e3d72', 300: '#3d4d92', 400: '#586cbf',
-  500: '#6f8dff', 600: '#5a78f0', 700: '#4a66d8', 800: '#3a54b8', 900: '#2e449a',
-};
-// 暗色基础灰阶微调：仅压低画布底/面板几档，使其与另两套中性深灰一致（其余暗尺沿用官方）
-const GRAY_DARK_OVERRIDE = { 0: '#16191f', 50: '#1a1e25', 100: '#1a1e25', 200: '#20242c' };
 
-const buildUniverTheme = (dark: boolean) => {
+const buildUniverTheme = () => {
   // 查找高亮：与 vxe 的 .cell-found（橙底）同源；color 用主题键路径，alpha 仿官方 0.28/0.14 两档
   const highlight = { background: {} as Record<number, { color: string; alpha: number }> };
   for (let i = 1; i <= 16; i += 1) {
-    highlight.background[i] = { color: dark ? 'orange.600' : 'orange.400', alpha: i <= 8 ? 0.28 : 0.14 };
-  }
-  if (dark) {
-    return {
-      ...darkBlueTheme,
-      gray: { ...darkBlueTheme.gray, ...GRAY_DARK_OVERRIDE },
-      primary: BRAND_PRIMARY_DARK,
-      highlight,
-    };
+    highlight.background[i] = { color: 'orange.400', alpha: i <= 8 ? 0.28 : 0.14 };
   }
   return {
     ...defaultTheme,
@@ -217,13 +207,13 @@ export const useEntrySheet = () => {
 
   /**
    * 明暗主题：跟随站点 html.dark。
-   *   - setTheme：用我们的品牌灰阶/品牌色整体替换画布配色（含选区、网格线、表头底色）；
-   *   - toggleDarkMode：同步给 Univer 的 React 浮层（右键菜单 / 下拉），保证浮层也走暗色。
-   * 两者各管一层，互不复写——画布颜色完全由 buildUniverTheme 决定。
+   *   - setTheme：始终是**亮色基调**（品牌灰阶/品牌色），暗色不另传主题——见 buildUniverTheme 注释，
+   *     Univer 暗色是反色实现的，喂暗色主题会被翻回去；
+   *   - toggleDarkMode：真正的明暗开关，画布反色 + React 浮层切暗色一起生效。
    */
   const setDark = (dark: boolean) => {
     if (!apiInstance) return;
-    apiInstance.setTheme(buildUniverTheme(dark));
+    apiInstance.setTheme(buildUniverTheme());
     apiInstance.toggleDarkMode(dark);
   };
 
@@ -268,12 +258,11 @@ export const useEntrySheet = () => {
   const writeHeader = (defs: ColDef[]) => {
     const ws = sheet.value;
     if (!ws || !defs.length) return;
-    const isDark = document.documentElement.classList.contains('dark');
-    const headerBg = isDark ? '#20242c' : '#f1f4fb';
     const range = ws.getRange(HEADER_ROW, 0, 1, defs.length);
     range.setValues([defs.map(headerTextOf)]);
     range.setFontWeight('bold');
-    range.setBackground(headerBg);
+    // 恒写亮色表头底：暗黑由 Univer 反色统一处理（写暗色底会被反转成亮色，表头反而发白）
+    range.setBackground(HEADER_BG_LIGHT);
     range.setHorizontalAlignment('center');
     range.setVerticalAlignment('middle');
   };

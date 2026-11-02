@@ -79,6 +79,11 @@ export type EntryRecord = Record<string, unknown>;
 
 /** 表头所在网格行（0-based），数据从下一行开始 */
 export const HEADER_ROW = 0;
+/**
+ * 表头底色：**恒为亮色值**。Univer 的暗色是反色实现的（CanvasColorService 按 darkMode 反转），
+ * 表头底色写进单元格后同样参与反转，所以暗黑下不要另写深色，否则会被翻成亮色、表头反而发白。
+ */
+export const HEADER_BG_LIGHT = '#f1f4fb';
 /** 数据行下标（0-based）→ 网格行号 */
 export const toSheetRow = (dataIndex: number): number => dataIndex + HEADER_ROW + 1;
 /** 网格行号 → 数据行下标（表头行返回 -1） */

@@ -273,8 +273,8 @@ let themeObserver: MutationObserver | null = null;
 const syncTheme = () => {
   const dark = document.documentElement.classList.contains('dark');
   sheetApi.setDark(dark);
-  // 表头底色是硬编码到单元格的（Univer 无「表头分组/角标」能力），主题切换后需重下发，
-  // 否则暗黑切回亮色时第 0 行表头仍残留旧底色。setDark 只改画布主题，不碰已写单元格。
+  // 表头底色写的是「亮色值」，暗黑由 Univer 反色统一处理，理论上无需重下发；
+  // 但切主题会触发整体重绘，这里重写一次保证加粗/居中/底色在切换后仍一致（幂等、代价小）。
   sheetApi.writeHeader(defs.value);
 };
 
