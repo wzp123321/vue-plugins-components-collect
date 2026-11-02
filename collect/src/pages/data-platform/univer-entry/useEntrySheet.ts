@@ -19,7 +19,7 @@
 //   - 脏标记没有行对象可挂，改用"命令执行 → 去抖 → 与基线快照逐格比对"，见页面层 recomputeDirty。
 // ============================================================================
 import { ref, shallowRef } from 'vue';
-import { createUniver, LocaleType, mergeLocales, defaultTheme } from '@univerjs/presets';
+import { createUniver, LocaleType, mergeLocales, defaultTheme, darkBlueTheme } from '@univerjs/presets';
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverCoreZhCN from '@univerjs/preset-sheets-core/locales/zh-CN';
 import { UniverSheetsSortPreset } from '@univerjs/preset-sheets-sort';
@@ -47,43 +47,47 @@ import {
 import type { UApi, UIRange, USheet } from './univer-types';
 
 /**
- * Univer 主题：以官方 defaultTheme 为基底，只替换「灰阶」与「品牌色」两把尺，
- * 让 Univer 画布的观感与另外两套（vxe / VTable）的 --bi-* 色板对齐。
+ * Univer 主题：整体替换（ThemeService 不合并，必须全量透传）。
+ *   - 亮色：官方 defaultTheme（白底）为基底 + 品牌 primary + 品牌查找高亮；
+ *   - 暗色：官方 darkBlueTheme 为基底（这是 Univer 设计好的完整暗色主题，画布底色 / 文字 /
+ *     网格线全部走暗尺，能稳定渲出暗画布），只把「画布底 / 面板」几档灰阶微调成与另两套
+ *     (vxe / VTable) 一致的中性深灰，避免 Univer 偏藏蓝。
  *
- * ⚠️ setTheme 是整体替换（ThemeService 不合并），所以必须 {...defaultTheme, gray:{...}, primary:{...}}
- *   全量透传其它色尺，只动我们要改的两把。改色尺即改三套统一观感，不碰业务逻辑。
- * ⚠️ 灰阶索引语义：0≈画布底/面板，100≈表头底，400≈网格线，700≈次级文字，800≈正文；
- *   品牌尺 500 是选区/强调主色。Univer 内部按这些索引取色，给出平滑过渡即可。
+ * ⚠️ 不要把亮色 defaultTheme 手动改灰阶当暗色用——Univer 画布底色由主题 gray 尺度驱动，
+ *   手搓灰阶容易漏掉场景主背景那一档，结果「主题对象传了但画布仍白」。直接用官方暗色主题最稳。
+ * ⚠️ highlight.background[i].color 必须是「主题键路径」（如 "orange.400"），Univer 渲染时
+ *   按 get(theme, color) 解析；填十六进制字符串会被解析成 theme["#ff8f1f"] → undefined 而失效。
  */
+// 品牌主色尺：与 vxe(--dt-primary)/VTable(--bi-primary) 同源，选区 / 强调统一为这套蓝
+const BRAND_PRIMARY_LIGHT = {
+  50: '#eef2ff', 100: '#e2e9ff', 200: '#c9d6ff', 300: '#a9bcff', 400: '#7d97ff',
+  500: '#2b5cf6', 600: '#1f4ee0', 700: '#1a40bd', 800: '#153399', 900: '#102678',
+};
+const BRAND_PRIMARY_DARK = {
+  50: '#1c2440', 100: '#243056', 200: '#2e3d72', 300: '#3d4d92', 400: '#586cbf',
+  500: '#6f8dff', 600: '#5a78f0', 700: '#4a66d8', 800: '#3a54b8', 900: '#2e449a',
+};
+// 暗色基础灰阶微调：仅压低画布底/面板几档，使其与另两套中性深灰一致（其余暗尺沿用官方）
+const GRAY_DARK_OVERRIDE = { 0: '#16191f', 50: '#1a1e25', 100: '#1a1e25', 200: '#20242c' };
+
 const buildUniverTheme = (dark: boolean) => {
-  const gray = dark
-    ? {
-        0: '#16191f', 50: '#1a1e25', 100: '#1a1e25', 200: '#20242c', 300: '#20242c',
-        400: '#272c35', 500: '#323843', 600: '#4a515d', 700: '#8f95a3', 800: '#e6e8ec',
-        900: '#c9cdd4', 1000: '#ffffff',
-      }
-    : {
-        0: '#ffffff', 50: '#f9fafb', 100: '#f7f8fa', 200: '#f1f2f4', 300: '#eef0f4',
-        400: '#e5e7ec', 500: '#d6d9e0', 600: '#bcc1cc', 700: '#86909c', 800: '#1d2129',
-        900: '#0e1116', 1000: '#000000',
-      };
-  const primary = dark
-    ? {
-        50: '#1c2440', 100: '#243056', 200: '#2e3d72', 300: '#3d4d92', 400: '#586cbf',
-        500: '#6f8dff', 600: '#5a78f0', 700: '#4a66d8', 800: '#3a54b8', 900: '#2e449a',
-      }
-    : {
-        50: '#eef2ff', 100: '#e2e9ff', 200: '#c9d6ff', 300: '#a9bcff', 400: '#7d97ff',
-        500: '#2b5cf6', 600: '#1f4ee0', 700: '#1a40bd', 800: '#153399', 900: '#102678',
-      };
-  // 查找高亮：与 vxe 的 .cell-found（橙底）同源，避免三套查找高亮各一色
-  const highlightBackground = {} as Record<number, { color: string; alpha: number }>;
-  for (let i = 1; i <= 16; i += 1) highlightBackground[i] = { color: '#ff8f1f', alpha: 0.18 };
+  // 查找高亮：与 vxe 的 .cell-found（橙底）同源；color 用主题键路径，alpha 仿官方 0.28/0.14 两档
+  const highlight = { background: {} as Record<number, { color: string; alpha: number }> };
+  for (let i = 1; i <= 16; i += 1) {
+    highlight.background[i] = { color: dark ? 'orange.600' : 'orange.400', alpha: i <= 8 ? 0.28 : 0.14 };
+  }
+  if (dark) {
+    return {
+      ...darkBlueTheme,
+      gray: { ...darkBlueTheme.gray, ...GRAY_DARK_OVERRIDE },
+      primary: BRAND_PRIMARY_DARK,
+      highlight,
+    };
+  }
   return {
     ...defaultTheme,
-    gray,
-    primary,
-    highlight: { background: highlightBackground },
+    primary: BRAND_PRIMARY_LIGHT,
+    highlight,
   };
 };
 
@@ -260,14 +264,16 @@ export const useEntrySheet = () => {
   /** 表头文字：必填列追加星号（Univer 无表头分组/角标能力，用文本方式表达） */
   const headerTextOf = (d: ColDef): string => (d.required ? `${d.label} *` : d.label);
 
-  /** 写表头行（含样式：加粗 + 浅底色 + 居中） */
+  /** 写表头行（含样式：加粗 + 底色 + 居中）。底色跟随站点暗黑，避免暗模式下仍是浅蓝灰 */
   const writeHeader = (defs: ColDef[]) => {
     const ws = sheet.value;
     if (!ws || !defs.length) return;
+    const isDark = document.documentElement.classList.contains('dark');
+    const headerBg = isDark ? '#20242c' : '#f1f4fb';
     const range = ws.getRange(HEADER_ROW, 0, 1, defs.length);
     range.setValues([defs.map(headerTextOf)]);
     range.setFontWeight('bold');
-    range.setBackground('#f1f4fb');
+    range.setBackground(headerBg);
     range.setHorizontalAlignment('center');
     range.setVerticalAlignment('middle');
   };
