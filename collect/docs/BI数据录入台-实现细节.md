@@ -54,7 +54,6 @@
 | 列移序 | `moveCol` | `onMoveCol` | `moveColumn`（整表重写） |
 | 合并单元格 | 框选合并 / 一键全取消 | `mergeCells` / `unmergeCells` | `FRange.merge` / `breakApart`，限数据区 |
 | 右键菜单 | 自研 `GridContextMenu` | 无 | 原生 |
-| 亮 / 暗主题 | CSS 变量 | `getComputedStyle` 读 `--bi-*` 转 `TableTheme` | `toggleDarkMode` + `MutationObserver` 跟 `html.dark` |
 | 点表头打开列配置 | `header-cell-click` | `click_cell`（`cellLocation:'columnHeader'`，分组表头只认叶子行） | 点列标整列选中（A1 信号） |
 
 行操作的唯一差异是**插入方向**：vxe 上方、VTable 下方、Univer 上方。
@@ -124,6 +123,20 @@
   toSheetRow = (i) => i + HEADER_ROW + 1;   // 数据下标 → 工作表行号
   toDataIndex = (r) => r - HEADER_ROW - 1;  // 工作表行号 → 数据下标
   ```
+
+**存档形状**（`IWorkbookData`，即 `save()` 返回值、也是持久化单元）：三层字典，一路按坐标查下去。
+
+| 层 | 关键字段 | 说明 |
+| --- | --- | --- |
+| Workbook | `sheetOrder` / `sheets` / `styles` | 工作表顺序单独存数组，不靠 key 顺序；`styles` 是工作簿级样式池 |
+| Worksheet | `rowCount` / `columnCount` / `cellData` / `styles` / `mergeData` / `rowData` / `columnData` / `freeze` | 一张表的全部内容；后四项都是「挂在具体行号/列号区间上」的配置 |
+| Cell | `v` / `t` / `f` / `s` / `p` | 见下 |
+
+- `cellData` 形如 `{ [行号]: { [列号]: ICellData } }`，**稀疏**——只存有值的格子，`rowCount` 范围内的空行不占空间。
+- `ICellData` 只有五个字段：`v` 值（`string | number | boolean`）、`t` 类型枚举（`1` STRING / `2` NUMBER / `3` BOOLEAN / `4` FORCE_STRING）、`f` 公式串、`s` 样式（样式池 id 或内联 `IStyleData`）、`p` 富文本。**没有行 id，没有任何行引用。**
+- `rowData` / `columnData` 是**覆盖**不是定义：只存与 `defaultRowHeight` / `defaultColumnWidth` 不同的行列，字段只有 `h`（行高）/ `w`（列宽，像素）/ `hd`（隐藏）。
+- 于是「行」「列」都不是实体：`cellData[3]` 是「所有行号为 3 的格子」，删第 1 行等于所有下行键整体 -1。**列同理——`columnData` 只有宽和隐藏，没有列名、没有列类型**，所以「姓名是文本列、年龄是数字列」这类业务定义在 Univer 里不存在，必须自建 `ColDef[] → 列索引` 映射。这是 §6.2 `caps` 与 §3.3「结构变更必须全量重写」的共同根因。
+- 这份存档是**只读视图**：直接改对象画布不响应，写入只能发命令（`setValue` / `executeCommand` / `moveColumn`）。
 
 ### 3.2 脏标记
 
@@ -236,8 +249,27 @@ const applyChrome = () => {
 色板唯一来源是 `assets/style/bi-entry.less` 的 `--bi-*`，三套别名 `--dt-*`（vxe）/ `--ue-*`（Univer）/ `--el-*`（VTable）都映射到它；改一处三处生效。
 
 - **vxe**：原生 CSS 变量，经 `:deep()` 覆写 `.vxe-*`；行悬停、表头图标 hover 显隐、跨列十字高亮、选区/错误/查找高亮都挂在 `--bi-*`。
-- **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；本次补上了行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
+- **VTable**：`buildTableTheme()` 建表时 `getComputedStyle` 读 `--bi-*` 转 `TableTheme`；行悬停（`defaultStyle.hover`）、选区双向淡色底（`select` + `selectionStyle`）、滚动条与排序图标品牌色全部取自 `--bi-*`。暗黑切换靠 `watch(themeStore.isDark)` → `rebuild()` 重建主题。
 - **Univer**：`useEntrySheet.setDark()` = **恒喂亮色基调主题** + `toggleDarkMode(dark)`。Univer 的暗色是**反色**实现的：`CanvasColorService.getRenderColor()` 先按主题键解析真实颜色，再在 `darkMode` 为真时用反色矩阵翻转。所以「暗色主题 + 打开暗黑开关」会把已暗的颜色翻成亮色、画布反而发白（本仓踩过两次的坑）；正确组合只有「亮色主题 + 开关」。主题里 `primary` 取品牌蓝、`highlight.background[i].color` 必须填**主题键路径**（如 `orange.400`；填十六进制会解析成 `theme["#ff8f1f"]` → undefined）。同理**写进单元格的颜色（表头底色）恒写亮色值**，让它参与统一反转；按 `html.dark` 写深色会在暗黑下翻成亮色。⚠️ `setTheme` 是整体替换（不合并），必须全量透传 `defaultTheme`。
+
+### 7.1 单元格样式：白名单，不是任意 CSS
+
+改单元格样式走 `range.setStyle({...})`，或语义化语法糖（`setFontWeight` / `setBackgroundColor` / `setHorizontalAlignment` 等）。改动进样式池、进撤销栈。**能改的是 `IStyleData` 白名单，不是 CSS 属性表**：
+
+| 能做 | 字段 |
+| --- | --- |
+| 字重 / 斜体 / 下划线 / 删除线 | `bl` / `it` / `ul` / `st` |
+| 字号 / 字体 / 字色 / 背景色 | `fs` / `ff` / `fc` / `bg` |
+| 边框 | `bd` |
+| 水平 / 垂直对齐 / 换行 / 文字旋转 | `ht` / `vt` / `tb` / `tr` |
+| 数字格式（千分位 / 百分比 / 日期） | `n` |
+
+做不到：`box-shadow`、`letter-spacing`、行内 padding、渐变、圆角。这是 Excel 的样式模型，不是 CSS 模型——要「圆角高亮块」「左侧强调条」这类效果，只能靠单元格底色 + 边框近似，或放弃单元格、改用外层自绘。
+
+两条实务约束：
+
+- **颜色参与反色**：`#ffffff` 在白底上是白，切暗黑被反色矩阵翻转成黑；同一色值在两种主题下不是同一视觉结果（见上文 Univer 段）。
+- **批量刷样式会污染撤销栈**：一次 `setStyle` 一条命令，刷 100 格 = 100 步 `Ctrl+Z`。程序化批量设置要么包成单个命令批次，要么设置完清空撤销栈。
 
 ## 8. 踩坑清单
 
@@ -267,3 +299,6 @@ const applyChrome = () => {
 - React 是硬依赖（`react@19` + `react-dom@19`），`UniverSheetsCorePreset` 内部用 React 渲染弹层。
 - 点列标后**整列选中的 A1 是简写 `E:E`**（不是 `E1:E20000`），只认全量格式的正则永不命中、抽屉打不开；列索引按字母自算，别依赖 `getRange` 解析简写。
 - Univer 的浮层/Tailwind 全用 `rem`，**根字号一变（本仓大屏模板 `:root{font-size:calc(100vh/10.8)}` 顶到 ~78px）所有间距尺寸放大 ~4.88 倍**，只压 `font-size` 会得到「字小了框还巨大」。进本页时把根字号恢复 16px，离开移除。
+- 内置浮层（右键菜单 / 下拉 / 筛选面板）由 React `createPortal` 挂到 `body`，跨出 scoped 与 CSS 变量作用域。**真锚点是 `.univer-popup`**（弹层是 body 下的 `<section class="univer-popup univer-fixed">`）；`#univer-popup-portal-*` 是空容器（0 子节点），按它写选择器全是死代码。
+- 浮层密度不统一：下拉框项是 design 层 `DropdownMenuItem`（本就紧凑），右键菜单是 UI 层 `ContextMenuPanel` default 变体（项高 `min-h-8` 32px、面板 `min-w-52` 208px、顶部图标行 `size-8`/`size-7`）。要一起压必须按 Tailwind 原子类分别点名（`min-h-8`→24、`size-8`→24 / `size-7`→22、`min-w-52`→184、`px-2`→6、`py-1`→2），只在父级压 `font-size` 会得到「字小了框还巨大」。
+- 改完必须实测 computed style（项高应为 24px、面板 184×~300），否则容易自欺——`rem` 与 Tailwind 优先级叠在一起，肉眼判断不可靠。
