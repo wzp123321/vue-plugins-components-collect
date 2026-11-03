@@ -340,6 +340,7 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--ai-border);
   background: var(--ai-surface);
   backdrop-filter: blur(22px);
+  box-shadow: var(--ai-ring);
 
   &__right {
     display: flex;

@@ -1,4 +1,10 @@
-/* 暗色主题 - 使用最高优先级覆盖 */
+/* 暗色主题 - 暗色专属覆盖。
+ * 双模通用的组件皮肤（el-menu / el-card / el-table / el-input / el-button /
+ * el-dialog / el-drawer 等）已合并到 components-theme.css，无需按模式挂作用域。
+ * 本文件只保留无法双模通用的两块：
+ *   ① 旧 color.less 的 --color-* 暗色覆盖
+ *   ② 外壳容器覆盖（侧边栏 / 头部 / 内容区），亮色由容器组件自身令牌驱动。
+ */
 
 /* ===================== 基础变量覆盖 ===================== */
 html.dark {
@@ -58,70 +64,11 @@ html.dark {
   --color-scrollbar-active: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* ===================== 强制覆盖 Element Plus =====================
- * 统一走 ai-theme.less 的令牌：表面用近黑玻璃色，描边用 hairline，
- * 不再用 #1e293b / #334155 这套 slate 色，避免与外壳配色断层。
- */
-
+/* ===================== 外壳容器覆盖（暗色专属） ===================== */
 /* 侧边栏背景 */
 html.dark .aside-box,
 html.dark aside.aside-box {
   background-color: var(--ai-surface) !important;
-}
-
-/* 菜单整体背景 */
-html.dark .el-menu,
-html.dark .el-menu--vertical,
-html.dark .el-menu--horizontal {
-  background-color: transparent !important;
-  border-color: transparent !important;
-}
-
-/* 一级菜单项 */
-html.dark .el-menu-item,
-html.dark .el-sub-menu__title {
-  color: var(--ai-text-dim) !important;
-  background-color: transparent !important;
-}
-
-/* 悬停状态 */
-html.dark .el-menu-item:hover,
-html.dark .el-sub-menu__title:hover {
-  background-color: var(--ai-surface-hover) !important;
-  color: var(--ai-text) !important;
-}
-
-/* 激活状态 */
-html.dark .el-menu-item.is-active,
-html.dark .el-menu-item.is-active:hover {
-  background-color: var(--ai-surface-active) !important;
-  color: var(--ai-accent) !important;
-}
-
-/* 子菜单背景 */
-html.dark .el-menu--inline {
-  background-color: transparent !important;
-}
-
-/* 菜单图标 */
-html.dark .el-menu-item .el-icon,
-html.dark .el-sub-menu__title .el-icon {
-  color: var(--ai-text-dim) !important;
-}
-
-html.dark .el-menu-item.is-active .el-icon,
-html.dark .el-sub-menu__title.is-active .el-icon {
-  color: var(--ai-accent) !important;
-}
-
-/* 子菜单箭头 */
-html.dark .el-sub-menu__icon-arrow {
-  color: var(--ai-text-mute) !important;
-}
-
-/* 菜单分组标题 */
-html.dark .el-menu-item-group__title {
-  color: var(--ai-text-mute) !important;
 }
 
 /* 头部背景 */
@@ -150,92 +97,3 @@ html.dark .main-container__content,
 html.dark main.el-main {
   background-color: transparent !important;
 }
-
-/* Element Plus 组件覆盖 */
-html.dark .el-card {
-  background-color: var(--ai-surface-solid) !important;
-  border-color: var(--ai-border) !important;
-  color: var(--ai-text) !important;
-  box-shadow: var(--ai-shadow-sm) !important;
-}
-
-html.dark .el-table {
-  --el-table-bg-color: transparent;
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: var(--ai-surface-raised);
-  --el-table-border-color: var(--ai-border);
-  --el-table-row-hover-bg-color: var(--ai-surface-hover);
-  background-color: transparent !important;
-  border-color: var(--ai-border) !important;
-  color: var(--ai-text) !important;
-}
-
-html.dark .el-table__header {
-  color: var(--ai-text-dim) !important;
-}
-
-html.dark .el-input__wrapper,
-html.dark .el-textarea__inner {
-  background-color: var(--ai-surface-raised) !important;
-  box-shadow: 0 0 0 1px var(--ai-border) inset !important;
-}
-
-html.dark .el-input__inner {
-  color: var(--ai-text) !important;
-}
-
-html.dark .el-button {
-  background-color: var(--ai-surface-raised) !important;
-  border-color: var(--ai-border) !important;
-  color: var(--ai-text-dim) !important;
-  box-shadow: none !important;
-}
-
-html.dark .el-button:hover {
-  border-color: var(--ai-border-strong) !important;
-  color: var(--ai-text) !important;
-}
-
-html.dark .el-button--primary {
-  background-color: var(--ai-accent) !important;
-  border-color: var(--ai-accent) !important;
-  color: #ffffff !important;
-}
-
-html.dark .el-button--primary:hover {
-  background-color: var(--ai-accent-2) !important;
-  border-color: var(--ai-accent-2) !important;
-}
-
-html.dark .el-dialog,
-html.dark .el-drawer {
-  background-color: var(--ai-surface-solid) !important;
-  border: 1px solid var(--ai-border) !important;
-  box-shadow: var(--ai-shadow-lg) !important;
-}
-
-html.dark .el-message-box {
-  background-color: var(--ai-surface-solid) !important;
-  border-color: var(--ai-border) !important;
-}
-
-html.dark .el-tabs__item {
-  color: var(--ai-text-dim) !important;
-}
-
-html.dark .el-tabs__item.is-active {
-  color: var(--ai-accent) !important;
-}
-
-html.dark .el-pagination {
-  color: var(--ai-text-dim) !important;
-}
-
-/* 弹层统一：细描边 + 克制阴影 */
-html.dark .el-popper,
-html.dark .el-select-dropdown,
-html.dark .el-autocomplete__popper {
-  border-color: var(--ai-border) !important;
-  box-shadow: var(--ai-shadow-md) !important;
-}
-

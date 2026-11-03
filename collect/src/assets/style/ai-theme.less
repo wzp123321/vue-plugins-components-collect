@@ -96,16 +96,18 @@ html:not(.dark) {
   color-scheme: light;
   .ai-el-bridge();
 
-  --ai-bg: #f4f5fa;
-  --ai-glow-violet: rgba(124, 92, 255, 0.14);
-  --ai-glow-cyan: rgba(14, 165, 233, 0.1);
-  --ai-glow-blue: rgba(56, 130, 246, 0.08);
-  --ai-grid-line: rgba(15, 23, 42, 0.035);
+  /* 画布：极淡的冷调渐变，给白色玻璃表面留出层次纵深 */
+  --ai-bg: linear-gradient(180deg, #f5f6fb 0%, #eceef5 100%);
+  --ai-glow-violet: rgba(124, 92, 255, 0.16);
+  --ai-glow-cyan: rgba(14, 165, 233, 0.12);
+  --ai-glow-blue: rgba(56, 130, 246, 0.1);
+  --ai-grid-line: rgba(15, 23, 42, 0.04);
 
-  --ai-surface: rgba(255, 255, 255, 0.72);
+  /* 表面：略增不透明度 + 顶部内高光，让玻璃在亮底上读得出边缘 */
+  --ai-surface: rgba(255, 255, 255, 0.78);
   --ai-surface-solid: #ffffff;
-  --ai-surface-raised: rgba(15, 23, 42, 0.03);
-  --ai-surface-hover: rgba(15, 23, 42, 0.05);
+  --ai-surface-raised: rgba(15, 23, 42, 0.035);
+  --ai-surface-hover: rgba(15, 23, 42, 0.055);
   --ai-surface-active: rgba(124, 92, 255, 0.1);
 
   --ai-border: rgba(15, 23, 42, 0.08);

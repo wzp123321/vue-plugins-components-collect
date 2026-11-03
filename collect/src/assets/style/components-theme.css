@@ -1,0 +1,143 @@
+/* 组件皮肤 - 暗色 / 亮色共用，无需按模式挂作用域。
+ * 原因：本文件只引用 ai-theme.less 中两套模式都已定义的 --ai-* 令牌，
+ * 令牌本身已随 html.dark / html:not(.dark) 切换，故同一份规则双模通用。
+ * 早期 dark-theme.css 与 light-theme.css 各复制一份仅在作用域前缀上不同，
+ * 现已合并到此文件，消除重复。
+ * !important 对齐暗色原行为，确保稳定覆盖 Element Plus 默认皮肤。
+ */
+
+/* ===================== 菜单 ===================== */
+.el-menu,
+.el-menu--vertical,
+.el-menu--horizontal {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.el-menu-item,
+.el-sub-menu__title {
+  color: var(--ai-text-dim) !important;
+  background-color: transparent !important;
+}
+
+.el-menu-item:hover,
+.el-sub-menu__title:hover {
+  background-color: var(--ai-surface-hover) !important;
+  color: var(--ai-text) !important;
+}
+
+.el-menu-item.is-active,
+.el-menu-item.is-active:hover {
+  background-color: var(--ai-surface-active) !important;
+  color: var(--ai-accent) !important;
+}
+
+.el-menu--inline {
+  background-color: transparent !important;
+}
+
+.el-menu-item .el-icon,
+.el-sub-menu__title .el-icon {
+  color: var(--ai-text-dim) !important;
+}
+
+.el-menu-item.is-active .el-icon,
+.el-sub-menu__title.is-active .el-icon {
+  color: var(--ai-accent) !important;
+}
+
+.el-sub-menu__icon-arrow {
+  color: var(--ai-text-mute) !important;
+}
+
+.el-menu-item-group__title {
+  color: var(--ai-text-mute) !important;
+}
+
+/* ===================== Element Plus 组件覆盖 ===================== */
+.el-card {
+  background-color: var(--ai-surface-solid) !important;
+  border-color: var(--ai-border) !important;
+  color: var(--ai-text) !important;
+  box-shadow: var(--ai-shadow-sm) !important;
+}
+
+.el-table {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: var(--ai-surface-raised);
+  --el-table-border-color: var(--ai-border);
+  --el-table-row-hover-bg-color: var(--ai-surface-hover);
+  background-color: transparent !important;
+  border-color: var(--ai-border) !important;
+  color: var(--ai-text) !important;
+}
+
+.el-table__header {
+  color: var(--ai-text-dim) !important;
+}
+
+.el-input__wrapper,
+.el-textarea__inner {
+  background-color: var(--ai-surface-raised) !important;
+  box-shadow: 0 0 0 1px var(--ai-border) inset !important;
+}
+
+.el-input__inner {
+  color: var(--ai-text) !important;
+}
+
+.el-button {
+  background-color: var(--ai-surface-raised) !important;
+  border-color: var(--ai-border) !important;
+  color: var(--ai-text-dim) !important;
+  box-shadow: none !important;
+}
+
+.el-button:hover {
+  border-color: var(--ai-border-strong) !important;
+  color: var(--ai-text) !important;
+}
+
+.el-button--primary {
+  background-color: var(--ai-accent) !important;
+  border-color: var(--ai-accent) !important;
+  color: #ffffff !important;
+}
+
+.el-button--primary:hover {
+  background-color: var(--ai-accent-2) !important;
+  border-color: var(--ai-accent-2) !important;
+}
+
+.el-dialog,
+.el-drawer {
+  background-color: var(--ai-surface-solid) !important;
+  border: 1px solid var(--ai-border) !important;
+  box-shadow: var(--ai-shadow-lg) !important;
+}
+
+.el-message-box {
+  background-color: var(--ai-surface-solid) !important;
+  border-color: var(--ai-border) !important;
+}
+
+.el-tabs__item {
+  color: var(--ai-text-dim) !important;
+}
+
+.el-tabs__item.is-active {
+  color: var(--ai-accent) !important;
+}
+
+.el-pagination {
+  color: var(--ai-text-dim) !important;
+}
+
+/* 弹层统一：细描边 + 克制阴影 */
+.el-popper,
+.el-select-dropdown,
+.el-autocomplete__popper {
+  border-color: var(--ai-border) !important;
+  box-shadow: var(--ai-shadow-md) !important;
+}

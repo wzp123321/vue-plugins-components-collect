@@ -217,6 +217,7 @@ watch(activePath, async (path) => {
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 38%),
     var(--ai-surface);
   backdrop-filter: blur(22px);
+  box-shadow: var(--ai-ring);
   transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.is-collapsed {
