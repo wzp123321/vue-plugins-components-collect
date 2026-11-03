@@ -15,6 +15,13 @@ const dataPlatformRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/data-platform/univer-entry/univer-entry.vue'),
   },
+  {
+    path: '/data-platform-tabulator-entry',
+    meta: {
+      name: 'Tabulator BI 数据录入',
+    },
+    component: () => import('../../pages/data-platform/tabulator-entry/tabulator-entry.vue'),
+  },
 ];
 
 export default dataPlatformRoutes;

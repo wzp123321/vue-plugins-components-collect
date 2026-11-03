@@ -130,7 +130,11 @@ export const useEntrySheet = () => {
         // 行高与字号对齐另两套录入台（vxe 行高 36 / 字号 12.5，VTable 行高 36 / 字号 12）。
         // Univer 默认 20px 行高 + 11pt 字号，三页并排时密度差最明显。
         defaultRowHeight: ENTRY_ROW_HEIGHT,
-        defaultStyle: { fs: ENTRY_FONT_SIZE },
+        // ff 接应用字体（与 .bi-page 同款字体栈），否则 Univer 用自带默认字体，三页并排时字形不一致。
+        defaultStyle: {
+          fs: ENTRY_FONT_SIZE,
+          ff: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+        },
         cellData: {},
       },
     },

@@ -77,6 +77,7 @@
         :column-config="{ resizable: true }"
         :show-overflow="true"
         :border="true"
+        :stripe="true"
         :show-footer="showFooter"
         :footer-data="footerData"
         :scroll-y="{ enabled: true, gt: 10 }"
@@ -563,6 +564,11 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 :deep(.vxe-table .vxe-body--column.cell-sel.cell-active) { background-color: var(--dt-panel) !important; }
 :deep(.vxe-table .fixed-left--wrapper) { box-shadow: 4px 0 10px -6px rgb(16 24 40 / 8%); }
 :deep(.vxe-table .vxe-header--column.dt-col-req .vxe-cell::after) { content: '*'; color: var(--dt-danger); margin-left: 2px; }
+/* 必填列数据区淡色底：有数BI「分区识别」思路——只作区域标记，弱于 hover/选中/错误。
+   dt-col-req 同时挂在表头(headerClassName)与数据单元格(className)，故只需一条 body 规则。 */
+:deep(.vxe-table .vxe-body--column.dt-col-req) { background-color: var(--dt-primary-soft); }
+/* 斑马纹：统一走 --bi-stripe（极浅交替底），置于必填底之前，保证必填列整列优先显底色 */
+:deep(.vxe-table .vxe-body--row.row--stripe > .vxe-body--column) { background-color: var(--bi-stripe); }
 :deep(.vxe-table .vxe-footer--row) { background: var(--dt-header-bg); font-weight: 600; color: var(--dt-text); }
 /* ===== 单元格编辑器（element-plus）：融入单元格——无边框、透明底、撑满格高、文字随单元格主题 =====
    ⚠️ 坑：编辑单元格必须用 element-plus 组件（而非 vxe 自带编辑器）；输入框必须去除 box-shadow 边框
@@ -611,5 +617,7 @@ html.dark .dt-page :deep(.vxe-table .vxe-table--header-wrapper) { background: va
 html.dark .dt-page :deep(.vxe-table .vxe-body--column),
 html.dark .dt-page :deep(.vxe-table .vxe-header--column) { border-color: var(--dt-border) !important; }
 html.dark .dt-page :deep(.vxe-table .vxe-table--border-line) { border-color: var(--dt-border); }
-html.dark .dt-page :deep(.vxe-table .vxe-body--row.row--stripe) { background: var(--dt-panel); }
+html.dark .dt-page :deep(.vxe-table .vxe-body--row.row--stripe > .vxe-body--column) { background-color: var(--bi-stripe); }
+/* 暗色下必填列数据区淡蓝底（primary-soft 暗色档），与亮色同口径 */
+html.dark .dt-page :deep(.vxe-table .vxe-body--column.dt-col-req) { background-color: var(--dt-primary-soft); }
 </style>

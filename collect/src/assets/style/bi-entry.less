@@ -24,7 +24,8 @@
 .ue-dlg,
 .bi-dlg,
 .vt-bi,
-.vtable {
+.vtable,
+.tb-page {
   /* ---- 灰阶：页面底 → 面板 → 表头/工具带，三阶明度差控制在 2%~3% ---- */
   --bi-bg: #f4f5f7;
   --bi-panel: #fff;
@@ -42,6 +43,14 @@
   --bi-ok: #00b42a;
 
   --bi-hover: #f7f9fc;
+  /* 斑马纹：极浅交替底，只比面板亮一阶，远弱于 hover/选中/必填，避免视觉打架 */
+  --bi-stripe: #fafbfc;
+  /* 状态/语义辅助底：选中行 / 错误格 / 查找命中（DOM class 走这些变量，由 Tabulator 页使用） */
+  --bi-select: #e6effd;
+  /* 半透明选区填充：用于画在单元格之上的覆盖层（实色会盖住文字） */
+  --bi-select-fill: rgb(43 92 246 / 10%);
+  --bi-danger-bg: #fff1f0;
+  --bi-find-bg: #fff8e6;
   --bi-input-bg: #fff;
   --bi-shadow: 0 1px 2px rgb(16 24 40 / 4%);
 
@@ -71,9 +80,12 @@
   --dt-shadow: var(--bi-shadow);
 }
 
-/* ===== 命名空间别名：Univer 版（--ue-*）===== */
+/* ===== 命名空间别名：Univer 版（--ue-*）=====
+ * 复用自 Univer 版的子组件（工具条 / 查找条等内联件）在 .tb-page 下也要能解析 --ue-*，
+ * 它们实际映射到同一套 --bi-*；弹窗类自带 .ue-dlg 已单独覆盖。 */
 .ue-page,
-.ue-dlg {
+.ue-dlg,
+.tb-page {
   --ue-bg: var(--bi-bg);
   --ue-panel: var(--bi-panel);
   --ue-border: var(--bi-border);
@@ -164,7 +176,8 @@ html.dark {
   .ue-dlg,
   .bi-dlg,
   .vt-bi,
-  .vtable {
+  .vtable,
+  .tb-page {
     --bi-bg: #0e1014;
     --bi-panel: #16191f;
     --bi-head-bg: #1a1e25;
@@ -182,19 +195,24 @@ html.dark {
      * 不用偏蓝的 #29364d（R/G/B 差 19/29/46，像被选中），也压不到 #232832
      * （差 13/15/19，实测在 1x 屏上几乎找不到当前行）。 */
     --bi-hover: #2e3137;
+    /* 暗色斑马：比面板 #16191f 抬升一阶（中性灰，不偏蓝），与亮色同口径 */
+    --bi-stripe: #191d24;
+    /* 暗色状态/语义辅助底：与亮色同款语义，色值随暗色面板压深 */
+    --bi-select: #1c2440;
+    --bi-select-fill: rgb(111 141 255 / 16%);
+    --bi-danger-bg: #3f2429;
+    --bi-find-bg: #3a3217;
     --bi-input-bg: #0e1014;
     --bi-shadow: 0 1px 3px rgb(0 0 0 / 40%);
   }
-}
 
-/* ===== vxe-table 内置暗色变量 =====
- * 本仓没有引 vxe 的 dark 主题，它的 `--vxe-ui-*` 全部停在亮色档；暗色下凡是
- * 走这些变量的「状态色」都会在深底上刷亮：行/列 hover、当前行/列、条纹行、
- * 勾选行、加载遮罩、弹层描边……行 hover 那条已经踩过一次（整行变白带）。
- * 逐条写 :deep() 补丁既漏又难维护，所以直接把变量映射到 --bi-*：
- * 以后 vxe 哪个内置态被用到，都自动对齐，不用再补一条选择器。
- * 变量清单对齐 vxe-table/styles/theme/dark.scss。 */
-html.dark {
+  /* ===== vxe-table 内置暗色变量 =====
+   * 本仓没有引 vxe 的 dark 主题，它的 `--vxe-ui-*` 全部停在亮色档；暗色下凡是
+   * 走这些变量的「状态色」都会在深底上刷亮：行/列 hover、当前行/列、条纹行、
+   * 勾选行、加载遮罩、弹层描边……行 hover 那条已经踩过一次（整行变白带）。
+   * 逐条写 :deep() 补丁既漏又难维护，所以直接把变量映射到 --bi-*：
+   * 以后 vxe 哪个内置态被用到，都自动对齐，不用再补一条选择器。
+   * 变量清单对齐 vxe-table/styles/theme/dark.scss。 */
   .dt-page,
   .dt-dlg {
     --vxe-ui-layout-background-color: var(--bi-panel);

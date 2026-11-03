@@ -227,6 +227,9 @@ importers:
       spark-md5:
         specifier: ^3.0.2
         version: 3.0.2
+      tabulator-tables:
+        specifier: ^6.7.1
+        version: 6.7.1
       three:
         specifier: ^0.173.0
         version: 0.173.0
@@ -5456,6 +5459,9 @@ packages:
   table@6.9.0:
     resolution: {integrity: sha512-9kY+CygyYM6j02t5YFHbNz2FN5QmYGv9zAjVp4lCDjlCw7amdckXlEt/bjMhUIfj4ThGRE4gCUH5+yGnNuPo5A==}
     engines: {node: '>=10.0.0'}
+
+  tabulator-tables@6.7.1:
+    resolution: {integrity: sha512-6CMy17XdemQaIdg1BOqD5K6nzF2xoD47eRNiBYJBK+QrLWji7sgukyPjKXYrjRdWLwbGENdUsiAYJrNS3XeUfw==}
 
   tar-mini@0.2.0:
     resolution: {integrity: sha512-+qfUHz700DWnRutdUsxRRVZ38G1Qr27OetwaMYTdg8hcPxf46U0S1Zf76dQMWRBmusOt2ZCK5kbIaiLkoGO7WQ==}
@@ -11749,6 +11755,8 @@ snapshots:
       slice-ansi: 4.0.0
       string-width: 4.2.3
       strip-ansi: 6.0.1
+
+  tabulator-tables@6.7.1: {}
 
   tar-mini@0.2.0: {}
 

@@ -7,8 +7,8 @@
 - `te-*`（@tiansu）**在用**（14 目录 / 75 处引用），旧「禁用 te-*」已被代码推翻，别凭旧记忆删。
 - **收录规则**：按场景建页，不为单技术堆 demo；「技术A × 技术B × 我的约束」才建页。权威文档在根 README「开发约定」。
 
-## 三套 BI 录入台（vxe / VTable / Univer）
-- **三套并列都是主线**（非主备），功能必须一致，做不到的写进选型文档。列类型只四类：文本/数字/下拉/日期。文档 `collect/docs/BI数据录入台-{选型指南,实现细节}.md`。
+## 四套 BI 录入台（vxe / VTable / Univer / Tabulator）
+- **四套并列都是主线**（非主备），功能必须一致，做不到的写进选型文档。列类型只四类：文本/数字/下拉/日期。文档 `collect/docs/BI数据录入台-{选型指南,实现细节}.md`。
 - **共用纯函数 `src/utils/bi-entry.ts`**：ColType/ColRule/CrossRule/BiColLike + isBlank/numOf/round2/renderDate/normalizeDate/emptyValueFor/cloneRows/rowSignature/rowIsEmpty/crossError/compactRules。三套 schema/types 只转发不自造，**改口径只改一处**。
 - **单列配置 UI 只有一份** `src/components/bi-column-drawer/`（点列头 → 右 440px 抽屉，草稿确定）；**列设置全量列表也只有一份** `src/components/bi-column-manager/`（`class="bi-dlg"`，560px，行式 grid 22/148/84/116/104）。三套只做「列定义 ⇄ 草稿」映射 + 传 `caps`，**别再各写一份**（曾漂成三套）。`caps`：frozen（Univer 只有首列）/group（Univer 无多级表头）/width（只有 Univer 像素宽）/required/retype/add。
 - 抽屉/弹窗主题类：`.dt-dlg`（vxe）/`.ue-dlg`（Univer）/`.bi-dlg`（共享）。`dark-theme.css` 用 `!important` 把 `.el-button` 压成实心块，**抽屉里 text 按钮要在 `.bi-dlg` 作用域内还原**，否则变紫方块。
@@ -44,6 +44,19 @@
 - 推论：**写进单元格的颜色（表头 `setBackground`）恒写亮色值**，靠统一反转处理暗色；按 `html.dark` 写深色会被翻亮。`setTheme` 是整体替换，须全量透传 `defaultTheme`。`highlight.background[i].color` **必须填主题键路径**（如 `"orange.400"`，alpha 仿官方 0.28/0.14），十六进制会被 `get(theme,color)` 解析成 undefined。
 - `toggleDarkMode(bool)` 只发 `_darkMode$` 信号、**不改画布配色**；画布配色由 `setTheme` 决定，React 浮层靠 `toggleDarkMode` 翻 `data-*` 与 CSS 变量 —— 两者都要调。
 - 表头底色是 `writeHeader` 用 `setBackground()` 写进单元格的（Univer 无表头分组能力），**不随 `setTheme` 变**；暗黑切换后须在 `syncTheme` 里重新 `writeHeader`。
+
+### Tabulator（6.7.1，DOM）
+- **ESM 无默认导出**：`import { TabulatorFull as Tabulator } from 'tabulator-tables'`；无官方类型 → 自建 `src/tabulator-tables.d.ts`。
+- 建表是 `setTimeout` 延迟的：构造返回时 `initialized=false`，`init(el, onBuilt?)` 挂 `tableBuilt`，其余方法统一 `ready` 守卫。表级**没有 `reformat()`**（只有 RowComponent 有）。
+- `titleFormatter(mockCell, params, onRendered)` **必须返回字符串/Node**，返回 undefined 会清空表头；单元格 formatter 返回值直接进 innerHTML，要 escape。
+- **`selectableRange` 与 `selectableRows` 互斥**（源码直接 `console.warn` 不初始化）。矩形选区 + 填充柄 = `SelectRange`；行身份用 `index:'rowId'`，高亮/选区/行操作全按 rowId 记，排序筛选后才不错行。
+- `Row.updateData()` **原地写**（`this.data[k]=v`）→ 写记录时不能深拷贝，否则改的是副本、真相源失联。
+- 批量写入（填充 / 粘贴）**只发 `rowUpdated`，不发 `cellEdited`** → 状态栏/选区统计要另接 `rowUpdated` 合并刷新。
+- `clipboardCopyRowRange` 默认 `'active'`（整表+表头）→ 改 `'range'` + `clipboardCopyConfig:{columnHeaders:false}`。
+- 列头筛选只监听 **`keyup`/`search`/`change`，不监听 `input`**（CDP 派发 input 会得到「筛选无效」的假象）。
+- `frozen` + `selectRange` 会误报 unpredictable behavior → 改 `cssClass:'tb-pin-col'` + 自写 `position:sticky`。
+- **排序箭头颜色压不动**：官方选择器特异性 0,8,0（`.tabulator-col.tabulator-sortable[aria-sort=...] .tabulator-col-content .tabulator-col-sorter .tabulator-arrow`），必须照抄整条路径再加前缀；方向判定看 `aria-sort`（v6 无 `.tabulator-col-sorted`）。
+- 右键菜单：`.tabulator` 上挂 `contextMenu`；弹层 append 到 body（`.tb-page` 外）拿不到 `--bi-*`，用字面色 + `html.dark` 分支。
 
 ## three.js 地图（0.173）
 - `three` / `@types/three` 必须同步升；私有 Nexus 对 three 403，`collect/.npmrc` 指回官方源，`@tiansu` 仍走私有源。
