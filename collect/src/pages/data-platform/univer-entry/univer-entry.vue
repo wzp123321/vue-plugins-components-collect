@@ -65,7 +65,7 @@
       @open-help="helpVisible = true"
     />
 
-    <FindBar v-if="find.findVisible.value" :find="find" />
+    <FindBar v-if="find.findVisible.value" ref="findBarRef" :find="find" />
 
     <div class="ue-grid bi-panel" ref="gridBox">
       <!-- Univer 画布挂载点：必须有确定尺寸（flex 撑满），否则初始化时拿到 0 尺寸画不出内容 -->
@@ -133,6 +133,8 @@ const pageRef = ref<HTMLElement>();
 const gridBox = ref<HTMLElement>();
 const containerRef = ref<HTMLElement>();
 const fileInputRef = ref<HTMLInputElement>();
+/** 查找替换条实例：Ctrl+H 时主动聚焦「替换为」输入框 */
+const findBarRef = ref<InstanceType<typeof FindBar>>();
 
 // ===================== 列定义与 composables =====================
 const defs = ref<ColDef[]>(DEFAULT_COLS.map((d) => ({ ...d, rules: d.rules ? { ...d.rules } : undefined })));
@@ -325,6 +327,11 @@ const onKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
     e.preventDefault();
     find.open();
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+    // 替换快捷键：没开查找条先开，再聚焦「替换为」输入框
+    e.preventDefault();
+    if (!find.findVisible.value) find.open();
+    nextTick(() => findBarRef.value?.focusReplace());
   } else if (e.key === 'F1') {
     e.preventDefault();
     helpVisible.value = true;

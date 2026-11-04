@@ -267,6 +267,48 @@ export const useGridOps = (
     [arr[i], arr[j]] = [arr[j], arr[i]];
     core.columnDefs.value = [...arr];
   };
+  /**
+   * 复制列：深拷贝目标 ColDef（生成全新唯一 field、label 加"副本"），插入到原列之后，
+   * 并把源列的每行值克隆到新列（与 VTable/Univer/Tabulator 口径一致）。写数据前先 snap() 入撤销栈。
+   * @param field 要复制的源列 field
+   */
+  const duplicateColumn = (field: string) => {
+    const idx = core.columnDefs.value.findIndex((d) => d.field === field);
+    if (idx < 0) return;
+    const src = core.columnDefs.value[idx];
+    snap();
+    // 深拷贝 ColDef（options 等引用类型一并复制，避免与源列共享同一数组/对象）
+    const copy: ColDef = JSON.parse(JSON.stringify(src));
+    copy.field = `col_${++colSeq.n}_${Date.now()}`;
+    copy.label = `${src.label}副本`;
+    // 插入到原列之后（列重建后 columns 的 watch 会自动 applyColumns）
+    core.columnDefs.value.splice(idx + 1, 0, copy);
+    core.allRows.value.forEach((r) => {
+      r[copy.field] = r[field];
+      if (copy.required) core.validateCell(r, copy.field);
+    });
+    core.bumpData();
+    ElMessage.success(`已复制列「${src.label}」`);
+  };
+  /**
+   * 在指定列之前/之后插入新列（右键菜单用）：默认文本列、唯一 field、回填空值。
+   * @param targetField 参照列 field
+   * @param pos 'before' 左侧 / 'after' 右侧
+   */
+  const insertColumn = (targetField: string, pos: 'before' | 'after') => {
+    const idx = core.columnDefs.value.findIndex((d) => d.field === targetField);
+    if (idx < 0) return;
+    snap();
+    const field = `col_${++colSeq.n}_${Date.now()}`;
+    const def: ColDef = { field, label: `新列${colSeq.n}`, type: 'text', visible: true };
+    const at = pos === 'before' ? idx : idx + 1;
+    core.columnDefs.value.splice(at, 0, def);
+    core.allRows.value.forEach((r) => {
+      r[field] = emptyValueFor(def);
+    });
+    core.bumpData();
+    ElMessage.success(`已在${pos === 'before' ? '左侧' : '右侧'}插入列「${def.label}」`);
+  };
 
   // ===================== 批量填充 =====================
   const fillVisible = ref(false);
@@ -473,6 +515,8 @@ export const useGridOps = (
     confirmAddCol,
     removeCol,
     moveCol,
+    duplicateColumn,
+    insertColumn,
     // 批量填充
     fillVisible,
     fillField,

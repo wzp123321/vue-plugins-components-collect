@@ -84,17 +84,20 @@ const editorOf = (d: ColDef): { editor: unknown; editorParams?: Record<string, u
   }
 };
 
-/** 表头格式化：把「列名 + 红色 *」交给 Tabulator 渲染。
- *  Tabulator 5/6 的 titleFormatter 签名是 (mockCell, params, onRendered)——
- *  第一个参数是 mock cell（getValue() 是标题、getElement() 是表头元素），
- *  不是老版本的 (title, titleEl)。**必须返回字符串/Node**：返回 undefined 时
- *  Column._formatColumnHeaderTitle 会走 case "undefined" 把表头 innerHTML 清空。 */
-const makeTitleFormatter =
-  (label: string, required: boolean) =>
-  (): string =>
-    required
-      ? `<span class="tb-th-label">${label}</span><span class="tb-req-star">*</span>`
-      : `<span class="tb-th-label">${label}</span>`;
+/** A7 日期递增工具：严格按 YYYY-MM-DD 解析/输出，避免时区漂移 */
+const parseYMD = (s: unknown): Date | null => {
+  const m = typeof s === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(s) : null;
+  if (!m) return null;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+const addDaysYMD = (d: Date, n: number): string => {
+  const nd = new Date(d.getTime() + n * 86400000);
+  const y = nd.getUTCFullYear();
+  const mo = String(nd.getUTCMonth() + 1).padStart(2, '0');
+  const da = String(nd.getUTCDate()).padStart(2, '0');
+  return `${y}-${mo}-${da}`;
+};
 
 /** 转义 HTML：formatter 的返回值会被直接写进 innerHTML，
  *  不转义的话单元格里的 `<` / `&` 会被当成标签渲染（录入台必须原样显示用户输入）。 */
@@ -177,6 +180,45 @@ export const useEntrySheet = () => {
     revision.value++;
   };
 
+  /** B2 列头渲染：标题 + 必填红星 + 可点击排序箭头。
+   *  普通点击列头其余区域 = 选中整列（见 buildColumns 的 headerClick）；仅点击箭头 = 排序，
+   *  排序走 table.setSort（headerSort 已关闭，避免整头点击即排序把排序丢掉）。
+   *  titleFormatter 签名 (mockCell, params, onRendered)，返回字符串/Node。 */
+  const makeHeaderFormatter =
+    (d: ColDef) =>
+    (_cell: CellComponent, _params: unknown, onRendered: (cb: () => void) => void): Node => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tb-th-inner';
+      const t0 = table.value as unknown as { getSort?: () => Array<{ field: string; dir: string }> } | null;
+      const dir = t0?.getSort?.().find((s) => s.field === d.field)?.dir;
+      let arrow = '↕';
+      if (dir === 'asc') arrow = '▲';
+      else if (dir === 'desc') arrow = '▼';
+      wrap.innerHTML = [
+        `<span class="tb-th-label">${escapeHtml(d.label)}</span>`,
+        d.required ? '<span class="tb-req-star">*</span>' : '',
+        `<span class="tb-th-sort" title="点击排序" data-sort="1">${arrow}</span>`,
+      ].join('');
+      onRendered(() => {
+        const arrowEl = wrap.querySelector('.tb-th-sort') as HTMLElement | null;
+        if (!arrowEl) return;
+        arrowEl.addEventListener('click', (ev) => {
+          // 阻止冒泡，否则会触发列头 headerClick（选中整列）
+          ev.stopPropagation();
+          const t = table.value as unknown as {
+            getSort?: () => Array<{ field: string; dir: string }>;
+            setSort?: (field: string, dir: string) => void;
+          } | null;
+          if (!t || !ready.value || !t.setSort) return;
+          const cur = t.getSort?.().find((s) => s.field === d.field)?.dir;
+          const next = !cur || cur === 'desc' ? 'asc' : 'desc';
+          t.setSort(d.field, next);
+          arrowEl.textContent = next === 'asc' ? '▲' : '▼';
+        });
+      });
+      return wrap;
+    };
+
   /** 当前活动范围（未选中任何格返回 null） */
   const activeRange = (): RangeLike | null => {
     const t = table.value;
@@ -189,7 +231,8 @@ export const useEntrySheet = () => {
   const refreshSelection = () => {
     const range = activeRange();
     const rrows = range?.getRows() ?? [];
-    const rcols = range?.getColumns() ?? [];
+    // 展示行号列不参与选区统计（否则整行选中时求和/平均会把行号算进去）
+    const rcols = (range?.getColumns() ?? []).filter((c) => c.getField() !== 'tbRowNo');
     if (!rrows.length || !rcols.length) {
       selection.value = null;
       activeCell.value = '—';
@@ -201,7 +244,8 @@ export const useEntrySheet = () => {
       return fields.map((f) => rec[f]);
     });
     // A1 用"可见列序号 + 显示行号"，与 Excel 名称框一致（排序/筛选后看到的就是屏幕上的位置）
-    const visCols = table.value?.getColumns().filter((c) => c.isVisible()) ?? [];
+    // 跳过展示行号列 tbRowNo，否则 A1 列字母会整体右移一位（B1 展示列不算数据列）
+    const visCols = table.value?.getColumns().filter((c) => c.isVisible() && c.getField() !== 'tbRowNo') ?? [];
     const colPos = visCols.findIndex((c) => (c.getField() ?? '') === fields[0]);
     const a1 = `${colLetter(Math.max(0, colPos))}${rrows[0].getPosition(true)}`;
     selection.value = { a1, rows: rrows.length, cols: rcols.length, values };
@@ -214,27 +258,79 @@ export const useEntrySheet = () => {
       ? { headerFilter: 'list', headerFilterParams: { values: ['', ...(d.options ?? [])] } }
       : { headerFilter: 'input' };
 
-  /** 把列定义编译成 Tabulator 列配置 */
-  const buildColumns = (defs: ColDef[]): ColumnDefinition[] =>
-    defs.map((d, i) => ({
+  /** 把列定义编译成 Tabulator 列配置；最前插入一个纯展示行号列 tbRowNo（绝不进入数据模型）。 */
+  const buildColumns = (defs: ColDef[]): ColumnDefinition[] => {
+    // B1 行号列：仅展示与触发整行选中，不进入 defs/数据下标/选区 indices
+    const rownum: ColumnDefinition = {
+      field: 'tbRowNo',
+      title: '#',
+      width: 48,
+      hozAlign: 'center',
+      headerSort: false,
+      editor: false,
+      cssClass: 'tb-rownum',
+      formatter: (cell: CellComponent) => String(cell.getRow().getPosition(true)),
+      cellClick: (_e: Event, cell: CellComponent) => {
+        const t = table.value;
+        if (!t || !ready.value) return;
+        const cells = (cell.getRow() as unknown as { getCells: () => CellComponent[] }).getCells();
+        if (!cells.length) return;
+        // 延迟到 Tabulator 自身单击选区之后，确保整行覆盖（B1）
+        window.setTimeout(() => {
+          const tt = table.value;
+          if (!tt || !ready.value) return;
+          (tt as unknown as { addRange: (a: unknown, b: unknown) => void }).addRange(cells[0], cells[cells.length - 1]);
+          refreshSelection();
+        }, 0);
+      },
+      // 点行号列头 = 选中全部行（与点行号选整行同一语义）
+      headerClick: () => {
+        const t = table.value;
+        if (!t || !ready.value) return;
+        const rows = t.getRows();
+        if (!rows.length) return;
+        const first = (rows[0] as unknown as { getCells: () => CellComponent[] }).getCells()[0];
+        const lastCells = (rows[rows.length - 1] as unknown as { getCells: () => CellComponent[] }).getCells();
+        const last = lastCells[lastCells.length - 1];
+        if (!first || !last) return;
+        (t as unknown as { addRange: (a: unknown, b: unknown) => void }).addRange(first, last);
+        refreshSelection();
+      },
+    };
+    const dataCols = defs.map((d, i) => ({
       title: d.label,
       field: d.field,
       width: d.width,
       visible: d.visible,
-      // 首列"冻结"用自定义 sticky 类，而不是 frozen 选项：
-      // SelectRange 在单元格范围模式下会警告「冻结列不是 range header」（该判定只对行选择模式成立），
-      // 而 Tabulator 的 frozen 本来就是 CSS sticky 实现，自己挂类效果一致、还不触发那条误报。
+      // 首列"冻结"用自定义 sticky 类（见原注释）；行号列不参与冻结计算
       cssClass: i === 0 && freezeFirstOn ? 'tb-pin-col' : undefined,
-      // 允许列头排序：高亮以 rowId 为键，排序不会让标红错行
-      headerSort: true,
+      // B2：普通点击列头 = 选中整列；排序收敛到箭头，故关闭整头点击排序
+      headerSort: false,
       // 数字按数值排，日期存 YYYY-MM-DD 定长串（字典序＝时间序），其余按字符串
       sorter: d.type === 'number' ? 'number' : 'string',
       ...headerFilterOf(d),
       contextMenu: cellMenu.length ? cellMenu : undefined,
       ...editorOf(d),
       formatter: makeFormatter(d.field, d.type === 'number', errorSet, findSet, bars) as never,
-      titleFormatter: makeTitleFormatter(d.label, !!d.required) as never,
+      titleFormatter: makeHeaderFormatter(d) as never,
+      headerClick: (_e: Event, column: ColumnComponent) => {
+        const t = table.value;
+        const target = _e.target as HTMLElement | null;
+        // 过滤框内的点击不要误触"选中整列"
+        if (target && target.closest('.tabulator-header-filter')) return;
+        if (!t || !ready.value) return;
+        const field = column.getField();
+        if (!field) return;
+        const rows = t.getRows();
+        if (!rows.length) return;
+        const getCell = (row: RowComponent): CellComponent =>
+          (row as unknown as { getCell: (f: string) => CellComponent }).getCell(field);
+        (t as unknown as { addRange: (a: unknown, b: unknown) => void }).addRange(getCell(rows[0]), getCell(rows[rows.length - 1]));
+        refreshSelection();
+      },
     }));
+    return [rownum, ...dataCols];
+  };
 
   /** 页面注入右键菜单（列重建时生效） */
   const setCellMenu = (items: MenuItem[]) => {
@@ -349,7 +445,8 @@ export const useEntrySheet = () => {
   const selectionOrigin = (): SelectionRect | null => {
     const range = activeRange();
     const rrows = range?.getRows() ?? [];
-    const rcols = range?.getColumns() ?? [];
+    // 展示行号列不算数据列：过滤后 indices/列下标仍只对应 defs
+    const rcols = (range?.getColumns() ?? []).filter((c) => c.getField() !== 'tbRowNo');
     if (!rrows.length || !rcols.length) return null;
     const indices = rrows
       .map((row) => idIndex.get(String(row.getData().rowId ?? '')) ?? -1)
@@ -450,6 +547,27 @@ export const useEntrySheet = () => {
     bump();
   };
 
+  /** D11 清空选区内容：遍历当前选区覆盖的单元格置空（不影响整行删除/结构） */
+  const clearSelectionValues = () => {
+    const range = activeRange();
+    if (!range) return;
+    const rows = range.getRows();
+    // 展示行号列不可写：跳过，避免把 tbRowNo 写进记录对象
+    const cols = range.getColumns().filter((c) => c.getField() !== 'tbRowNo');
+    if (!rows.length || !cols.length) return;
+    snapshot();
+    rows.forEach((row) => {
+      cols.forEach((col) => {
+        const field = col.getField();
+        if (!field) return;
+        const cell = (row as unknown as { getCell: (f: string) => CellComponent }).getCell(field);
+        (cell as unknown as { setValue: (v: unknown) => void }).setValue('');
+      });
+    });
+    refreshSelection();
+    bump();
+  };
+
   /** 删除列（rebuild 时 syncColumns 会按新 defs 重建，这里仅作兜底） */
   const deleteColumn = (field: string) => {
     if (!ready.value) return;
@@ -524,6 +642,12 @@ export const useEntrySheet = () => {
       // 这里**不再按行号回写**——排序/筛选后行号是屏幕位置，那样会写错行。
       const rec = c.getRow().getData();
       const f = c.getField();
+      // B1 展示行号列不是数据列：选区清空/内置粘贴可能把值写进记录，这里立即剔除
+      if (f === 'tbRowNo') {
+        delete rec[f];
+        refreshSelection();
+        return;
+      }
       if (f) rec[f] = c.getValue();
       bump();
       refreshSelection();
@@ -541,9 +665,128 @@ export const useEntrySheet = () => {
       bulkTimer = window.setTimeout(() => {
         bulkTimer = 0;
         if (!ready.value) return;
+        // 同上：整行选区含展示列时，内置填充/粘贴会写 tbRowNo，统一剔除
+        data.forEach((rec) => {
+          if ('tbRowNo' in rec) delete rec.tbRowNo;
+        });
         refreshSelection();
         bump();
       }, 0);
+    });
+
+    // ===================== A3 Enter 下移 =====================
+    // 编辑中按 Enter 提交后，自动跳到下一行同列并进入编辑（与 dblclick 编辑不冲突）。
+    // 本构建无 editNextRow 键位，故用编辑器内 Enter + cellEditing 记录的活动格实现下移。
+    let editCell: CellComponent | null = null;
+    t.on('cellEditing', (cell: unknown) => {
+      editCell = cell as CellComponent;
+    });
+    const moveEditDown = () => {
+      if (!editCell) return;
+      const tt = table.value;
+      if (!tt || !ready.value) return;
+      const field = editCell.getField();
+      const row = editCell.getRow();
+      const rows = tt.getRows();
+      const idx = rows.indexOf(row);
+      const next = rows[idx + 1];
+      if (!next) return;
+      const nextCell = (next as unknown as { getCell: (f: string) => CellComponent }).getCell(field);
+      if (!nextCell) return;
+      (tt as unknown as { addRange: (a: unknown, b: unknown) => void }).addRange(nextCell, nextCell);
+      refreshSelection();
+      (nextCell as unknown as { edit: () => void }).edit();
+    };
+    const onGridEnter = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      const ae = document.activeElement as HTMLElement | null;
+      if (!ae || !ae.closest('.tabulator-editing')) return;
+      // 等 Tabulator 先把本次编辑提交后再下移
+      window.setTimeout(moveEditDown, 0);
+    };
+    t.element.addEventListener('keydown', onGridEnter);
+
+    // ===================== A7 序列填充 =====================
+    // 拖拽填充柄：number 列按首值 +i 递增、date 列按 YYYY-MM-DD +i 天递增；其余保持内置复制。
+    // 本构建无 rangeFill 事件，改用 fill 完成后的 rangeEdited 事件 + 填充柄按下标记来识别。
+    let fillActive = false;
+    let fillSourceSize: { rows: number; cols: number } | null = null;
+    const onFillMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target || !target.closest('.tabulator-range-fill-handle')) return;
+      const r0 = t.getRanges()[0] as unknown as { getRows: () => RowComponent[]; getColumns: () => ColumnComponent[] } | undefined;
+      fillSourceSize = r0 ? { rows: r0.getRows().length, cols: r0.getColumns().length } : null;
+      fillActive = true;
+      const up = () => {
+        window.setTimeout(() => {
+          fillActive = false;
+        }, 0);
+        document.removeEventListener('mouseup', up, true);
+      };
+      document.addEventListener('mouseup', up, true);
+    };
+    t.element.addEventListener('mousedown', onFillMouseDown, true);
+
+    const applySeriesFill = (range: unknown) => {
+      if (!range) return;
+      const r = range as {
+        getRows: () => RowComponent[];
+        getColumns: () => ColumnComponent[];
+      };
+      const rows = r.getRows();
+      const rangeCols = r.getColumns().filter((c) => c.getField() !== 'tbRowNo');
+      if (!rows.length || !rangeCols.length) return;
+      // 仅在填充确实扩展了选区时才序列写入（避免只点一下填充柄就改写源区）
+      if (fillSourceSize && rows.length === fillSourceSize.rows && r.getColumns().length === fillSourceSize.cols) return;
+      const vertical = rows.length >= 2;
+      const horizontal = !vertical && rangeCols.length >= 2;
+      if (!vertical && !horizontal) return;
+      const writeCell = (row: RowComponent, field: string, value: unknown) => {
+        const cell = (row as unknown as { getCell: (f: string) => CellComponent }).getCell(field);
+        (cell as unknown as { setValue: (v: unknown) => void }).setValue(value);
+      };
+      rangeCols.forEach((col) => {
+        const field = col.getField();
+        if (!field) return;
+        const def = cols.find((d) => d.field === field);
+        if (!def) return;
+        if (def.type === 'number') {
+          const base = Number(rows[0].getData()[field]);
+          const start = Number.isFinite(base) ? base : 0;
+          rows.forEach((row, i) => writeCell(row, field, start + i));
+        } else if (def.type === 'date') {
+          const d0 = parseYMD(rows[0].getData()[field]);
+          if (!d0) return;
+          rows.forEach((row, i) => writeCell(row, field, addDaysYMD(d0, i)));
+        }
+        // text / select：保持内置复制
+      });
+      if (horizontal) {
+        rows.forEach((row) => {
+          const f0 = rangeCols[0].getField();
+          if (!f0) return;
+          const base = Number(row.getData()[f0]);
+          const start = Number.isFinite(base) ? base : 0;
+          rangeCols.forEach((col, j) => {
+            const field = col.getField();
+            if (!field) return;
+            const def = cols.find((d) => d.field === field);
+            if (!def) return;
+            if (def.type === 'number') writeCell(row, field, start + j);
+            else if (def.type === 'date') {
+              const d0 = parseYMD(row.getData()[field]);
+              if (d0) writeCell(row, field, addDaysYMD(d0, j));
+            }
+          });
+        });
+      }
+      refreshSelection();
+      bump();
+    };
+    t.on('rangeEdited', () => {
+      if (!fillActive) return;
+      fillActive = false;
+      applySeriesFill(t.getRanges()[0]);
     });
 
     // ---- 原生监听（SelectRange 只发内部事件，外部拿不到选区变化通知）----
@@ -618,6 +861,7 @@ export const useEntrySheet = () => {
     activeCellA1,
     selectionOrigin,
     selectCell,
+    clearSelectionValues,
     scrollToRow,
     deleteColumn,
     snapshot,

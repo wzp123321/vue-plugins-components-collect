@@ -25,6 +25,7 @@ const {
   jumpToHit,
   replaceOne,
   replaceAll,
+  replaceInputRef,
 } = props.find;
 
 // 命中明细列表的折叠开关（默认收起，点击"命中列表"按钮展开）
@@ -37,7 +38,7 @@ const showHits = ref(false);
     <!-- 回车触发查找下一个 -->
     <el-input v-model="findText" style="width: 150px" placeholder="内容 / 正则…" @keyup.enter="findNext" />
     <span>替换</span>
-    <el-input v-model="replaceText" style="width: 150px" placeholder="替换为…" />
+    <el-input ref="replaceInputRef" v-model="replaceText" style="width: 150px" placeholder="替换为…" />
     <el-select v-model="findScope" style="width: 118px">
       <el-option label="全部列" value="all" />
       <el-option label="当前列" value="col" />

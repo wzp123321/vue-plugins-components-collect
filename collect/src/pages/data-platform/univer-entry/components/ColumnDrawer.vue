@@ -56,7 +56,7 @@ const onAdd = (payload: { label: string; type: ColType; required: boolean; optio
   <BiColumnManager
     :visible="visible"
     :cols="defs"
-    :caps="{ frozen: false, retype: true, add: true }"
+    :caps="{ frozen: false, retype: true, add: true, duplicate: true }"
     @update:visible="(v: boolean) => emit('update:visible', v)"
     @rename="onRename"
     @retype="onRetype"
@@ -64,6 +64,7 @@ const onAdd = (payload: { label: string; type: ColType; required: boolean; optio
     @add="onAdd"
     @move="(i: number, dir: -1 | 1) => ops.moveColumn(i, dir)"
     @config="(field: string) => emit('config', field)"
+    @duplicate="(field: string) => ops.duplicateColumn(field)"
     @remove="(field: string) => ops.removeColumn(field)"
   />
 </template>

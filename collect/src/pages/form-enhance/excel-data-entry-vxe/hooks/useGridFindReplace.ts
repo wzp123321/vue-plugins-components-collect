@@ -1,5 +1,5 @@
 // 查找 / 替换：范围（全部列 / 当前列 / 当前选区）、大小写敏感、整格匹配、正则；命中高亮 + 跳转 + 命中列表
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { ref, watch, onBeforeUnmount, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { GridScroll } from './useGridScroll';
@@ -226,6 +226,19 @@ export const useGridFindReplace = (core: GridCore, scroll: GridScroll, sel: Cell
     ElMessage.success(`已替换 ${n} 处`);
   };
 
+  /**
+   * 聚焦"替换为"输入框：供 Ctrl+H 调用。先确保查找条可见，下一帧再聚焦（替换输入 ref 由 GridFindBar 绑定）。
+   * 返回 ref 供组件绑定到 el-input 的 ref；聚焦容错处理（元素可能尚未渲染）。
+   */
+  const replaceInputRef = ref<HTMLElement | null>(null);
+  const focusReplace = () => {
+    findVisible.value = true;
+    nextTick(() => {
+      const el = replaceInputRef.value as unknown as { focus?: () => void } | null;
+      el?.focus?.();
+    });
+  };
+
   return {
     findVisible,
     findText,
@@ -243,6 +256,8 @@ export const useGridFindReplace = (core: GridCore, scroll: GridScroll, sel: Cell
     jumpToHit,
     replaceOne,
     replaceAll,
+    replaceInputRef,
+    focusReplace,
   };
 }
 

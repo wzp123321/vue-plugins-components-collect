@@ -10,7 +10,7 @@
  * ⚠️ 关键约束：列宽只认 px。等比分配在 allocWidths 里做，避免把 % 交给表格底层解析。
  */
 import { computed, ref, type ComputedRef } from 'vue';
-import { DEFAULT_COLS, makeCol, nextColField, type BiCol, type ColType } from './schema';
+import { DEFAULT_COLS, makeCol, nextColField, type BiCol, type BiRow, type ColType } from './schema';
 
 const TPL_KEY = 'vtable-bi-entry:col-tpl:v1';
 
@@ -84,6 +84,44 @@ export const useBiColumns = () => {
 
   const removeCol = (field: string) => {
     cols.value = cols.value.filter((c) => c.field !== field);
+  };
+
+  /**
+   * 复制列：克隆 BiCol 定义并生成新字段（如 `${field}_copy`），插入到原列之后。
+   * 同时把每行原字段值复制到新字段（由调用方传入 records，因为本模块不持有行数据）。
+   * 返回新列；若原字段不存在返回 null。
+   */
+  const cloneCol = (field: string, rows?: BiRow[]): BiCol | null => {
+    const idx = cols.value.findIndex((c) => c.field === field);
+    if (idx < 0) {
+      return null;
+    }
+    const src = cols.value[idx];
+    const used = new Set(cols.value.map((c) => c.field));
+    let newField = `${field}_copy`;
+    let suffix = 1;
+    while (used.has(newField)) {
+      suffix += 1;
+      newField = `${field}_copy${suffix}`;
+    }
+    const copy: BiCol = {
+      ...src,
+      field: newField,
+      label: `${src.label}副本`,
+      frozen: false,
+      options: src.options ? [...src.options] : undefined,
+      rules: src.rules ? { ...src.rules } : undefined,
+      cross: src.cross ? [...src.cross] : undefined,
+    };
+    const next = cols.value.slice();
+    next.splice(idx + 1, 0, copy);
+    cols.value = next;
+    if (rows) {
+      rows.forEach((r) => {
+        r[newField] = r[field];
+      });
+    }
+    return copy;
   };
 
   const updateCol = (field: string, patch: Partial<BiCol>) => {
@@ -166,6 +204,7 @@ export const useBiColumns = () => {
     colOf,
     addCol,
     removeCol,
+    cloneCol,
     updateCol,
     moveCol,
     resetCols,

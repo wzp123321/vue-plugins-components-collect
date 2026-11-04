@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // 查找替换条：关键词 + 命中计数 + 上一个/下一个 + 替换（单处/全部）+ 大小写/整格匹配选项
 // 匹配与替换全部委托 Univer 的 FTextFinder（见 useEntryFind），本组件只做输入与展示。
+import { ref } from 'vue';
+import { type ElInput } from 'element-plus';
 import type { EntryFind } from '../useEntryFind';
 
 defineOptions({ name: 'FindBar' });
@@ -20,6 +22,11 @@ const {
   replaceOne,
   replaceAll,
 } = props.find;
+
+/** Ctrl+H 时由页面调用：把焦点定位到「替换为」输入框 */
+const replaceInputRef = ref<InstanceType<typeof ElInput>>();
+const focusReplace = () => replaceInputRef.value?.focus();
+defineExpose({ focusReplace });
 </script>
 
 <template>
@@ -38,6 +45,7 @@ const {
     <el-button size="small" :disabled="!hitCount" @click="findNext">下一个</el-button>
     <el-divider direction="vertical" />
     <el-input
+      ref="replaceInputRef"
       v-model="replaceText"
       placeholder="替换为"
       size="small"

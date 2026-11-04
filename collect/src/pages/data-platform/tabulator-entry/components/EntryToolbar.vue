@@ -4,6 +4,7 @@
 import {
   Plus,
   ArrowUpBold,
+  ArrowDownBold,
   Delete,
   CopyDocument,
   Setting,
@@ -53,7 +54,7 @@ const emit = defineEmits<{
   (e: 'open-help'): void;
 }>();
 
-const { addRow, insertRowAbove, deleteSelectedRows, duplicateSelectedRows, clearAll } = props.ops;
+const { addRow, insertRowAbove, insertRowBelow, deleteSelectedRows, duplicateSelectedRows, clearAll } = props.ops;
 const { removeEmptyRows, removeDuplicateRows, saveTemplate, loadTemplate, deleteTemplate, templates } = props.ops;
 const { importExcel, onExportCommand } = props.io;
 const { open: openFind, quickSearch, findText: quickText, hitCount } = props.find;
@@ -81,6 +82,9 @@ const onTplCommand = (cmd: string) => {
       </el-tooltip>
       <el-tooltip content="在活动行上方插入" placement="bottom">
         <el-button :icon="ArrowUpBold" size="small" @click="insertRowAbove" />
+      </el-tooltip>
+      <el-tooltip content="在活动行下方插入" placement="bottom">
+        <el-button :icon="ArrowDownBold" size="small" @click="insertRowBelow" />
       </el-tooltip>
       <el-tooltip content="删除选中行" placement="bottom">
         <el-button type="danger" plain :icon="Delete" size="small" @click="deleteSelectedRows" />

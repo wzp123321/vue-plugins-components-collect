@@ -315,17 +315,18 @@ const clearAllQuery = () => {
   tableRef.value?.clearSort?.();
 };
 
-// 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 选中整列。
+// 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 选中整列（Excel 点列头选列语义）。
+// 列配置入口保留在「列管理」面板的逐列「配置」按钮，普通点列头不再打开列配置。
 // 排序已改为 trigger:'default'（只在点列头排序图标时排序），故点表头不会再被排序动作抢走；
 // 仍用 vxe 给出的 triggerSort/triggerFilter/triggerResizable 兜底，避免点排序/筛选图标时误选整列
 /**
- * onHeaderClick —— 表头单元格点击处理：序号列=全选；数据列=打开该列的配置抽屉。
+ * onHeaderClick —— 表头单元格点击处理：序号列=全选；数据列=选中整列（selectColumn）。
  * @param column vxe 列对象（含 type/field）
  * @param triggerSort/triggerFilter/triggerResizable vxe 透出的点击落点标志，落在排序/筛选/拖拽手柄上时为 true
  * 坑点：
  *   1) vxe 表头事件名是 header-cell-click（@header-cell-click），不可拼错；
- *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"打开列配置"；
- *   3) 点数据列表头改为打开列配置抽屉（需求：列设置改由点列头触发），故不再在此选整列。
+ *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"选中整列"；
+ *   3) 点数据列表头改为选中整列（Excel 语义），列配置改走「列管理」面板的逐列按钮。
  */
 const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }: any) => {
   if (!column || triggerSort || triggerFilter || triggerResizable) return;
@@ -340,8 +341,8 @@ const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }:
     }
     return;
   }
-  // 数据列：打开该列的配置抽屉（列名/类型/类型专属配置）
-  if (column.field) openColumnConfig(column.field);
+  // 数据列：选中整列（列头点击 = Excel 点列头选列；列配置在「列管理」面板的逐列按钮）
+  if (column.field) sel.selectColumn(column.field);
 };
 
 onMounted(() => {

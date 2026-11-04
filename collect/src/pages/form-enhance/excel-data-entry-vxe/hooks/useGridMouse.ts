@@ -163,6 +163,12 @@ export const useGridMouse = (
       });
       core.bumpData();
       ElMessage.success('已删除本行');
+    } else if (act === 'insertColBefore' || act === 'insertColAfter') {
+      // 在右键列的左侧/右侧插入新列（复用 ops.insertColumn，内部已入撤销栈）
+      ops.insertColumn(menu.field, act === 'insertColBefore' ? 'before' : 'after');
+    } else if (act === 'deleteCol') {
+      // 删除右键所在列（复用 ops.removeCol，内部已入撤销栈并处理行/错误/筛选清理）
+      ops.removeCol(menu.field);
     }
   };
 
@@ -177,6 +183,8 @@ export const useGridMouse = (
     },
     // Tab 到末行末尾自动续行：转调数据操作层的 addRow（返回新行供键盘层定位）
     appendRow: () => ops.addRow(),
+    // Ctrl+X 剪切需要剪贴板桥取选区 TSV
+    io,
   });
 
   // ===================== 剪贴板 =====================

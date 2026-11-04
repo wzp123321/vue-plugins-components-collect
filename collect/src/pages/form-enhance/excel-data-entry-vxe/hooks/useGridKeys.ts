@@ -13,6 +13,7 @@ import { ElMessage } from 'element-plus';
 import type { GridCore } from './useGridCore';
 import type { CellSelection } from './useCellSelection';
 import type { GridFindReplace } from './useGridFindReplace';
+import type { GridIO } from './useGridIO';
 
 /**
  * 行主键 / 脏标记访问助手。
@@ -60,9 +61,13 @@ export const useGridKeys = (
     onEscape: () => void;
     /** Tab 到末行末尾时追加一行并返回它（由协调层注入 ops.addRow，避免键盘层直接依赖数据操作层） */
     appendRow?: () => any;
+    /** 剪贴板桥（Ctrl+X 剪切时取选区 TSV），由协调层注入 */
+    io: GridIO;
   },
 ) => {
-  const { gridBox, gridWrapper, onEscape, appendRow } = deps;
+  const { gridBox, gridWrapper, onEscape, appendRow, io } = deps;
+  /** 结构性操作入撤销栈（剪切前调用，保证清空内容可撤销） */
+  const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 网格激活判定 =====================
   const gridActive = ref(false);
@@ -275,6 +280,11 @@ export const useGridKeys = (
     } else if (mod && key === 'f') {
       e.preventDefault();
       find.findVisible.value = true;
+    } else if (mod && key === 'h') {
+      // Ctrl+H：打开查找替换条并聚焦"替换为"输入框
+      e.preventDefault();
+      find.findVisible.value = true;
+      find.focusReplace?.();
     } else if (mod && key === 'd') {
       // Ctrl+D：向下填充——选区首行逐列复制到选区其余行（Excel 语义）。
       // 注意：早期此键绑的是 duplicateSelected（复制整行），与 Excel 同名不同义；复制整行请用工具栏按钮
@@ -344,6 +354,47 @@ export const useGridKeys = (
           { rowId: rowIdOf(rows[0]), field: fields[0] },
           { rowId: rowIdOf(rows[rows.length - 1]), field: fields[fields.length - 1] },
         );
+      }
+    } else if (mod && key === 'x') {
+      // Ctrl+X：剪切——复制选区 TSV 到剪贴板 + 清空选区内容（Excel 语义）。
+      // 输入框内已由上方 inField 提前 return 放行原生剪切；此处只处理网格激活态。
+      // 清空逻辑复用 Delete 分支（数字列置 null、其余置空串、标脏、校验），并先 snap() 入撤销栈。
+      e.preventDefault();
+      const tsv = io.buildCopyTsv();
+      const doCutClear = () => {
+        const rect = sel.selRect.value;
+        const targets: { row: any; field: string }[] = [];
+        if (rect) {
+          const fields = sel.rectFields(rect);
+          sel.rectRows(rect).forEach((r) => {
+            fields.forEach((f) => targets.push({ row: r, field: f }));
+          });
+        } else if (core.currentCell.value) {
+          targets.push(core.currentCell.value);
+        }
+        const dirtyTargets = targets.filter((t) => t.row[t.field] !== '' && t.row[t.field] != null);
+        if (!dirtyTargets.length) return;
+        snap();
+        dirtyTargets.forEach((t) => {
+          const def = core.columnDefs.value.find((d) => d.field === t.field);
+          t.row[t.field] = def?.type === 'number' ? null : '';
+          markDirty(t.row);
+          core.validateCell(t.row, t.field);
+        });
+        core.bumpData();
+        ElMessage.success(`已剪切 ${dirtyTargets.length} 个单元格`);
+      };
+      // 真实 keydown 事件没有 clipboardData（只有合成事件才有），必须走异步剪贴板 API。
+      // 只有复制成功才清空源，避免剪贴板写入失败时丢数据。
+      if (tsv && navigator.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(tsv)
+          .then(doCutClear)
+          .catch(() => ElMessage.warning('复制失败，已取消剪切，请检查浏览器剪贴板权限'));
+      } else if (tsv) {
+        ElMessage.warning('当前环境不支持剪贴板，已取消剪切');
+      } else {
+        doCutClear();
       }
     } else if (mod && key === 'enter') {
       // Ctrl+Enter：用当前格的值填充整个框选区域（Excel 经典快捷键）

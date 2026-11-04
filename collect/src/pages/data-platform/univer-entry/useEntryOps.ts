@@ -69,6 +69,17 @@ export const useEntryOps = (
     ElMessage.success('已插入 1 行');
   };
 
+  /** 在活动行下方插入一行（mirror insertRowAbove，插在选中行之后）；无活动格时退化为追加到末尾 */
+  const insertRowBelow = () => {
+    const origin = sheetApi.selectionOrigin();
+    const records = sheetApi.readRecords(defs.value);
+    const at = origin ? Math.max(0, origin.row - HEADER_ROW - 1) : records.length - 1;
+    records.splice(Math.min(at + 1, records.length), 0, makeEmptyRecord(defs.value));
+    sheetApi.writeRecords(defs.value, records);
+    rules.validateAndMark(defs.value);
+    ElMessage.success('已插入 1 行');
+  };
+
   /** 删除选区覆盖的数据行（表头行永远不动） */
   const deleteSelectedRows = () => {
     const origin = sheetApi.selectionOrigin();
@@ -254,6 +265,33 @@ export const useEntryOps = (
     const def = defs.value.find((d) => d.field === field);
     if (!def) return;
     updateColumn(field, { visible: !def.visible });
+  };
+
+  /** 复制列（克隆列）：深拷贝除 field 外的列定义插到原列右侧，并把源列数据整列拷过来；再整块重写 + 重下发校验 */
+  const duplicateColumn = (field: string) => {
+    const idx = defs.value.findIndex((d) => d.field === field);
+    if (idx < 0) return;
+    const src = defs.value[idx];
+    // 先按旧结构读出数据（列插入会让 defs 错位，必须在改 defs 前读）
+    const records = sheetApi.readRecords(defs.value);
+    colSeq += 1;
+    const newField = `col_${colSeq}_${Date.now().toString(36)}`;
+    const clone: ColDef = JSON.parse(JSON.stringify(src));
+    clone.field = newField;
+    clone.label = `${src.label}副本`;
+    // 源列数据逐行拷到新列
+    records.forEach((r) => {
+      r[newField] = r[field];
+    });
+    // 结构：插到原列右侧
+    const next = defs.value.slice();
+    next.splice(idx + 1, 0, clone);
+    defs.value = next;
+    // 整块重写表头 + 数据 + 重下发验证/列宽/冻结等
+    sheetApi.writeRecords(defs.value, records);
+    rebuild();
+    rules.validateAndMark(defs.value);
+    ElMessage.success(`已复制列「${src.label}」`);
   };
 
   // ===================== 批量填充 =====================
@@ -450,6 +488,7 @@ export const useEntryOps = (
     templates,
     addRow,
     insertRowAbove,
+    insertRowBelow,
     deleteSelectedRows,
     duplicateSelectedRows,
     clearAll,
@@ -461,6 +500,7 @@ export const useEntryOps = (
     removeColumn,
     moveColumn,
     toggleColumnVisible,
+    duplicateColumn,
     batchFill,
     batchClear,
     loadTemplates,

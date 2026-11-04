@@ -64,7 +64,7 @@
       @open-help="helpVisible = true"
     />
 
-    <FindBar v-if="find.findVisible.value" :find="find" />
+    <FindBar v-if="find.findVisible.value" ref="findBarRef" :find="find" />
 
     <div class="tb-grid bi-panel" ref="gridBox">
       <div ref="containerRef" class="tb-canvas" />
@@ -103,12 +103,13 @@
     <BiColumnManager
       v-model:visible="columnManagerVisible"
       :cols="defs"
-      :caps="{ frozen: false, retype: true, add: true }"
+      :caps="{ frozen: false, retype: true, add: true, duplicate: true }"
       @move="(i, dir) => ops.moveColumn(i, dir)"
       @rename="(field, label) => ops.updateColumn(field, { label })"
       @retype="(field, type) => ops.updateColumn(field, { type })"
       @toggle="onListToggle"
       @config="openColumnConfig"
+      @duplicate="(field) => ops.cloneColumn(field)"
       @remove="(field) => ops.removeColumn(field)"
       @add="(payload) => ops.addColumn(payload)"
     />
@@ -145,6 +146,8 @@ const pageRef = ref<HTMLElement>();
 const gridBox = ref<HTMLElement>();
 const containerRef = ref<HTMLElement>();
 const fileInputRef = ref<HTMLInputElement>();
+/** 查找替换条实例：Ctrl+H 时主动聚焦「替换为」输入框 */
+const findBarRef = ref<InstanceType<typeof FindBar>>();
 
 // ===================== 列定义与 composables =====================
 const defs = ref<ColDef[]>(DEFAULT_COLS.map((d) => ({ ...d, rules: d.rules ? { ...d.rules } : undefined })));
@@ -247,10 +250,13 @@ const withCellSelected = (cell: Parameters<typeof sheetApi.selectCell>[0], run: 
 
 const cellMenuItems: MenuItem[] = [
   { label: '在上方插入行', action: (_e, cell) => withCellSelected(cell, ops.insertRowAbove) },
+  { label: '在下方插入行', action: (_e, cell) => withCellSelected(cell, ops.insertRowBelow) },
   { label: '复制选中行', action: (_e, cell) => withCellSelected(cell, ops.duplicateSelectedRows) },
   { label: '删除选中行', action: (_e, cell) => withCellSelected(cell, ops.deleteSelectedRows) },
+  { label: '清空选区内容', action: () => sheetApi.clearSelectionValues() },
   { label: '', separator: true },
   { label: '打开该列配置', action: (_e, cell) => openColumnConfig(String(cell.getField() ?? '')) },
+  { label: '复制该列', action: (_e, cell) => ops.cloneColumn(String(cell.getField() ?? '')) },
   { label: '查找替换', action: () => find.open() },
 ];
 
@@ -308,6 +314,11 @@ const onKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
     e.preventDefault();
     find.open();
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+    // 替换快捷键：没开查找条先开，再聚焦「替换为」输入框
+    e.preventDefault();
+    if (!find.findVisible.value) find.open();
+    nextTick(() => findBarRef.value?.focusReplace());
   } else if (e.key === 'F1') {
     e.preventDefault();
     helpVisible.value = true;
@@ -410,6 +421,32 @@ const genData = (n: number) => {
     color: var(--bi-danger);
     margin-left: 2px;
   }
+  /* B2 列头：标题 + 红星 + 排序箭头。整头点击 = 选整列，只有箭头负责排序 */
+  .tb-th-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+  }
+  .tb-th-sort {
+    margin-left: 4px;
+    padding: 0 2px;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--bi-sub);
+    cursor: pointer;
+    user-select: none;
+  }
+  .tb-th-sort:hover {
+    color: var(--bi-primary);
+  }
+  /* B1 行号列：仅展示 1-based 行位置，点击选整行 */
+  .tabulator .tabulator-cell.tb-rownum {
+    color: var(--bi-sub);
+    cursor: pointer;
+    user-select: none;
+  }
 
   /* 单元格 */
   .tabulator .tabulator-cell {
@@ -510,17 +547,31 @@ const genData = (n: number) => {
   }
 
   /* 冻结首列（自定义 sticky 类，不用 frozen 选项，避免 SelectRange 的误报警告）：
-     表头与单元格都左贴边，单元格底色继承行，斑马纹/hover/错误标红都能跟着走。 */
-  .tabulator .tabulator-header .tabulator-col.tb-pin-col {
+     表头与单元格都左贴边，单元格底色继承行，斑马纹/hover/错误标红都能跟着走。
+     B1 行号列常驻最左（left:0），数据首列冻结位后移到行号列右侧（48px），
+     否则横向滚动时冻结列会把行号列盖住。 */
+  .tabulator .tabulator-header .tabulator-col.tb-rownum {
     position: sticky;
     left: 0;
+    z-index: 11;
+    background: var(--bi-head-bg);
+  }
+  .tabulator .tabulator-row .tabulator-cell.tb-rownum {
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    background-color: inherit;
+  }
+  .tabulator .tabulator-header .tabulator-col.tb-pin-col {
+    position: sticky;
+    left: 48px;
     z-index: 11;
     background: var(--bi-head-bg);
     border-right: 2px solid var(--bi-border);
   }
   .tabulator .tabulator-row .tabulator-cell.tb-pin-col {
     position: sticky;
-    left: 0;
+    left: 48px;
     z-index: 11;
     background-color: inherit;
     border-right: 2px solid var(--bi-border);

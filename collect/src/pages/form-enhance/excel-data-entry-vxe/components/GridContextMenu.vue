@@ -23,6 +23,10 @@ const { menu, menuAct } = props.mouse;
     <div class="dt-menu-item" @click="menuAct('clear')">🧹 清空内容</div>
     <!-- danger 样式红色强调不可逆操作 -->
     <div class="dt-menu-item danger" @click="menuAct('deleteRow')">🗑 删除本行</div>
+    <div class="dt-menu-sep" />
+    <div class="dt-menu-item" @click="menuAct('insertColBefore')">⬅ 在左侧插入列</div>
+    <div class="dt-menu-item" @click="menuAct('insertColAfter')">➡ 在右侧插入列</div>
+    <div class="dt-menu-item danger" @click="menuAct('deleteCol')">🗑 删除本列</div>
   </div>
 </template>
 

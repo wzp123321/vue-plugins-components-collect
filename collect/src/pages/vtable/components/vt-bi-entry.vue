@@ -298,6 +298,11 @@
       <div class="vt-bi__menu-sep" />
       <div class="vt-bi__menu-item" @click="menuAct('clear')">清空内容</div>
       <div class="vt-bi__menu-item danger" @click="menuAct('deleteRow')">删除本行</div>
+      <div class="vt-bi__menu-sep" />
+      <div class="vt-bi__menu-item" @click="menuAct('insertColLeft')">在左侧插入列</div>
+      <div class="vt-bi__menu-item" @click="menuAct('insertColRight')">在右侧插入列</div>
+      <div class="vt-bi__menu-item" @click="menuAct('cloneCol')">复制列</div>
+      <div class="vt-bi__menu-item danger" @click="menuAct('deleteCol')">删除本列</div>
     </div>
 
     <!-- ===================== 校验抽屉 ===================== -->
@@ -316,7 +321,8 @@
     <BiColumnManager
       v-model:visible="colDrawer"
       :cols="cols"
-      :caps="{ frozen: true, retype: true, add: false }"
+      :caps="{ frozen: true, retype: true, add: false, duplicate: true }"
+      @duplicate="onColDuplicate"
       @rename="onColRename"
       @retype="onColRetype"
       @toggle="onColToggle"
@@ -566,7 +572,7 @@ let onRestored: () => void = () => undefined;
 let onHeaderCell: (col: number, row: number) => void = () => undefined;
 
 // ============================ 数据与模块装配 ============================
-const { cols, visibleCols, numberCols, labelOf, colOf, addCol, removeCol, updateCol, moveCol, resetCols, templates, loadTemplates, saveTemplate, removeTemplate, loadTemplate } =
+const { cols, visibleCols, numberCols, labelOf, colOf, addCol, removeCol, cloneCol, updateCol, moveCol, resetCols, templates, loadTemplates, saveTemplate, removeTemplate, loadTemplate } =
   useBiColumns();
 
 /** records：唯一真源。shallowRef —— 只有整体替换才触发视图同步，避免十万行深响应式追踪 */
@@ -988,6 +994,20 @@ const onClickCell = (args: { col: number; row: number; cellLocation?: string }) 
   // ⚠️ CellLocation 的取值是 'columnHeader'（不是 'colHeader'），写错会静默失效。
   if (args.cellLocation === 'columnHeader') {
     onHeaderCell(args.col, args.row);
+    return;
+  }
+  // B1 点行号列 → 选中整行（含所有列），结果同步回 selectionRect
+  if (fieldAt(args.col) === 'rowNo') {
+    const lastCol = colFields.value.length - 1;
+    const row = args.row;
+    try {
+      // ⚠️ selectCells 只接受 CellRange[]，四个数字会静默失效
+      table?.selectCells([{ start: { col: 0, row }, end: { col: lastCol, row } }]);
+    } catch {
+      // 选区越界时忽略
+    }
+    selectionRect.value = { c0: 0, r0: row, c1: lastCol, r1: row };
+    tickDep();
   }
 };
 
@@ -1318,6 +1338,40 @@ const clearSelectionCells = () => {
   syncData(true);
 };
 
+/** A5 剪切：复用 copySelection 把选区 TSV 写入剪贴板，再清空选区内容并入历史 */
+const cutSelection = () => {
+  const s = selectionRect.value;
+  if (!s) {
+    ElMessage.info('先框选要剪切的单元格');
+    return;
+  }
+  copySelection()
+    .then(() => {
+      const patches = selectionCells()
+        .map(({ field, row }) => {
+          const col = colOf(field);
+          const before = row[field];
+          const after = col ? emptyValueFor(col) : '';
+          if (before === after) {
+            return null;
+          }
+          row[field] = after;
+          row.changed = true;
+          return { rowId: row.rowId, field, before, after };
+        })
+        .filter((x): x is { rowId: string; field: string; before: unknown; after: unknown } => Boolean(x));
+      if (patches.length) {
+        historyApi.pushCells('剪切', patches);
+      }
+      records.value = records.value.slice();
+      validation.scanAll(records.value);
+      tickDep();
+      syncData(true);
+      ElMessage.success(`已剪切 ${patches.length} 个单元格`);
+    })
+    .catch(() => undefined);
+};
+
 // ============================ 撤销 / 重做 ============================
 const onUndo = () => {
   const label = historyApi.undo();
@@ -1379,6 +1433,59 @@ const menuAct = (act: string) => {
     tickDep();
     syncData();
   }
+  // D11 右键列操作：插入列 / 复制列 / 删除列
+  if (act === 'insertColLeft' || act === 'insertColRight') {
+    const field = cell ? fieldAt(cell.col) : '';
+    if (!field || isMetaField(field)) {
+      ElMessage.info('请先点一个业务列');
+      return;
+    }
+    const before = historyApi.snapshot(act === 'insertColLeft' ? '左侧插入列' : '右侧插入列');
+    const newCol = addCol('text');
+    const targetIdx = cols.value.findIndex((c) => c.field === field);
+    const dest = act === 'insertColLeft' ? targetIdx : targetIdx + 1;
+    let newIdx = cols.value.findIndex((c) => c.field === newCol.field);
+    while (newIdx > dest) {
+      moveCol(newCol.field, -1);
+      newIdx -= 1;
+    }
+    historyApi.pushSnapshot(before);
+    validation.scanAll(records.value);
+    rebuild();
+    ElMessage.success('已插入列');
+    return;
+  }
+  if (act === 'cloneCol') {
+    const field = cell ? fieldAt(cell.col) : '';
+    if (!field || isMetaField(field)) {
+      ElMessage.info('请先点一个业务列');
+      return;
+    }
+    const before = historyApi.snapshot('复制列');
+    cloneCol(field, records.value);
+    historyApi.pushSnapshot(before);
+    validation.scanAll(records.value);
+    rebuild();
+    ElMessage.success('已复制列');
+    return;
+  }
+  if (act === 'deleteCol') {
+    const field = cell ? fieldAt(cell.col) : '';
+    if (!field || isMetaField(field)) {
+      ElMessage.info('请先点一个业务列');
+      return;
+    }
+    const before = historyApi.snapshot('删除列');
+    removeCol(field);
+    // 同步清理所有行上的该字段（参考 onStructure 收尾）
+    records.value.forEach((r) => {
+      delete r[field];
+    });
+    historyApi.pushSnapshot(before);
+    validation.scanAll(records.value);
+    rebuild();
+    ElMessage.success('已删除列');
+  }
 };
 
 // ============================ 键盘流 ============================
@@ -1404,6 +1511,12 @@ const onKeydown = (e: KeyboardEvent) => {
   const key = e.key.toLowerCase();
   const cell = activeCell.value;
   if (mod && key === 'f') {
+    e.preventDefault();
+    findVisible.value = true;
+    return;
+  }
+  // A11 替换：Ctrl+H 打开查找替换条（含「替换为」输入框）
+  if (mod && key === 'h') {
     e.preventDefault();
     findVisible.value = true;
     return;
@@ -1436,6 +1549,12 @@ const onKeydown = (e: KeyboardEvent) => {
   if (mod && key === 'v') {
     e.preventDefault();
     pasteFromClipboard().catch(() => undefined);
+    return;
+  }
+  // A5 剪切：Ctrl+X 先复制选区到剪贴板，再清空选区内容并记入历史
+  if (mod && key === 'x') {
+    e.preventDefault();
+    cutSelection();
     return;
   }
   if (e.key === 'Escape') {
@@ -1927,6 +2046,20 @@ const onRemoveCol = (col: BiCol) => {
   rebuild();
 };
 
+/** 列管理面板「复制列」：克隆该列到右侧（与右键菜单同逻辑） */
+const onColDuplicate = (field: string) => {
+  if (!field || isMetaField(field)) {
+    ElMessage.info('请先点一个业务列');
+    return;
+  }
+  const before = historyApi.snapshot('复制列');
+  cloneCol(field, records.value);
+  historyApi.pushSnapshot(before);
+  validation.scanAll(records.value);
+  rebuild();
+  ElMessage.success('已复制列');
+};
+
 const onMoveCol = (index: number, dir: -1 | 1) => {
   const target = cols.value[index];
   if (!target) {
@@ -1977,10 +2110,15 @@ onHeaderCell = (col: number, row: number) => {
   if (!field || isMetaField(field)) {
     return;
   }
-  const target = cols.value.find((c) => c.field === field);
-  if (target) {
-    openColConfig(target);
+  // B2 普通点击数据列头 = 选中整列（列配置仍走列管理面板的逐列按钮）
+  const lastRow = displayRows.value.length - 1;
+  try {
+    table?.selectCells([{ start: { col, row: 0 }, end: { col, row: lastRow } }]);
+  } catch {
+    // 选区越界时忽略
   }
+  selectionRect.value = { c0: col, r0: 0, c1: col, r1: lastRow };
+  tickDep();
 };
 
 /**
@@ -2252,6 +2390,7 @@ watch(conditionalOn, () => {
   refreshColMax();
   rebuild();
 });
+
 
 watch(
   () => themeStore.isDark,

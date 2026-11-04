@@ -20,7 +20,7 @@ const props = defineProps<{ core: GridCore; ops: GridOps; field: string; visible
 const emit = defineEmits<{ (e: 'update:visible', v: boolean): void }>();
 
 const { columnDefs } = props.core;
-const { removeCol } = props.ops;
+const { removeCol, duplicateColumn } = props.ops;
 
 const proxyVisible = computed({
   get: () => props.visible,
@@ -29,6 +29,13 @@ const proxyVisible = computed({
 
 /** 真实列定义（响应式）：field 变化或被删除时自动失效，抽屉里会显示"列不存在" */
 const realDef = computed(() => columnDefs.value.find((d) => d.field === props.field) ?? null);
+
+/** 复制当前正在配置的这一列（深拷贝 → 插到原列之后，新列名带"副本"） */
+const onDuplicate = () => {
+  const def = realDef.value;
+  if (!def) return;
+  duplicateColumn(def.field);
+};
 
 /**
  * 确定：整体回写并只入一次撤销栈，随后全量重校让标记立即同步。
@@ -74,4 +81,21 @@ const onRemove = () => {
     @confirm="apply"
     @remove="onRemove"
   />
+  <!-- 复制列：在单列配置抽屉里对"当前列"一键复制（深拷贝 + 插到其后），不改动共享的 BiColumnDrawer -->
+  <el-button
+    v-if="visible && realDef"
+    type="primary"
+    class="dt-dup-col-btn"
+    @click="onDuplicate"
+  >⧉ 复制该列</el-button>
 </template>
+
+<style scoped>
+/* 复制该列按钮：抽屉在屏幕右侧，按钮贴在抽屉左侧稍低处，避免遮挡抽屉底部的「取消/确定」 */
+.dt-dup-col-btn {
+  position: fixed;
+  right: 470px;
+  bottom: 24px;
+  z-index: 3000;
+}
+</style>

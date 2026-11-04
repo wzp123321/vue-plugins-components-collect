@@ -137,6 +137,14 @@
               />
               <el-button text size="small" :icon="Setting" title="配置该列" @click="emit('config', c.field)" />
               <el-button
+                v-if="caps.duplicate"
+                text
+                size="small"
+                :icon="CopyDocument"
+                title="复制列（克隆该列到右侧）"
+                @click="emit('duplicate', c.field)"
+              />
+              <el-button
                 text
                 size="small"
                 type="danger"
@@ -162,7 +170,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import { ArrowDown, ArrowUp, Delete, Setting } from '@element-plus/icons-vue';
+import { ArrowDown, ArrowUp, CopyDocument, Delete, Setting } from '@element-plus/icons-vue';
 import type { BiColLike, ColType } from '@/utils/bi-entry';
 
 /** 引擎能力开关：不传即视为该能力不支持，对应控件不渲染（不做「按钮在、点了没反应」的假统一） */
@@ -173,6 +181,8 @@ interface ListCaps {
   retype?: boolean;
   /** 支持在抽屉内新增列 */
   add?: boolean;
+  /** 支持复制（克隆）列：每列一项「复制列」按钮 */
+  duplicate?: boolean;
 }
 
 defineOptions({ name: 'BiColumnManager' });
@@ -196,6 +206,7 @@ const emit = defineEmits<{
   (e: 'config', field: string): void;
   (e: 'remove', field: string): void;
   (e: 'add', payload: { label: string; type: ColType; required: boolean; options?: string[] }): void;
+  (e: 'duplicate', field: string): void;
 }>();
 
 /** 四种列类型：产品口径，不跟随各引擎的类型枚举命名 */

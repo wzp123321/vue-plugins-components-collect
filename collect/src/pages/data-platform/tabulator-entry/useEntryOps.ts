@@ -71,6 +71,19 @@ export const useEntryOps = (
     ElMessage.success('已插入 1 行');
   };
 
+  /** 在活动行下方插入一行；无活动格时退化为追加（取选区最大数据下标作为插入点） */
+  const insertRowBelow = () => {
+    sheetApi.snapshot();
+    const origin = sheetApi.selectionOrigin();
+    const records = sheetApi.readRecords();
+    // 选区可能是排序后的多行，取最大的数据下标作为插入点
+    const at = origin ? Math.max(...origin.indices) : records.length - 1;
+    records.splice(Math.min(at + 1, records.length), 0, makeEmptyRecord(defs.value));
+    sheetApi.writeRecords(records);
+    rules.validateAndMark(defs.value);
+    ElMessage.success('已插入 1 行');
+  };
+
   /** 删除选区覆盖的数据行（选区可能不连续：排序/筛选后按 rowId 折算出的下标来删） */
   const deleteSelectedRows = () => {
     const origin = sheetApi.selectionOrigin();
@@ -249,6 +262,35 @@ export const useEntryOps = (
     const def = defs.value.find((d) => d.field === field);
     if (!def) return;
     updateColumn(field, { visible: !def.visible });
+  };
+
+  /** 复制列：深拷贝原列定义（换新 field）插到原列右侧，并把源列数据整列拷过去 */
+  const cloneColumn = (field: string) => {
+    const idx = defs.value.findIndex((d) => d.field === field);
+    if (idx < 0) return;
+    const src = defs.value[idx];
+    sheetApi.snapshot();
+    colSeq += 1;
+    const newField = `col_${colSeq}_${Date.now().toString(36)}`;
+    const clone: ColDef = JSON.parse(JSON.stringify(src)) as ColDef;
+    clone.field = newField;
+    clone.label = `${src.label}副本`;
+    // 数据行逐条把源列的值抄到新列
+    const records = sheetApi.readRecords();
+    records.forEach((rec) => {
+      rec[newField] = rec[field];
+    });
+    // 列定义插到原列之后
+    const next: ColDef[] = [];
+    defs.value.forEach((d) => {
+      next.push(d);
+      if (d.field === field) next.push(clone);
+    });
+    defs.value = next;
+    sheetApi.writeRecords(records);
+    rebuild();
+    rules.validateAndMark(defs.value);
+    ElMessage.success(`已复制列「${src.label}」`);
   };
 
   // ===================== 批量填充 =====================
@@ -445,6 +487,7 @@ export const useEntryOps = (
     templates,
     addRow,
     insertRowAbove,
+    insertRowBelow,
     deleteSelectedRows,
     duplicateSelectedRows,
     clearAll,
@@ -456,6 +499,7 @@ export const useEntryOps = (
     removeColumn,
     moveColumn,
     toggleColumnVisible,
+    cloneColumn,
     batchFill,
     batchClear,
     loadTemplates,

@@ -17,7 +17,7 @@ const props = defineProps<{ core: GridCore; ops: GridOps }>();
 const emit = defineEmits<{ (e: 'config', field: string): void }>();
 
 const { columnDefs } = props.core;
-const { colDrawer, moveCol, removeCol } = props.ops;
+const { colDrawer, moveCol, removeCol, duplicateColumn } = props.ops;
 
 const visibleModel = computed({
   get: () => colDrawer.value,
@@ -65,11 +65,12 @@ const onToggle = (field: string, flag: 'required' | 'visible' | 'frozen') => {
   <BiColumnManager
     v-model:visible="visibleModel"
     :cols="columnDefs"
-    :caps="{ frozen: true, retype: false, add: false }"
+    :caps="{ frozen: true, retype: false, add: false, duplicate: true }"
     @rename="onRename"
     @toggle="onToggle"
     @move="(i: number, dir: -1 | 1) => moveCol(i, dir)"
     @config="(field: string) => emit('config', field)"
+    @duplicate="(field: string) => duplicateColumn(field)"
     @remove="(field: string) => removeCol(field)"
   />
 </template>
