@@ -5,16 +5,17 @@
   ],
   "plugins": ["stylelint-scss"],
   "ignoreFiles": [
-    "** /*.js",
+    "**/*.js",
     "**/*.jsx",
-    "** /*.tsx",
+    "**/*.tsx",
     "**/*.ts",
-    "** /*.json",
+    "**/*.json",
     "**/*.md",
     "**/*.yaml",
     "**/*.html",
-    "public/*",
-    "src/assets/style/vendor/*"
+    "**/*.less",
+    "public/**",
+    "src/assets/style/vendor/**"
   ],
   "rules": {}
 }

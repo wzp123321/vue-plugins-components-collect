@@ -6,7 +6,7 @@
     · 容器：右侧 el-drawer，宽 440px，挂 .bi-dlg 继承 BI 色板；
     · 标题：「列配置 · 列名」（列名取打开时的快照，输入框改动不带着标题跳）；
     · 提交：草稿模式——改动先落在本地，点「确定」才整体回写，点「取消 / 遮罩 / Esc」丢弃；
-    · 分区顺序固定：基本信息 → 类型专属 → 校验规则 → 跨列规则 → 显示与视图 → 删除该列。
+    · 分区顺序固定：基本信息 → 类型配置 → 校验规则 → 跨列规则 → 显示与视图 → 危险操作。
   引擎差异只允许出现在**能力**上（caps）：冻结 / 表头分组 / 列宽，不做假统一。
 
   协作：各引擎把 colDef 映射成 :column 传进来，@confirm 里整体回写并重建表格。
@@ -21,65 +21,76 @@
     @update:model-value="(v: boolean) => emit('update:visible', v)"
   >
     <div v-if="column" class="bcd">
-      <el-form label-width="76px" label-position="left" size="small" class="bcd-form">
-        <el-form-item label="列名">
-          <el-input v-model="draft.label" maxlength="20" placeholder="列名" />
-        </el-form-item>
-        <el-form-item label="数据类型">
-          <el-select v-model="draft.type" style="width: 100%">
-            <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
-          </el-select>
-        </el-form-item>
+      <el-form label-width="88px" label-position="left" size="small" class="bcd-form">
+        <!-- ===== 基本信息 ===== -->
+        <section class="bcd-sec">
+          <div class="bcd-sec__hd"><span>基本信息</span></div>
+          <el-form-item label="列名">
+            <el-input v-model="draft.label" maxlength="20" placeholder="列名" />
+          </el-form-item>
+          <el-form-item label="数据类型">
+            <el-select v-model="draft.type" style="width: 100%">
+              <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
+            </el-select>
+          </el-form-item>
+        </section>
 
-        <!-- ===== 类型专属：下拉选项 ===== -->
-        <el-form-item v-if="draft.type === 'select'" label="下拉选项">
-          <div class="bcd-options">
-            <div v-for="(_, i) in draft.options" :key="i" class="bcd-option">
-              <el-input v-model="draft.options[i]" placeholder="选项文本" />
-              <el-button text type="danger" :disabled="draft.options.length <= 1" @click="removeOption(i)">✕</el-button>
+        <!-- ===== 类型配置 ===== -->
+        <section class="bcd-sec">
+          <div class="bcd-sec__hd">
+            <span>类型配置</span>
+            <em class="bcd-sec__tag">{{ typeLabel }}</em>
+          </div>
+          <el-form-item v-if="draft.type === 'select'" label="下拉选项">
+            <div class="bcd-options">
+              <div v-for="(_, i) in draft.options" :key="i" class="bcd-option">
+                <el-input v-model="draft.options[i]" placeholder="选项文本" />
+                <el-button text type="danger" :disabled="draft.options.length <= 1" @click="removeOption(i)">✕</el-button>
+              </div>
+              <el-button text type="primary" @click="addOption">＋ 添加选项</el-button>
+              <div class="bcd-hint">单元格以下拉形式录入，值必须落在选项内</div>
             </div>
-            <el-button text type="primary" @click="addOption">＋ 添加选项</el-button>
-            <div class="bcd-hint">单元格以下拉形式录入，值必须落在选项内</div>
-          </div>
-        </el-form-item>
-
-        <!-- ===== 类型专属：数值范围 ===== -->
-        <el-form-item v-if="draft.type === 'number'" label="数值范围">
-          <div class="bcd-range">
-            <el-input-number v-model="minRule" :controls="false" placeholder="最小" class="bcd-num" />
-            <span class="bcd-tilde">~</span>
-            <el-input-number v-model="maxRule" :controls="false" placeholder="最大" class="bcd-num" />
-            <el-checkbox v-model="integerRule">整数</el-checkbox>
-          </div>
-        </el-form-item>
-
-        <!-- ===== 类型专属：日期格式 ===== -->
-        <el-form-item v-if="draft.type === 'date'" label="显示格式">
-          <el-select v-model="draft.dateFormat" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="f in DATE_FORMATS" :key="f" :label="f" :value="f" />
-          </el-select>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item v-else-if="draft.type === 'number'" label="数值范围">
+            <div class="bcd-range">
+              <el-input-number v-model="minRule" :controls="false" placeholder="最小" class="bcd-num" />
+              <span class="bcd-tilde">~</span>
+              <el-input-number v-model="maxRule" :controls="false" placeholder="最大" class="bcd-num" />
+              <el-checkbox v-model="integerRule">整数</el-checkbox>
+            </div>
+          </el-form-item>
+          <el-form-item v-else-if="draft.type === 'date'" label="显示格式">
+            <el-select v-model="draft.dateFormat" filterable allow-create default-first-option style="width: 100%">
+              <el-option v-for="f in DATE_FORMATS" :key="f" :label="f" :value="f" />
+            </el-select>
+          </el-form-item>
+          <p v-else class="bcd-sec__empty">文本类型无需额外配置</p>
+        </section>
 
         <!-- ===== 校验规则 ===== -->
-        <el-form-item v-if="draft.type === 'text'" label="长度限制">
-          <div class="bcd-range">
-            <el-input-number v-model="minLenRule" :controls="false" :min="0" placeholder="最短" class="bcd-num" />
-            <span class="bcd-tilde">~</span>
-            <el-input-number v-model="maxLenRule" :controls="false" :min="0" placeholder="最长" class="bcd-num" />
-          </div>
-        </el-form-item>
-        <el-form-item v-if="draft.type === 'text'" label="正则">
-          <div class="bcd-col">
-            <el-input v-model="draft.rules.pattern" placeholder="正则源（不带斜杠），如 ^\d{11}$" />
-            <el-input v-model="draft.rules.patternMsg" placeholder="不匹配时的提示文案" />
-          </div>
-        </el-form-item>
-        <el-form-item label="整列唯一">
-          <el-checkbox v-model="draft.rules.unique">同列取值不可重复（工号 / 邮箱等）</el-checkbox>
-        </el-form-item>
+        <section class="bcd-sec">
+          <div class="bcd-sec__hd"><span>校验规则</span></div>
+          <el-form-item v-if="draft.type === 'text'" label="长度限制">
+            <div class="bcd-range">
+              <el-input-number v-model="minLenRule" :controls="false" :min="0" placeholder="最短" class="bcd-num" />
+              <span class="bcd-tilde">~</span>
+              <el-input-number v-model="maxLenRule" :controls="false" :min="0" placeholder="最长" class="bcd-num" />
+            </div>
+          </el-form-item>
+          <el-form-item v-if="draft.type === 'text'" label="正则">
+            <div class="bcd-col">
+              <el-input v-model="draft.rules.pattern" placeholder="正则源（不带斜杠），如 ^\d{11}$" />
+              <el-input v-model="draft.rules.patternMsg" placeholder="不匹配时的提示文案" />
+            </div>
+          </el-form-item>
+          <el-form-item label="整列唯一">
+            <el-checkbox v-model="draft.rules.unique">同列取值不可重复（工号 / 邮箱等）</el-checkbox>
+          </el-form-item>
+        </section>
 
         <!-- ===== 跨列规则 ===== -->
-        <el-form-item label="跨列规则">
+        <section class="bcd-sec">
+          <div class="bcd-sec__hd"><span>跨列规则</span></div>
           <div class="bcd-cross">
             <div v-for="(r, i) in draft.cross" :key="i" class="bcd-crossrow">
               <el-select v-model="r.kind" class="bcd-crosskind">
@@ -101,37 +112,45 @@
             <el-button text type="primary" :disabled="!otherColumns.length" @click="addCross">＋ 添加跨列规则</el-button>
             <div v-if="!otherColumns.length" class="bcd-hint">表里只有这一列，暂无可参照的列</div>
           </div>
-        </el-form-item>
+        </section>
 
         <!-- ===== 显示与视图（能力差异走 caps） ===== -->
-        <el-form-item label="列状态">
-          <div class="bcd-flags">
-            <el-switch v-model="draft.required" inline-prompt active-text="必" inactive-text="选" />
-            <el-switch v-model="draft.visible" inline-prompt active-text="显" inactive-text="隐" />
-            <el-switch
-              v-if="caps.frozen"
-              v-model="draft.frozen"
-              inline-prompt
-              active-text="冻"
-              inactive-text="松"
-            />
-            <span class="bcd-hint">必填 / 显示 / 冻结</span>
-          </div>
-        </el-form-item>
-        <el-form-item v-if="caps.width" label="列宽">
-          <div class="bcd-range">
-            <el-input-number v-model="draft.width" :controls="false" :min="60" :step="10" class="bcd-num" />
-            <span class="bcd-unit">px</span>
-          </div>
-        </el-form-item>
-        <el-form-item v-if="caps.group" label="表头分组">
-          <el-input v-model="draft.group" placeholder="留空=单层表头；相邻同名列归到一个父表头" />
-        </el-form-item>
+        <section class="bcd-sec">
+          <div class="bcd-sec__hd"><span>显示与视图</span></div>
+          <el-form-item label="列状态">
+            <div class="bcd-flags">
+              <div class="bcd-switches">
+                <el-switch v-model="draft.required" inline-prompt active-text="必" inactive-text="选" />
+                <el-switch v-model="draft.visible" inline-prompt active-text="显" inactive-text="隐" />
+                <el-switch
+                  v-if="caps.frozen"
+                  v-model="draft.frozen"
+                  inline-prompt
+                  active-text="冻"
+                  inactive-text="松"
+                />
+              </div>
+              <div class="bcd-hint">必填 / 显示 / 冻结</div>
+            </div>
+          </el-form-item>
+          <el-form-item v-if="caps.width" label="列宽">
+            <div class="bcd-range">
+              <el-input-number v-model="draft.width" :controls="false" :min="60" :step="10" class="bcd-num" />
+              <span class="bcd-unit">px</span>
+            </div>
+          </el-form-item>
+          <el-form-item v-if="caps.group" label="表头分组">
+            <el-input v-model="draft.group" placeholder="留空=单层表头；相邻同名列归到一个父表头" />
+          </el-form-item>
+        </section>
       </el-form>
 
-      <div class="bcd-danger">
-        <el-button text type="danger" @click="onRemove">删除该列</el-button>
-      </div>
+      <!-- ===== 危险操作 ===== -->
+      <section class="bcd-sec bcd-sec--danger">
+        <div class="bcd-sec__hd"><span>危险操作</span></div>
+        <p class="bcd-sec__desc">删除后该列及已录入数据将从表格移除，且不可撤销。</p>
+        <el-button type="danger" plain @click="onRemove">删除该列</el-button>
+      </section>
     </div>
     <div v-else class="bcd-empty">列不存在或已被删除</div>
 
@@ -204,6 +223,9 @@ const otherColumns = computed(() => (props.siblings ?? []).filter((s) => s.field
 /** 标题里的列名取「打开时」的快照：跟着输入框实时变会让标题抖动 */
 const titleLabel = ref('');
 const title = computed(() => (titleLabel.value ? `列配置 · ${titleLabel.value}` : '列配置'));
+
+/** 分区标题上的当前类型小标签 */
+const typeLabel = computed(() => TYPES.find((t) => t.value === draft.type)?.label ?? draft.type);
 
 /** 打开（或换了一列）时把真实定义拷进草稿：数组/对象深拷一层，避免编辑过程中污染表格 */
 const fillFrom = (col: BiColLike) => {
@@ -315,10 +337,82 @@ const onRemove = () => {
 
 <style scoped>
 /* 「＋ 添加」这类文字按钮的观感由全局 assets/style/bi-entry.less 统一还原（.bi-dlg 作用域），
- * 这里只管抽屉内部布局。 */
+ * 这里只管抽屉内部布局与分区层级。 */
 .bcd-form {
   padding-right: 2px;
 }
+.bcd-form :deep(.el-form-item) {
+  margin-bottom: 12px;
+}
+.bcd-form :deep(.el-form-item__label) {
+  color: var(--bi-text);
+  font-weight: 500;
+}
+
+/* ===== 分区卡片：把原平铺表单切成有层级的区块 ===== */
+.bcd-sec {
+  margin-bottom: 16px;
+}
+.bcd-sec__hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bi-text);
+  letter-spacing: 0.3px;
+  padding: 0 0 7px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--bi-border-soft);
+}
+.bcd-sec__hd::before {
+  content: '';
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--bi-primary);
+  flex: 0 0 auto;
+}
+.bcd-sec__tag {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--bi-primary);
+  background: var(--bi-primary-soft);
+  padding: 0 6px;
+  border-radius: 4px;
+}
+.bcd-sec__empty {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--bi-sub);
+}
+.bcd-sec__desc {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--bi-sub);
+}
+
+/* ===== 危险区：浅红底 + 柔和红描边，明确隔离不可逆动作 ===== */
+.bcd-sec--danger {
+  background: var(--bi-danger-bg);
+  border: 1px solid color-mix(in srgb, var(--bi-danger) 38%, transparent);
+  border-radius: var(--bi-radius);
+  padding: 12px 14px;
+}
+.bcd-sec--danger .bcd-sec__hd {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  color: var(--bi-danger);
+}
+.bcd-sec--danger .bcd-sec__hd::before {
+  background: var(--bi-danger);
+}
+
+/* ===== 字段内部堆叠布局（原逻辑保留） ===== */
 .bcd-options,
 .bcd-cross,
 .bcd-col {
@@ -332,10 +426,20 @@ const onRemove = () => {
 .bcd-cross > .el-button {
   align-self: flex-start;
 }
+.bcd-flags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.bcd-switches {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .bcd-option,
 .bcd-range,
-.bcd-crossrow2,
-.bcd-flags {
+.bcd-crossrow2 {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -361,16 +465,9 @@ const onRemove = () => {
   border-radius: 6px;
   background: var(--bi-hover);
 }
-.bcd-crosskind {
-  width: 100%;
-}
+.bcd-crosskind,
 .bcd-crossother {
   width: 100%;
-}
-.bcd-danger {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px solid var(--bi-border-soft);
 }
 .bcd-empty {
   padding: 24px 0;

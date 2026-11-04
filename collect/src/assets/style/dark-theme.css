@@ -65,35 +65,8 @@ html.dark {
 }
 
 /* ===================== 外壳容器覆盖（暗色专属） ===================== */
-/* 侧边栏背景 */
-html.dark .aside-box,
-html.dark aside.aside-box {
-  background-color: var(--ai-surface) !important;
-}
-
-/* 头部背景 */
-html.dark .main-header,
-html.dark header.el-header {
-  background-color: var(--ai-surface) !important;
-  border-bottom-color: var(--ai-border) !important;
-}
-
-/* 头部文字 */
-html.dark .header-collapse-btn {
-  color: var(--ai-text-dim) !important;
-}
-
-html.dark .header-collapse-btn:hover {
-  background-color: var(--ai-surface-hover) !important;
-  color: var(--ai-text) !important;
-}
-
-html.dark .brand-title {
-  color: var(--ai-text) !important;
-}
-
-/* 内容区背景 */
-html.dark .main-container__content,
-html.dark main.el-main {
-  background-color: transparent !important;
-}
+/* 已删除：原 L67-99 的 .aside-box / .main-header / .header-collapse-btn / .brand-title /
+ * .main-container__content / header.el-header / main.el-main 规则。
+ * 依据：全库搜索这 7 个类名，模板中均无使用（项目未使用 el-header / el-main 组件，
+ * 外壳实际类名为 .ai-aside / .ai-header / .ai-icon-btn / .ai-brand / .ai-main），
+ * 规则从未命中，属历史遗留死样式。 */

@@ -33,12 +33,13 @@ const mapComponentClass = () => ['common-page-container', props.customClass];
     height: 100%;
     // padding: 18px;
     overflow: auto;
-    overflow-x: hidden;
+    /* 原 overflow-x: hidden 会把超宽内容（表格/长代码）直接裁掉且无法横向滚动，
+     * 这里交给 overflow:auto 统一处理，避免「纵向滚动 + 横向裁剪」的混合行为。 */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--ai-border);
-    border-radius: 0;
+    border-radius: var(--ai-radius-md);
     background: var(--ai-surface);
     backdrop-filter: blur(20px);
     box-shadow:

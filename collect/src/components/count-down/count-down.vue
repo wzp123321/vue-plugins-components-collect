@@ -89,6 +89,28 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
+/* 模板用到 .row / .column / .center-center / .relative 这几个通用工具类，但项目此前未定义
+ * （表现为数字竖排、绝对定位参照错位）。就地补齐并限定在本组件作用域，
+ * 不在全局新增 .row / .column，避免影响其它页面既有布局。 */
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.center-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.relative {
+  position: relative;
+}
+
 .count-down {
   width: 300px;
 

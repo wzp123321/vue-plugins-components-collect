@@ -1,5 +1,6 @@
 @import './shared/color.less';
 @import './shared/parameter.less';
+@import './shared/te-compat.less';
 
 
 html,
@@ -9,22 +10,61 @@ body {
   overflow: hidden;
 }
 
-/* 全局元素默认样式控制 */
-* {
-  /* 布局 */
+/* 全局盒模型归零：只保留与布局相关的声明。
+ * 原实现把 outline / line-height / font-size / font-weight / word-break / white-space
+ * 一并压在 `*` 上，导致长文本不换行、富文本排版被污染、键盘焦点不可见。
+ * 文本排版下放到 body 与语义元素，交给各组件按需声明。 */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
+}
 
-  /* 外观 */
-  outline: none;
-
-  /* 文本 */
-  line-height: 22px;
+/* 文本基线：14px / 1.5（约 21px，接近原来的 22px），允许自然换行 */
+body {
   font-size: 14px;
+  line-height: 1.5;
   font-weight: var(--param-font-regular);
-  word-break: keep-all;
-  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/* 表单控件沿用正文字号，避免移除 `*` 规则后回落到 UA 默认字号 */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 标题保持原字号（不回到 UA 的 2em/1.5em），仅恢复语义字重 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: var(--param-font-bold);
+}
+
+/* 等宽元素保持原字号 */
+code,
+kbd,
+pre,
+samp {
+  font-size: inherit;
+}
+
+/* 焦点可见性：键盘操作给出统一焦点环。
+ * 表单控件交给组件库自身的 focus 态，避免叠加双环。 */
+:focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid var(--ai-accent);
+  outline-offset: 2px;
 }
 
 /* 滚动条 -Chrome */

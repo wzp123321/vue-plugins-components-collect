@@ -14,6 +14,9 @@ import * as echarts from 'echarts';
 import * as echartsCore from 'echarts/core';
 import type * as EChartsMain from 'echarts';
 
+// 亮 / 暗主题注册（副作用导入）：注册 'ai-light' / 'ai-dark'
+import { CHART_THEME_DARK, CHART_THEME_LIGHT, isChartDark } from './theme';
+
 import {
   BarChart,
   LineChart,
@@ -101,7 +104,15 @@ echartsCore.use([
 //   echarts 5.6 的按需 core 与主包各自声明了带私有 _ssr 的实例类型，名义不互通，
 //   故 init 与类型标注必须走同一来源（主包），否则会被判为不兼容；
 // - 按需注册用 echarts/core 的 use()（见上方 echartsCore.use），以接受子路径导出的 core 组件类型。
-export const init = echarts.init;
+// 主题注入：业务侧仍按 init(el) 调用，这里统一补上当前亮/暗主题，
+// 显式传入 theme 的调用保持原样（不再覆盖）。
+const aiInit = (
+  dom: Parameters<typeof echarts.init>[0],
+  theme?: Parameters<typeof echarts.init>[1],
+  opts?: Parameters<typeof echarts.init>[2],
+) => echarts.init(dom, theme ?? (isChartDark() ? CHART_THEME_DARK : CHART_THEME_LIGHT), opts);
+
+export const init = aiInit as typeof echarts.init;
 export const format = echarts.format;
 export const graphic = echarts.graphic;
 export const use = echartsCore.use;

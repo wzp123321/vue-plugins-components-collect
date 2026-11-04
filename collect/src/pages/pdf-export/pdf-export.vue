@@ -186,7 +186,9 @@ const exportImage = async () => {
 <!-- 打印态必须是非 scoped 全局样式：scoped 会附加属性选择器导致 body * 匹配不到 -->
 <style lang="less">
 @media print {
-  body * {
+  /* 仅当页面上存在 #pdf-doc 时才隐藏其它内容，避免污染全站打印输出。
+   * :has() 不支持时该规则整体失效（退化结果只是「整页都打印」，比泄漏到其它页面安全）。 */
+  body:has(#pdf-doc) * {
     visibility: hidden;
   }
 

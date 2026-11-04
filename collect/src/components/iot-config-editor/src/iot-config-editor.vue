@@ -1130,19 +1130,7 @@ onUnmounted(() => {
   font-size: 12px;
   color: #8aa0bd;
 }
-.tb2 {
-  border: 1px solid rgba(120, 160, 220, 0.3);
-  background: transparent;
-  color: #cfe0f5;
-  padding: 6px 10px;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.tb2:hover {
-  border-color: #39e0ff;
-  color: #39e0ff;
-}
+/* 已删除 .tb2 / .tb2:hover：全库搜索 "tb2" 仅命中这两处定义本身，模板无 class="tb2" 元素。 */
 .saved {
   font-size: 11px;
   color: #37e07a;

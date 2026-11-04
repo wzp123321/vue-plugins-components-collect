@@ -1,9 +1,12 @@
-/* 颜色变量 */
+/* 颜色变量（遗留 --color-* 体系）
+ * 说明：文本 / 表面 / 边框三类已桥接到 --ai-* 设计令牌，随亮暗主题切换；
+ * 品牌功能色（primary / danger / success / warning / link）保持原值，
+ * 以免改动各页面已固化的语义色。 */
 :root {
   /* 基础色 */
-  --color-default: white !important;
-  --color-hover: rgba(230, 247, 255, 1) !important;
-  --color-active: rgba(186, 231, 255, 1) !important;
+  --color-default: var(--ai-surface-solid) !important;
+  --color-hover: var(--ai-surface-hover) !important;
+  --color-active: var(--ai-surface-active) !important;
   --color-primary: rgba(24, 144, 255, 1) !important;
   --color-primary-hover: rgba(64, 169, 255, 1) !important;
   --color-primary-active: rgba(9, 109, 217, 1) !important;
@@ -17,28 +20,28 @@
   --color-warning: rgba(255, 173, 38, 1) !important;
   --color-link: rgba(54, 129, 255, 1) !important;
 
-  /* 文本色 */
-  --color-text: black;
-  --color-text-title: rgba(0, 0, 0, 0.85) !important;
-  --color-text-primary: rgba(0, 0, 0, 0.65) !important;
-  --color-text-secondary: rgba(0, 0, 0, 0.45) !important;
-  --color-text-disable: rgba(0, 0, 0, 0.25) !important;
-  --color-text-border: rgba(0, 0, 0, 0.15) !important;
-  --color-text-divider: rgba(0, 0, 0, 0.06) !important;
-  --color-text-background: rgba(0, 0, 0, 0.04) !important;
+  /* 文本色（桥接 --ai-*，随主题切换） */
+  --color-text: var(--ai-text);
+  --color-text-title: var(--ai-text) !important;
+  --color-text-primary: var(--ai-text-dim) !important;
+  --color-text-secondary: var(--ai-text-mute) !important;
+  --color-text-disable: var(--ai-text-mute) !important;
+  --color-text-border: var(--ai-border) !important;
+  --color-text-divider: var(--ai-hairline) !important;
+  --color-text-background: var(--ai-surface-raised) !important;
 
   /* 边框 */
-  --color-box-focus: rgba(24, 144, 255, 0.2) !important;
+  --color-box-focus: var(--ai-accent-soft) !important;
 
   /* 表格 */
-  --color-table-header: rgba(237, 245, 252, 1) !important;
-  --color-table-body: rgb(245, 245, 245, 1) !important;
+  --color-table-header: var(--ai-surface-raised) !important;
+  --color-table-body: var(--ai-surface-hover) !important;
 
-  // 菜单
-  --color-menu-bg: #171a1c;
+  /* 菜单 */
+  --color-menu-bg: var(--ai-surface-solid);
 
-  /* 滚动条 */
-  --color-scrollbar: rgba(0, 0, 0, 0.25);
-  --color-scrollbar-hover: rgba(0, 0, 0, 0.45);
-  --color-scrollbar-active: rgba(0, 0, 0, 0.65);
+  /* 滚动条：随主题明暗变化，避免深色底出现黑色滑块 */
+  --color-scrollbar: color-mix(in srgb, var(--ai-text-mute) 45%, transparent);
+  --color-scrollbar-hover: color-mix(in srgb, var(--ai-text-mute) 65%, transparent);
+  --color-scrollbar-active: color-mix(in srgb, var(--ai-text-mute) 85%, transparent);
 }

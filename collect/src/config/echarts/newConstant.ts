@@ -1,3 +1,5 @@
+import { chartToken } from './theme';
+
 // 卡片背景颜色组
 export const pieColors = [
   'rgba(14, 109, 250, 1)',
@@ -78,18 +80,30 @@ export const newEChartsConstant = {
   CHARTS_TOOLTIP_BG_COLOR: 'rgba(24, 144, 255, 0.8)',
   // 悬浮框字体颜色
   CHARTS_TOOLTIP_TEXT_COLOR: 'rgba(255, 255, 255, 1)',
-  // 轴文本颜色
-  CHARTS_AXIS_TEXT_COLOR: 'rgba(0, 0, 0, 0.65)',
+  // 轴文本颜色（随亮/暗主题取令牌）
+  get CHARTS_AXIS_TEXT_COLOR() {
+    return chartToken('textDim');
+  },
   // 轴文本颜色-浅色
-  CHARTS_AXIS_TEXT_SHADOW_COLOR: 'rgba(0, 0, 0, 0.45)',
+  get CHARTS_AXIS_TEXT_SHADOW_COLOR() {
+    return chartToken('textMute');
+  },
   // 轴线颜色
-  CHARTS_AXIS_LINE_COLOR: '#CDD0D6',
+  get CHARTS_AXIS_LINE_COLOR() {
+    return chartToken('borderStrong');
+  },
   // 分割线颜色
-  CHARTS_SPLIT_LINE_COLOR: 'rgba(0, 0, 0, 0.15)',
+  get CHARTS_SPLIT_LINE_COLOR() {
+    return chartToken('border');
+  },
   // 环形图中间文本颜色
-  GAUGE_MIDDLE_TEXT_COLOR: '#000',
+  get GAUGE_MIDDLE_TEXT_COLOR() {
+    return chartToken('text');
+  },
   // 饼状图title颜色
-  PIE_TITLE_TEXT_COLOR: '#000',
+  get PIE_TITLE_TEXT_COLOR() {
+    return chartToken('text');
+  },
   // 文本字体大小
   CHARTS_FONT_SIZE_14: 14,
   // legend图标---虚线

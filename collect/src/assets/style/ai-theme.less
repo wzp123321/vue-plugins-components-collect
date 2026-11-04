@@ -50,7 +50,8 @@
   /* 文本 */
   --ai-text: #edf0f7;
   --ai-text-dim: #99a2b4;
-  --ai-text-mute: #616a7d;
+  /* 原 #616a7d 在 #0e1017 上对比度约 3.5:1，不达 AA 4.5:1，上调为约 6:1 */
+  --ai-text-mute: #8b94a8;
 
   /* 品牌 */
   --ai-accent: #7c5cff;
@@ -80,6 +81,22 @@
   --ai-header-h: 60px;
   --ai-aside-w: 256px;
   --ai-aside-w-collapsed: 72px;
+
+  /* 字号阶：替代散落的 12/12.5/13/13.5/14/15px 等半像素写法 */
+  --ai-font-size-xs: 12px;
+  --ai-font-size-sm: 13px;
+  --ai-font-size-base: 14px;
+  --ai-font-size-md: 16px;
+  --ai-font-size-lg: 20px;
+
+  /* 间距阶：4 的倍数，替代散落的 5/6/7/9/10px 间距 */
+  --ai-space-1: 4px;
+  --ai-space-2: 8px;
+  --ai-space-3: 12px;
+  --ai-space-4: 16px;
+  --ai-space-5: 20px;
+  --ai-space-6: 24px;
+  --ai-space-8: 32px;
 }
 
 /* 桥接变量需要在 :root / html.dark 各声明一次：
@@ -116,7 +133,8 @@ html:not(.dark) {
 
   --ai-text: #101425;
   --ai-text-dim: #5a6478;
-  --ai-text-mute: #8b93a5;
+  /* 原 #8b93a5 在 #ffffff 上对比度约 3.1:1，不达 AA 4.5:1，下调为约 4.8:1 */
+  --ai-text-mute: #6b7385;
 
   --ai-accent: #6d4bff;
   --ai-accent-2: #0891b2;

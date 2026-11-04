@@ -327,6 +327,7 @@ const tipStyle = computed(() => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0;

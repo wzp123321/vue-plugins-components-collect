@@ -1,0 +1,24 @@
+/* 设计令牌兜底：仓库中部分页面/组件引用了 @tiansu/element-plus 体系的 --te-* 变量，
+ * 但该包并未安装，这些变量一直未定义（表现为 padding=0、边框透明、背景透明）。
+ * 这里按同名语义映射到现有 --ai-* / --param-* 令牌，不改使用方代码。 */
+:root {
+  /* 间距 */
+  --te-space-4: 4px;
+  --te-space-16: 16px;
+  --te-space-20: 20px;
+
+  /* 字号 */
+  --te-font-size-b12: 12px;
+  --te-font-size-b14: 14px;
+  --te-font-size-h16: 16px;
+
+  /* 文本 */
+  --te-text-color-primary: var(--ai-text);
+
+  /* 边框 */
+  --te-border-color-dark: var(--ai-border-strong);
+  --te-border-color-lighter: var(--ai-hairline);
+
+  /* 表面：原语义为「白底」，随主题取实心表面色 */
+  --te-color-white: var(--ai-surface-solid);
+}

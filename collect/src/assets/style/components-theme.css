@@ -87,27 +87,35 @@
   color: var(--ai-text) !important;
 }
 
-.el-button {
-  background-color: var(--ai-surface-raised) !important;
-  border-color: var(--ai-border) !important;
-  color: var(--ai-text-dim) !important;
-  box-shadow: none !important;
+/* 中性按钮：排除语义变体，避免把 danger / success / warning / info 一并压成灰色。
+ * 选择器特异性（4 个 :not）已高于 Element Plus 默认样式，故不再需要 !important。 */
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):not(.el-button--info) {
+  background-color: var(--ai-surface-raised);
+  border-color: var(--ai-border);
+  color: var(--ai-text-dim);
+  box-shadow: none;
 }
 
-.el-button:hover {
-  border-color: var(--ai-border-strong) !important;
-  color: var(--ai-text) !important;
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):not(.el-button--info):hover {
+  border-color: var(--ai-border-strong);
+  color: var(--ai-text);
+}
+
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):not(.el-button--info):focus-visible {
+  border-color: var(--ai-border-strong);
+  color: var(--ai-text);
+  background-color: var(--ai-surface-hover);
 }
 
 .el-button--primary {
-  background-color: var(--ai-accent) !important;
-  border-color: var(--ai-accent) !important;
-  color: #ffffff !important;
+  background-color: var(--ai-accent);
+  border-color: var(--ai-accent);
+  color: #ffffff;
 }
 
 .el-button--primary:hover {
-  background-color: var(--ai-accent-2) !important;
-  border-color: var(--ai-accent-2) !important;
+  background-color: var(--ai-accent-2);
+  border-color: var(--ai-accent-2);
 }
 
 .el-dialog,

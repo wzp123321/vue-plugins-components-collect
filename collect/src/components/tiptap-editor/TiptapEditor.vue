@@ -739,6 +739,16 @@ watch(
       font-size: 17px;
     }
 
+    /* 全局 common.less 的 ul,li { list-style: none } 会吃掉编辑器里的列表符号，
+     * 这里在编辑器作用域内恢复；taskList 仍在下方单独置为 none。 */
+    ul {
+      list-style: disc;
+    }
+
+    ol {
+      list-style: decimal;
+    }
+
     ul,
     ol {
       padding-left: 24px;

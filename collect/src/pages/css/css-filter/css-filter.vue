@@ -151,6 +151,7 @@ const resetHtml = (text: string) => {
         height: 42px;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       &-data {
@@ -195,6 +196,7 @@ const resetHtml = (text: string) => {
           .reset-html {
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
           }
 
           .view-data {
