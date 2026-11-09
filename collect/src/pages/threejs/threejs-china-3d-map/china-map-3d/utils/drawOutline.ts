@@ -3,11 +3,11 @@
  *
  * 本文件职责：
  *   用 geo.extractOuterRings 取出当前层级的整体外边界，画成「实线 + 一层更宽
- *   更淡的光晕」两层 Line2。轮廓先于板块出现——「先看到边境线、再长地图」的
- *   加载节奏靠它实现。
+ *   更淡的光晕」两层 Line2；再用 geo.nineDashSegments 把九段线画成断续线段。
+ *   轮廓先于板块出现——「先看到边境线、再长地图」的加载节奏靠它实现。
  *
- * 在整体架构中的角色：地图外框层。与 geo.ts（extractOuterRings）、
- *   lineMaterials.ts（实线 + 光晕材质）、projection.ts（project）协作。
+ * 在整体架构中的角色：地图外框层。与 geo.ts（extractOuterRings / nineDashSegments）、
+ *   lineMaterials.ts（实线 + 光晕 + 九段线材质）、projection.ts（project）协作。
  *
  * 协作模块：
  *   - geo.ts（extractOuterRings）
@@ -21,8 +21,8 @@ import * as THREE from 'three'
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { mapConfig } from './mapConfig'
-import { getOutlineGlowMaterial, getOutlineMaterial } from './lineMaterials'
-import { extractOuterRings } from './geo'
+import { getNineDashMaterial, getOutlineGlowMaterial, getOutlineMaterial } from './lineMaterials'
+import { extractOuterRings, nineDashSegments } from './geo'
 import type { GeoJsonType } from '../types'
 import type { ProjectionFn } from './projection'
 
@@ -36,7 +36,9 @@ import type { ProjectionFn } from './projection'
  */
 export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Group => {
   const group = new THREE.Group()
-  group.userData = { kind: 'outline' }
+  // nineDashSegments 供 useMapLayer.build 做「渲染级」合规校验：数据有九段线，
+  // 还得真的写进场景，光查 adcode 挡不住被取景裁掉 / 被过滤掉这类漏画。
+  group.userData = { kind: 'outline', nineDashSegments: 0 }
 
   const solid = getOutlineMaterial()
   const glow = getOutlineGlowMaterial()
@@ -76,18 +78,51 @@ export const createOutline = (geo: GeoJsonType, project: ProjectionFn): THREE.Gr
     }
   })
 
-  if (!linePositions.length) return group
+  if (linePositions.length) {
+    const geometry = new LineSegmentsGeometry()
+    geometry.setPositions(linePositions)
 
-  const geometry = new LineSegmentsGeometry()
-  geometry.setPositions(linePositions)
+    const glowLine = new (LineSegments2 as any)(geometry, glow) as THREE.Object3D
+    glowLine.renderOrder = 3
+    group.add(glowLine)
 
-  const glowLine = new (LineSegments2 as any)(geometry, glow) as THREE.Object3D
-  glowLine.renderOrder = 3
-  group.add(glowLine)
+    const line = new (LineSegments2 as any)(geometry, solid) as THREE.Object3D
+    line.renderOrder = 4
+    group.add(line)
+  }
 
-  const line = new (LineSegments2 as any)(geometry, solid) as THREE.Object3D
-  line.renderOrder = 4
-  group.add(line)
+  // 九段线：每条中心线是一条非闭合折线，段与段之间天然断开。
+  // ⚠️ 不能像外轮廓那样把末点接回首点，否则会画成细长闭合框而不是断续线。
+  const dashPositions: number[] = []
+  let dashCount = 0
+  nineDashSegments(geo).forEach((segment) => {
+    const points: number[] = []
+    let valid = true
+    segment.forEach(([lng, lat]) => {
+      const [x, y] = project([lng, lat])
+      if (!Number.isFinite(x) || !Number.isFinite(y)) { valid = false; return }
+      points.push(x, -y, z)
+    })
+    const pointCount = points.length / 3
+    if (!valid || pointCount < 2) return
+    for (let i = 0; i < pointCount - 1; i++) {
+      const a = i * 3
+      const b = (i + 1) * 3
+      dashPositions.push(
+        points[a], points[a + 1], points[a + 2],
+        points[b], points[b + 1], points[b + 2],
+      )
+    }
+    dashCount += 1
+  })
+  if (dashPositions.length) {
+    const dashGeometry = new LineSegmentsGeometry()
+    dashGeometry.setPositions(dashPositions)
+    const dashLine = new (LineSegments2 as any)(dashGeometry, getNineDashMaterial()) as THREE.Object3D
+    dashLine.renderOrder = 4
+    group.add(dashLine)
+  }
+  group.userData.nineDashSegments = dashCount
 
   return group
 };

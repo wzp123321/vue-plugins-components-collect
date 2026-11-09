@@ -21,28 +21,75 @@
 /** 板块拉伸厚度（世界单位），同时作为线框 / 锚点的高度基准 */
 const DEPTH = 6
 
+/**
+ * 小面积强调高光：墨蓝体系里唯一的亮色锚点（冰蓝）。
+ * 用于数据柱最高档，飞线取同一色；常驻画面的亮部占比约 1.5%。
+ * hover / 选中不做跳色，走同色系提亮一档。
+ */
+export const ACCENT_HIGHLIGHT = '#8FD4F2'
+
 export const mapConfig = {
   /** 板块拉伸厚度 */
   depth: DEPTH,
   /** 顶面不透明度 */
   opacity: 0.94,
-  /** 板块顶面基色（比侧壁亮一档，让板块顶面从侧壁里浮出来） */
-  color: '#0F2A4A',
-  /** 悬停高亮色 */
-  hoverColor: '#2C6B8C',
-  /** 选中（点击锁定）高亮色 */
-  focusColor: '#2A6E92',
-  /** 侧壁竖直渐变（上 → 下） */
-  sideColorTop: '#0A1E42',
-  sideColorBottom: '#040E24',
+  /** 板块顶面基色：渐变贴图作为亮度系数乘在它上面，故取色阶亮端 */
+  color: '#7FA8C8',
+  /** 悬停高亮色：同色系提亮一档，不做跳色 */
+  hoverColor: '#3E6C8E',
+  /** 选中（点击锁定）高亮色：比悬停再暗一档，两级状态可区分 */
+  focusColor: '#345B78',
+  /** 悬停时其余省份的压暗系数：1 = 不压暗，靠面本身提亮表达高亮 */
+  dimGain: 1,
+  /** 顶面连续渐变贴图：一张低频明暗场铺满整张地图，无网点、无重复图案 */
+  surfaceGradient: {
+    size: 512,
+    /**
+     * 调制系数暗端 / 亮端（与 color 相乘得到最终色）。暗端墨蓝、亮端浅钢蓝，
+     * 靠明度而非色相拉开层次：面 P50 约 58、P99 约 121，亮端不炸白。
+     * 端点 luma 与 8 级明度分布绑定，单独调亮或调暗其中一端会破坏已对齐的
+     * 「暗层约 38%、越亮占比越小」形态。
+     */
+    dark: '#2A4258',
+    light: '#9DC4E0',
+    /** 线性基底增益：左下暗 → 右上亮 */
+    baseGain: 0.38,
+    /**
+     * 明度分布指数：2.4 把分布压向暗端。这组值与两处柔光是按参考图 C 的
+     * 面内明度层级反解出来的（暗层约 38%、越亮占比越小），勿凭观感单改一项。
+     * dark / light 只参与最终颜色映射，不参与 level 计算。
+     */
+    gamma: 2.4,
+    /** 极低频起伏幅度，避免读成规整色卡 */
+    ripple: 0.035,
+    /** 两处大半径柔光（UV 坐标，v 向上）：位置 / 半径 / 强度 */
+    highlights: [
+      { x: 0.28, y: 0.72, radius: 0.52, gain: 0.81 },
+      { x: 0.68, y: 0.38, radius: 0.30, gain: 0.34 },
+    ],
+  },
+  /**
+   * 侧壁竖直渐变（上 → 下）。三级明度阶梯：顶面 > 侧壁 > 背景。
+   * 侧壁顶必须比顶面暗部再低一档、侧壁底必须明显高于背景，否则整条侧壁
+   * 两头都糊掉，地图会读成一张 2D 平片。
+   */
+  sideColorTop: '#102536',
+  sideColorBottom: '#08131E',
+  /** 侧壁上沿细亮线：gain = 0 即关闭，只保留纯竖直渐变 */
+  sideEdgeColor: '#8FD4F2',
+  sideEdgeWidth: 0.02,
+  sideEdgeGain: 0,
 
-  /** 层级内部界线（省界 / 市界） */
-  innerLineColor: 0x2a6c90,
-  innerLineWidth: 1.3,
-  /** 当前层级外轮廓：宽度收细、光晕收窄，避免一圈白色泛光抢掉板块本身的注意力 */
-  outlineColor: 0x54b4e4,
-  outlineWidth: 1.4,
-  outlineGlowScale: 1.6,
+  /** 层级内部界线（省界 / 市界）：收暗收细，让面而不是线成为主体 */
+  innerLineColor: 0x3A6B8C,
+  innerLineWidth: 1.0,
+  /** 当前层级外轮廓：浅钢蓝，光晕层 opacity 归零 */
+  outlineColor: 0x7FB3D4,
+  outlineWidth: 1.2,
+  outlineGlowScale: 1.4,
+  /** 悬停 / 选中板块的边缘线：与内线同宽，比外轮廓亮一档 */
+  hoverEdgeColor: 0xB4D8EE,
+  hoverEdgeWidth: 1.2,
 
   /** 贴面线层级：紧贴顶面（depth + 极小 epsilon） */
   // ⚠️ 坑：线框必须贴顶面。原来悬浮 1.5，斜视角下北侧边境线会明显离开板块边缘；
@@ -61,9 +108,9 @@ export const mapConfig = {
     arcBase: 3,
     arcMax: 24,
     arcRatio: 0.42,
-    /** 轨道两端 / 中段颜色（提亮一档：原 #081D2E/#15496F 在深色地图上近乎隐形） */
-    trackColorNear: '#0F3049',
-    trackColorFar: '#20618F',
+    /** 轨道两端 / 中段：暗墨蓝，只作隐约路线提示，不与顶面渐变抢明度 */
+    trackColorNear: '#0D2130',
+    trackColorFar: '#3A6B8C',
     /** 轨道 / 拖尾宽度（世界单位，随距离自然近粗远细） */
     trackWidth: 0.34,
     streakWidth: 0.66,
@@ -144,14 +191,14 @@ export interface ThemePalette {
 
 export const themePalettes: Record<ThemeName, ThemePalette> = {
   dark: {
-    color: '#0A1730',
-    hoverColor: '#2C6B8C',
-    focusColor: '#2A6E92',
+    color: '#7FA8C8',
+    hoverColor: '#3E6C8E',
+    focusColor: '#345B78',
     opacity: 0.94,
-    sideColorTop: '#0A1E42',
-    sideColorBottom: '#040E24',
-    innerLineColor: 0x2a6c90,
-    outlineColor: 0x54b4e4,
+    sideColorTop: '#102536',
+    sideColorBottom: '#08131E',
+    innerLineColor: 0x3A6B8C,
+    outlineColor: 0x7FB3D4,
   },
   light: {
     color: '#C9DCEC',

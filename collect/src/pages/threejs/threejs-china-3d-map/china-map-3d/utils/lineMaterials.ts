@@ -2,7 +2,7 @@
  * lineMaterials.ts —— Line2 线材质工厂（世界单位线宽）
  *
  * 本文件职责：
- *   统一管理三种共享的 Line2 线材质：内部界线、外轮廓实线、外轮廓光晕。
+ *   统一管理共享的 Line2 线材质：内部界线、悬停边、九段线、外轮廓实线、外轮廓光晕。
  *   集中创建 + 集中同步分辨率，避免每个模块各自 new 一份、各自维护 resolution。
  *
  * 在整体架构中的角色：线框绘制（drawRegion 内部界线、drawOutline 外轮廓）
@@ -33,27 +33,60 @@ const resolution = new THREE.Vector2(1, 1)
  * userData.shared 标记，供 dispose.ts 跳过释放（跨层级复用）。
  */
 const createLineMaterial = (options: Record<string, unknown>): LineMaterial => {
-  // fog:false —— 飞线 / 边界线为高亮元素，开启场景雾后应始终保持清晰，
-  // 不被大气雾吞掉；纵深感由地块顶面（受光材质）承接即可。
-  const material = new (LineMaterial as any)({ ...options, resolution: resolution.clone(), fog: false }) as LineMaterial
+  const material = new (LineMaterial as any)({ ...options, resolution: resolution.clone() }) as LineMaterial
   ;(material as any).userData = { shared: true }
   return material
 };
 
 let innerLine: LineMaterial | null = null
-/** 层级内部界线（省界 / 市界） */
+/** 层级内部界线（省界 / 市界）：低亮度，让渐变的面成为主体 */
 export const getInnerLineMaterial = (): LineMaterial => {
   if (!innerLine) {
     innerLine = createLineMaterial({
       color: mapConfig.innerLineColor,
       linewidth: mapConfig.innerLineWidth,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.45,
       depthTest: true,
       depthWrite: false,
     })
   }
   return innerLine
+};
+
+let hoverLine: LineMaterial | null = null
+/** 悬停 / 选中板块的边缘线：与内线同宽、低亮度，不做亮青描边 */
+export const getHoverLineMaterial = (): LineMaterial => {
+  if (!hoverLine) {
+    hoverLine = createLineMaterial({
+      color: mapConfig.hoverEdgeColor,
+      linewidth: mapConfig.hoverEdgeWidth,
+      transparent: true,
+      opacity: 0.5,
+      depthTest: true,
+      depthWrite: false,
+    })
+  }
+  return hoverLine
+};
+
+let nineDash: LineMaterial | null = null
+/**
+ * 九段线断续线：与主图外轮廓同色相、略粗且更实，作为国界性质的界线单独成层。
+ * 它由 drawOutline 用 nineDashSegments() 抽出的中心线绘制，不做闭合环、不做板块挤出。
+ */
+export const getNineDashMaterial = (): LineMaterial => {
+  if (!nineDash) {
+    nineDash = createLineMaterial({
+      color: mapConfig.outlineColor,
+      linewidth: mapConfig.outlineWidth * 1.35,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: true,
+      depthWrite: false,
+    })
+  }
+  return nineDash
 };
 
 let outline: LineMaterial | null = null
@@ -78,10 +111,10 @@ export const getOutlineGlowMaterial = (): LineMaterial => {
   if (!outlineGlow) {
     outlineGlow = createLineMaterial({
       color: mapConfig.outlineColor,
-      // 光晕宽度 = 实线宽度 × 放大系数，越宽越淡越有辉光感
+      // 光晕宽度 = 实线宽度 × 放大系数；opacity 归零即关闭辉光，只留一条实线
       linewidth: mapConfig.outlineWidth * mapConfig.outlineGlowScale,
       transparent: true,
-      opacity: 0.13,
+      opacity: 0,
       depthTest: true,
       depthWrite: false,
     })
@@ -92,7 +125,7 @@ export const getOutlineGlowMaterial = (): LineMaterial => {
 /** 视口尺寸变化：同步所有 Line2 材质的分辨率，否则线宽会错乱 */
 export const setLineResolution = (width: number, height: number) => {
   resolution.set(width, height)
-  const materials = [innerLine, outline, outlineGlow]
+  const materials = [innerLine, hoverLine, nineDash, outline, outlineGlow]
   materials.forEach((material) => {
     if (material?.resolution) material.resolution.set(width, height)
   })

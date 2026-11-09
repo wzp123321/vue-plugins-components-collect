@@ -128,6 +128,17 @@
       @help="showHelp = true"
     />
     <MapHelpDialog v-model:visible="showHelp" />
+    <!--
+      南海诸岛插图：仅全国层级显示。九段线不并进主图取景（会被 focusRings 丢弃、
+      且强行纳入会让主体缩小约 1/3），改用同一份 _JD 单独投影画在右下角。
+      插图屏幕固定，不随主相机拖拽 / 缩放。
+    -->
+    <SouthSeaInset
+      v-if="current?.level === 'country' && current?.geo"
+      :geo="current.geo"
+      :theme="props.theme"
+      @render="onInsetRender"
+    />
     <!-- 实时比例尺 + 缩放倍率：缩放时随相机距离动态更新，固定在左下角 -->
     <MapScaleBar :km="scaleInfo.km" :px="scaleInfo.px" :ratio="scaleInfo.ratio" :theme="props.theme" />
   </div>
@@ -144,7 +155,7 @@ import MapSearchBox from './MapSearchBox.vue';
 import type { SearchItem } from './MapSearchBox.vue';
 import { useMapViewport } from '../composables/useMapViewport';
 import { useMapLayer } from '../composables/useMapLayer';
-import type { MapLevel } from '../composables/useMapLayer';
+import type { LayerRenderReport, MapLevel } from '../composables/useMapLayer';
 import { useMapLevels } from '../composables/useMapLevels';
 import { useSpotMarkers } from '../composables/useSpotMarkers';
 import { useFlyLines } from '../composables/useFlyLines';
@@ -155,13 +166,14 @@ import { LEVEL_TEXT, readCount } from '../utils/data';
 import { checkCountryCompliance } from '../utils/geo';
 import { prefetchDistrictGeoJson } from '../utils/amap-loader';
 import { mapConfig } from '../utils/mapConfig';
-import type { GeoJsonFeature } from '../types';
+import type { GeoJsonFeature, GeoJsonType } from '../types';
 import MapPieChart from './MapPieChart.vue';
 import MapToolbar from './MapToolbar.vue';
 import MapHelpDialog from './MapHelpDialog.vue';
 import MapScaleBar from './MapScaleBar.vue';
 import MapPerfPanel from './MapPerfPanel.vue';
 import MapBookmarkPanel from './MapBookmarkPanel.vue';
+import SouthSeaInset from './SouthSeaInset.vue';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { updateRegionScan, setRegionScan } from '../utils/drawRegion';
 import { usePyramidMarkers } from '../composables/usePyramidMarkers';
@@ -268,9 +280,9 @@ const props = withDefaults(
     deferEntrance: false,
     showColumn: true,
     fillByValue: false,
-    columnColor: '#5FC9EE',
+    columnColor: '#7FA8C8',
     showFlyline: true,
-    flylineColor: '#7FD4F5',
+    flylineColor: '#8FD4F2',
     flylineSpeed: mapConfig.fly.speed,
     showSearch: true,
     dragMode: 'pan',
@@ -562,6 +574,34 @@ const pushNotice = (text: string, tone: 'info' | 'error' = 'info', duration = 28
   }, duration);
 };
 
+// ── 全国底图「渲染级」合规校验 ───────────────────────────────────
+// 只查 adcode 只能证明「数据里有」，挡不住被取景裁掉 / 被过滤掉 / 插图没挂上。
+// 三份回报齐了才判定：主图轮廓层的九段线段数、台湾省板块、右下角插图段数。
+let complianceGeo: GeoJsonType | null = null;
+let layerRender: LayerRenderReport | null = null;
+let insetReady = false;
+let insetSegments = 0;
+let complianceNotified = false;
+
+const verifyCountryRender = () => {
+  if (!complianceGeo || !layerRender || !insetReady) return;
+  const report = checkCountryCompliance(complianceGeo, {
+    nineDashDrawn: layerRender.nineDashDrawn,
+    taiwanRegionDrawn: layerRender.taiwanRegionDrawn,
+    insetDrawn: insetSegments,
+  });
+  if (report.ok || complianceNotified) return;
+  complianceNotified = true;
+  console.warn(`[china-map-3d] 地图要素未完整绘制：${report.missing.join('、')}`);
+  pushNotice(`地图要素未完整绘制：${report.missing.join('、')}`, 'error', 6000);
+};
+
+const onInsetRender = (segments: number) => {
+  insetSegments = segments;
+  insetReady = true;
+  verifyCountryRender();
+};
+
 // ── 视角书签（P1 交互）：相机位置 + 视点存 localStorage，一键还原 ──
 const showBookmarks = ref(false);
 const bookmarks = ref<ViewBookmark[]>(loadBookmarks());
@@ -701,19 +741,28 @@ const {
   // 进入某一层（下钻 / 跳级 / 初始化）时执行。注意：这里不是相机飞入，
   // 而是"重建地图"，所有三维对象都会被重新投影与构建。
   onEnter: async (level, { rise, report }) => {
-    // 全国底图合规校验：台湾省与九段线缺一不可
+    // 全国底图合规校验（数据级 + 几何级）：台湾省、南海诸岛及九段线缺一不可
     if (level.level === 'country') {
       const compliance = checkCountryCompliance(level.geo);
       if (!compliance.ok) {
         console.warn(`[china-map-3d] 底图缺少要素：${compliance.missing.join('、')}`);
         pushNotice(`底图缺少${compliance.missing.join('、')}，请核对数据源`, 'error', 6000);
       }
+      complianceGeo = level.geo;
+    } else {
+      complianceGeo = null;
     }
+    // 渲染级回报按层重置；插图重新挂载时会再次 emit render
+    layerRender = null;
+    insetReady = false;
+    insetSegments = 0;
+    complianceNotified = false;
     // ⚠️ 坑①：level.fit 由 fitProjection 计算（最大边长归一到 MAP_EXTENT=130），
     //   全国/省/市三级共用同一套相机距离参数，因此聚焦逻辑无需按层级特判。
     viewport.focus(level.fit, 0.5);
     // 重建地图：把该层级 GeoJSON 投影成三维网格（见坑①说明）。
-    await layer.build(level, { rise, report });
+    layerRender = await layer.build(level, { rise, report });
+    verifyCountryRender();
     report({ text: '正在投影数据…', ratio: 0.88 });
     // 数据柱/标牌：deferEntrance 为 true 时由外部 playEntrance() 触发增长动画，
     // 否则立即长出（!deferEntrance）。
@@ -731,6 +780,11 @@ const {
     // 下钻后把缩放/下钻控制器复位到初始距离，避免沿用上层的相机状态。
     bound.zoom?.reset(viewport.camera(), viewport.controls());
     emit('geo-data-loaded', level.geo);
+    // 兜底：插图没挂载 / 没回报绘制结果时，别让渲染级校验静默跳过 —— 按「一段都没画」判定
+    if (level.level === 'country') {
+      await nextTick();
+      if (!insetReady) onInsetRender(0);
+    }
   },
   // 离开当前层（准备下钻 / 返回 / 跳级）时执行：先清交互态，再下沉/清空图层。
   // 切层时先清掉悬停态（picker 在下方创建，回调可安全引用：切层发生在挂载之后）
@@ -777,8 +831,9 @@ watch(
     layer.setTheme(t);
     // 三维底板跟着换配色（暗=青色加法混合 / 亮=深蓝正常混合）
     ground.setTheme(t);
-    // 星空只在暗色主题显示：亮色底上加法混合的白色星芒会糊成一片"脏点"
-    viewport.setStarfieldVisible(t === 'dark');
+    // 背景减法：星空默认关闭；主题切换不再自动打开（亮色底上的星芒同样会糊成脏点）。
+    // 恢复时改回 t === 'dark'，并同步 useMapViewport 的 starfieldVisible 默认值。
+    viewport.setStarfieldVisible(false);
     const level = current.value;
     if (level && layer.root()) {
       // 重建会清掉旧 root，测量几何挂在旧 root 上 → 必须先清掉，否则残留失效引用
@@ -1514,7 +1569,7 @@ const composeScreenshot = async (): Promise<string | null> => {
 
   // 1) 兜底色：纯 CSS 渐变底图（没传 bgImage / bgPreset）无法在 canvas 上还原，
   //    至少铺一层主题深色，避免导出透明 PNG（贴进白底文档会变成白底地图）。
-  ctx.fillStyle = cs.backgroundColor || '#030c1c';
+  ctx.fillStyle = cs.backgroundColor || '#050A12';
   ctx.fillRect(0, 0, W, H);
 
   // 2) 自定义底图：按 cover + position + transform 重画
@@ -1765,58 +1820,33 @@ onUnmounted(() => {
 }
 .map-bg-image--hidden { opacity: 0; }
 
-/* ── 极光漂移层：三团大半径柔光在背景上极缓慢游走 ──
-   纯 transform 动画（GPU 合成，不触发重排/重绘），周期 56s、alternate 往返，
-   给静态底图加一层「活着」的低频光变化；自定义底图同样受益。 */
-.map-bg-image__aurora {
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  background:
-    radial-gradient(42% 34% at 26% 30%, rgba(64, 170, 255, 0.13) 0%, rgba(64, 170, 255, 0) 70%),
-    radial-gradient(38% 30% at 74% 62%, rgba(112, 84, 236, 0.11) 0%, rgba(112, 84, 236, 0) 70%),
-    radial-gradient(30% 26% at 58% 20%, rgba(47, 216, 255, 0.09) 0%, rgba(47, 216, 255, 0) 70%);
-  animation: map-aurora-drift 56s ease-in-out infinite alternate;
-  will-change: transform;
-}
-@keyframes map-aurora-drift {
-  0% { transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
-  50% { transform: translate3d(2%, 1.8%, 0) scale(1.045); }
-  100% { transform: translate3d(-1.2%, 2.2%, 0) scale(1.02); }
-}
-/* 亮色主题下柔光压淡，避免在浅底上泛灰 */
-.map-bg-image--light .map-bg-image__aurora { opacity: 0.45; }
-/* 用户系统声明减少动效：漂移动画关闭 */
-@media (prefers-reduced-motion: reduce) {
-  .map-bg-image__aurora { animation: none; }
-}
+/* 极光漂移层默认停用：三团彩色柔光会把中心抬亮，压掉省份面的主体层级。
+   DOM 节点保留（截图合成不读它），需要恢复时把 display 去掉即可。 */
+.map-bg-image__aurora { display: none; }
 
-/* 暗色：中心聚光 + 稀疏网格 + 底部地平线辉光 */
+/* 暗色：近黑纯底 + 一层极淡方格网 + 两道极淡同心弧。
+   刻意不做径向亮心 —— 背景一旦比板块亮，地图就沉进背景里。 */
 .map-bg-image--dark {
-  /* 兜底色：被最底层不透明渐变完全盖住，视觉零影响；截图合成读它铺底，
-     避免纯渐变底图导出成透明 PNG。改主色时连同这行一起改。 */
-  background-color: #030c1c;
+  /* 截图合成会读 background-color 铺底，须与页面底色一致 */
+  background-color: #050A12;
   background-image:
-    linear-gradient(to top, rgba(47, 192, 255, 0.15) 0%, rgba(47, 192, 255, 0) 27%),
-    radial-gradient(circle at 50% 44%, rgba(38, 120, 220, 0.34) 0%, rgba(6, 30, 70, 0) 62%),
-    radial-gradient(circle at 14% 82%, rgba(96, 64, 210, 0.2) 0%, rgba(96, 64, 210, 0) 55%),
-    linear-gradient(rgba(95, 216, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(95, 216, 255, 0.055) 1px, transparent 1px),
-    radial-gradient(circle at 50% 42%, #061530 0%, #030c1c 58%, #01050d 100%);
-  background-size: auto, auto, auto, 64px 64px, 64px 64px, auto;
+    radial-gradient(circle at 50% 62%, transparent 0 27%, rgba(95, 150, 200, 0.075) 27.1% 27.4%, transparent 27.5%),
+    radial-gradient(circle at 50% 62%, transparent 0 38%, rgba(95, 150, 200, 0.055) 38.1% 38.35%, transparent 38.5%),
+    linear-gradient(rgba(80, 140, 190, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 140, 190, 0.075) 1px, transparent 1px);
+  background-size: auto, auto, 64px 64px, 64px 64px;
 }
 
-/* 亮色：白心 + 淡蓝网格，避免亮色地图配深底 */
+/* 亮色：同样去掉白心，只留中性浅底 + 同规格网格，保持亮暗双模不割裂 */
 .map-bg-image--light {
-  /* 同 --dark：仅作截图兜底色，被不透明渐变盖住 */
-  background-color: #e4eef8;
+  /* 同 --dark：仅作截图兜底色 */
+  background-color: #eef3f8;
   background-image:
-    linear-gradient(to top, rgba(120, 190, 235, 0.26) 0%, rgba(120, 190, 235, 0) 27%),
-    radial-gradient(circle at 50% 44%, #ffffff 0%, rgba(232, 244, 255, 0) 62%),
+    radial-gradient(circle at 50% 62%, transparent 0 27%, rgba(60, 110, 140, 0.10) 27.1% 27.4%, transparent 27.5%),
+    radial-gradient(circle at 50% 62%, transparent 0 38%, rgba(60, 110, 140, 0.07) 38.1% 38.35%, transparent 38.5%),
     linear-gradient(rgba(46, 110, 170, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(46, 110, 170, 0.08) 1px, transparent 1px),
-    radial-gradient(circle at 50% 42%, #eaf4ff 0%, #d7e8f8 60%, #c3d9ee 100%);
-  background-size: auto, auto, 64px 64px, 64px 64px, auto;
+    linear-gradient(90deg, rgba(46, 110, 170, 0.08) 1px, transparent 1px);
+  background-size: auto, auto, 64px 64px, 64px 64px;
 }
 
 /* 自定义底图：单张图铺满（必须覆盖 --dark/--light 里的多层 background-size） */
@@ -1831,15 +1861,15 @@ onUnmounted(() => {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-.map-bg-image--custom .map-bg-image__veil { opacity: 1; }
+/* 暗角默认停用：四周压黑会吃掉省份面的边缘亮度。CSS 保留备用，
+   需要恢复时把下面这条 opacity 改回 1 即可。 */
+.map-bg-image--custom .map-bg-image__veil { opacity: 0; }
 .map-bg-image--custom.map-bg-image--dark .map-bg-image__veil {
   background: radial-gradient(circle at 50% 44%, rgba(2, 10, 22, 0.04) 0%, rgba(1, 5, 12, 0.34) 92%);
 }
 .map-bg-image--custom.map-bg-image--light .map-bg-image__veil {
   background: radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.18) 0%, rgba(228, 240, 252, 0.5) 92%);
 }
-/* 预设底图偏暗，轻微提亮让它从 canvas 下透得出来 */
-.map-bg-image--custom.map-bg-image--dark { filter: brightness(1.22) saturate(1.08); }
 .china-map-3d-canvas :deep(canvas) {
   display: block;
   width: 100% !important;
@@ -1977,8 +2007,8 @@ onUnmounted(() => {
 <style>
 .map-c2d-label {
   padding: 2px 8px;
-  background: rgba(6, 16, 30, 0.82);
-  border: 1px solid #5fc9ee;
+  background: rgba(5, 10, 18, 0.82);
+  border: 1px solid #7FB3D4;
   border-left-width: 3px;
   border-radius: var(--ai-radius-xs);
   color: #eaf8ff;

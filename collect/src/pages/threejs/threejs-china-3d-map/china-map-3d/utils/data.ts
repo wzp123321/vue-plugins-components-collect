@@ -17,10 +17,11 @@
  *   - amap-loader.ts（提供原始数值）
  *
  * ⚠️ 约定：数值用「分位点分档」而非线性映射，是为了让配色在一眼扫过时就能
- *   读出量级差异；分档颜色从深蓝插值到高值锚点色。
+ *   读出量级差异；前三档从暗墨蓝插值到高值锚点色，最高档用全局强调高光色。
  */
 
 import * as THREE from 'three'
+import { ACCENT_HIGHLIGHT } from './mapConfig'
 import type { GeoLevel } from '../types'
 
 export interface Tier {
@@ -96,22 +97,25 @@ export const LEVEL_TEXT: Record<string, string> = {
   district: '区/县',
 }
 
-const DEEP_COLOR = new THREE.Color('#0F3A57')
+/** 低值档锚点：与板块渐变最暗层同源，让数据柱像从面里长出来 */
+const DEEP_COLOR = new THREE.Color('#152B45')
 
 /**
- * 按分位点把数值分 4 档，档位色从深蓝插值到「高值色」锚点。
+ * 按分位点把数值分 4 档。前三档从暗墨蓝插值到「高值色」锚点，最高档固定用
+ * 全局强调高光色，让常驻画面的亮部出现一小块冰蓝，与暗面拉开明度。
  * 分档而非线性映射，是为了让配色在一眼扫过时就能读出量级差异。
  *
  * @param values    当前层级全部数值
- * @param highColor 高值档锚点色（缺省 #5FC9EE）
+ * @param highColor 前三档的插值锚点色（缺省 #7FA8C8），最高档不使用它
  * @returns 4 档 Tier（max 升序，最后一档 max=Infinity 兜住所有更大值）
  */
 export const buildTiers = (values: number[], highColor: string): Tier[] => {
-  const anchor = new THREE.Color(highColor || '#5FC9EE')
-  // 4 档插值比例：0.3 / 0.55 / 0.78 / 1.0（越高档越接近高值锚点色）
-  const colors = [0.3, 0.55, 0.78, 1].map(
+  const anchor = new THREE.Color(highColor || '#7FA8C8')
+  // 前三档插值比例 0.3 / 0.55 / 0.78；图例、数值卡片与柱体共用同一套档位色
+  const colors = [0.3, 0.55, 0.78].map(
     (k) => `#${DEEP_COLOR.clone().lerp(anchor, k).getHexString()}`,
   )
+  colors.push(ACCENT_HIGHLIGHT)
   const sorted = [...values].sort((a, b) => a - b)
   // 分位 quantiles：25% / 50% / 78% 处取值作为档位上界
   const quantile = (p: number) =>

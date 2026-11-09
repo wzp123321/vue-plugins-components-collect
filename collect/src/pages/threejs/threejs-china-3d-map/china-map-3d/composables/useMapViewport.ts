@@ -59,8 +59,13 @@ const FOV = 32
 const MIN_POLAR = 0.12
 /** 极角上限：1.02 rad ≈ 58.4°；再倾斜就会越过赤道看到板块背面，故限幅 */
 const MAX_POLAR = 1.02
-/** 取景留白系数：角点 NDC 允许到 0.84(<1 即四周留边)，比值越小画面越空 */
-const FIT_MARGIN = 0.84
+/**
+ * 取景留白系数：地图包围盒角点允许达到的 NDC 绝对值，越小画面越空。
+ * 页面四周有固定 UI（右侧 300px 控制栏、顶部数据柱与飞线、底部时间轴），
+ * 这些都不在 fitDistance 的 8 个角点里；取满会把地图压到它们下面看不全。
+ * 0.72 在 16:9 下把相机距离从 193 拉到 222，地图线性缩小约 13%。
+ */
+const FIT_MARGIN = 0.72
 
 // 泛光合成用的混合着色器：把基础画面 + bloom 纹理叠加输出
 // ⚠️ 必须原样带出 baseTexture 的 alpha：泛光合成若写死 vec4(rgb)（alpha 默认 1），
@@ -131,11 +136,12 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
   let bloomComposer: EffectComposer | null = null
   let starfield: ReturnType<typeof createStarfield> | null = null
   /**
-   * 星空可见性：星光用加法混合的白色星芒，铺在浅色底上会变成一片"脏点"，
-   * 所以亮色主题应当整体隐藏。状态存在这里而不是外面，是因为星空的创建发生在
-   * start() 里 —— 主题 watcher 可能先于 start 触发，必须能记住意图。
+   * 星空可见性：白色星芒会把近黑背景打成"脏点"，背景减法后默认整体关闭。
+   * 状态存在这里而不是外面，是因为星空的创建发生在 start() 里 ——
+   * 主题 watcher 可能先于 start 触发，必须能记住意图。
+   * 恢复星空需两处同改：这里改回 true，ChinaMap3D 主题 watch 改回 t === 'dark'。
    */
-  let starfieldVisible = true
+  let starfieldVisible = false
   // 底部辉光地面：地图正下方放射状光晕（纯装饰背景，不参与拾取）
   let groundGlow: THREE.Mesh | null = null
   let rafId = 0
@@ -495,9 +501,6 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     Array.from(element.querySelectorAll('canvas')).forEach((canvas) => canvas.remove())
 
     scene = new THREE.Scene()
-    // 大气雾效：指数雾，拉远/切层时边缘自然淡出，增强空间纵深感。
-    // 颜色取底色系与透明背景协调；密度极小，避免整图发灰。
-    scene.fog = new THREE.FogExp2(0x040e24, 0.0009)
     renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
@@ -513,9 +516,6 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     // 改为每帧手动 reset，才能拿到整帧的累加值而不是最后一趟的数字。
     renderer.info.autoReset = false
     renderer.setClearColor(0x000000, 0)
-    // 接触阴影：开启阴影贴图（PCF 软阴影），地块顶面 MeshPhong 即可接收
-    renderer.shadowMap.enabled = true
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     // 限制像素比，避免 4K/Retina 屏下设备像素比过大导致 fill-rate 爆炸掉帧
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
     element.appendChild(renderer.domElement)
@@ -555,17 +555,6 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     scene.add(new THREE.AmbientLight(0xffffff, legacyIntensity(0.52)))
     const keyLight = new THREE.DirectionalLight(0xd6ebff, legacyIntensity(0.95))
     keyLight.position.set(-40, -90, 160)
-    // 接触阴影：keyLight 作为投影光源，正交视锥覆盖整个地图范围（±220 世界单位）
-    keyLight.castShadow = true
-    keyLight.shadow.mapSize.set(2048, 2048)
-    keyLight.shadow.camera.near = 10
-    keyLight.shadow.camera.far = 420
-    keyLight.shadow.camera.left = -220
-    keyLight.shadow.camera.right = 220
-    keyLight.shadow.camera.top = 220
-    keyLight.shadow.camera.bottom = -220
-    keyLight.shadow.bias = -0.0005
-    keyLight.shadow.normalBias = 0.02
     scene.add(keyLight)
     const rimLight = new THREE.DirectionalLight(0x3f8fd0, legacyIntensity(0.4))
     rimLight.position.set(60, 40, 30)
@@ -659,6 +648,9 @@ export const useMapViewport = (host: () => HTMLElement | null) => {
     })
     groundGlow = new THREE.Mesh(groundGeo, groundMat)
     groundGlow.position.z = -0.1
+    // 背景减法：放射状地面辉光会把地图正下方抬亮，与近黑纯底冲突，默认隐藏。
+    // 同心弧改由 2D 底图 CSS 承担；需要恢复时删掉这一行即可。
+    groundGlow.visible = false
     scene.add(groundGlow)
 
     // 阻止滚轮冒泡到页面（页面本身可能带滚动）

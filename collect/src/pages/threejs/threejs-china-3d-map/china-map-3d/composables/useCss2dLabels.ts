@@ -126,7 +126,7 @@ export const useCss2dLabels = (options: Options) => {
       if (!center || center.length !== 2) return
       const [x, y] = project(center)
       if (!Number.isFinite(x) || !Number.isFinite(y)) return
-      const el = makeElement(String(feature.properties.name), String(value), '#5FC9EE')
+      const el = makeElement(String(feature.properties.name), String(value), '#7FA8C8')
       const label = new CSS2DObject(el)
       // 标签锚点抬到柱顶附近高度，避免压在板块上
       label.position.set(x, -y, mapConfig.spotZ + 2)

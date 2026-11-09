@@ -143,15 +143,16 @@ import chinaGeo from '@/assets/geojson/china.json';
 const showColumn = ref(true);
 // 板块填色模式：顶面按数值分档着色（choropleth），与数据柱可叠加
 const fillByValue = ref(false);
-const columnColor = ref('#5FC9EE');
+const columnColor = ref('#7FA8C8');
 const showFlyline = ref(true);
-const flylineColor = ref('#7FD4F5');
+const flylineColor = ref('#8FD4F2');
 const flylineSpeed = ref(0.2);
 const dragMode = ref<'pan' | 'rotate'>('pan');
 // 展示型特效开关（下发到 ChinaMap3D，并由右上角控制台双向调节）
-// 棱锥/热力默认关：避免与数据柱空间重叠显得杂乱；轨道环/饼图默认开（不与数据柱冲突）
+// 背景装饰收敛：棱锥 / 热力 / 轨道环默认关，只保留数据本身与一层网格底图；
+// 饼图是数据看板而非背景装饰，保留。
 const showPyramid = ref(false);
-const showOrbit = ref(true);
+const showOrbit = ref(false);
 const showHeatmap = ref(false);
 const showPie = ref(true);
 const showWallScan = ref(false);
@@ -167,11 +168,12 @@ const timelineMonth = ref(11);
 const timelineSpeed = ref(1);
 // 地图背景开关（右上角控制台「地图背景」组）：
 //   A 大屏底图 = 2D 层铺在 canvas 之下；B 三维底板 = 场景内的透视网格盘。二者可叠加。
+// 默认只留 A 的极淡网格；B 的同心圆/放射线会让画面过满，默认关（仍可在控制台打开）。
 const showBgImage = ref(true);
-const showGroundPlane = ref(true);
+const showGroundPlane = ref(false);
 // 大屏底图预设：builtin=程序化渐变，其余为 assets/backgrounds 下的静态图。
-// 默认 topo（丝线）：铺满且低对比，和三维底板的圆环不打架。
-const bgPreset = ref<'builtin' | 'horizon' | 'topo' | 'hex' | 'cloud'>('topo');
+// 默认 builtin：近黑纯底 + 一层极淡网格 + 两道同心弧，不叠静态纹理。
+const bgPreset = ref<'builtin' | 'horizon' | 'topo' | 'hex' | 'cloud'>('builtin');
 // 大屏底图强度（0~1）：canvas 上的地图/飞线会压暗底图，与三维底板同开时用它配平观感
 const bgOpacity = ref(1);
 
@@ -318,8 +320,9 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
      右侧被 300+18 的控制栏占掉、左侧被左下角信息卡占掉，取两者的折中值 110px，
      让停靠条左右两端的余量都为正（不压右栏卡片、也不压左下角图例）。 */
   --rail-shift: 110px;
-  background:
-    radial-gradient(circle at 50% 38%, #05173e 0%, #030f2a 55%, #01060f 100%);
+  /* 近黑纯底：取消径向亮心。亮心会让背景比深蓝板块更亮，主体沉进背景；
+     压到近黑后，省份面才是画面里最亮的大面积层。 */
+  background: #050A12;
 }
   /* 右侧竖栏：把三块面板收进一条 300 宽的列，右边缘对齐、间距一致。
      高度由上到下按「控制台 ≤38% / 详情吃掉剩余 / 看板 ≤38% 贴底」分配，
@@ -370,10 +373,10 @@ const onPanelReset = () => mapRef.value?.resetToCountry?.();
   font-size: 12px;
   color: #6f9fc4;
 }
-/* 亮色主题：页面底色与标题同步改浅，避免「亮色地图 + 漆黑背景」的割裂感。
+/* 亮色主题：与暗色同样取消径向亮心，保持中性浅底；
    各功能面板本身是深色玻璃拟态，在浅底上依然可读，故不逐个改写。 */
 .china3d-page--light {
-  background: radial-gradient(circle at 50% 38%, #f2f9ff 0%, #e0edf8 55%, #cbdded 100%);
+  background: #eef3f8;
 }
 .china3d-page--light .china3d-title__main {
   color: #0a2942;

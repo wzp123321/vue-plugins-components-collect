@@ -241,9 +241,9 @@ const dragMode = defineModel<'pan' | 'rotate'>('dragMode', { default: 'pan' });
 const showColumn = defineModel<boolean>('showColumn', { default: true });
 /** 板块填色模式：按数值给行政区顶面着色（与柱体/图例同一套分档） */
 const fillByValue = defineModel<boolean>('fillByValue', { default: false });
-const columnColor = defineModel<string>('columnColor', { default: '#5FC9EE' });
+const columnColor = defineModel<string>('columnColor', { default: '#7FA8C8' });
 const showFlyline = defineModel<boolean>('showFlyline', { default: true });
-const flylineColor = defineModel<string>('flylineColor', { default: '#7FD4F5' });
+const flylineColor = defineModel<string>('flylineColor', { default: '#8FD4F2' });
 const flylineSpeed = defineModel<number>('flylineSpeed', { default: 0.16 });
 // 展示型特效开关（与 ChinaMap3D 的对应 props 一一映射）
 const showPyramid = defineModel<boolean>('showPyramid', { default: true });

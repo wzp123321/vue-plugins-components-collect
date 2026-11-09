@@ -25,6 +25,7 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { mapConfig } from './mapConfig'
 import { getInnerLineMaterial } from './lineMaterials'
+import { getRegionSurfaceTexture } from './regionSurfaceTexture'
 import { featureRings } from './geo'
 import type { GeoJsonFeature } from '../types'
 import type { ProjectionFn } from './projection'
@@ -36,15 +37,18 @@ export interface RegionNode {
   object: THREE.Object3D
   /** 顶面材质，悬停 / 选中时改色 */
   topMaterials: THREE.MeshPhongMaterial[]
+  /** 该省内部界线，悬停 / 选中时换成亮线材质（材质引用切换，无额外几何） */
+  line: THREE.Mesh | null
   properties: GeoJsonFeature['properties']
 }
 
 let sideMaterial: THREE.ShaderMaterial | null = null
 
 /**
- * 侧壁：竖直渐变 + 自上而下的"扫描流光"带，所有区域共用一套材质（只需编译一次）。
+ * 侧壁：竖直渐变 + 上沿细亮线 + 自上而下的"扫描流光"带，所有区域共用一套材质（只需编译一次）。
  * 顶点里直接传 position.z（0=底, depth=顶），片元按 vZ/depth 在底/顶色间 mix，
- * 并叠加一条随时间自下而上扫掠的发光带（uScanIntensity=0 时完全不显示，等同原版）。
+ * 顶部一小段向亮色过渡以读出板块厚度，再叠加一条随时间自下而上扫掠的发光带
+ * （uScanIntensity=0 时只保留渐变与上沿亮线）。
  * 注意：侧壁不参与拾取，射线只在顶面命中（见 createRegion 中 mesh.userData）。
  */
 const getSideMaterial = (): THREE.ShaderMaterial => {
@@ -54,6 +58,9 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
       topColor: { value: new THREE.Color(mapConfig.sideColorTop) },
       bottomColor: { value: new THREE.Color(mapConfig.sideColorBottom) },
       depth: { value: mapConfig.depth },
+      uEdgeColor: { value: new THREE.Color(mapConfig.sideEdgeColor) },
+      uEdgeWidth: { value: mapConfig.sideEdgeWidth },
+      uEdgeGain: { value: mapConfig.sideEdgeGain },
       uTime: { value: 0 },
       uScanColor: { value: new THREE.Color(mapConfig.decor.scan.color) },
       uScanWidth: { value: mapConfig.decor.scan.width },
@@ -71,6 +78,9 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
       uniform vec3 topColor;
       uniform vec3 bottomColor;
       uniform float depth;
+      uniform vec3 uEdgeColor;
+      uniform float uEdgeWidth;
+      uniform float uEdgeGain;
       uniform float uTime;
       uniform vec3 uScanColor;
       uniform float uScanWidth;
@@ -81,6 +91,9 @@ const getSideMaterial = (): THREE.ShaderMaterial => {
         vec3 base = mix(bottomColor, topColor, clamp(vZ / depth, 0.0, 1.0));
         // 自下而上扫掠的发光带：head 从 0 升到 1 循环，窄带高亮
         float h = clamp(vZ / depth, 0.0, 1.0);
+        // 上沿细亮线：只在顶部 uEdgeWidth 这一段过渡，避免把每条省界都画成亮边
+        float edge = smoothstep(1.0 - uEdgeWidth, 1.0, h);
+        base = mix(base, uEdgeColor, edge * uEdgeGain);
         float head = fract(uTime * uScanSpeed);
         float d = abs(h - head);
         // 环形过渡：到顶/底不突变（用 min 距离两端）
@@ -215,10 +228,11 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
   // MeshPhongMaterial 实例 —— 既拖慢 draw call 之间的状态切换，hover 改色还得逐个遍历。
   const topMaterial = new THREE.MeshPhongMaterial({
     color: mapConfig.color,
+    map: getRegionSurfaceTexture(),
     transparent: true,
     opacity: mapConfig.opacity,
     shininess: 18,
-    specular: 0x1a3d55,
+    specular: 0x1A3550,
   })
 
   const shapes: THREE.Shape[] = []
@@ -270,19 +284,16 @@ export const createRegion = (feature: GeoJsonFeature, project: ProjectionFn): Re
   // [顶面, 侧壁]：射线只在顶面命中，侧壁不参与拾取
   mesh.userData = { kind: 'surface', region: object }
   mesh.renderOrder = 1
-  // 接触阴影：顶面 MeshPhong 接收阴影，侧壁（垂直面）向相邻地块顶面投射，
-  // 形成省际边界处的接触阴影；柱体 / 棱锥为发光装饰，不投影反而更干净。
-  mesh.receiveShadow = true
-  mesh.castShadow = true
   object.add(mesh)
 
+  let line: THREE.Mesh | null = null
   if (linePositions.length) {
     const lineGeometry = new LineSegmentsGeometry()
     lineGeometry.setPositions(linePositions)
-    const line = new (LineSegments2 as any)(lineGeometry, lineMaterial) as THREE.Object3D
+    line = new (LineSegments2 as any)(lineGeometry, lineMaterial) as THREE.Mesh
     line.renderOrder = 3
     object.add(line)
   }
 
-  return { object, topMaterials: [topMaterial], properties: feature.properties }
+  return { object, topMaterials: [topMaterial], line, properties: feature.properties }
 };

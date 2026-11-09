@@ -5,6 +5,8 @@ import { createProjection } from '../utils/projection'
 import type { FitProjection } from '../utils/projection'
 import { createOutline } from '../utils/drawOutline'
 import { createRegion } from '../utils/drawRegion'
+import { isNineDashFeature } from '../utils/geo'
+import { getHoverLineMaterial, getInnerLineMaterial } from '../utils/lineMaterials'
 import type { RegionNode } from '../utils/drawRegion'
 import { disposeObject3D } from '../utils/dispose'
 import type { GeoJsonType } from '../types'
@@ -22,12 +24,26 @@ export interface MapLevel {
 /** 加载进度回调：UI 层据此渲染进度条；传 null 表示结束 */
 export type Report = (stage: { text: string; ratio: number } | null) => void
 
+/**
+ * 本层实际写进场景的合规要素：供 checkCountryCompliance 做渲染级校验。
+ * 「数据里有」不等于「画面上有」——九段线曾被取景裁掉、台湾环曾被过滤，
+ * 只查 adcode 都查不出来。
+ */
+export interface LayerRenderReport {
+  /** 轮廓层实际画出的九段线断续线段数 */
+  nineDashDrawn: number
+  /** 是否真的建出了台湾省板块 */
+  taiwanRegionDrawn: boolean
+}
+
+const EMPTY_RENDER: LayerRenderReport = { nineDashDrawn: 0, taiwanRegionDrawn: false }
+
 /** 每帧最多占用的构建时间：超出就让出主线程，保证加载动画不掉帧 */
 const SLICE_BUDGET_MS = 8
 
-/** 悬停 / 选中时板块沿 Z 轴抬起的高度（世界单位） */
-const LIFT_HOVER = 1.8
-const LIFT_FOCUS = 0.9
+/** 不做板块抬升：高亮只靠顶面渐变提亮一档，保持整体连贯的曲面感 */
+const LIFT_HOVER = 0
+const LIFT_FOCUS = 0
 
 const nextFrame = () => new Promise<void>((resolve) => {
   requestAnimationFrame(() => resolve())
@@ -81,6 +97,7 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
 
   /** 重新上色 + 补间抬升：根据 hovered/selected 状态刷新所有板块外观 */
   const paint = () => {
+    const hasHover = hoveredAdcode !== null
     regions.forEach((node) => {
       const adcode = adcodeOf(node)
       let active: 'focus' | 'hover' | 'base'
@@ -94,9 +111,16 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
         if (active === 'focus') paintColor = mapConfig.focusColor
         else if (active === 'hover') paintColor = mapConfig.hoverColor
         else paintColor = baseColor
-        material.color.set(paintColor)
-        material.opacity = active === 'base' ? mapConfig.opacity : 1
+        // hover 时其余省份轻微压暗，把注意力收到当前板块；不做 opacity 突变
+        const next = new THREE.Color(paintColor)
+        if (active === 'base' && hasHover) next.multiplyScalar(mapConfig.dimGain)
+        material.color.copy(next)
+        material.opacity = mapConfig.opacity
       })
+      // 边缘细亮线：只换材质引用，共享材质的分辨率由 setLineResolution 统一同步
+      if (node.line) {
+        node.line.material = active === 'base' ? getInnerLineMaterial() : getHoverLineMaterial()
+      }
 
       // 抬升：只给「高度变了」的板块补间，避免每帧重复起 tween
       const target = liftOf(adcode)
@@ -141,11 +165,11 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
    * @param options.rise   是否播放板块自地面"长出来"的入场动画
    * @param options.report 加载进度回调
    */
-  const build = async (level: MapLevel, options: { rise: boolean; report: Report }) => {
+  const build = async (level: MapLevel, options: { rise: boolean; report: Report }): Promise<LayerRenderReport> => {
     const scene = getScene()
-    if (!scene) return
+    if (!scene) return EMPTY_RENDER
     clear()
-    if (disposed) return
+    if (disposed) return EMPTY_RENDER
 
     // 按当前层 fit 建投影器：把经纬度映射到"以地图中心为原点、最大边=MAP_EXTENT"的 XY 平面
     const project = createProjection(level.fit.center, level.fit.scale)
@@ -159,18 +183,21 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
     // ① 边境线先行：让人先看到轮廓，再看板块生长
     options.report({ text: '正在描绘边境线…', ratio: 0.12 })
     await nextFrame()
-    if (disposed || root !== group) return
+    if (disposed || root !== group) return EMPTY_RENDER
     outline = createOutline(level.geo, project)
     group.add(outline)
 
     // ② 时间切片逐块生成：单帧超过预算就让出主线程
-    const total = level.geo.features.length
+    // ⚠️ 九段线（adcode 以 _JD 结尾）是界线不是行政区：不能做 ExtrudeGeometry，
+    //   否则会被挤成一排极细极高的立体条。已由 createOutline 画成断续线，这里跳过建板块。
+    const features = level.geo.features.filter((feature) => !isNineDashFeature(feature))
+    const total = features.length
     const created: THREE.Object3D[] = []
     let sliceStart = performance.now()
     const buildSlice = async (index: number): Promise<void> => {
       if (index >= total) return
       if (disposed || root !== group) return
-      const node = createRegion(level.geo.features[index], project)
+      const node = createRegion(features[index], project)
       if (node) {
         regions.push(node)
         group.add(node.object)
@@ -196,6 +223,10 @@ export const useMapLayer = (getScene: () => THREE.Scene | null) => {
       })
     }
     options.report(null)
+    return {
+      nineDashDrawn: Number(outline?.userData.nineDashSegments ?? 0),
+      taiwanRegionDrawn: regions.some((node) => adcodeOf(node) === 710000),
+    }
   };
 
   /**
