@@ -1,264 +1,265 @@
+<!--
+  顶部工具条（纯 UI 层）：只保留录入台最核心的六个动作 + 右侧保存。
+    ｜新增行 新增列 ｜撤销 重做 ｜搜索框 替换 ｜                         ｜保存｜
+  其余能力（列设置抽屉 / 批量填充 / 模板 / 导入导出 / 合并 / 压测数据 / 条件格式开关）
+  已从工具条移出，对应实现仍在 ops / io / sheetApi 里，需要时再接回来。
+
+  视觉取向：不用 el-button。
+  站点的 Element Plus 皮肤把按钮做成「实心块 + 描边方块」，一排放十几个就会像后台模板；
+  这里改用原生 button + 自定义样式：文字型主操作、纯图标次要操作、一体化搜索框，
+  整条带子只有右侧「保存」是实心主色，其余全部是透明底 + hover 淡底。
+-->
 <script setup lang="ts">
-// 顶部工具条（纯 UI 层）：把页面装配好的 composables 动作挂到按钮上，不做业务判断。
-// 与 vxe 版工具的对应关系在按钮 tooltip 里标注，便于横向对照两套实现的能力差异。
-import {
-  Plus,
-  ArrowUpBold,
-  ArrowDownBold,
-  Delete,
-  CopyDocument,
-  Setting,
-  Operation,
-  Files,
-  RefreshLeft,
-  RefreshRight,
-  Search,
-  EditPen,
-  Upload,
-  Download,
-  Select,
-  DocumentDelete,
-  DocumentCopy,
-  Close,
-  Lightning,
-  DataLine,
-  Warning,
-  FullScreen,
-  Aim,
-  QuestionFilled,
-} from '@element-plus/icons-vue';
+import { computed } from 'vue';
+import { CirclePlus, Close, DocumentChecked, EditPen, Plus, RefreshLeft, RefreshRight, Search } from '@element-plus/icons-vue';
 import type { EntryOps } from '../useEntryOps';
-import type { EntryIO } from '../useEntryIO';
 import type { EntryFind } from '../useEntryFind';
-import type { EntryRules } from '../useEntryRules';
 
 defineOptions({ name: 'EntryToolbar' });
 
 const props = defineProps<{
   ops: EntryOps;
-  io: EntryIO;
   find: EntryFind;
-  rules: EntryRules;
-  conditionalOn: boolean;
-  freezeFirst: boolean;
-  submitting: boolean;
-  mergeCount: number;
 }>();
 
 const emit = defineEmits<{
-  (e: 'toggle-cond'): void;
-  (e: 'toggle-freeze'): void;
-  (e: 'open-columns'): void;
-  (e: 'open-fill'): void;
-  (e: 'open-errors'): void;
-  (e: 'gen-data', n: number): void;
+  (e: 'add-column'): void;
   (e: 'undo'): void;
   (e: 'redo'): void;
-  (e: 'merge'): void;
-  (e: 'clear-merges'): void;
-  (e: 'open-help'): void;
+  (e: 'save'): void;
 }>();
 
-const { addRow, insertRowAbove, insertRowBelow, deleteSelectedRows, duplicateSelectedRows, clearAll } = props.ops;
-const { removeEmptyRows, removeDuplicateRows, saveTemplate, loadTemplate, deleteTemplate, templates } = props.ops;
-const { importExcel, onExportCommand } = props.io;
-const { open: openFind, quickSearch, findText: quickText, hitCount } = props.find;
-const { submit } = props.ops;
+const { addRow } = props.ops;
+const openFind = props.find.open;
+const quickSearch = props.find.quickSearch;
+const hitCount = props.find.hitCount;
 
-/** 模板下拉命令分发：save / load:<name> / del:<name> */
-const onTplCommand = (cmd: string) => {
-  if (cmd === 'save') {
-    saveTemplate();
-    return;
-  }
-  if (cmd.startsWith('load:')) {
-    loadTemplate(cmd.slice(5));
-    return;
-  }
-  if (cmd.startsWith('del:')) deleteTemplate(cmd.slice(4));
-};
+/** 搜索词直接读写查找实例的状态，工具条不另存一份，避免两处不同步 */
+const keyword = computed({
+  get: () => props.find.findText.value,
+  set: (v: string) => quickSearch(v),
+});
 </script>
 
 <template>
-  <div class="ue-toolbar bi-toolbar">
-    <div class="tb-group">
-      <el-tooltip content="新增行" placement="bottom">
-        <el-button :icon="Plus" size="small" @click="addRow" />
-      </el-tooltip>
-      <el-tooltip content="在活动行上方插入" placement="bottom">
-        <el-button :icon="ArrowUpBold" size="small" @click="insertRowAbove" />
-      </el-tooltip>
-      <el-tooltip content="在活动行下方插入" placement="bottom">
-        <el-button :icon="ArrowDownBold" size="small" @click="insertRowBelow" />
-      </el-tooltip>
-      <el-tooltip content="删除选中行" placement="bottom">
-        <el-button type="danger" plain :icon="Delete" size="small" @click="deleteSelectedRows" />
-      </el-tooltip>
-      <el-tooltip content="复制选中行" placement="bottom">
-        <el-button :icon="CopyDocument" size="small" @click="duplicateSelectedRows" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+  <div class="ue-toolbar">
+    <button class="tb-btn" type="button" @click="addRow">
+      <el-icon><Plus /></el-icon>
+      <span>新增行</span>
+    </button>
+    <button class="tb-btn" type="button" @click="emit('add-column')">
+      <el-icon><CirclePlus /></el-icon>
+      <span>新增列</span>
+    </button>
 
-    <div class="tb-group">
-      <el-tooltip content="新增列 / 列设置（改名 · 类型 · 校验规则 · 显隐 · 宽度 · 移序）" placement="bottom">
-        <el-button :icon="Setting" size="small" @click="emit('open-columns')" />
-      </el-tooltip>
-      <el-tooltip content="批量填充" placement="bottom">
-        <el-button :icon="Operation" size="small" @click="emit('open-fill')" />
-      </el-tooltip>
-      <el-tooltip content="列结构模板（存 / 取 / 删）" placement="bottom">
-        <el-dropdown trigger="click" @command="onTplCommand">
-          <el-button :icon="Files" size="small" />
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="save">保存当前列为模板…</el-dropdown-item>
-              <el-dropdown-item v-for="t in templates" :key="t.name" :command="'load:' + t.name">
-                加载：{{ t.name }}
-              </el-dropdown-item>
-              <el-dropdown-item v-for="t in templates" :key="'del' + t.name" :command="'del:' + t.name" divided>
-                删除模板：{{ t.name }}
-              </el-dropdown-item>
-              <el-dropdown-item v-if="!templates.length" disabled>暂无模板</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+    <span class="tb-sep" />
 
-    <div class="tb-group">
-      <el-tooltip content="撤销 (Ctrl+Z)" placement="bottom">
-        <el-button :icon="RefreshLeft" size="small" @click="emit('undo')" />
-      </el-tooltip>
-      <el-tooltip content="重做 (Ctrl+Y / Ctrl+Shift+Z)" placement="bottom">
-        <el-button :icon="RefreshRight" size="small" @click="emit('redo')" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+    <el-tooltip content="撤销 (Ctrl+Z)" placement="bottom" :show-after="400">
+      <button class="tb-btn is-icon" type="button" @click="emit('undo')">
+        <el-icon><RefreshLeft /></el-icon>
+      </button>
+    </el-tooltip>
+    <el-tooltip content="重做 (Ctrl+Y)" placement="bottom" :show-after="400">
+      <button class="tb-btn is-icon" type="button" @click="emit('redo')">
+        <el-icon><RefreshRight /></el-icon>
+      </button>
+    </el-tooltip>
 
-    <div class="tb-group">
-      <el-input
-        :model-value="quickText"
-        placeholder="全局搜索（标黄）…"
-        clearable
-        :prefix-icon="Search"
-        size="small"
-        class="tb-search"
-        @update:model-value="quickSearch"
-      />
-      <span v-if="quickText.trim()" class="tb-hint">{{ hitCount }} 命中</span>
-      <el-tooltip content="查找替换 (Ctrl+F)：逐项跳转 + 替换" placement="bottom">
-        <el-button :icon="EditPen" size="small" type="primary" plain @click="openFind" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+    <span class="tb-sep" />
 
-    <div class="tb-group">
-      <el-tooltip content="合并选区（仅数据区，表头不可合并）" placement="bottom">
-        <el-button :icon="FullScreen" size="small" @click="emit('merge')" />
-      </el-tooltip>
-      <el-tooltip :content="`取消合并（当前 ${mergeCount} 处）`" placement="bottom">
-        <el-button :icon="Aim" size="small" :disabled="!mergeCount" @click="emit('clear-merges')" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+    <label class="tb-search">
+      <el-icon class="tb-search-icon"><Search /></el-icon>
+      <input v-model="keyword" type="text" placeholder="搜索全表，命中标黄" spellcheck="false" />
+      <button v-if="keyword" class="tb-search-clear" type="button" title="清除" @click="quickSearch('')">
+        <el-icon><Close /></el-icon>
+      </button>
+    </label>
+    <span v-if="keyword.trim()" class="tb-count">{{ hitCount }} 命中</span>
+    <el-tooltip content="查找替换 (Ctrl+F)" placement="bottom" :show-after="400">
+      <button class="tb-btn is-icon" type="button" @click="openFind()">
+        <el-icon><EditPen /></el-icon>
+      </button>
+    </el-tooltip>
 
-    <div class="tb-group">
-      <el-tooltip content="导入 Excel（覆盖当前数据）" placement="bottom">
-        <el-button :icon="Upload" size="small" @click="importExcel" />
-      </el-tooltip>
-      <el-tooltip content="导出" placement="bottom">
-        <el-dropdown trigger="click" @command="onExportCommand">
-          <el-button :icon="Download" size="small" />
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="excelAll">导出 Excel（全部）</el-dropdown-item>
-              <el-dropdown-item command="excelResult">导出 Excel（当前结果）</el-dropdown-item>
-              <el-dropdown-item command="csv">导出 CSV（当前结果）</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
+    <span class="tb-spacer" />
 
-    <div class="tb-group">
-      <el-tooltip content="提交（先本地校验，再 mock 服务端校验）" placement="bottom">
-        <el-button type="success" :icon="Select" size="small" :loading="submitting" @click="submit" />
-      </el-tooltip>
-      <el-tooltip content="删除空行（所有列都为空）" placement="bottom">
-        <el-button :icon="DocumentDelete" size="small" plain @click="removeEmptyRows" />
-      </el-tooltip>
-      <el-tooltip content="去重（整行相同只留首行）" placement="bottom">
-        <el-button :icon="DocumentCopy" size="small" plain @click="removeDuplicateRows" />
-      </el-tooltip>
-      <el-tooltip content="清空全部数据" placement="bottom">
-        <el-button :icon="Close" size="small" plain @click="clearAll" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
-
-    <div class="tb-group gen">
-      <el-tooltip content="预制数据（500 行）" placement="bottom">
-        <el-button size="small" type="primary" :icon="Lightning" @click="emit('gen-data', 500)" />
-      </el-tooltip>
-      <span class="gen-label">压测</span>
-      <el-tooltip content="1 千行" placement="bottom">
-        <el-button size="small" :icon="DataLine" @click="emit('gen-data', 1000)" />
-      </el-tooltip>
-      <el-tooltip content="5 千行" placement="bottom">
-        <el-button size="small" :icon="DataLine" @click="emit('gen-data', 5000)" />
-      </el-tooltip>
-      <el-tooltip content="1 万行" placement="bottom">
-        <el-button size="small" :icon="DataLine" @click="emit('gen-data', 10000)" />
-      </el-tooltip>
-    </div>
-    <el-divider direction="vertical" />
-
-    <div class="tb-group">
-      <el-tooltip content="条件格式：数值列数据条" placement="bottom">
-        <el-switch
-          :model-value="conditionalOn"
-          size="small"
-          inline-prompt
-          active-text="条"
-          inactive-text="条"
-          @update:model-value="emit('toggle-cond')"
-        />
-      </el-tooltip>
-      <el-tooltip content="冻结首列（表头行恒冻结）" placement="bottom">
-        <el-switch
-          :model-value="freezeFirst"
-          size="small"
-          inline-prompt
-          active-text="冻"
-          inactive-text="冻"
-          @update:model-value="emit('toggle-freeze')"
-        />
-      </el-tooltip>
-      <el-tooltip :content="`校验面板（${rules.errorCount.value}）`" placement="bottom">
-        <el-button size="small" :icon="Warning" :disabled="!rules.errorCount.value" @click="emit('open-errors')" />
-      </el-tooltip>
-      <el-tooltip content="操作与快捷键帮助 (F1)" placement="bottom">
-        <el-button size="small" :icon="QuestionFilled" plain @click="emit('open-help')" />
-      </el-tooltip>
-    </div>
+    <button class="tb-btn is-primary" type="button" @click="emit('save')">
+      <el-icon><DocumentChecked /></el-icon>
+      <span>保存</span>
+    </button>
   </div>
 </template>
 
 <style scoped>
-/* 骨架（横条 / 边框 / 圆角 / 分组间距）见全局 .bi-toolbar，此处只留 vxe 专有部分 */
-.gen-label {
-  font-size: 12px;
-  color: var(--ue-sub);
+/* 整条工具带：一块与表格同宽的白/深面板，只有 1px 描边，不加投影（投影会和表格面板打架） */
+.ue-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 6px;
+  margin-bottom: var(--bi-gap, 10px);
+  background: var(--bi-panel);
+  border: 1px solid var(--bi-border);
+  border-radius: var(--bi-radius, 8px);
 }
-.tb-search {
-  width: 168px;
-}
-.tb-hint {
-  font-size: 12px;
-  color: var(--ue-sub);
+
+/* 动作按钮：透明底，靠 hover 的淡底表达可点；图标比文字轻一档，hover 时一起提亮 */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--bi-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tb-btn:hover {
+  background: var(--bi-hover);
+}
+
+.tb-btn:active {
+  background: var(--bi-border-soft);
+}
+
+.tb-btn:focus-visible {
+  outline: 2px solid var(--bi-primary);
+  outline-offset: 1px;
+}
+
+.tb-btn .el-icon {
+  font-size: 15px;
+  color: var(--bi-sub);
+  transition: color 0.15s ease;
+}
+
+.tb-btn:hover .el-icon {
+  color: var(--bi-text);
+}
+
+/* 纯图标按钮：正方 30×30，与文字按钮同高，视觉上形成"段" */
+.tb-btn.is-icon {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* 主操作：整条带子只有这一个实心按钮，避免"满屏蓝块" */
+.tb-btn.is-primary {
+  padding: 0 14px;
+  background: var(--bi-primary);
+  color: #fff;
+  font-weight: 500;
+}
+
+.tb-btn.is-primary .el-icon {
+  color: #fff;
+}
+
+.tb-btn.is-primary:hover {
+  background: var(--bi-primary);
+  filter: brightness(1.08);
+}
+
+.tb-btn.is-primary:active {
+  background: var(--bi-primary);
+  filter: brightness(0.96);
+}
+
+/* 分组分隔：1px 竖线，高度压到 16px，只做"停顿"不做"分割" */
+.tb-sep {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 16px;
+  margin: 0 6px;
+  background: var(--bi-border);
+}
+
+/* 搜索框：一体化输入（图标 + 输入 + 清除），底纹比面板深一阶，聚焦时才描主色 */
+.tb-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 210px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--bi-head-bg);
+  cursor: text;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.tb-search:hover {
+  border-color: var(--bi-border);
+}
+
+.tb-search:focus-within {
+  background: var(--bi-panel);
+  border-color: var(--bi-primary);
+}
+
+.tb-search-icon {
+  font-size: 14px;
+  color: var(--bi-sub);
+}
+
+.tb-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--bi-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1;
+}
+
+.tb-search input::placeholder {
+  color: var(--bi-sub);
+}
+
+.tb-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bi-border);
+  color: var(--bi-panel);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.tb-search-clear:hover {
+  background: var(--bi-sub);
+}
+
+/* 命中计数：贴在搜索框右侧的小读数，不做成彩色标签 */
+.tb-count {
+  flex: 0 0 auto;
+  margin: 0 2px 0 4px;
+  font-size: 12px;
+  color: var(--bi-sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tb-spacer {
+  flex: 1 1 auto;
 }
 </style>

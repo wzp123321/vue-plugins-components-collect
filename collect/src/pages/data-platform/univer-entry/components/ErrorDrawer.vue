@@ -1,6 +1,9 @@
 <script setup lang="ts">
 // 校验抽屉：列出全部错误（行首值 + 列名 + 提示），点击跳转到对应单元格
 // 与 vxe 版 ErrorDrawer 等价；差别是跳转后由 Univer 自己滚动 + 激活，不再手写滚动重试。
+//
+// ⚠️ 当前页面**不再引用本组件**：录入台已改为行级校验（行内有值即校验，错误只用红框标出，不弹面板），
+//    保存时也只在底部提示条给一句汇总。文件保留只为后续需要"错误清单"时能直接接回（props 未变）。
 import type { CellError, EntryRules } from '../useEntryRules';
 
 defineOptions({ name: 'ErrorDrawer' });

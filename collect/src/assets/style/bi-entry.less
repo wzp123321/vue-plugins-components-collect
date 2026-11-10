@@ -1,5 +1,5 @@
 /*
- * BI 录入台统一外观层（三套录入台共用：vxe / VTable / Univer）
+ * BI 录入台统一外观层（三套录入台共用：vxe / vtable-sheet / Univer）
  * ============================================================================
  * 视觉取向：数据平台的克制风格——冷灰底 + 白面板，层次靠 1px 细线与灰阶明度，
  * 不靠渐变、彩色投影、大圆角。主色只出现在「当前位置 / 关键动作」上。
@@ -9,12 +9,12 @@
  *   取值互相漂移。统一到本文件后：色板只定义一次（--bi-*），骨架只定义一次（.bi-*）。
  *
  * 命名空间约定：
- *   --bi-*   唯一色板来源；下面再把 --dt-*（vxe 版）、--ue-*（Univer 版）、--el-*（VTable 版
+ *   --bi-*   唯一色板来源；下面再把 --dt-*（vxe 版）、--ue-*（Univer 版）、--el-*（vtable-sheet 版
  *            子组件用的是 Element Plus 变量）映射到同一套值，实现「改一处、三处生效」。
  *   页面根元素挂 .bi-page，弹窗/抽屉传送到 body 后另挂 .dt-dlg / .ue-dlg / .bi-dlg 以继承同一套变量
  *   （自定义属性不跨 DOM 树继承）。.bi-dlg 是三套共用的列配置抽屉（components/bi-column-drawer）。
  *
- * ⚠️ VTable 是 Canvas 渲染，取不到 CSS 变量，重建时用 getComputedStyle 读 --bi-* 再喂给
+ * ⚠️ vtable-sheet 是 Canvas 渲染（底层 VTable 引擎），取不到 CSS 变量，重建时用 getComputedStyle 读 --bi-* 再喂给
  *    TableTheme（见 vt-bi-entry.vue buildTableTheme）——所以色值仍然只有这一处。
  */
 
@@ -23,8 +23,8 @@
 .ue-page,
 .ue-dlg,
 .bi-dlg,
-.vt-bi,
-.vtable,
+.vtable-sheet-bi,
+.vtable-sheet,
 .tb-page {
   /* ---- 灰阶：页面底 → 面板 → 表头/工具带，三阶明度差控制在 2%~3% ---- */
   --bi-bg: #f4f5f7;
@@ -45,7 +45,7 @@
   --bi-hover: #f7f9fc;
   /* 斑马纹：极浅交替底，只比面板亮一阶，远弱于 hover/选中/必填，避免视觉打架 */
   --bi-stripe: #fafbfc;
-  /* 状态/语义辅助底：选中行 / 错误格 / 查找命中（DOM class 走这些变量，由 Tabulator 页使用） */
+  /* 状态/语义辅助底：选中行 / 错误格 / 查找命中（DOM class 走这些变量，由 BI 录入页共用） */
   --bi-select: #e6effd;
   /* 半透明选区填充：用于画在单元格之上的覆盖层（实色会盖住文字） */
   --bi-select-fill: rgb(43 92 246 / 10%);
@@ -155,7 +155,7 @@
   }
 }
 
-/* ===== 命名空间别名：VTable 版（子组件写的是 Element Plus 变量）===== */.vt-bi {
+/* ===== 命名空间别名：vtable-sheet 版（子组件写的是 Element Plus 变量）===== */.vtable-sheet-bi {
   --el-color-primary: var(--bi-primary);
   --el-color-danger: var(--bi-danger);
   --el-border-color: var(--bi-border);
@@ -175,8 +175,8 @@ html.dark {
   .ue-page,
   .ue-dlg,
   .bi-dlg,
-  .vt-bi,
-  .vtable,
+  .vtable-sheet-bi,
+  .vtable-sheet,
   .tb-page {
     --bi-bg: #0e1014;
     --bi-panel: #16191f;

@@ -16,7 +16,8 @@
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import * as XLSX from 'xlsx';
-import { HEADER_ROW, isBlank, normalizeDate, fromCellValue, type ColDef, type EntryRecord } from './schema';
+import { HEADER_ROW, displayTextOf, isBlank, normalizeDate, fromCellValue, type ColDef, type EntryRecord } from './schema';
+import { findRegionByName } from './region-data';
 import { formatDate, pad2 } from '@/utils/bi-entry';
 import type { EntrySheet } from './useEntrySheet';
 
@@ -51,6 +52,13 @@ const normalizeImportValue = (def: ColDef, raw: unknown): ImportCell => {
     const s = isBlank(raw) ? '' : String(raw).trim();
     if (s === '') return { ok: true, value: '' };
     return (def.options ?? []).includes(s) ? { ok: true, value: s } : { ok: false };
+  }
+  if (def.type === 'region') {
+    // Excel 里只会有院区名称，按名称反查补回 id / code；查不到视为非法值跳过
+    const s = isBlank(raw) ? '' : String(raw).trim();
+    if (s === '') return { ok: true, value: '' };
+    const hit = findRegionByName(s);
+    return hit ? { ok: true, value: hit } : { ok: false };
   }
   if (raw instanceof Date) return { ok: true, value: formatDate(raw) };
   return { ok: true, value: String(raw ?? '') };
@@ -157,7 +165,8 @@ export const useEntryIO = (
     records.map((rec) => {
       const out: Record<string, unknown> = {};
       defs.value.filter((d) => d.visible).forEach((d) => {
-        out[d.label] = rec[d.field];
+        // 院区导出只给名称，不把 {name,id,code} 对象写进 Excel
+        out[d.label] = d.type === 'region' ? displayTextOf(d, rec[d.field]) : rec[d.field];
       });
       return out;
     });
@@ -183,7 +192,9 @@ export const useEntryIO = (
     }
     const cols = defs.value.filter((d) => d.visible);
     const header = cols.map((d) => d.label).join(',');
-    const body = records.map((rec) => cols.map((d) => `"${String(rec[d.field] ?? '').replace(/"/g, '""')}"`).join(','));
+    const body = records.map((rec) =>
+      cols.map((d) => `"${displayTextOf(d, rec[d.field]).replace(/"/g, '""')}"`).join(','),
+    );
     // \uFEFF 即 UTF-8 BOM：Excel 靠它识别编码
     const csv = `\uFEFF${[header, ...body].join('\n')}`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

@@ -14,10 +14,11 @@
 import { ref } from 'vue';
 import type { Ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { HEADER_ROW, emptyValueFor, makeEmptyRecord, toCellValue, type ColDef, type ColType, type EntryRecord } from './schema';
+import { HEADER_ROW, displayTextOf, emptyValueFor, makeEmptyRecord, toCellValue, type ColDef, type ColRule, type ColType, type CrossRule, type EntryRecord } from './schema';
+import { findRegionByName } from './region-data';
 import type { EntrySheet } from './useEntrySheet';
 import type { CellError, EntryRules } from './useEntryRules';
-import { rowIsEmpty as rowIsEmptyOf } from '@/utils/bi-entry';
+import { rowIsEmpty as rowIsEmptyOf, rowSignature as rowSignatureOf } from '@/utils/bi-entry';
 
 /** 模板：只有列结构，没有数据（加载时再决定数据保留与否） */
 export interface ColumnTemplate {
@@ -49,12 +50,11 @@ export const useEntryOps = (
   let colSeq = 0;
 
   // ===================== 行操作 =====================
-  /** 追加一行空记录并校验（新行为空，必填列会立刻标红） */
+  /** 追加一行空记录（不即时校验：必填/规则统一在「保存」时结算，录入过程不打扰） */
   const addRow = () => {
     const records = sheetApi.readRecords(defs.value);
     records.push(makeEmptyRecord(defs.value));
     sheetApi.writeRecords(defs.value, records);
-    rules.validateAndMark(defs.value);
     ElMessage.success('已新增 1 行');
   };
 
@@ -65,7 +65,6 @@ export const useEntryOps = (
     const at = origin ? Math.max(0, origin.row - HEADER_ROW - 1) : records.length;
     records.splice(Math.min(at, records.length), 0, makeEmptyRecord(defs.value));
     sheetApi.writeRecords(defs.value, records);
-    rules.validateAndMark(defs.value);
     ElMessage.success('已插入 1 行');
   };
 
@@ -76,7 +75,6 @@ export const useEntryOps = (
     const at = origin ? Math.max(0, origin.row - HEADER_ROW - 1) : records.length - 1;
     records.splice(Math.min(at + 1, records.length), 0, makeEmptyRecord(defs.value));
     sheetApi.writeRecords(defs.value, records);
-    rules.validateAndMark(defs.value);
     ElMessage.success('已插入 1 行');
   };
 
@@ -98,7 +96,6 @@ export const useEntryOps = (
     const records = sheetApi.readRecords(defs.value);
     records.splice(start - firstData, count);
     sheetApi.writeRecords(defs.value, records);
-    rules.validateAndMark(defs.value);
     ElMessage.success(`已删除 ${count} 行`);
   };
 
@@ -120,7 +117,6 @@ export const useEntryOps = (
     const copies = records.slice(start - firstData, end - firstData + 1).map((r) => ({ ...r }));
     records.splice(end - firstData + 1, 0, ...copies);
     sheetApi.writeRecords(defs.value, records);
-    rules.validateAndMark(defs.value);
     ElMessage.success(`已复制 ${copies.length} 行`);
   };
 
@@ -133,7 +129,6 @@ export const useEntryOps = (
     })
       .then(() => {
         sheetApi.writeRecords(defs.value, []);
-        rules.validateAndMark(defs.value);
         ElMessage.success('已清空全部数据');
       })
       .catch(() => {});
@@ -154,7 +149,6 @@ export const useEntryOps = (
       return;
     }
     sheetApi.writeRecords(defs.value, kept);
-    rules.validateAndMark(defs.value);
     ElMessage.success(`已删除 ${n} 个空行`);
   };
 
@@ -169,7 +163,8 @@ export const useEntryOps = (
         kept.push(r);
         return;
       }
-      const sig = defs.value.map((d) => String(r[d.field] ?? '')).join('\u0001');
+      // 院区值是对象，String() 会把它压成 [object Object] 导致不同院区被误判为重复行
+      const sig = rowSignatureOf(defs.value, r);
       if (seen.has(sig)) extra++;
       else {
         seen.add(sig);
@@ -187,7 +182,6 @@ export const useEntryOps = (
     })
       .then(() => {
         sheetApi.writeRecords(defs.value, kept);
-        rules.validateAndMark(defs.value);
         ElMessage.success(`已删除 ${extra} 个重复行`);
       })
       .catch(() => {});
@@ -195,7 +189,17 @@ export const useEntryOps = (
 
   // ===================== 列操作 =====================
   /** 新增列：插到末尾，回填空值（不预选首项），立即重下发验证与列宽 */
-  const addColumn = (input: { label: string; type: ColType; options?: string[]; required?: boolean }) => {
+  const addColumn = (input: {
+    label: string;
+    type: ColType;
+    required?: boolean;
+    visible?: boolean;
+    options?: string[];
+    rules?: ColRule;
+    cross?: CrossRule[];
+    width?: number;
+    dateFormat?: string;
+  }) => {
     const label = input.label.trim();
     if (!label) {
       ElMessage.warning('请输入列名');
@@ -210,9 +214,12 @@ export const useEntryOps = (
         label,
         type: input.type,
         options: input.type === 'select' ? input.options : undefined,
-        required: input.required,
-        width: NEW_COL_WIDTH,
-        visible: true,
+        required: input.required ?? false,
+        visible: input.visible !== false,
+        width: input.width ?? NEW_COL_WIDTH,
+        rules: input.rules,
+        cross: input.cross,
+        dateFormat: input.type === 'date' ? input.dateFormat : undefined,
       },
     ];
     const records = sheetApi.readRecords(defs.value);
@@ -228,7 +235,6 @@ export const useEntryOps = (
     const records = sheetApi.readRecords(defs.value);
     sheetApi.writeRecords(defs.value, records);
     rebuild();
-    rules.validateAndMark(defs.value);
   };
 
   /** 删除列：直接删网格列（数据整体左移），再同步列定义 */
@@ -290,7 +296,6 @@ export const useEntryOps = (
     // 整块重写表头 + 数据 + 重下发验证/列宽/冻结等
     sheetApi.writeRecords(defs.value, records);
     rebuild();
-    rules.validateAndMark(defs.value);
     ElMessage.success(`已复制列「${src.label}」`);
   };
 
@@ -314,6 +319,15 @@ export const useEntryOps = (
         }
         value = n;
       }
+    }
+    if (def.type === 'region') {
+      // 院区按名称反查，保证写进去的单元格同时带上 id / code
+      const hit = rawValue ? findRegionByName(rawValue) : null;
+      if (rawValue && !hit) {
+        ElMessage.warning('院区名称不在院区列表中，请核对后重试');
+        return;
+      }
+      value = hit;
     }
     const colIndex = defs.value.findIndex((d) => d.field === field);
     const total = sheetApi.dataRowCount();
@@ -339,7 +353,6 @@ export const useEntryOps = (
     }
     const matrix = Array.from({ length: count }, () => [toCellValue(def, value)]);
     ws.getRange(start, colIndex, count, 1).setValues(matrix);
-    rules.validateAndMark(defs.value);
     ElMessage.success(`已填充 ${count} 行`);
   };
 
@@ -393,7 +406,6 @@ export const useEntryOps = (
     defs.value = nextDefs;
     sheetApi.writeRecords(nextDefs, records);
     rebuild();
-    rules.validateAndMark(nextDefs);
     ElMessage.success(`已加载模板「${t.name}」`);
   };
 
@@ -438,7 +450,7 @@ export const useEntryOps = (
           field,
           colIndex,
           label: defs.value[colIndex]?.label ?? field,
-          rowLabel: String(rec[defs.value[0]?.field] ?? ''),
+          rowLabel: defs.value[0] ? displayTextOf(defs.value[0], rec[defs.value[0].field]) : '',
           msg,
         });
       };

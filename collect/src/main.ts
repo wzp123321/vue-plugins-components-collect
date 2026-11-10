@@ -19,7 +19,7 @@ import './assets/style/dark-theme.css';
 import './assets/style/ai-theme.less';
 // 双模通用组件皮肤（el-menu / el-card / el-table / el-input / el-button 等），暗色亮色共用同一份
 import './assets/style/components-theme.css';
-// 三套 BI 录入台（vxe / VTable / Univer）共用的色板与页面骨架
+// 三套 BI 录入台（vxe / vtable-sheet / Univer）共用的色板与页面骨架
 import './assets/style/bi-entry.less';
 // iconfont symbol 注入（window._iconfont_svg_string_*），供 <svg><use> 使用
 import './assets/iconfont-symbol.js';

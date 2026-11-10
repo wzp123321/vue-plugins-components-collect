@@ -8,7 +8,7 @@
   引擎差异只允许走 caps（frozen / retype / add），不做假统一：
     · frozen：Univer 只支持冻结首列，不给这个开关 → false；
     · retype：vxe 版改类型要连带转数据，只能在「配置」里做 → false；
-    · add：vxe 的新增列在工具栏，VTable 的列名由引擎生成 → 各自为 false。
+    · add：vxe 的新增列在工具栏，vtable-sheet 的列名由引擎生成 → 各自为 false。
 
   协作：各引擎把 colDef 映射成 :cols（BiColLike）传进来，事件里做自己的副作用
   （撤销栈 / 重校验 / 整表重建），本组件只管视觉与交互，不碰任何引擎 API。
@@ -209,12 +209,13 @@ const emit = defineEmits<{
   (e: 'duplicate', field: string): void;
 }>();
 
-/** 四种列类型：产品口径，不跟随各引擎的类型枚举命名 */
+/** 五种列类型：产品口径，不跟随各引擎的类型枚举命名 */
 const TYPES: { value: ColType; label: string }[] = [
   { value: 'text', label: '文本' },
   { value: 'number', label: '数字' },
   { value: 'select', label: '下拉' },
   { value: 'date', label: '日期' },
+  { value: 'region', label: '院区' },
 ];
 
 const caps = computed<ListCaps>(() => props.caps ?? {});

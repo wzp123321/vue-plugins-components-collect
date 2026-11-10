@@ -2,7 +2,7 @@
 // 批量填充分钟：选列 + 填值 + 作用范围（选区 / 全部行）→ 一次 setValues 写入
 // 与 vxe 版 GridFillBar 等价；数字列在 ops.batchFill 内部做 NaN 拦截。
 import { computed, reactive, watch } from 'vue';
-import type { ColDef } from '../schema';
+import { typeLabel, type ColDef } from '../schema';
 import type { EntryOps } from '../useEntryOps';
 
 defineOptions({ name: 'FillDialog' });
@@ -46,7 +46,7 @@ const apply = () => {
       <div class="fd-row">
         <span class="fd-label">目标列</span>
         <el-select v-model="form.field" size="small" style="width: 200px">
-          <el-option v-for="d in defs" :key="d.field" :label="`${d.label}（${d.type}）`" :value="d.field" />
+          <el-option v-for="d in defs" :key="d.field" :label="`${d.label}（${typeLabel[d.type]}）`" :value="d.field" />
         </el-select>
       </div>
       <div class="fd-row">
@@ -64,6 +64,7 @@ const apply = () => {
         下拉列可选项：{{ (currentDef.options ?? []).join('、') || '未配置' }}
       </div>
       <div v-else-if="currentDef?.type === 'number'" class="fd-tip">数字列只接受数值，非法内容会被拦截</div>
+      <div v-else-if="currentDef?.type === 'region'" class="fd-tip">院区列填院区名称，须与院区列表中的名称一致；留空表示清空该列</div>
     </div>
     <template #footer>
       <el-button size="small" @click="emit('update:visible', false)">取消</el-button>

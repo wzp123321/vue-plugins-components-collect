@@ -142,7 +142,7 @@ export const useGridOps = (
 
   // ===================== 数据质量：空行 / 重复行 =====================
   // 只按"可见列全为空"判定空行：隐藏列里残留的值不阻止清理（用户视角就是空行）
-  // 空行 / 行签名统一走 utils/bi-entry.ts，口径与 VTable / Univer 两套一致
+  // 空行 / 行签名统一走 utils/bi-entry.ts，口径与 vtable-sheet / Univer 两套一致
   const rowIsEmptyNow = (r: Row) => rowIsEmpty(core.visibleDefs.value, r);
   const emptyRowCount = () => core.allRows.value.filter(rowIsEmptyNow).length;
   const dupGroups = (): string[][] => {
@@ -269,7 +269,7 @@ export const useGridOps = (
   };
   /**
    * 复制列：深拷贝目标 ColDef（生成全新唯一 field、label 加"副本"），插入到原列之后，
-   * 并把源列的每行值克隆到新列（与 VTable/Univer/Tabulator 口径一致）。写数据前先 snap() 入撤销栈。
+   * 并把源列的每行值克隆到新列（与 vtable-sheet/Univer 口径一致）。写数据前先 snap() 入撤销栈。
    * @param field 要复制的源列 field
    */
   const duplicateColumn = (field: string) => {

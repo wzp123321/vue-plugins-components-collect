@@ -35,11 +35,11 @@ const dataVisRoutes: RouteRecordRaw[] = [
     component: () => import('../../pages/vchart/vchart.vue'),
   },
   {
-    path: '/vtable',
+    path: '/vtable-sheet',
     meta: {
-      name: 'VTable-BI数据录入',
+      name: 'VTableSheet-BI数据录入',
     },
-    component: () => import('../../pages/vtable/vtable.vue'),
+    component: () => import('../../pages/vtable-sheet/vtable-sheet.vue'),
   },
   {
     path: '/canvas-advance',

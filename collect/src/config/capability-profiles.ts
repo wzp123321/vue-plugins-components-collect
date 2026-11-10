@@ -314,31 +314,31 @@ chart.setOption({
     alternatives: ['/echarts'],
   },
   {
-    path: '/vtable',
+    path: '/vtable-sheet',
     usage: {
-      install: 'pnpm add @visactor/vtable @visactor/vtable-editors',
+      install: 'pnpm add @visactor/vtable-sheet @visactor/vtable-editors',
       keyApi: [
-        'new ListTable({ container, records, columns, theme })',
-        'register.editor(name, new InputEditor() | TextAreaEditor | DateInputEditor | ListEditor({ values }))',
-        "列配置 editor: 'name' 启用编辑；editCellTrigger 控制触发方式（默认双击）",
-        "table.on('change_cell_value', cb) 监听编辑结果",
+        "new VTableSheet(container, { theme: { tableTheme }, sheets: [{ id, name, data, columns }] })",
+        'sheet.getActiveSheet()?.tableInstance 拿到底层 ListTable（编辑 / 事件都走它）',
+        "table.on('change_cell_value', cb) 监听单元格编辑结果",
       ],
-      snippet: `import { ListTable, register, themes } from '@visactor/vtable';
-import { InputEditor, ListEditor } from '@visactor/vtable-editors';
+      snippet: `import { VTableSheet, themes } from '@visactor/vtable-sheet';
 
-register.editor('name', new InputEditor());
-register.editor('gender', new ListEditor({ values: ['女', '男'] }));
-
-const table = new ListTable({
-  container: el, records, autoFit: true,
-  theme: isDark ? themes.DARK : themes.BRIGHT,
-  columns: [
-    { field: 'name', title: '姓名', editor: 'name' },
-    { field: 'gender', title: '性别', editor: 'gender' },
-  ],
-});`,
+const sheet = new VTableSheet(container, {
+  theme: { tableTheme: isDark ? themes.DARK : themes.BRIGHT },
+  sheets: [{
+    id: 'sheet1',
+    name: 'Sheet1',
+    data: records,                 // 行对象数组或二维数组
+    columns: [
+      { field: 'name', title: '姓名' },
+      { field: 'gender', title: '性别' },
+    ],
+  }],
+});
+const table = sheet.getActiveSheet()?.tableInstance;  // 底层 ListTable`,
     },
-    positioning: 'VTable（VisActor）：纯 Canvas 高性能表格，配套 vtable-editors 提供单元格编辑',
+    positioning: 'vtable-sheet（VisActor 基于 VTable 封装的类 Excel 工作簿：自带公式栏 / 多 sheet / 合并单元格 / 撤销重做）',
     needs: [
       { text: '超大数据量表格（百万级）且要流畅滚动', level: 'fits' },
       { text: '需要单元格就地编辑（文本/多行/日期/下拉）', level: 'fits', comment: '编辑能力由 @visactor/vtable-editors 提供' },

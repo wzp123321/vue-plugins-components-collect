@@ -1,5 +1,5 @@
 /**
- * BI 数据录入 —— 三套录入台（vxe / VTable / Univer）共用的纯函数
+ * BI 数据录入 —— 三套录入台（vxe / vtable-sheet / Univer）共用的纯函数
  *
  * 背景：三套实现各自复制了一份「空值判定 / 数值转换 / 日期归一 / 行签名 / 跨列规则」。
  * 同一条口径要在三个目录里改三遍，极易漂移——「数字列空值到底是 null 还是空串」
@@ -14,8 +14,8 @@
  *   - 数字列的空值是 null，其余列是空串。
  */
 
-/** 列类型：决定单元格显示与编辑器。只做四类，三套对齐 */
-export type ColType = 'text' | 'number' | 'select' | 'date';
+/** 列类型：决定单元格显示与编辑器。只做五类，三套对齐 */
+export type ColType = 'text' | 'number' | 'select' | 'date' | 'region';
 
 /** 单列校验规则（声明式）。空值一律跳过，必填由 required 单独判定 */
 export interface ColRule {
@@ -186,9 +186,24 @@ export const emptyValueFor = (col: { type: ColType }): unknown => (col.type === 
 /** 行拷贝（值都是标量，浅拷贝一层即够） */
 export const cloneRows = <T extends BiRowLike>(rows: readonly T[]): T[] => rows.map((r) => ({ ...r }));
 
+/**
+ * 单元格值的稳定签名。
+ * 院区这类列的值是结构化对象，直接 String(v) 会退化成 "[object Object]"，
+ * 导致去重 / 脏行比对把不同的院区误判为同一行，故对象值统一序列化成 JSON。
+ */
+export const sigValueOf = (v: unknown): string => {
+  if (v === null || v === undefined) return '';
+  if (typeof v !== 'object') return String(v);
+  try {
+    return JSON.stringify(v);
+  } catch {
+    return String(v);
+  }
+};
+
 /** 行的业务字段签名（去重 / 判空用；不含元信息）。分隔符用 \u0001 避开常见输入字符 */
 export const rowSignature = (cols: readonly { field: string }[], row: BiRowLike): string =>
-  cols.map((c) => String(row[c.field] ?? '')).join('\u0001');
+  cols.map((c) => sigValueOf(row[c.field])).join('\u0001');
 
 /** 整行业务列是否全空 */
 export const rowIsEmpty = (cols: readonly { field: string }[], row: BiRowLike): boolean =>

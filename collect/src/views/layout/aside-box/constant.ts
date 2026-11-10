@@ -192,10 +192,9 @@ export const navGroups: NavGroup[] = [
       {
         label: '数据表格与录入',
         items: [
-          { path: '/vtable', label: 'VTable-BI数据录入' },
+          { path: '/vtable-sheet', label: 'vtable-sheet BI 数据录入' },
           { path: '/form-excel-data-entry-vxe', label: 'vxe-table BI 数据录入' },
           { path: '/data-platform-univer-entry', label: 'Univer BI 数据录入' },
-          { path: '/data-platform-tabulator-entry', label: 'Tabulator BI 数据录入' },
         ],
       },
     ],

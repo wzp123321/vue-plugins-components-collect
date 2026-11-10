@@ -2,10 +2,10 @@
   Univer BI 数据录入台（页面入口 · 装配层）
   ============================================================================
   本文件职责：
-    1. 组装布局：标题统计条 / 工具条 / 查找条 / 画布表格 / 状态栏 / 各抽屉弹窗；
+    1. 组装布局：工具条 / 查找条 / 画布表格 / 状态栏 / 各抽屉弹窗（页头标题与统计条已按需求去掉，纵向空间全留给数据区）；
     2. 装配 composables（useEntrySheet / useEntryRules / useEntryOps / useEntryIO / useEntryFind）
        并把它们接线到子组件与键盘快捷键；
-    3. 承担页面级协调：初始数据装载、列结构变更后的"表头 + 验证 + 冻结 + 条件格式"重下发、
+    3. 承担页面级协调：初始数据装载、列结构变更后的"表头 + 验证 + 冻结 + 筛选区"重下发、
        脏行统计（与基线快照逐格比对）、选区聚合统计、明暗主题跟随。
 
   在整体架构中的角色：对应 vxe 版的 excel-data-entry-vxe.vue —— 只做装配与协调，
@@ -21,48 +21,18 @@
     - 查找替换      → FTextFinder + 本页自绘高亮
     - 数据验证      → Univer data-validation（下拉 / 数字区间），其余规则由本地引擎兜底
     - 条件格式      → Univer conditional-formatting（数值列数据条）
-    - 校验面板/模板/批量填充/数据质量/提交 → 本页自研（Univer 无对应能力）
+    - 行级校验（行内有值即校验 / 错误格红框+淡红底）/ 模板 / 批量填充 / 数据质量 / 提交 → 本页自研（Univer 无对应能力）
   ============================================================================
 -->
 <template>
   <div class="ue-page bi-page" ref="pageRef">
-    <div class="ue-header bi-header">
-      <div class="ue-title bi-title">
-        <span class="ue-logo bi-logo">U</span>
-        <div>
-          <h3>Univer BI 数据录入台</h3>
-          <p class="ue-sub bi-sub">@univerjs/presets 1.3.0 · 全开源包（Apache-2.0）· 画布渲染 / 数据验证 / 条件格式 / 原生填充柄</p>
-        </div>
-      </div>
-      <div class="ue-stats bi-stats">
-        <span class="stat-pill"><b>{{ totalRows.toLocaleString() }}</b> 行</span>
-        <span class="stat-pill warn"><b>{{ dirtyRows }}</b> 改动</span>
-        <span class="stat-pill danger"><b>{{ rules.errorCount.value }}</b> 错误</span>
-        <span class="stat-pill ok"><b>{{ selectionCellCount }}</b> 选中</span>
-        <span v-if="lastGen" class="stat-pill info">{{ lastGen }}</span>
-      </div>
-    </div>
-
     <EntryToolbar
       :ops="ops"
-      :io="io"
       :find="find"
-      :rules="rules"
-      :conditional-on="conditionalOn"
-      :freeze-first="freezeFirst"
-      :submitting="ops.submitting.value"
-      :merge-count="mergeCount"
-      @toggle-cond="toggleConditional"
-      @toggle-freeze="toggleFreeze"
-      @open-columns="columnDrawer = true"
-      @open-fill="fillVisible = true"
-      @open-errors="errorDrawer = true"
-      @gen-data="genData"
+      @add-column="openAddColumn"
       @undo="onUndo"
       @redo="onRedo"
-      @merge="onMerge"
-      @clear-merges="onClearMerges"
-      @open-help="helpVisible = true"
+      @save="onSave"
     />
 
     <FindBar v-if="find.findVisible.value" ref="findBarRef" :find="find" />
@@ -96,12 +66,18 @@
     <BiColumnDrawer
       v-model:visible="columnConfigVisible"
       :column="columnConfigTarget"
+      :add="columnConfigAddMode"
       :siblings="defs"
       :caps="{ width: true }"
       @confirm="onColumnConfigConfirm"
+      @add="onColumnConfigAdd"
       @remove="onColumnConfigRemove"
     />
-    <ErrorDrawer v-model:visible="errorDrawer" :errors="rules.errors.value" :rules="rules" />
+    <RegionPickerDialog
+      v-model:visible="regionPickerVisible"
+      :current="regionPickerCurrent"
+      @confirm="onRegionPicked"
+    />
     <FillDialog v-model:visible="fillVisible" :defs="defs" :ops="ops" />
     <HelpDialog v-model:visible="helpVisible" />
     <input ref="fileInputRef" type="file" accept=".xlsx,.xls" style="display: none" @change="io.onFileChange" />
@@ -109,17 +85,18 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import EntryToolbar from './components/EntryToolbar.vue';
 import ColumnDrawer from './components/ColumnDrawer.vue';
 import BiColumnDrawer from '@/components/bi-column-drawer/bi-column-drawer.vue';
 import type { ColumnDraft } from '@/components/bi-column-drawer/types';
-import ErrorDrawer from './components/ErrorDrawer.vue';
 import FillDialog from './components/FillDialog.vue';
 import FindBar from './components/FindBar.vue';
 import HelpDialog from './components/HelpDialog.vue';
-import { DEFAULT_COLS, SHEET_ROW_COUNT, genSampleRecords, type ColDef } from './schema';
+import RegionPickerDialog from './components/RegionPickerDialog.vue';
+import type { RegionValue } from './region-data';
+import { DEFAULT_COLS, HEADER_ROW, SHEET_ROW_COUNT, genSampleRecords, rowIsEmpty, rowSignature, type ColDef } from './schema';
 import { useEntrySheet } from './useEntrySheet';
 import { useEntryRules } from './useEntryRules';
 import { useEntryOps } from './useEntryOps';
@@ -146,18 +123,39 @@ const columnDrawer = ref(false);
 /** 点列标 → 单列配置（与另两套同一份共享抽屉）；工具栏「列设置」仍走全量列表 */
 const columnConfigVisible = ref(false);
 const columnConfigField = ref('');
-const columnConfigTarget = computed(() => defs.value.find((d) => d.field === columnConfigField.value) ?? null);
-const errorDrawer = ref(false);
+/** 新增模式：工具栏「新增列」打开同一个抽屉，但不绑定任何已有列 */
+const columnConfigAddMode = ref(false);
+const columnConfigTarget = computed(() =>
+  (columnConfigAddMode.value ? null : defs.value.find((d) => d.field === columnConfigField.value) ?? null)
+);
 const fillVisible = ref(false);
 const helpVisible = ref(false);
-const conditionalOn = ref(false);
-const freezeFirst = ref(true);
-const lastGen = ref('');
 const totalRows = ref(0);
 const dirtyRows = ref(0);
 
+// ===================== 院区选择弹框状态 =====================
+const regionPickerVisible = ref(false);
+/** 本次弹框要回填的单元格坐标（0-based） */
+const regionPickerCell = reactive({ row: -1, col: -1 });
+const regionPickerCurrent = ref<RegionValue | null>(null);
+
 /**
- * 重下发"表格外观与约束"：表头 → 列宽 → 显隐 → 数据验证 → 条件格式 → 冻结。
+ * 进页面/重建结构后**清掉选区**，不留任何默认选中格。
+ *
+ * 为什么不是"选中 A1 或 A2"：这是一张录入表，一进页面就在表头上挂个蓝框，
+ * 看起来像"表头被选中了"（用户反馈的第 1 条），也没有任何业务含义。
+ * Univer 的 Facade 没有 clear 方法，只能下发 SetSelectionsOperation 并传空数组
+ * （见 useEntrySheet.clearSelection）；命令不可用时退化为"光标落在第一个数据格"，
+ * 至少不会落在表头上。
+ */
+const releaseSelection = () => {
+  sheetApi.clearSelection().then((ok) => {
+    if (!ok) sheetApi.focusCell(HEADER_ROW + 1, 0);
+  });
+};
+
+/**
+ * 重下发"表格外观与约束"：表头 → 列宽 → 显隐 → 数据验证 → 冻结 → 筛选区。
  * 每次列结构变化都要走一遍（Univer 的验证/格式挂在具体列区间上，列一挪就失效）。
  */
 const applyChrome = () => {
@@ -165,23 +163,33 @@ const applyChrome = () => {
   sheetApi.applyColumnWidths(defs.value);
   sheetApi.applyColumnVisibility(defs.value);
   sheetApi.applyDataValidation(defs.value);
-  sheetApi.applyDataBars(defs.value, conditionalOn.value);
-  sheetApi.applyFreeze(freezeFirst.value);
+  // 只冻结表头行，不冻结任何列（首列冻结已按需求去掉）
+  sheetApi.applyFreeze(false);
+  // 漏斗按钮依赖 filterModel 的 range，ribbon 被隐藏后没有开关菜单，必须主动建筛选区
+  sheetApi.ensureFilter(defs.value.length);
+  // 上面这些整列 range 操作（写表头 / 显隐列 / 数据验证）会把 active cell 顺带挪到最后一列，
+  // 表现为"一进页面就整列选中备注列"。收尾统一清掉选区。
+  releaseSelection();
 };
 
 const ops = useEntryOps(sheetApi, defs, rules, applyChrome);
 
 // ===================== 脏行统计（无行对象，靠与基线快照逐格比对） =====================
 let baseline: string[] = [];
-const signatureOf = (rec: Record<string, unknown>): string => defs.value.map((d) => String(rec[d.field] ?? '')).join('\u0001');
+/** 上一轮读取到的行签名：用来定位"哪几行被改过"，行级校验只重算这些行 */
+let prevSigs: string[] = [];
+/** 院区值是对象，String() 会退化成 [object Object]，统一走共用签名函数 */
+const signatureOf = (rec: Record<string, unknown>): string => rowSignature(defs.value, rec);
 
 const markBaseline = () => {
-  baseline = sheetApi.readRecords(defs.value).map(signatureOf);
+  const records = sheetApi.readRecords(defs.value);
+  baseline = records.map(signatureOf);
+  // 行级校验的"上一轮快照"与基线同步，避免初始化那一次把整表当成改动
+  prevSigs = [...baseline];
   dirtyRows.value = 0;
 };
 
-const recomputeDirty = () => {
-  const records = sheetApi.readRecords(defs.value);
+const countDirty = (records: ReturnType<typeof sheetApi.readRecords>) => {
   let n = 0;
   records.forEach((rec, i) => {
     if (signatureOf(rec) !== (baseline[i] ?? '')) n++;
@@ -189,11 +197,14 @@ const recomputeDirty = () => {
   dirtyRows.value = n;
 };
 
-/** 批量变更后统一收口：重算行数/脏行 + 全量复检 */
+const recomputeDirty = () => {
+  countDirty(sheetApi.readRecords(defs.value));
+};
+
+/** 批量变更后统一收口：重算行数/脏行（行级校验由 revision watcher 负责，这里只管统计） */
 const refreshAfterBulkChange = () => {
   totalRows.value = sheetApi.dataRowCount();
   recomputeDirty();
-  rules.validateAndMark(defs.value);
 };
 
 // 导入是覆盖式写入，收口逻辑与批量变更一致
@@ -233,11 +244,13 @@ const selectionStats = computed(() => {
 
 // 活动格地址（名称框语义）：Univer 的 selectionChange 不覆盖"仅移动活动格"的场景，
 // 故订阅 revision + selection 两个信号，变更后主动取一次地址。
+// ⚠️ 清空选区后 Univer 仍保留"上一次的活动格"（内部 lastSelectionPrimaryCell 不清），
+//    getActiveCell() 会返回陈旧地址；此时按"无选区"显示 ——，否则状态栏会一直挂着 A1。
 const activeCell = ref('—');
 watch(
   [() => sheetApi.revision.value, () => sheetApi.selection.value],
   () => {
-    activeCell.value = sheetApi.activeCellA1();
+    activeCell.value = sheetApi.selection.value ? sheetApi.activeCellA1() : '—';
   },
   { immediate: false },
 );
@@ -252,7 +265,7 @@ watch(
  * 不会误触的情况：单元格单击（C5）、拖拽选区（A1:C9）、点行标（A5:BD5）、左上角全选（A1:BD20000）。
  *
  * 打开的是**单列配置抽屉**（components/bi-column-drawer，三套共用），
- * 与 vxe / VTable 完全同一套交互；工具栏的「列设置」仍是全量列表抽屉。
+ * 与 vxe / vtable-sheet 完全同一套交互；工具栏的「列设置」仍是全量列表抽屉。
  */
 /** 列字母 → 0-based 索引（A=0, Z=25, AA=26…），不依赖 getRange 对简写的解析 */
 const colIndexOfLetters = (letters: string): number =>
@@ -274,6 +287,7 @@ watch(
     const d = defs.value[col];
     if (!d) return;
     lastHeaderCol.value = col;
+    columnConfigAddMode.value = false;
     columnConfigField.value = d.field;
     columnConfigVisible.value = true;
   },
@@ -286,8 +300,31 @@ watch(columnConfigVisible, (v) => {
 
 /** 列设置（全量列表）里点「配置」：打开同一份单列配置抽屉 */
 const openColumnConfig = (field: string) => {
+  columnConfigAddMode.value = false;
   columnConfigField.value = field;
   columnConfigVisible.value = true;
+};
+
+/** 工具栏「新增列」：打开同一个抽屉的新增模式（不绑定已有列） */
+const openAddColumn = () => {
+  columnConfigAddMode.value = true;
+  columnConfigField.value = '';
+  columnConfigVisible.value = true;
+};
+
+/** 新增模式确认：ops.addColumn 会重写表头/数据并走 applyChrome 重建筛选区 */
+const onColumnConfigAdd = (d: Omit<ColumnDraft, 'field'>) => {
+  ops.addColumn({
+    label: d.label,
+    type: d.type,
+    required: d.required,
+    visible: d.visible,
+    width: d.width,
+    options: d.options,
+    rules: d.rules,
+    cross: d.cross?.length ? d.cross : undefined,
+    dateFormat: d.dateFormat,
+  });
 };
 
 /** 共享抽屉确认：改列定义走 ops.updateColumn（重写表头 + 重下发验证 + 重校） */
@@ -309,6 +346,82 @@ const onColumnConfigConfirm = (d: ColumnDraft) => {
 /** 共享抽屉里点「删除该列」 */
 const onColumnConfigRemove = () => {
   if (columnConfigField.value) ops.removeColumn(columnConfigField.value);
+};
+
+// ===================== 院区单元格：双击弹出选择器 =====================
+/**
+ * 交互口径（对齐 Excel / 飞书多维表格这类带选择器的表格）：
+ *   - **单击只选中**，不弹任何东西 → 用户可以正常 Ctrl+C 复制、Ctrl+V 粘贴、拖填充柄；
+ *   - **双击才进入编辑**：院区列弹院区选择框。
+ * 早期是单击即弹，结果是"想复制一个单元格的数据根本做不到"（一按就弹框、焦点被抢走）。
+ *
+ * 下拉列（select）不走这里：它挂的是 Univer 原生 LIST 规则（renderMode TEXT，静态不画箭头），
+ * 点中单元格即由 registerCellClick 弹原生选项列表，见该函数注释。
+ */
+const lastClickCell = reactive({ row: -1, col: -1 });
+
+/** 弹框确定 / 清除：把选中的 {name,id,code} 回填到点击的那个单元格 */
+const onRegionPicked = (value: RegionValue | null) => {
+  const { row, col } = regionPickerCell;
+  if (row > HEADER_ROW && col >= 0) sheetApi.setRegionCell(row, col, value);
+  regionPickerCell.row = -1;
+  regionPickerCell.col = -1;
+};
+
+/** 该列是否需要"双击进选择器" */
+const isPickerColumn = (def: ColDef | undefined): boolean => def?.type === 'region';
+
+/** 在指定格上打开院区选择器 */
+const openPickerAt = (row: number, col: number) => {
+  regionPickerCell.row = row;
+  regionPickerCell.col = col;
+  regionPickerCurrent.value = sheetApi.getRegionValue(row, col);
+  regionPickerVisible.value = true;
+};
+
+/**
+ * 双击拦截：必须挂**捕获阶段**。
+ * Univer 把 dblclick 监听挂在画布元素上，双击选择器列时会先进入单元格文本编辑；
+ * 在容器上捕获到 dblclick 后 stopPropagation，编辑就不会启动，弹框独占这次双击。
+ *
+ * 单元格坐标取自最近一次 CellClicked（click 一定晚于 pointerdown、早于 dblclick）。
+ * 不用"时间窗口"判断：每次 pointerdown 先把坐标作废，再由紧随其后的 click 填回来。
+ * 这样 dblclick 落在**表头**（不会触发 CellClicked）或拖拽松手时，坐标是空的，不会误弹；
+ * 也不必猜"用户两次点击的间隔有多长"（早期用 600ms 窗口，慢速双击会被漏掉）。
+ */
+const onGridDblClick = (e: MouseEvent) => {
+  const c = lastClickCell;
+  if (c.row < 0) return;
+  if (c.row <= HEADER_ROW || c.col < 0 || c.col >= defs.value.length) return;
+  if (!isPickerColumn(defs.value[c.col])) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openPickerAt(c.row, c.col);
+};
+
+/**
+ * 订阅"用户点中了某一格"（row / column 均 0-based）。
+ * 信号来自 useEntrySheet 的指针判定（Univer 的 CellClicked 事件在本页收不到，原因见那边的注释）。
+ * 两件事：
+ *   1. 记录"最近点了哪一格"，作为双击定位的依据（院区列双击弹选择框靠它）；
+ *   2. 下拉列（select）点中即弹**原生**选项列表。该列的验证规则渲染模式是 TEXT，
+ *      静态只有文本、没有常驻箭头，"聚焦才出现下拉"由此保证：点一下弹列表、选完自动收起。
+ *      拖选 / 拖填充柄不会误弹：选区不是单格时 useEntrySheet 就不上报。
+ */
+const registerCellClick = () => {
+  sheetApi.onCellClick(({ row, column }) => {
+    lastClickCell.row = row;
+    lastClickCell.col = column;
+    if (row <= HEADER_ROW) return;
+    const def = defs.value[column];
+    if (def?.type === 'select' && def.options?.length) sheetApi.showOptionDropdown(row, column);
+  });
+};
+
+/** 每次按下先把"上一格"作废：表头上双击、拖填充柄松手都不会再带出陈旧的单元格坐标 */
+const onGridPointerDown = () => {
+  lastClickCell.row = -1;
+  lastClickCell.col = -1;
 };
 
 // ===================== 主题 =====================
@@ -341,12 +454,11 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 };
 
-const seedData = (records: ReturnType<typeof genSampleRecords>, label: string) => {
+const seedData = (records: ReturnType<typeof genSampleRecords>) => {
   sheetApi.writeRecords(defs.value, records);
   applyChrome();
   refreshAfterBulkChange();
   markBaseline();
-  lastGen.value = label;
 };
 
 onMounted(async () => {
@@ -356,17 +468,23 @@ onMounted(async () => {
   // 进本页时恢复 16px（样式见下方 html.univer-normal-rem），离开时移除，不影响其它页面。
   document.documentElement.classList.add('univer-normal-rem');
   sheetApi.init(containerRef.value);
+  registerCellClick();
+  // 双击选择器列：捕获阶段拦截，避免 Univer 同时进入文本编辑（见 onGridDblClick）
+  containerRef.value.addEventListener('dblclick', onGridDblClick, true);
+  containerRef.value.addEventListener('pointerdown', onGridPointerDown, true);
   syncTheme();
   // 站点主题切换（html.dark）时同步给 Univer
   themeObserver = new MutationObserver(syncTheme);
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-  seedData(genSampleRecords(200), '示例 200 行');
+  seedData(genSampleRecords(10));
   window.addEventListener('keydown', onKeydown);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
+  containerRef.value?.removeEventListener('dblclick', onGridDblClick, true);
+  containerRef.value?.removeEventListener('pointerdown', onGridPointerDown, true);
   themeObserver?.disconnect();
   themeObserver = null;
   document.documentElement.classList.remove('univer-normal-rem');
@@ -374,60 +492,35 @@ onBeforeUnmount(() => {
 });
 
 // ===================== 合并单元格 =====================
-// Univer 的 merged cell 只有左上角保留值，其余格读出来为空 → 合并过的数据行在
-// readRecords 里会出现"空字段"。所以这里不做静默合并：成功则在状态栏提示，失败把原因带出来。
-const mergeCount = ref(0);
-const refreshMergeCount = () => {
-  mergeCount.value = sheetApi.mergeCount();
-};
+// 合并/取消合并的工具栏入口已随精简下线（Univer 原生右键菜单仍可用）；
+// 对应的 sheetApi.mergeSelection / clearAllMerges 保持在网格底座里，需要时再接回来。
 
-const onMerge = () => {
-  const res = sheetApi.mergeSelection();
-  if (!res.ok) {
-    ElMessage.warning(res.msg);
-    return;
-  }
-  refreshMergeCount();
-  ElMessage.success(res.msg);
-};
-
-const onClearMerges = () => {
-  const n = sheetApi.clearAllMerges();
-  refreshMergeCount();
-  ElMessage.success(n ? `已取消 ${n} 处合并` : '没有合并单元格');
-};
-
-// 命令执行（编辑/粘贴/填充/撤销）后刷新行数、脏行与统计；校验按数据量择机跑
+// 命令执行（编辑/粘贴/填充/撤销）后：刷新行数与脏行，并对"内容变过的行"做行级校验。
+// 校验口径（与用户确认过的交互）：
+//   - 一行只要有一个单元格有值，就校验整行 → 必填缺失 / 格式错 / 唯一性冲突当场红框；
+//   - 整行被清空 → 视为"还没开始填"，清掉该行红框，不报错；
+//   - 不弹任何错误面板，错误只体现在单元格边框与顶部/状态栏的「错误」计数上。
 watch(
   () => sheetApi.revision.value,
   () => {
     totalRows.value = sheetApi.dataRowCount();
-    recomputeDirty();
-    refreshMergeCount();
-    // 大表逐格复检代价高：3000 行以内自动复检，超过则只在提交/结构变更/手动触发时校验
-    if (sheetApi.dataRowCount() <= 3000) rules.validateAndMark(defs.value);
+    const records = sheetApi.readRecords(defs.value);
+    countDirty(records);
+    const changed: number[] = [];
+    records.forEach((rec, i) => {
+      if (signatureOf(rec) !== (prevSigs[i] ?? '')) changed.push(i);
+    });
+    prevSigs = records.map(signatureOf);
+    if (changed.length) rules.revalidateRows(defs.value, changed);
   },
 );
 
 // ===================== 页面级动作 =====================
-const toggleConditional = () => {
-  conditionalOn.value = !conditionalOn.value;
-  sheetApi.applyDataBars(defs.value, conditionalOn.value);
-  ElMessage.success(conditionalOn.value ? '已开启条件格式：数值列数据条' : '已关闭条件格式');
-};
-
-const toggleFreeze = () => {
-  freezeFirst.value = !freezeFirst.value;
-  sheetApi.applyFreeze(freezeFirst.value);
-  ElMessage.success(freezeFirst.value ? '已冻结首列' : '已取消冻结首列');
-};
-
 const onUndo = () => {
   sheetApi.undo();
   setTimeout(() => {
     totalRows.value = sheetApi.dataRowCount();
     recomputeDirty();
-    rules.validateAndMark(defs.value);
   }, 120);
 };
 
@@ -436,13 +529,31 @@ const onRedo = () => {
   setTimeout(() => {
     totalRows.value = sheetApi.dataRowCount();
     recomputeDirty();
-    rules.validateAndMark(defs.value);
   }, 120);
 };
 
-const genData = (n: number) => {
-  seedData(genSampleRecords(n), `压测 ${n.toLocaleString()} 行`);
-  ElMessage.success(`已生成 ${n.toLocaleString()} 行压测数据`);
+/**
+ * 保存（mock）：**先整表复核、再打印**。
+ *   1. 全表跑一遍规则引擎（必填 / 数值区间 / 长度 / 正则 / 唯一 / 跨列），
+ *      未通过的单元格描红框（只描边、不改底色，见 useEntryRules.markErrors）；整行为空的行跳过；
+ *   2. 有错误 → 滚到第一条错误格，不打印数据（不弹面板，红框就是提示）；
+ *   3. 全部通过 → 把录入数据打印到控制台，不做真实持久化。
+ * 打印的是 readRecords 的原样记录：院区列是 {name,id,code} 对象，三者都能看到；
+ * 空行（所有列都为空）不参与保存，与提交流程口径一致。
+ */
+const onSave = () => {
+  const errs = rules.validateAndMark(defs.value);
+  if (errs.length) {
+    rules.jumpTo(errs[0]);
+    ElMessage.error(`有 ${errs.length} 处未通过校验，已用红框标出`);
+    return;
+  }
+  const records = sheetApi.readRecords(defs.value).filter((r) => !rowIsEmpty(defs.value, r));
+  console.log('[Univer 录入台] 保存数据', {
+    columns: defs.value.map((d) => ({ field: d.field, label: d.label, type: d.type })),
+    rows: records,
+  });
+  ElMessage.success(`校验通过，已保存 ${records.length} 条记录，数据已打印到控制台`);
 };
 
 </script>
@@ -505,6 +616,63 @@ html.univer-normal-rem {
 .univer-popup * {
   font-size: 12.5px !important;
   line-height: 18px !important;
+}
+
+/* ===== 下拉候选面板（数据验证下拉） =====
+   它**不是** .univer-popup，而是 teleport 到 body 的另一个 portal：
+   <section class="univer-pointer-events-auto univer-fixed univer-z-[1020]">
+     └ div.univer-rounded-lg.univer-bg-gray-0（面板）
+        └ div.univer-max-h-52（滚动区）└ div.univer-cursor-pointer（候选项）└ div.univer-rounded-full（值药丸）
+   Univer 默认 py-1(4px) + 药丸高 16px，一行只有 16px：字贴着上下沿、候选项之间又留 gap，
+   既有挤压感又显松散。这里统一成「28px 高菜单行 + 12.5px 字」，与左侧工具栏同密度。
+   选择器一律带 section.univer-pointer-events-auto 前缀，避免误伤主画布上的其它浮层。 */
+section.univer-pointer-events-auto {
+  font-size: 12.5px;
+  line-height: 20px;
+}
+/* 候选列表：拉开高度上限（208px → 264px），去掉项间 gap，左右内边距收到 4px */
+section.univer-pointer-events-auto .univer-max-h-52 {
+  max-height: 264px !important;
+}
+section.univer-pointer-events-auto .univer-gap-1 {
+  gap: 0 !important;
+}
+section.univer-pointer-events-auto .univer-px-2 {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+/* 候选项：28px 行高 + 6px 圆角，hover 由 Univer 自带的 bg 类负责 */
+section.univer-pointer-events-auto .univer-cursor-pointer {
+  min-height: 28px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+}
+/* 候选值默认会被包成一枚圆角药丸（rounded-full + px-1.5 + h-4），列表里像一串标签；
+   录入台按纯文本菜单行显示，去掉药丸的底色/内边距，只留文字 */
+section.univer-pointer-events-auto .univer-cursor-pointer .univer-rounded-full {
+  height: auto !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+section.univer-pointer-events-auto .univer-text-xs {
+  font-size: 12.5px !important;
+  line-height: 20px !important;
+}
+/* 暗色主题下候选值仍是 univer-text-gray-900（rgb(27,28,31)），落在深色面板上几乎看不见（实测对比度约 1.1:1）。
+   面板底色由主题切成深色，文字色却没跟着切 —— 这是 Univer 下拉自身的主题缺口，只能在本页补。
+   「选择一项」「编辑」等标题行走 univer-text-gray-1000/白字，不受影响。 */
+html.dark section.univer-pointer-events-auto .univer-cursor-pointer,
+html.dark section.univer-pointer-events-auto .univer-cursor-pointer * {
+  color: #e8eaee !important;
+}
+/* 选中项的勾是 svg（currentColor），上面那条会把它一起染白、丢掉「已选中」的品牌色提示，这里单独还给蓝色 */
+html.dark section.univer-pointer-events-auto .univer-cursor-pointer svg {
+  color: #4c8dfd !important;
+}
+/* 顶部过滤输入框的 placeholder 同样继承暗字，提亮后才能看见提示语 */
+html.dark section.univer-pointer-events-auto input::placeholder {
+  color: #9aa0aa !important;
 }
 </style>
 

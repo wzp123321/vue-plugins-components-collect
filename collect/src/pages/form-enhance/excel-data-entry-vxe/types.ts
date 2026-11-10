@@ -94,7 +94,7 @@ export interface Tpl {
 }
 
 // 列类型 → 中文文案，多处下拉/标签展示复用
-export const typeLabel: Record<ColType, string> = { text: '文本', number: '数字', select: '下拉', date: '日期' };
+export const typeLabel: Record<ColType, string> = { text: '文本', number: '数字', select: '下拉', date: '日期', region: '院区' };
 
 // 压测/演示数据的字典常量（useGridDemoData 随机生成姓名/部门等时使用）
 export const DEPARTMENTS = ['研发', '市场', '财务', '人事', '运营'];

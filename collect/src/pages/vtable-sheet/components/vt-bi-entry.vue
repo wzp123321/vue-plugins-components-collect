@@ -1,8 +1,12 @@
 <!--
- * 场景上下文：@visactor/vtable 上的「常见 BI 数据录入」场景，能力面对齐站内 vxe 录入台
- *   （pages/form-enhance/excel-data-entry-vxe），但走 VTable 原生能力，不重写 Excel 仿真层。
- * 技术组合：Vue3 <script setup> + @visactor/vtable 1.26.x + @visactor/vtable-editors 1.26.x
- *          + ExcelJS（导入导出）+ file-saver + Element Plus
+ * 场景上下文：本页跑在 @visactor/vtable-sheet 上（工作表容器），底层仍由 @visactor/vtable 的
+ *   ListTable 渲染，单元格编辑走 @visactor/vtable-editors。能力面对齐站内 vxe 录入台
+ *   （pages/form-enhance/excel-data-entry-vxe），但不重写 Excel 仿真层。
+ * 技术组合：Vue3 <script setup> + @visactor/vtable-sheet 1.26.x + @visactor/vtable 1.26.x
+ *          + @visactor/vtable-editors 1.26.x + ExcelJS（导入导出）+ file-saver + Element Plus
+ * 分工：sheet 管「数据 / 列 / 主题 / 生命周期 / 合并 / 冻结」，单元格级交互（选区、滚动、编辑、
+ *       重绘）走 WorkSheet 公开的 tableInstance；工具栏、撤销栈、右键菜单、查找替换是自绘的。
+ *       因此 mainMenu / showFormulaBar / showSheetTab / undoRedo 全部关闭。
  * 模块划分（./bi-entry/*）：
  *   schema.ts        数据契约（列/行/规则/字典/工具）
  *   useBiColumns     列结构增删改、显隐/冻结/分组、列模板、列宽分配
@@ -15,10 +19,10 @@
  * 踩坑落点：见 .workbuddy/memory/MEMORY.md「接缝本」
  -->
 <template>
-  <div class="vt-bi" @keydown.esc="closeOverlays">
+  <div class="vtable-sheet-bi" @keydown.esc="closeOverlays">
     <!-- ===================== 工具栏 ===================== -->
-    <div class="vt-bi__toolbar bi-toolbar">
-      <div class="vt-bi__group">
+    <div class="vtable-sheet-bi__toolbar bi-toolbar">
+      <div class="vtable-sheet-bi__group">
         <el-tooltip content="新增行（追加到末尾）" placement="bottom">
           <el-button :icon="Plus" size="small" @click="onAddRow" />
         </el-tooltip>
@@ -42,7 +46,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-tooltip content="新增列" placement="bottom">
           <el-button :icon="Grid" size="small" @click="openAddCol" />
         </el-tooltip>
@@ -59,7 +63,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-tooltip :content="`撤销${undoLabel ? '：' + undoLabel : ''} (Ctrl+Z)`" placement="bottom">
           <el-button :icon="RefreshLeft" size="small" :disabled="!canUndo" @click="onUndo" />
         </el-tooltip>
@@ -70,14 +74,14 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-input
           v-model="query.searchText.value"
           size="small"
           clearable
           :prefix-icon="Search"
           placeholder="搜索全部字段…"
-          class="vt-bi__search"
+          class="vtable-sheet-bi__search"
         />
         <el-tooltip content="查找替换 (Ctrl+F)" placement="bottom">
           <el-button :icon="Aim" size="small" :type="findVisible ? 'primary' : 'info'" plain @click="toggleFind" />
@@ -89,7 +93,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-tooltip content="导入 Excel（覆盖当前数据）" placement="bottom">
           <el-button :icon="Upload" size="small" @click="importExcel" />
         </el-tooltip>
@@ -107,7 +111,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-tooltip content="删除空行（业务列全空）" placement="bottom">
           <el-button :icon="DocumentDelete" size="small" plain @click="onRemoveEmpty" />
         </el-tooltip>
@@ -133,7 +137,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-dropdown trigger="click" @command="onPresetCommand">
           <el-button size="small" plain type="primary">
             数据
@@ -152,7 +156,7 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vt-bi__group">
+      <div class="vtable-sheet-bi__group">
         <el-dropdown trigger="click" @command="onViewCommand">
           <el-button size="small">
             {{ query.viewMode.value === 'virtual' ? '虚拟滚动' : '分页' }}
@@ -175,7 +179,7 @@
           <el-button :icon="Operation" size="small" :type="fillVisible ? 'primary' : 'info'" plain @click="fillVisible = !fillVisible" />
         </el-tooltip>
         <el-tooltip content="校验面板" placement="bottom">
-          <el-badge :value="errorCount" :hidden="errorCount === 0" type="danger" class="vt-bi__badge">
+          <el-badge :value="errorCount" :hidden="errorCount === 0" type="danger" class="vtable-sheet-bi__badge">
             <el-button :icon="Warning" size="small" @click="errDrawer = true" />
           </el-badge>
         </el-tooltip>
@@ -184,12 +188,12 @@
         </el-tooltip>
       </div>
 
-      <input ref="fileInput" type="file" accept=".xlsx,.xls" class="vt-bi__file" @change="onFileChange" />
+      <input ref="fileInput" type="file" accept=".xlsx,.xls" class="vtable-sheet-bi__file" @change="onFileChange" />
     </div>
 
     <!-- ===================== 查询 chips ===================== -->
-    <div v-if="chips.length" class="vt-bi__chips">
-      <span class="vt-bi__chips-label">查询条件</span>
+    <div v-if="chips.length" class="vtable-sheet-bi__chips">
+      <span class="vtable-sheet-bi__chips-label">查询条件</span>
       <el-tag
         v-for="c in chips"
         :key="c.key"
@@ -204,49 +208,49 @@
     </div>
 
     <!-- ===================== 查找替换条 ===================== -->
-    <div v-if="findVisible" class="vt-bi__bar">
-      <el-input v-model="findText" size="small" placeholder="查找内容" class="vt-bi__bar-input" @keyup.enter="findNext" />
-      <span class="vt-bi__bar-count">{{ findIndexLabel }}</span>
+    <div v-if="findVisible" class="vtable-sheet-bi__bar">
+      <el-input v-model="findText" size="small" placeholder="查找内容" class="vtable-sheet-bi__bar-input" @keyup.enter="findNext" />
+      <span class="vtable-sheet-bi__bar-count">{{ findIndexLabel }}</span>
       <el-button size="small" :icon="ArrowUp" @click="findPrev" />
       <el-button size="small" :icon="ArrowDown" @click="findNext" />
-      <el-input v-model="replaceText" size="small" placeholder="替换为" class="vt-bi__bar-input" />
+      <el-input v-model="replaceText" size="small" placeholder="替换为" class="vtable-sheet-bi__bar-input" />
       <el-button size="small" :disabled="!hasMatches" @click="replaceCurrent">替换</el-button>
       <el-button size="small" type="primary" plain :disabled="!hasMatches" @click="replaceAll">全部替换</el-button>
       <el-button size="small" text :icon="Close" @click="findVisible = false" />
     </div>
 
     <!-- ===================== 批量填充条 ===================== -->
-    <div v-if="fillVisible" class="vt-bi__bar">
-      <span class="vt-bi__bar-label">列</span>
-      <el-select v-model="fillField" size="small" placeholder="选择列" class="vt-bi__bar-select">
+    <div v-if="fillVisible" class="vtable-sheet-bi__bar">
+      <span class="vtable-sheet-bi__bar-label">列</span>
+      <el-select v-model="fillField" size="small" placeholder="选择列" class="vtable-sheet-bi__bar-select">
         <el-option v-for="c in visibleCols" :key="c.field" :label="c.label" :value="c.field" />
       </el-select>
-      <el-input v-model="fillValue" size="small" placeholder="填入值" class="vt-bi__bar-input" />
-      <el-select v-model="fillScope" size="small" class="vt-bi__bar-select">
+      <el-input v-model="fillValue" size="small" placeholder="填入值" class="vtable-sheet-bi__bar-input" />
+      <el-select v-model="fillScope" size="small" class="vtable-sheet-bi__bar-select">
         <el-option label="选区" value="selected" />
         <el-option label="当前结果" value="result" />
         <el-option label="全部" value="all" />
       </el-select>
       <el-button size="small" type="primary" @click="doBatchFill">填充</el-button>
       <el-button size="small" @click="doBatchClear">清空该列</el-button>
-      <span class="vt-bi__bar-hint">选区模式先拖拽框选；数字列只接受数值</span>
+      <span class="vtable-sheet-bi__bar-hint">选区模式先拖拽框选；数字列只接受数值</span>
     </div>
 
     <!-- ===================== 表格 ===================== -->
-    <div ref="tableRef" class="vt-bi__table bi-panel"></div>
+    <div ref="tableRef" class="vtable-sheet-bi__table bi-panel"></div>
 
     <!-- ===================== 列汇总 ===================== -->
-    <div v-if="showSummary" class="vt-bi__summary">
-      <span class="vt-bi__summary-title">汇总（当前结果）</span>
-      <span v-for="s in summaryItems" :key="s.field" class="vt-bi__summary-item">
+    <div v-if="showSummary" class="vtable-sheet-bi__summary">
+      <span class="vtable-sheet-bi__summary-title">汇总（当前结果）</span>
+      <span v-for="s in summaryItems" :key="s.field" class="vtable-sheet-bi__summary-item">
         <b>{{ s.label }}</b>
         合计 {{ s.sum }} · 均值 {{ s.avg }} · 最大 {{ s.max }} · 最小 {{ s.min }} · {{ s.count }} 项
       </span>
-      <span v-if="!summaryItems.length" class="vt-bi__summary-item">当前结果没有可统计的数值列</span>
+      <span v-if="!summaryItems.length" class="vtable-sheet-bi__summary-item">当前结果没有可统计的数值列</span>
     </div>
 
     <!-- ===================== 分页 ===================== -->
-    <div v-if="query.viewMode.value === 'paged'" class="vt-bi__pager">
+    <div v-if="query.viewMode.value === 'paged'" class="vtable-sheet-bi__pager">
       <el-pagination
         v-model:current-page="query.page.value"
         v-model:page-size="query.pageSize.value"
@@ -259,8 +263,8 @@
     </div>
 
     <!-- ===================== 状态栏 ===================== -->
-    <div class="vt-bi__status bi-statusbar">
-      <span class="vt-bi__status-pos sb-item pos">{{ posLabel }}</span>
+    <div class="vtable-sheet-bi__status bi-statusbar">
+      <span class="vtable-sheet-bi__status-pos sb-item pos">{{ posLabel }}</span>
       <span class="sb-item">行数 <b>{{ displayRows.length }}</b>/{{ records.length }}</span>
       <span class="sb-item">改动 <b :class="{ 'c-warn': dirtyCount > 0 }">{{ dirtyCount }}</b></span>
       <span class="sb-item">选中 <b :class="{ 'c-ok': selectedCount > 0 }">{{ selectedCount }}</b></span>
@@ -289,30 +293,30 @@
     </div>
 
     <!-- ===================== 右键菜单 ===================== -->
-    <div v-if="menu.show" class="vt-bi__menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
-      <div class="vt-bi__menu-item" @click="menuAct('copy')">复制</div>
-      <div class="vt-bi__menu-item" @click="menuAct('paste')">粘贴</div>
-      <div class="vt-bi__menu-sep" />
-      <div class="vt-bi__menu-item" @click="menuAct('insertUp')">在上方插入行</div>
-      <div class="vt-bi__menu-item" @click="menuAct('insertDown')">在下方插入行</div>
-      <div class="vt-bi__menu-sep" />
-      <div class="vt-bi__menu-item" @click="menuAct('clear')">清空内容</div>
-      <div class="vt-bi__menu-item danger" @click="menuAct('deleteRow')">删除本行</div>
-      <div class="vt-bi__menu-sep" />
-      <div class="vt-bi__menu-item" @click="menuAct('insertColLeft')">在左侧插入列</div>
-      <div class="vt-bi__menu-item" @click="menuAct('insertColRight')">在右侧插入列</div>
-      <div class="vt-bi__menu-item" @click="menuAct('cloneCol')">复制列</div>
-      <div class="vt-bi__menu-item danger" @click="menuAct('deleteCol')">删除本列</div>
+    <div v-if="menu.show" class="vtable-sheet-bi__menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('copy')">复制</div>
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('paste')">粘贴</div>
+      <div class="vtable-sheet-bi__menu-sep" />
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertUp')">在上方插入行</div>
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertDown')">在下方插入行</div>
+      <div class="vtable-sheet-bi__menu-sep" />
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('clear')">清空内容</div>
+      <div class="vtable-sheet-bi__menu-item danger" @click="menuAct('deleteRow')">删除本行</div>
+      <div class="vtable-sheet-bi__menu-sep" />
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertColLeft')">在左侧插入列</div>
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertColRight')">在右侧插入列</div>
+      <div class="vtable-sheet-bi__menu-item" @click="menuAct('cloneCol')">复制列</div>
+      <div class="vtable-sheet-bi__menu-item danger" @click="menuAct('deleteCol')">删除本列</div>
     </div>
 
     <!-- ===================== 校验抽屉 ===================== -->
     <el-drawer v-model="errDrawer" title="校验未通过" size="420px" class="bi-dlg">
       <el-empty v-if="!errorItems.length" description="没有校验错误" :image-size="80" />
-      <div v-else class="vt-bi__errlist">
-        <div v-for="e in errorItems" :key="e.key" class="vt-bi__errrow" @click="jumpToError(e)">
-          <span class="vt-bi__errrow-pos">第 {{ e.rowNo }} 行</span>
-          <span class="vt-bi__errrow-label">{{ e.label }}</span>
-          <span class="vt-bi__errrow-msg">{{ e.msg }}</span>
+      <div v-else class="vtable-sheet-bi__errlist">
+        <div v-for="e in errorItems" :key="e.key" class="vtable-sheet-bi__errrow" @click="jumpToError(e)">
+          <span class="vtable-sheet-bi__errrow-pos">第 {{ e.rowNo }} 行</span>
+          <span class="vtable-sheet-bi__errrow-label">{{ e.label }}</span>
+          <span class="vtable-sheet-bi__errrow-msg">{{ e.msg }}</span>
         </div>
       </div>
     </el-drawer>
@@ -371,17 +375,17 @@
 
     <!-- ===================== 筛选 / 排序抽屉 ===================== -->
     <el-drawer v-model="queryDrawer" title="筛选 / 排序" size="420px" class="bi-dlg">
-      <div class="vt-bi__querybox">
-        <el-select v-model="queryField" size="small" placeholder="选择列" class="vt-bi__coleselect">
+      <div class="vtable-sheet-bi__querybox">
+        <el-select v-model="queryField" size="small" placeholder="选择列" class="vtable-sheet-bi__coleselect">
           <el-option v-for="c in visibleCols" :key="c.field" :label="c.label" :value="c.field" />
         </el-select>
         <el-button size="small" @click="query.cycleSort(queryField, true)" :disabled="!queryField">按此列排序</el-button>
       </div>
 
       <template v-if="queryCol">
-        <div class="vt-bi__querysub">{{ queryCol.label }} · 筛选</div>
+        <div class="vtable-sheet-bi__querysub">{{ queryCol.label }} · 筛选</div>
         <template v-if="queryCol.type === 'number'">
-          <div class="vt-bi__querybox">
+          <div class="vtable-sheet-bi__querybox">
             <el-input-number v-model="filterDraft.min" :controls="false" size="small" placeholder="最小值" />
             <el-input-number v-model="filterDraft.max" :controls="false" size="small" placeholder="最大值" />
             <el-button size="small" type="primary" @click="applyFilter">应用</el-button>
@@ -389,10 +393,10 @@
           </div>
         </template>
         <template v-else>
-          <el-select v-model="filterDraft.values" multiple filterable allow-create size="small" placeholder="选择或输入取值" class="vt-bi__full">
+          <el-select v-model="filterDraft.values" multiple filterable allow-create size="small" placeholder="选择或输入取值" class="vtable-sheet-bi__full">
             <el-option v-for="v in distinctValues" :key="v" :label="v" :value="v" />
           </el-select>
-          <div class="vt-bi__querybox">
+          <div class="vtable-sheet-bi__querybox">
             <el-button size="small" type="primary" @click="applyFilter">应用</el-button>
             <el-button size="small" @click="clearFilterOf(queryField)">清除</el-button>
           </div>
@@ -401,7 +405,7 @@
 
       <el-divider>当前条件</el-divider>
       <el-empty v-if="!chips.length" description="没有筛选或排序条件" :image-size="60" />
-      <div v-else class="vt-bi__querylist">
+      <div v-else class="vtable-sheet-bi__querylist">
         <el-tag v-for="c in chips" :key="c.key" size="small" closable @close="c.remove()">{{ c.label }}</el-tag>
       </div>
     </el-drawer>
@@ -446,8 +450,12 @@ import {
   Upload,
   Warning,
 } from '@element-plus/icons-vue';
-import { ListTable, register, themes, type ColumnsDefine } from '@visactor/vtable';
+import { register, themes, type ColumnsDefine, type ListTable, type ListTableConstructorOptions } from '@visactor/vtable';
 import { DateInputEditor, InputEditor, ListEditor } from '@visactor/vtable-editors';
+// vtable-sheet 内部强制装载 context-menu-plugin 会再画一份右键菜单，与本页自绘的 vtable-sheet-bi__menu 冲突（双弹）。
+// 提升为直接依赖，仅禁用这一个插件；其余插件（筛选/序号/自动填充/编辑键盘/导入导出）保持默认。
+import { ContextMenuPlugin } from '@visactor/vtable-plugins';
+import { VTableSheet, type ISheetDefine } from '@visactor/vtable-sheet';
 import { useThemeStore } from '@/store/modules/useThemeStore';
 import {
   emptyValueFor,
@@ -503,6 +511,9 @@ interface CellRange {
 const themeStore = useThemeStore();
 const tableRef = ref<HTMLElement>();
 const fileInput = ref<HTMLInputElement>();
+/** VTable-Sheet 实例：工作表容器，数据 / 列 / 主题 / 生命周期归它管 */
+let sheet: VTableSheet | null = null;
+/** 底层 ListTable：WorkSheet 官方暴露的逃生口，选区 / 滚动 / 编辑 / 合并等细粒度操作走它 */
 let table: ListTable | null = null;
 
 /** 统计口径的刷新触发器：record 内部字段变化不改数组引用，需要 tick 让 computed 重算 */
@@ -768,6 +779,9 @@ const syncData = (keepSelection = false) => {
     return;
   }
   const sel = keepSelection ? selectionRect.value : null;
+  // 直接写底层 records：sheet 的 updateSheetOption({ data }) 会重建表格，丢掉选区与滚动位置。
+  // 代价是 sheet 的数据出口（getData / exportData / saveToConfig）会滞后 —— 本页导入导出走 exceljs，
+  // 不读这两个口；后续若要启用，需改走 updateSheetOption 并自行恢复选区。
   table.setRecords(displayRows.value);
   if (!sel) {
     return;
@@ -1131,37 +1145,77 @@ const buildTableTheme = () => {
 /** 建表时容器宽度（0 表示容器还没尺寸，等 resize 里再补一次分配） */
 let builtWidth = 0;
 
+/**
+ * sheet 的工作表定义。
+ * ISheetDefine 只声明了「工作表语义」字段（data / columns / cellMerge / frozenColCount…），
+ * 但 WorkSheet 内部是 `Object.assign({}, sheetOptions, {...覆盖项})` 整包转给 ListTable，
+ * 所以 VTable 的构造选项可以透传进来（键盘流 / 双击编辑 / 右键拦截 / 列宽拖拽）。
+ * 唯一例外：excelOptions 会被 sheet 整体替换为 `{ fillHandle: true }`。
+ */
+type BiSheetDefine = ISheetDefine &
+  Omit<ListTableConstructorOptions, keyof ISheetDefine | 'records' | 'container'>;
+
+const BI_SHEET_KEY = 'bi';
+
 const rebuild = () => {
   ensureEditors();
-  table?.release();
+  // sheet.release() 会连带释放底层 ListTable，不要再单独 table.release()
+  sheet?.release();
+  sheet = null;
+  table = null;
   const container = tableRef.value as HTMLElement | undefined;
   if (!container) {
     return;
   }
   builtWidth = container.clientWidth || 0;
-  table = new ListTable({
-    container,
-    records: displayRows.value,
-    columnResizeMode: 'all',
+
+  const define: BiSheetDefine = {
+    sheetKey: BI_SHEET_KEY,
+    sheetTitle: '录入',
+    // 列定义沿用 VTable 的 ColumnsDefine：IColumnDefine 继承 ColumnDefine，
+    // field / style / cellType / 嵌套 columns 全都透传，多级表头与逐格标红不用改写法
+    columns: buildColumns(builtWidth) as ISheetDefine['columns'],
+    data: displayRows.value,
     frozenColCount: frozenCount(),
-    theme: buildTableTheme(),
+    // 合并是配置态：重建时必须重新下发，否则运行时合并的区块会丢
+    cellMerge: mergeList.value.map(({ c0, r0, c1, r1 }) => ({
+      range: { start: { col: c0, row: r0 }, end: { col: c1, row: r1 } },
+      isCustom: true,
+    })),
+    columnResizeMode: 'all',
     editCellTrigger: 'doubleclick',
-    excelOptions: { fillHandle: true },
     keyboardOptions: {
       moveFocusCellOnTab: true,
       editCellOnEnter: true,
       moveFocusCellOnEnter: true,
       moveEditCellOnArrowKeys: true,
       selectAllOnCtrlA: true,
-      copySelected: true,
-      showCopyCellBorder: true,
-      pasteValueToCell: false,
       shiftMultiSelect: true,
       ctrlMultiSelect: true,
     },
     eventOptions: { preventDefaultContextMenu: true },
-    columns: buildColumns(builtWidth),
+  };
+
+  // sheet 自带菜单栏 / 公式栏 / 页签栏 / 撤销按钮全部关掉：本页工具栏、撤销栈（useBiHistory）、
+  // 右键菜单都是自绘的，开着就是两套并存。默认行高 32 对齐 vxe 录入台的密排观感。
+  sheet = new VTableSheet(container, {
+    showFormulaBar: false,
+    showSheetTab: false,
+    mainMenu: { show: false },
+    undoRedo: { show: false },
+    // 禁用 vtable-sheet 自带的 context-menu-plugin：它与本页自绘的 vtable-sheet-bi__menu 都会监听右键，会双弹。
+    // 本页右键由 table.on('contextmenu_cell') 触发，原生菜单已被 eventOptions.preventDefaultContextMenu 屏蔽。
+    VTablePluginModules: [{ module: ContextMenuPlugin, disabled: true }],
+    defaultRowHeight: 32,
+    theme: { tableTheme: buildTableTheme() },
+    sheets: [define as ISheetDefine],
   });
+
+  // 单元格级交互（选区 / 滚动 / 编辑 / 重绘 / 合并）继续走底层 ListTable —— 官方在工作表上公开了该实例
+  table = sheet.getActiveSheet()?.tableInstance ?? null;
+  if (!table) {
+    return;
+  }
   table.on('change_cell_value', onCellChange);
   table.on('checkbox_state_change', onCheckboxChange);
   table.on('click_cell', onClickCell);
@@ -1170,7 +1224,7 @@ const rebuild = () => {
   table.on('mousedown_fill_handle', onFillStart);
   table.on('drag_fill_handle_end', onFillEnd);
   table.on('dblclick_fill_handle', onFillToEnd);
-  mergeList.value.forEach(({ c0, r0, c1, r1 }) => table?.mergeCells(c0, r0, c1, r1));
+  // 合并区域已通过 sheet 的 cellMerge 配置下发，这里不再逐个 mergeCells，避免重复合并
 };
 
 // 迟绑定钩子赋值：此刻所有函数已定义
@@ -1510,6 +1564,12 @@ const onKeydown = (e: KeyboardEvent) => {
   const mod = e.ctrlKey || e.metaKey;
   const key = e.key.toLowerCase();
   const cell = activeCell.value;
+  // sheet 在底层强制开启 copySelected / pasteValueToCell / cutSelected（源码里写死，透传配置改不掉），
+  // 会和自研的剪贴板 / 撤销 / 填充抢同一组快捷键。这里在 capture 阶段截断事件传播，
+  // 由下面的自研实现独占处理，否则一次 Ctrl+V 会写两遍。
+  if (mod && ['c', 'v', 'x', 'z', 'y', 'd', 'r', 'f', 'h'].includes(key)) {
+    e.stopPropagation();
+  }
   if (mod && key === 'f') {
     e.preventDefault();
     findVisible.value = true;
@@ -2360,14 +2420,16 @@ onMounted(() => {
   if (conditionalOn.value) {
     refreshColMax();
   }
-  window.addEventListener('keydown', onKeydown);
+  window.addEventListener('keydown', onKeydown, true);
   window.addEventListener('click', onGlobalClick);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown);
+  window.removeEventListener('keydown', onKeydown, true);
   window.removeEventListener('click', onGlobalClick);
-  table?.release();
+  // sheet.release() 内部会释放 tableInstance，再单独 table.release() 就是重复释放
+  sheet?.release();
+  sheet = null;
   table = null;
 });
 
@@ -2409,10 +2471,10 @@ const chipTagType = chipType;
 
 /** 父页面（tabs 场景）从隐藏变可见后调用：Canvas 在 display:none 里初始化会得到 0 尺寸 */
 const resize = () => {
-  if (!table) {
+  if (!sheet) {
     return;
   }
-  table.resize();
+  sheet.resize();
   // 首次挂载在隐藏的 tab 里时容器宽为 0，列宽只能按最小宽兜底 → 表格填不满面板。
   // 容器一有宽度就按真实宽度重算一次列宽（此时才谈得上"撑满"）。
   const w = tableRef.value?.clientWidth ?? 0;
@@ -2425,7 +2487,7 @@ defineExpose({ resize });
 </script>
 
 <style lang="less" scoped>
-.vt-bi {
+.vtable-sheet-bi {
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -2506,6 +2568,12 @@ defineExpose({ resize });
   // 表格区：边框/圆角/底色/阴影/撑满都来自 .bi-panel（全局 bi-entry.less），此处只补宽度
   &__table {
     width: 100%;
+
+    // sheet 自建根节点 .vtable-sheet-container 要撑满 .bi-panel，否则内容区高度塌陷成 0
+    :deep(.vtable-sheet-container) {
+      height: 100%;
+      min-height: 0;
+    }
   }
 
   &__summary {

@@ -1,5 +1,5 @@
 ---
-name: ui-case-runner
+name: ui-test-runner
 description: 自动执行 HLMS 测试用例（Excel 用例库 → 浏览器 UI 自动化 → 通过/失败报告）。当用户要求「执行用例」「跑 1 级用例」「看实施效果」，或提供测试用例库 xlsx 并要求执行时使用。覆盖前置依赖与素材盘点、一次性写操作授权、登录与组织选择、门户磁贴入口、带 appInstanceId 的页面 URL、playwright-cli 操作、逐步证据落盘、代码检索归因与结果判定。
 agent_created: true
 ---
@@ -29,7 +29,7 @@ agent_created: true
 
 1. **依赖文件存在性**（参照上文「唯一真相源」表，不重复罗列）：
    - `INDEX.md`、`credentials.local.env`、`auth-group.json` 三者在 `D:/workspace/company/test-workspace/` 下存在；
-   - 解析脚本存在：`C:/Users/wanzh/.workbuddy/skills/ui-case-runner/scripts/parse_cases.py`。
+   - 解析脚本存在：`C:/Users/wanzh/.workbuddy/skills/ui-test-runner/scripts/parse_cases.py`。
 2. **用例库存在性**：用户提供的 `.xlsx` 路径，或 `INDEX.md` 指明的权威用例库路径，文件存在且可读。
 3. **环境可达性**：对 `INDEX.md`「环境」节中的目标地址做一次轻量 HTTP 探测（期望 2xx/3xx 或登录页响应）；不可达直接标 `BLOCKED` 并停止，不进入浏览器步骤。
 4. **INDEX.md 明文校验**：`.md` 可能被透明加密，读取前确认非密文（出现 `E-SafeNet` 标记即密文）；若为密文，先解密再继续，禁止拿密文当真相源。
@@ -41,7 +41,7 @@ agent_created: true
 ## 执行流程
 
 1. **读台账** `INDEX.md`，确认目标环境、当前权威用例库、上批次结论。
-2. **解析用例库**：`python "C:/Users/wanzh/.workbuddy/skills/ui-case-runner/scripts/parse_cases.py" <xlsx路径> > cases-<批次>.json`。脚本只用标准库（本机无 openpyxl / pandas），JSON 走 stdout，摘要走 stderr；脚本绝对路径已写死，执行时工作目录不必是 skill 目录。
+2. **解析用例库**：`python "C:/Users/wanzh/.workbuddy/skills/ui-test-runner/scripts/parse_cases.py" <xlsx路径> > cases-<批次>.json`。脚本只用标准库（本机无 openpyxl / pandas），JSON 走 stdout，摘要走 stderr；脚本绝对路径已写死，执行时工作目录不必是 skill 目录。
 3. **锁定范围（硬门控）**：scope 三要素 = 用例库 + 级别 + 模块/页面，三者必须齐全且经用户确认，**确认前不得打开浏览器**。用户说「只执行 1」即 `级别 == '1'`；用户限定「本次只跑数据门户 2 级」时以该口径为准，不跨库、不跨级、不跨模块。输出总数、模块分布、key 清单供确认；缺任一要素只问一次，不按默认补齐、不擅自扩大到相邻级别或其他库。
 4. **建批次目录** `runs/<YYYY-MM-DD>-<批次名>/`；把自检确认的素材路径、缺失项、授权范围写进 `RESULT.md`「用例范围」，不另建清单文件。
 5. **执行**：按「浏览器操作铁律」逐条跑，**每条用例每个步骤落一条 DOM 证据或阻塞原因**（见「判定口径」）；找不到入口时先走「代码检索归因」，不直接标未执行。

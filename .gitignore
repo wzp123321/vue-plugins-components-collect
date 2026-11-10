@@ -39,3 +39,4 @@ auto-imports.d.ts
 .verify
 .npm-cache
 collect/vite.verify.config.ts
+.playwright-cli

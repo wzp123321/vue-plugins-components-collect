@@ -20,7 +20,7 @@
     @close="close"
     @update:model-value="(v: boolean) => emit('update:visible', v)"
   >
-    <div v-if="column" class="bcd">
+    <div v-if="column || isAddMode" class="bcd">
       <el-form label-width="88px" label-position="left" size="small" class="bcd-form">
         <!-- ===== 基本信息 ===== -->
         <section class="bcd-sec">
@@ -63,6 +63,9 @@
             <el-select v-model="draft.dateFormat" filterable allow-create default-first-option style="width: 100%">
               <el-option v-for="f in DATE_FORMATS" :key="f" :label="f" :value="f" />
             </el-select>
+          </el-form-item>
+          <el-form-item v-else-if="draft.type === 'region'" label="院区选择">
+            <div class="bcd-hint">点击该列单元格会弹出「院区选择框」，选中后回填院区名称，并保存 id / code</div>
           </el-form-item>
           <p v-else class="bcd-sec__empty">文本类型无需额外配置</p>
         </section>
@@ -145,8 +148,8 @@
         </section>
       </el-form>
 
-      <!-- ===== 危险操作 ===== -->
-      <section class="bcd-sec bcd-sec--danger">
+      <!-- ===== 危险操作（新增模式还没有这列，隐藏） ===== -->
+      <section v-if="!isAddMode" class="bcd-sec bcd-sec--danger">
         <div class="bcd-sec__hd"><span>危险操作</span></div>
         <p class="bcd-sec__desc">删除后该列及已录入数据将从表格移除，且不可撤销。</p>
         <el-button type="danger" plain @click="onRemove">删除该列</el-button>
@@ -174,6 +177,8 @@ const props = defineProps<{
   visible: boolean;
   /** 要配置的列（真实列定义；打开时拷入草稿，外部变化不影响正在编辑的内容） */
   column?: BiColLike | null;
+  /** 新增模式：由「新增列」按钮打开，草稿置空、不显示删除区、确认时 emit('add') */
+  add?: boolean;
   /** 引擎能力开关：不传即一律不显示对应项 */
   caps?: ColumnCaps;
   /** 同表其它列：跨列规则的参照列候选 */
@@ -184,14 +189,16 @@ const emit = defineEmits<{
   (e: 'update:visible', v: boolean): void;
   (e: 'confirm', draft: ColumnDraft): void;
   (e: 'remove'): void;
+  (e: 'add', draft: Omit<ColumnDraft, 'field'>): void;
 }>();
 
-/** 四种列类型：这是产品口径，不跟随各引擎的类型枚举命名 */
+/** 五种列类型：这是产品口径，不跟随各引擎的类型枚举命名 */
 const TYPES: { value: ColType; label: string }[] = [
   { value: 'text', label: '文本' },
   { value: 'number', label: '数字' },
   { value: 'select', label: '下拉' },
   { value: 'date', label: '日期' },
+  { value: 'region', label: '院区' },
 ];
 
 /** 日期格式预设：存储恒为 YYYY-MM-DD，这里只决定展示与编辑框呈现 */
@@ -220,9 +227,15 @@ const draft = reactive<DraftState>({
 const caps = computed<ColumnCaps>(() => props.caps ?? {});
 const otherColumns = computed(() => (props.siblings ?? []).filter((s) => s.field !== draft.field));
 
-/** 标题里的列名取「打开时」的快照：跟着输入框实时变会让标题抖动 */
+/** 新增模式由 add 显式指定：column 为空还可能是「列已被删除」，两者不能混为一谈 */
+const isAddMode = computed(() => !!props.add);
+
+/** 标题：新增模式固定「新增列」；编辑模式取打开时的列名快照（不随输入框实时跳动） */
 const titleLabel = ref('');
-const title = computed(() => (titleLabel.value ? `列配置 · ${titleLabel.value}` : '列配置'));
+const title = computed(() => {
+  if (isAddMode.value) return '新增列';
+  return titleLabel.value ? `列配置 · ${titleLabel.value}` : '列配置';
+});
 
 /** 分区标题上的当前类型小标签 */
 const typeLabel = computed(() => TYPES.find((t) => t.value === draft.type)?.label ?? draft.type);
@@ -243,16 +256,45 @@ const fillFrom = (col: BiColLike) => {
   draft.cross = (col.cross ?? []).map((c) => ({ ...c }));
 };
 
+/** 新增模式：把草稿重置为空白列定义（不污染任何现有列） */
+const resetForAdd = () => {
+  draft.field = '';
+  draft.label = '';
+  draft.type = 'text';
+  draft.required = false;
+  draft.visible = true;
+  draft.frozen = false;
+  draft.width = undefined;
+  draft.group = '';
+  draft.dateFormat = DEFAULT_DATE_FORMAT;
+  draft.options = [];
+  draft.rules = {};
+  draft.cross = [];
+};
+
 watch(
-  () => [props.visible, props.column?.field] as const,
+  () => [props.visible, props.column?.field, props.add] as const,
   ([visible]) => {
-    if (!visible || !props.column) {
-      return;
+    if (!visible) return;
+    if (props.add) {
+      resetForAdd();
+      titleLabel.value = '';
+    } else if (props.column) {
+      fillFrom(props.column);
+      titleLabel.value = props.column.label;
     }
-    fillFrom(props.column);
-    titleLabel.value = props.column.label;
   },
   { immediate: true },
+);
+
+/** 新增模式下，把类型切到「院区」且列名还空时，自动预填「院区」 */
+watch(
+  () => draft.type,
+  (t) => {
+    if (isAddMode.value && t === 'region' && !draft.label.trim()) {
+      draft.label = '院区';
+    }
+  },
 );
 
 // ===================== 数值类规则的可写代理 =====================
@@ -312,8 +354,7 @@ const confirm = () => {
     ElMessage.warning('下拉列至少填一个选项');
     return;
   }
-  emit('confirm', {
-    field: draft.field,
+  const payload = {
     label,
     type: draft.type,
     required: draft.required,
@@ -325,7 +366,12 @@ const confirm = () => {
     options,
     rules: compactRules(draft.rules),
     cross: draft.cross.filter((c) => c.other).map((c) => ({ ...c, msg: c.msg?.trim() || undefined })),
-  });
+  };
+  if (isAddMode.value) {
+    emit('add', payload);
+  } else {
+    emit('confirm', { ...payload, field: draft.field });
+  }
   close();
 };
 

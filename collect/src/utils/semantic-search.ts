@@ -89,7 +89,7 @@ const INTENT_ALIASES: Record<string, string[]> = {
   '/echarts-province': ['省份地图', '中国省份', '城市地图', '发电量', '城市排行'],
   '/echarts': ['图表', '折线', '柱状', '饼图'],
   '/vchart': ['vchart', 'visactor', '字节图表', '叙事可视化', '声明式图表', '图表对比'],
-  '/vtable': ['vtable', 'visactor', '表格', '高性能表格', 'canvas表格', '编辑表格', '单元格编辑', 'input编辑器', '日期编辑器', '下拉编辑器', 'textarea编辑器', 'bi数据录入', '数据录入', '批量录入', '导入导出', '撤销重做', '批量填充', '压测'],
+  '/vtable-sheet': ['vtable-sheet', 'vtable', 'visactor', '表格', '高性能表格', 'canvas表格', '编辑表格', '单元格编辑', 'input编辑器', '日期编辑器', '下拉编辑器', 'textarea编辑器', 'bi数据录入', '数据录入', '批量录入', '导入导出', '撤销重做', '批量填充', '压测'],
   '/form-excel-data-entry-vxe': ['表格录入', 'excel录入', 'vxe', '在线表格', '可编辑表格'],
   '/data-platform-univer-entry': ['univer', 'dreamnum', '开源office', '画布表格', '数据录入', 'bi录入', '数据验证', '条件格式', '查找替换', '开源sdk'],
   '/form-export-to-excel': ['导出excel', '导出表格', 'exceljs', '导出报表', '导出数据'],

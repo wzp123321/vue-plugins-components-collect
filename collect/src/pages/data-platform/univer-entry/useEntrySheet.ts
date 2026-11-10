@@ -19,7 +19,7 @@
 //   - 脏标记没有行对象可挂，改用"命令执行 → 去抖 → 与基线快照逐格比对"，见页面层 recomputeDirty。
 // ============================================================================
 import { ref, shallowRef } from 'vue';
-import { createUniver, LocaleType, mergeLocales, defaultTheme } from '@univerjs/presets';
+import { DataValidationRenderMode, createUniver, LocaleType, mergeLocales, defaultTheme } from '@univerjs/presets';
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverCoreZhCN from '@univerjs/preset-sheets-core/locales/zh-CN';
 import { UniverSheetsSortPreset } from '@univerjs/preset-sheets-sort';
@@ -37,7 +37,9 @@ import {
   ENTRY_FONT_SIZE,
   ENTRY_ROW_HEIGHT,
   HEADER_BG_LIGHT,
+  HEADER_BORDER_COLOR,
   HEADER_ROW,
+  HEADER_ROW_HEIGHT,
   SHEET_COLUMN_COUNT,
   SHEET_ROW_COUNT,
   fromCellValue,
@@ -45,7 +47,8 @@ import {
   type ColDef,
   type EntryRecord,
 } from './schema';
-import type { UApi, UIRange, USheet } from './univer-types';
+import { findRegionByName, isRegionValue, type RegionValue } from './region-data';
+import type { UApi, UIRange, USheet, UWorkbook } from './univer-types';
 
 /**
  * Univer 主题：整体替换（ThemeService 不合并，必须全量透传 official defaultTheme）。
@@ -62,7 +65,7 @@ import type { UApi, UIRange, USheet } from './univer-types';
  * ⚠️ highlight.background[i].color 必须是「主题键路径」（如 "orange.400"），Univer 渲染时
  *   按 get(theme, color) 解析；填十六进制字符串会被解析成 theme["#ff8f1f"] → undefined 而失效。
  */
-// 品牌主色尺：与 vxe(--dt-primary)/VTable(--bi-primary) 同源，选区 / 强调统一为这套蓝
+// 品牌主色尺：与 vxe(--dt-primary)/vtable-sheet(--bi-primary) 同源，选区 / 强调统一为这套蓝
 const BRAND_PRIMARY_LIGHT = {
   50: '#eef2ff', 100: '#e2e9ff', 200: '#c9d6ff', 300: '#a9bcff', 400: '#7d97ff',
   500: '#2b5cf6', 600: '#1f4ee0', 700: '#1a40bd', 800: '#153399', 900: '#102678',
@@ -93,6 +96,14 @@ export interface SelectionInfo {
 const COMMAND_DEBOUNCE_MS = 260;
 
 /**
+ * 判定"点击"的最大指针位移（px）。
+ * Univer 的 CellClicked 最终挂在浏览器的 click 事件上，而**拖拽结束后同样会补一个 click**：
+ * 拖右下角 ▢ 填充柄做序列填充、按住拖选一片区域，松手都会走到 CellClicked。
+ * 位移超过该阈值即视为拖拽，不当作"点了这个单元格"（页面据此决定要不要弹院区选择框）。
+ */
+const CLICK_SLOP_PX = 4;
+
+/**
  * 创建并托管 Univer 实例。
  * 返回的读写方法全部是命令式的（内部读 Facade API），调用方不必关心实例细节。
  */
@@ -100,12 +111,48 @@ export const useEntrySheet = () => {
   // Univer 实例与 API：绝不能进 ref/reactive（会代理内部模型导致渲染异常）
   let univerInstance: { dispose: () => void } | null = null;
   let apiInstance: UApi | null = null;
+  /** 当前工作簿句柄：清空选区等命令需要 unitId */
+  let workbookRef: UWorkbook | null = null;
+  /** 画布容器：用来挂指针监听（判断"这次到底是不是一次点击"） */
+  let containerEl: HTMLElement | null = null;
+  /** 本次按下的位置；pointerup 时用来算位移 */
+  let pointerStart: { x: number; y: number } | null = null;
+  /**
+   * "用户点中了某一格"的订阅者（页面用它弹下拉列表、弹院区选择框）。
+   *
+   * ⚠️ 没有用 Univer 的 `CellClicked` 事件：sheets-ui 那边是
+   *   `FUniver._initObserverListener` 在「出现 sheet + Lifecycle ≥ Rendered」时才订阅
+   *   `HoverManagerService.currentClickedCell$`，本页实测始终收不到
+   *   （DOM 的 pointerdown/mousedown/click 确实都落在 canvas 上，回调却不触发；
+   *   早前"双击院区列弹选择框"其实也依赖它，所以那条路同样是哑的）。
+   * 这里改成自己判：容器内 pointerdown → window pointerup，位移未超阈值即视为点击，
+   * 再读当前选区左上角那一格。不依赖 Univer 内部事件时序，也天然排除拖选 / 拖填充柄。
+   */
+  let cellPickCb: ((params: { row: number; column: number }) => void) | null = null;
 
   const ready = ref(false);
   const sheet = shallowRef<USheet | null>(null);
   const selection = ref<SelectionInfo | null>(null);
   /** 命令执行计数：每有数据/结构变更自增一次，供上层用 watch 触发重算 */
   const revision = ref(0);
+
+  /**
+   * 松手认定成"点击"后，把这次点中的格报给订阅者。
+   *
+   * 同步读 `getActiveCell()` 而不是 `selection` ref：Univer 的 selection 快照是在 pointerup
+   * **之后**（click 阶段）才刷新的，pointerup 里读 ref 拿到的是 null（实测）；
+   * 活动格则在 pointerdown 时就已经落到文档模型里，pointerup 读它拿到的就是这次点中的那一格。
+   * 同步上报还有个额外好处：双击的 dblclick 回调能立刻拿到坐标（异步上报会晚于 dblclick）。
+   * 单格点击才会走到这里（拖选 / 拖填充柄在 pointerup 就返回了），所以不必再校验选区大小。
+   */
+  const emitCellClick = () => {
+    const cb = cellPickCb;
+    const ws = sheet.value;
+    if (!cb || !ws) return;
+    const active = ws.getActiveCell();
+    if (!active) return;
+    cb({ row: active.getRow(), column: active.getColumn() });
+  };
 
   let commandTimer: number | null = null;
   const bumpRevision = () => {
@@ -116,8 +163,7 @@ export const useEntrySheet = () => {
     }, COMMAND_DEBOUNCE_MS);
   };
 
-  /** 默认工作簿快照：单 sheet，行/列数一次给足（避免边录边扩行触发整表重排） */
-  const buildWorkbookData = () => ({
+  /** 默认工作簿快照：单 sheet，行/列数一次给足（避免边录边扩行触发整表重排） */  const buildWorkbookData = () => ({
     id: 'univer-bi-entry',
     name: 'BI 数据录入',
     sheetOrder: ['sheet-bi-entry'],
@@ -127,22 +173,45 @@ export const useEntrySheet = () => {
         name: '录入数据',
         rowCount: SHEET_ROW_COUNT,
         columnCount: SHEET_COLUMN_COUNT,
-        // 行高与字号对齐另两套录入台（vxe 行高 36 / 字号 12.5，VTable 行高 36 / 字号 12）。
+        // 行高与字号对齐另两套录入台（vxe 行高 36 / 字号 12.5，vtable-sheet 行高 36 / 字号 12）。
         // Univer 默认 20px 行高 + 11pt 字号，三页并排时密度差最明显。
         defaultRowHeight: ENTRY_ROW_HEIGHT,
         // ff 接应用字体（与 .bi-page 同款字体栈），否则 Univer 用自带默认字体，三页并排时字形不一致。
+        // vt: 2 = VerticalAlign.MIDDLE，36px 行高里文字居中，不然默认贴底显得局促。
         defaultStyle: {
           fs: ENTRY_FONT_SIZE,
           ff: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+          vt: 2,
         },
         cellData: {},
       },
     },
   });
 
+  // ===================== 指针监听：区分「点击」与「拖拽」 =====================
+  /** 记录按下的起点；松手时算位移，位移超阈值就标记"这次是拖拽" */
+  const onPointerDown = (e: PointerEvent) => {
+    pointerStart = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: PointerEvent) => {
+    const start = pointerStart;
+    pointerStart = null;
+    if (!start) return;
+    if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > CLICK_SLOP_PX) return;
+    emitCellClick();
+  };
+  const onPointerCancel = () => {
+    pointerStart = null;
+  };
+
   /** 初始化：挂载容器，实例化 Univer 并创建空工作簿 */
   const init = (container: HTMLElement) => {
     if (univerInstance) return;
+    containerEl = container;
+    container.addEventListener('pointerdown', onPointerDown, true);
+    // pointerup / cancel 挂 window：拖到画布外松手也要能收到，否则抑制标记会漏
+    window.addEventListener('pointerup', onPointerUp, true);
+    window.addEventListener('pointercancel', onPointerCancel, true);
     const { univer, univerAPI } = createUniver({
       locale: LocaleType.ZH_CN,
       locales: {
@@ -162,7 +231,11 @@ export const useEntrySheet = () => {
         UniverSheetsSortPreset(),
         UniverSheetsFilterPreset(),
         UniverSheetsFindReplacePreset(),
-        UniverSheetsDataValidationPreset(),
+        // showEditOnDropdown：弹层底部「编辑」会打开 Univer 自己的数据验证侧边栏，
+        //   与页面的列配置抽屉形成两份真相源，关掉；
+        // showSearchOnDropdown：搜索框在 SelectList 里是 autoFocus 的，会抢走键盘焦点，
+        //   把"直接打字改值"变成"筛选选项"，而本页下拉列只有 3~5 个候选，用不上。
+        UniverSheetsDataValidationPreset({ showEditOnDropdown: false, showSearchOnDropdown: false }),
         UniverSheetsConditionalFormattingPreset(),
       ],
     });
@@ -170,6 +243,7 @@ export const useEntrySheet = () => {
     const api = univerAPI as unknown as UApi;
     apiInstance = api;
     const workbook = api.createWorkbook(buildWorkbookData());
+    workbookRef = workbook;
     sheet.value = workbook.getActiveSheet();
 
     // 选区变化：刷新状态栏（A1 地址 / 尺寸 / 值矩阵）
@@ -201,9 +275,16 @@ export const useEntrySheet = () => {
       window.clearTimeout(commandTimer);
       commandTimer = null;
     }
+    containerEl?.removeEventListener('pointerdown', onPointerDown, true);
+    window.removeEventListener('pointerup', onPointerUp, true);
+    window.removeEventListener('pointercancel', onPointerCancel, true);
+    containerEl = null;
+    pointerStart = null;
+    cellPickCb = null;
     univerInstance?.dispose();
     univerInstance = null;
     apiInstance = null;
+    workbookRef = null;
     sheet.value = null;
     selection.value = null;
     ready.value = false;
@@ -230,20 +311,28 @@ export const useEntrySheet = () => {
   /** 当前数据行数（不含表头） */
   const dataRowCount = (): number => Math.max(0, lastRow() - HEADER_ROW);
 
-  /** 读整表：表头行跳过，按列定义把值矩阵还原成记录数组 */
+  /**
+   * 读整表：表头行跳过，按列定义把原始单元格矩阵还原成记录数组。
+   * ⚠️ 用 getCellDatas() 而不是 getValues()：后者只返回 cell.v，院区列存在
+   *    ICellData.custom 里的 id / code 会读不到，整列退化成空值。
+   * ⚠️ 有日期列时**额外**读一次 getDisplayValues()：日期格的 v 是序列号（45352），
+   *    "这是真日期还是随手敲的数字"只能靠显示文本区分（详见 schema.fromCellValue 的日期分支）。
+   */
   const readRecords = (defs: ColDef[]): EntryRecord[] => {
     const ws = sheet.value;
     if (!ws || !defs.length) return [];
     const last = lastRow();
     if (last <= HEADER_ROW) return [];
-    const matrix = ws.getRange(HEADER_ROW + 1, 0, last - HEADER_ROW, defs.length).getValues();
-    return matrix.map((row) => {
-      const rec: EntryRecord = {};
-      defs.forEach((d, i) => {
-        rec[d.field] = fromCellValue(d, row[i]);
-      });
-      return rec;
-    });
+    const range = ws.getRange(HEADER_ROW + 1, 0, last - HEADER_ROW, defs.length);
+    const matrix = range.getCellDatas();
+    const hasDate = defs.some((d) => d.type === 'date');
+    const displays = hasDate ? range.getDisplayValues() : null;
+    return matrix.map((row, r) =>
+      defs.reduce<EntryRecord>((rec, d, i) => {
+        rec[d.field] = fromCellValue(d, row[i], displays?.[r]?.[i]);
+        return rec;
+      }, {}),
+    );
   };
 
   /** 读单列的值（用于唯一性/统计等只需一列的场景） */
@@ -255,10 +344,86 @@ export const useEntrySheet = () => {
     return matrix.map((row) => row[0]);
   };
 
+  // ===================== 单元格点击订阅与院区列读写 =====================
+  /**
+   * 订阅"用户点中了某一格"（row / column 均为 0-based）。
+   * 信号源是容器内的指针抬起 + 当前单格选区，不是 Univer 的 CellClicked 事件（原因见 cellPickCb 注释）。
+   * 只保留一份订阅，重复调用会覆盖旧的。
+   */
+  const onCellClick = (cb: (params: { row: number; column: number }) => void) => {
+    cellPickCb = cb;
+  };
+
+  /** 读某个院区单元格的当前值：优先取 custom，手工输入导致 custom 丢失时按名称反查 */
+  const getRegionValue = (row: number, col: number): RegionValue | null => {
+    const cell = sheet.value?.getRange(row, col).getCellDatas()[0]?.[0] ?? null;
+    const custom = cell?.custom;
+    if (isRegionValue(custom)) {
+      return { name: custom.name, id: custom.id, code: custom.code };
+    }
+    return findRegionByName(cell?.v);
+  };
+
+  /**
+   * 写某个院区单元格：v 存名称（原生渲染），custom 存完整业务对象。
+   * 传 null 表示清空——必须同时把 custom 置 null，否则下次读回会拿到旧的 id/code。
+   */
+  const setRegionCell = (row: number, col: number, region: RegionValue | null) => {
+    const ws = sheet.value;
+    if (!ws) return;
+    ws.getRange(row, col).setValue(
+      region
+        ? { v: region.name, custom: { name: region.name, id: region.id, code: region.code } }
+        : { v: '', custom: null },
+    );
+  };
+
+  /**
+   * 读某个普通文本单元格（下拉列点击时用于回显当前值）。
+   * 走 getValues 只拿 v，与 setCellText 对称。
+   */
+  const getCellText = (row: number, col: number): string => {
+    const ws = sheet.value;
+    if (!ws) return '';
+    const v = ws.getRange(row, col).getValues()[0]?.[0];
+    return v === null || v === undefined ? '' : String(v);
+  };
+
+  /**
+   * 写某个普通文本单元格（下拉列由点击弹层回填时用）。
+   * 传空串表示清空；不碰 custom，避免把院区那种带业务对象的单元格写坏。
+   */
+  const setCellText = (row: number, col: number, text: string) => {
+    const ws = sheet.value;
+    if (!ws) return;
+    ws.getRange(row, col).setValue(text);
+  };
+
+  /**
+   * UniverSheetsFilterPreset 只注册了筛选能力，漏斗按钮由 SheetsFilterRenderController
+   * 在 filterModel 有 range 时才绘制；本页隐藏了 ribbon（header:false / toolbar:false），
+   * 没有官方的「开关筛选」菜单，所以必须主动 createFilter() 建筛选区。
+   * 约束（对 1.3.0 源码核过）：createFilter 要求 endRow > startRow（至少表头 + 1 行），
+   * 且表上已有 filter 时直接返回 null → 覆盖范围变化要先 remove() 再建。
+   * 覆盖范围够用时直接返回，避免把用户已设的筛选条件清掉。
+   */
+  const ensureFilter = (colCount: number) => {
+    const ws = sheet.value;
+    if (!ws || colCount <= 0) return;
+    const last = Math.max(lastRow(), HEADER_ROW + 1);
+    const existing = ws.getFilter();
+    if (existing) {
+      const r = existing.getRange().getRange();
+      if (r.endColumn >= colCount - 1 && r.endRow >= last) return;
+      existing.remove();
+    }
+    ws.getRange(HEADER_ROW, 0, last - HEADER_ROW + 1, colCount).createFilter();
+  };
+
   /** 表头文字：必填列追加星号（Univer 无表头分组/角标能力，用文本方式表达） */
   const headerTextOf = (d: ColDef): string => (d.required ? `${d.label} *` : d.label);
 
-  /** 写表头行（含样式：加粗 + 底色 + 居中）。底色跟随站点暗黑，避免暗模式下仍是浅蓝灰 */
+  /** 写表头行（含样式：加粗 + 底色 + 居中 + 下边框 + 行高）。底色跟随站点暗黑，避免暗模式下仍是浅蓝灰 */
   const writeHeader = (defs: ColDef[]) => {
     const ws = sheet.value;
     if (!ws || !defs.length) return;
@@ -269,9 +434,17 @@ export const useEntrySheet = () => {
     range.setBackground(HEADER_BG_LIGHT);
     range.setHorizontalAlignment('center');
     range.setVerticalAlignment('middle');
+    // 表头行比数据行高一档 + 一条下边框，把"列名区"和"数据区"分开（画布表格默认只有网格线，
+    // 表头和数据行视觉上是一整片，行多时容易看串行）
+    ws.setRowHeight(HEADER_ROW, HEADER_ROW_HEIGHT);
+    range.setBorder('bottom', 1, HEADER_BORDER_COLOR);
   };
 
-  /** 写数据区：先清掉超出新数据量的历史残留，再整块 setValues（一次命令，撤销可整体回退） */
+  /**
+   * 写数据区：先清掉超出新数据量的历史残留，再整块 setValues（一次命令，撤销可整体回退）。
+   * 矩阵允许「标量 + ICellData」混合：院区列的 toCellValue 返回 { v, custom }，
+   * FRange.setValues 逐格调 covertCellValue，official 1.3.0 明确支持这种混合写法。
+   */
   const writeRecords = (defs: ColDef[], records: EntryRecord[]) => {
     const ws = sheet.value;
     if (!ws || !defs.length) return;
@@ -283,7 +456,15 @@ export const useEntrySheet = () => {
     // 新数据比旧数据短：把尾巴清空，否则表头下方会残留上一批的旧行
     const staleStart = HEADER_ROW + 1 + rows.length;
     if (prevLast >= staleStart) {
-      ws.getRange(staleStart, 0, prevLast - staleStart + 1, SHEET_COLUMN_COUNT).clearContent();
+      const staleRows = prevLast - staleStart + 1;
+      ws.getRange(staleStart, 0, staleRows, SHEET_COLUMN_COUNT).clearContent();
+      // clearContent 走 ClearSelectionContentCommand，不清 ICellData.custom；
+      // 院区列的残留 custom 会让 lastRow() 误判还有数据，必须显式清掉
+      defs.forEach((d, i) => {
+        if (d.type !== 'region') return;
+        const clearing = Array.from({ length: staleRows }, () => [{ v: '', custom: null }]);
+        ws.getRange(staleStart, i, staleRows, 1).setValues(clearing);
+      });
     }
     // 列数变少：清掉右侧残留列
     if (defs.length < SHEET_COLUMN_COUNT && prevLast > HEADER_ROW) {
@@ -309,9 +490,16 @@ export const useEntrySheet = () => {
   };
 
   /**
-   * 下发数据验证：只做 Univer 原生支持的两类，其余（正则/长度/跨列）由上层规则引擎兜底。
-   *   - select → 下拉列表（可空、显示下拉箭头）
-   *   - number 且配了 min/max → 数字区间
+   * 下发数据验证。列类型只有两种会挂规则：
+   *   - number 且配了 min/max → 数字区间（规则本身不画任何角标，不干扰录入）；
+   *   - select → LIST 规则 + **renderMode: TEXT**（数值枚举 0）：静态只画纯文本，不画右侧那个常驻箭头
+   *     （1.3.0 只有 ARROW/CUSTOM 才画，不传等同于 CUSTOM —— 早期"挂规则就整列常驻箭头"
+   *     是把默认渲染模式当成了唯一形态，于是干脆不挂规则、改用自研弹层；
+   *     另注意它是数值枚举，传字符串 'TEXT' 会被静默忽略、照样画箭头）。
+   *     平时单元格与普通文本格一模一样；聚焦（点中）时由页面调 showOptionDropdown()
+   *     主动弹出原生选项列表，选完自动收起。
+   *   - showErrorMessage 置 false：非法值照常写入、不弹 Univer 自己的错误框，
+   *     红框仍由行级校验（useEntryRules）统一负责，避免两套校验口径打架。
    * 区间按"数据行数 + 余量"给，避免每格一条规则把模型撑爆。
    */
   const applyDataValidation = (defs: ColDef[]) => {
@@ -324,9 +512,9 @@ export const useEntrySheet = () => {
       if (d.type === 'select' && d.options?.length) {
         const rule = api
           .newDataValidation()
-          .requireValueInList(d.options, false, true)
+          .requireValueInList([...d.options])
           .setAllowBlank(true)
-          .setOptions({ showErrorMessage: true, error: `${d.label}需从下拉选项中选择` })
+          .setOptions({ showErrorMessage: false, renderMode: DataValidationRenderMode.TEXT })
           .build();
         colRange.setDataValidation(rule);
         return;
@@ -343,6 +531,28 @@ export const useEntrySheet = () => {
       }
       colRange.setDataValidation(null);
     });
+  };
+
+  /**
+   * 弹出某格的原生数据验证下拉（必须该格挂着 LIST 规则）。
+   * 由页面在"点中下拉列单元格"时调用；命令本身不检查 renderMode、也不要求进入编辑态，
+   * 弹层锚在该单元格下方，选中后 Univer 直接写值（SetRangeValuesCommand）并收起。
+   * 命令是幂等的：同一格重复下发不会闪一下再开（handler 里先比对 activeDropdown 位置）。
+   */
+  const showOptionDropdown = (row: number, column: number): void => {
+    const api = apiInstance;
+    const ws = sheet.value;
+    const wb = workbookRef;
+    if (!api || !ws || !wb) return;
+    // 命令失败只会导致"点了没弹层"，不影响数据，故吞掉异常（无 catch 会变成 unhandled rejection）
+    api
+      .executeCommand('sheet.operation.show-data-validation-dropdown', {
+        unitId: wb.getId(),
+        subUnitId: ws.getSheetId(),
+        row,
+        column,
+      })
+      .catch(() => undefined);
   };
 
   /**
@@ -382,7 +592,7 @@ export const useEntrySheet = () => {
     });
   };
 
-  /** 冻结：表头行恒冻结；freezeFirstCol 决定是否再冻结首列（长表横向滚动时保姓名列可见） */
+  /** 冻结：表头行恒冻结；freezeFirstCol 决定是否再冻结首列（本页传 false，不固定任何列） */
   const applyFreeze = (freezeFirstCol: boolean) => {
     const ws = sheet.value;
     if (!ws) return;
@@ -396,6 +606,58 @@ export const useEntrySheet = () => {
 
   /** 活动单元格（名称框语义） */
   const activeCellA1 = (): string => sheet.value?.getActiveCell()?.getA1Notation() ?? '—';
+
+  /**
+   * 把选区收到指定单元格。
+   * 用途：列结构重下发（写表头 / 显隐列 / 数据验证等都是整列 range 操作）会把 active cell
+   * 挪到最后一列，出现"一进页面就选中备注列"，由上层在重下发后统一复位。
+   */
+  const focusCell = (row: number, column: number) => {
+    const ws = sheet.value;
+    if (!ws) return;
+    ws.getRange(row, column).activate();
+  };
+
+  /**
+   * 清空选区（进页面时"什么都不选中"）。
+   *
+   * Facade 没有提供 clear 方法，只能下发 SetSelectionsOperation。这里要两步：
+   *   1. 先把选区挪到**可视区外**的一格（AO1）。Univer 除了 `selections` 还单独记了一份
+   *      "上次活动格"（lastSelectionPrimaryCell），只有非空选区才会更新它；
+   *      若直接下发空数组，画布上仍会残留旧活动格的 2px 蓝框 —— 也就是"表头看起来被选中"。
+   *      把活动格挪到视口外，这个框就落在看不见的地方。
+   *   2. 再下发空数组，让选区列表也空掉（否则状态栏"选中"会是 1）。
+   * 两步都不带 reveal，画布不会滚动，用户看到的仍是左上角。
+   * 命令不可用（版本签名变化）时返回 false，调用方退回"定位到第一个数据格"。
+   */
+  const clearSelection = async (): Promise<boolean> => {
+    const api = apiInstance;
+    const ws = sheet.value;
+    const wb = workbookRef;
+    if (!api || !ws || !wb) return false;
+    const unitId = wb.getId();
+    const subUnitId = ws.getSheetId();
+    const park = { startRow: 0, startColumn: SHEET_COLUMN_COUNT - 1, endRow: 0, endColumn: SHEET_COLUMN_COUNT - 1 };
+    try {
+      const moved = await api.executeCommand('sheet.operation.set-selections', {
+        unitId,
+        subUnitId,
+        selections: [
+          {
+            range: park,
+            primary: { ...park, actualRow: 0, actualColumn: SHEET_COLUMN_COUNT - 1 },
+            style: null,
+          },
+        ],
+      });
+      if (!moved) return false;
+      await api.executeCommand('sheet.operation.set-selections', { unitId, subUnitId, selections: [] });
+      selection.value = null;
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   /**
    * A1 地址 → 网格列索引（0-based）；解析失败返回 -1。
@@ -480,14 +742,23 @@ export const useEntrySheet = () => {
     dataRowCount,
     readRecords,
     readColumn,
+    onCellClick,
+    getRegionValue,
+    setRegionCell,
+    setCellText,
+    getCellText,
+    ensureFilter,
     writeHeader,
     writeRecords,
     applyColumnWidths,
     applyColumnVisibility,
     applyDataValidation,
+    showOptionDropdown,
     applyDataBars,
     applyFreeze,
     activeCellA1,
+    focusCell,
+    clearSelection,
     columnOfA1,
     mergeCount,
     mergeSelection,

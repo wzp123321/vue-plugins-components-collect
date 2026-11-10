@@ -85,6 +85,7 @@ export const typeLabel: Record<ColType, string> = {
   number: '数字',
   select: '下拉',
   date: '日期',
+  region: '院区',
 };
 
 // ============================ 字典（演示数据与下拉候选） ============================
