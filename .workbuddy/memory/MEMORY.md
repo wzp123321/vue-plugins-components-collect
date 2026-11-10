@@ -30,12 +30,14 @@
 - dev server 须 run_in_background；别动 vite 预构建配置（re-optimize 撞守卫），用默认 vite.config 起。
 - CDP: headless=new 连 /json/list 的 page WS（非 /json/version）；Node fetch 走代理连不上127→用内置http；ws 从 node_modules/.pnpm/ws@*/... 加载；CSS:hover 骗不过→Input.dispatchMouseEvent。
 - 网络出口代理常 502/断，两条路试；git push 直连 `env -u *_proxy`。安全垫片静默断链 rm -rf 大目录→用 mv。bash /tmp=C:/Users/.../Temp。
+- **HTTPS 推 GitHub 本机必挂**（schannel "server closed abruptly" / CONNECT 502）；origin 已改 `git@github.com:wzp123321/vue-plugins-components-collect.git`（~/.ssh/config 走 ssh.github.com:443）。用远程 URL 直推后要 `git fetch` 补跟踪引用，否则 branch -vv 一直显示 ahead。
+- `npx lint-staged` 本机能跑通（老记录里的 wmic 拉黑已不复现）；提交失败先看暂存文件里的 eslint error，不是网络。
 
 ## 全仓 lint 硬约定
 - 函数一律箭头；不许 eslint-disable（仅 auto-imports.d.ts/components.d.ts/env.d.ts 例外）。
 - 基线 eslint/vue-tsc/stylelint 均 0 error（剩~410 warning）。
-- pre-commit 四项：check:nav→check:components→eslint→stylelint（本机 lint-staged 调 wmic 被拉黑，须 --no-verify 但手动跑齐四项）。
-- stylelint glob 含 src/**/*.{css,scss,vue,sass,html} 不要 .less。git commit 吞索引→分批前 git restore --staged .。push 成功取 $? 非 tail。
+- pre-commit 四项：check:nav→check:components→eslint→stylelint。提交前按 lint-staged 的 glob 手动跑 eslint/stylelint（只跑改动文件即可）。
+- stylelint glob 含 src/**/*.{css,scss,vue,sass,html} 不要 .less。**`git commit` 会吞 `git rm --cached`**：剔除非源码文件时必须单独补一个删除提交，并用 `git ls-tree -r HEAD | grep` 核对真的没进去。push 成功取 $? 非 tail。
 - 重排三类回归：闭包 let 丢收窄→const；删未用参数同步调用方；v-for index 仅 :key 判未读→换稳定字段。
 
 ## 接缝本
