@@ -204,11 +204,104 @@ export const useEntrySheet = () => {
     pointerStart = null;
   };
 
+  // ===================== 行 hover 高亮 =====================
+  /**
+   * Univer 没有行级 hover，画布上也没有可测量的行 DOM 节点，只能自己叠一层条带。
+   *
+   * 定位不复用「行高 × 行号」这类自算：表头高度、滚动偏移、隐藏行、自定义行高
+   * 任何一个变了都会错位。改用 Facade 的 `getCellRect()`（真实绘制矩形）：
+   *   1. 对可见行做二分（20 次以内）找到鼠标落在哪一行；
+   *   2. 再取「这一行 × 前 N 列」的整条矩形，作为高亮条带的几何。
+   * 条带本身由页面渲染（fixed 定位 + pointer-events:none），本层只算几何。
+   * 坐标是画布内容坐标，换算到屏幕要加容器 rect —— 由 paintRowHover 一次算完。
+   */
+  const hoverRowRect = ref<{ top: number; left: number; width: number; height: number } | null>(null);
+  /** 高亮条带覆盖多少列（= 表头列数）：页面在 applyChrome 时同步过来 */
+  let hoverColCount: (() => number) | null = null;
+  let hoverFrame = 0;
+  /** 最近一次指针位置（rAF 里读它，避免一帧内重复计算） */
+  let hoverPoint: { x: number; y: number } | null = null;
+
+  const clearRowHover = () => {
+    hoverPoint = null;
+    if (hoverRowRect.value) hoverRowRect.value = null;
+  };
+
+  const paintRowHover = () => {
+    hoverFrame = 0;
+    const pt = hoverPoint;
+    const ws = sheet.value;
+    const el = containerEl;
+    const cols = hoverColCount?.() ?? 0;
+    if (!pt || !ws || !el || cols <= 0) return;
+    const outer = el.getBoundingClientRect();
+    const y = pt.y - outer.top;
+    if (y < 0 || y > outer.height) {
+      clearRowHover();
+      return;
+    }
+    const first = HEADER_ROW + 1;
+    const last = ws.getLastRow();
+    if (last < first) {
+      clearRowHover();
+      return;
+    }
+    let lo = first;
+    let hi = last;
+    let hit = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      let band: DOMRect;
+      try {
+        band = ws.getRange(mid, 0).getCellRect();
+      } catch {
+        break;
+      }
+      if (y < band.top) hi = mid - 1;
+      else if (y >= band.bottom) lo = mid + 1;
+      else {
+        hit = mid;
+        break;
+      }
+    }
+    if (hit < 0) {
+      clearRowHover();
+      return;
+    }
+    // getCellRect 对多列区间只返回**左上那个格**，所以横向范围要靠首列/末列两次取值拼出来
+    const leftCell = ws.getRange(hit, 0).getCellRect();
+    const rightCell = ws.getRange(hit, cols - 1).getCellRect();
+    hoverRowRect.value = {
+      top: outer.top + leftCell.top,
+      left: outer.left + leftCell.left,
+      width: rightCell.right - leftCell.left,
+      height: leftCell.height,
+    };
+  };
+
+  const onHoverMove = (e: PointerEvent) => {
+    if (!hoverColCount) return;
+    hoverPoint = { x: e.clientX, y: e.clientY };
+    if (!hoverFrame) hoverFrame = window.requestAnimationFrame(paintRowHover);
+  };
+
+  const onHoverLeave = () => clearRowHover();
+  /** 滚轮会改可视化区，条带位置当场作废，等下次移动重算（不必猜滚了多少） */
+  const onHoverWheel = () => clearRowHover();
+
+  /** 页面告知「高亮覆盖到第几列」——传函数而不是值，列增删后不用重新绑定 */
+  const enableRowHover = (colCount: () => number) => {
+    hoverColCount = colCount;
+  };
+
   /** 初始化：挂载容器，实例化 Univer 并创建空工作簿 */
   const init = (container: HTMLElement) => {
     if (univerInstance) return;
     containerEl = container;
     container.addEventListener('pointerdown', onPointerDown, true);
+    container.addEventListener('pointermove', onHoverMove, true);
+    container.addEventListener('pointerleave', onHoverLeave, true);
+    container.addEventListener('wheel', onHoverWheel, { passive: true, capture: true });
     // pointerup / cancel 挂 window：拖到画布外松手也要能收到，否则抑制标记会漏
     window.addEventListener('pointerup', onPointerUp, true);
     window.addEventListener('pointercancel', onPointerCancel, true);
@@ -275,12 +368,22 @@ export const useEntrySheet = () => {
       window.clearTimeout(commandTimer);
       commandTimer = null;
     }
+    if (hoverFrame) {
+      window.cancelAnimationFrame(hoverFrame);
+      hoverFrame = 0;
+    }
     containerEl?.removeEventListener('pointerdown', onPointerDown, true);
+    containerEl?.removeEventListener('pointermove', onHoverMove, true);
+    containerEl?.removeEventListener('pointerleave', onHoverLeave, true);
+    containerEl?.removeEventListener('wheel', onHoverWheel, true);
     window.removeEventListener('pointerup', onPointerUp, true);
     window.removeEventListener('pointercancel', onPointerCancel, true);
     containerEl = null;
     pointerStart = null;
     cellPickCb = null;
+    hoverColCount = null;
+    hoverPoint = null;
+    hoverRowRect.value = null;
     univerInstance?.dispose();
     univerInstance = null;
     apiInstance = null;
@@ -744,6 +847,8 @@ export const useEntrySheet = () => {
     sheet,
     selection,
     revision,
+    hoverRowRect,
+    enableRowHover,
     init,
     destroy,
     setDark,

@@ -42,6 +42,10 @@
       <div ref="containerRef" class="ue-canvas" />
     </div>
 
+    <!-- 行 hover 高亮条带：Univer 没有行级 hover，几何由 useEntrySheet 用 getCellRect 算好，
+         这里只负责画（fixed + pointer-events:none，不参与任何点击/选区的命中判定） -->
+    <div class="ue-rowhover" :style="rowHoverStyle" />
+
     <div class="ue-statusbar bi-statusbar">
       <span class="sb-item pos">{{ activeCell }}</span>
       <span class="sb-item">行数 <b>{{ totalRows.toLocaleString() }}</b></span>
@@ -212,6 +216,18 @@ const refreshAfterBulkChange = () => {
 const io = useEntryIO(sheetApi, defs, fileInputRef, () => {
   applyChrome();
   refreshAfterBulkChange();
+});
+
+// ===================== 行 hover 高亮 =====================
+/** 条带几何来自 useEntrySheet（画布内容坐标 + 容器 rect 已换算成视口坐标） */
+const rowHoverStyle = computed(() => {
+  const r = sheetApi.hoverRowRect.value;
+  if (!r) return { display: 'none' };
+  return {
+    transform: `translate(${r.left}px, ${r.top}px)`,
+    width: `${r.width}px`,
+    height: `${r.height}px`,
+  };
 });
 
 // ===================== 选区统计 ====================
@@ -469,6 +485,8 @@ onMounted(async () => {
   // 进本页时恢复 16px（样式见下方 html.univer-normal-rem），离开时移除，不影响其它页面。
   document.documentElement.classList.add('univer-normal-rem');
   sheetApi.init(containerRef.value);
+  // 行 hover 高亮覆盖到最后一个有表头的列（列增删后由函数回调重新取值，不用重绑）
+  sheetApi.enableRowHover(() => defs.value.length);
   registerCellClick();
   // 双击选择器列：捕获阶段拦截，避免 Univer 同时进入文本编辑（见 onGridDblClick）
   containerRef.value.addEventListener('dblclick', onGridDblClick, true);
@@ -684,5 +702,25 @@ html.dark section.univer-pointer-events-auto input::placeholder {
 .ue-canvas {
   width: 100%;
   height: 100%;
+}
+
+/* 行 hover 条带：半透明叠色，压在所有画布之上但不接管指针。
+   底色不用 --bi-hover（亮色 #f7f9fc 压在纯白格子上几乎看不见），改用「面板色混 6% 主色」：
+   亮色得到极淡的一层冷蓝、暗色抬亮一阶，两档都与选区（--bi-select）差着明显力度。
+   transform 定位而不是 top/left：鼠标扫过时只有合成层变化，不触发布局。 */
+.ue-rowhover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--bi-primary) 6%, var(--bi-panel));
+  border-radius: 2px;
+  transition: transform 50ms linear, width 50ms linear, height 50ms linear;
+}
+
+/* 暗色面板本身很暗，6% 混色几乎感知不到，抬到 10% 才能"看得出是哪一行" */
+html.dark .ue-rowhover {
+  background: color-mix(in srgb, var(--bi-primary) 10%, var(--bi-panel));
 }
 </style>

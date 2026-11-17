@@ -118,6 +118,11 @@ export interface URange {
   isMerged(): boolean;
   /** 本区间是否与某个合并区域重叠 */
   isPartOfMerge(): boolean;
+  /**
+   * 本区间在**画布内**的像素矩形（不是视口坐标，换算到屏幕上要加容器 rect）。
+   * 用途：行 hover 高亮条带按真实绘制位置定位（自动含滚动 / 冻结 / 隐藏行 / 自定义行高）。
+   */
+  getCellRect(): DOMRect;
 }
 
 /** 工作表句柄（FWorksheet 的最小可用子集） */

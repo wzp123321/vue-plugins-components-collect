@@ -66,25 +66,33 @@ export default ({ mode }) => {
       outDir: 'dist/pluginComponent-web',
       rollupOptions: {
         output: {
-          // ⚠️ 坑：不能用对象形式把 element-plus 和 vue 拆成两个 chunk——二者共享 @vue/shared 等依赖，
-          // 拆分后会出现 vue.*.js import element-plus.*.js、后者又 import 前者的循环，
-          // 生产包启动即报 "Cannot access 'tc' before initialization"（dev 模式不复现）。
-          // 故 vue 生态 + element-plus 统一进 vue-vendor，其余大依赖单独分组。
+          // 分组原则：vue 核心生态必须同组（共享 @vue/shared，拆开会跨组循环初始化）；
+          // 重型库按封闭生态各自成组，通用小依赖交 rollup 自动归置。
           manualChunks(id: string) {
             if (!id.includes('node_modules')) return;
-            // ⚠️ vue 生态必须同组：拆开会因共享 @vue/shared 导致循环初始化
-            // "Cannot access 'tc' before initialization"（生产包启动即报，dev 不复现）。
+            // vue 生态：拆开会因共享 @vue/shared 触发 "Cannot access 'tc' before initialization"
             if (
               /[\\/]node_modules[\\/](vue|@vue|@vueuse|element-plus|@element-plus|pinia)[\\/]/.test(id)
             ) {
               return 'vue-vendor';
             }
-            // 重型图形 / 可视化 / 编辑器库单独分组，提升缓存命中、避免挤进通用 vendor
+            // univer 表格套件 + React 运行时（preset 的 peer 依赖，须同组封闭）
+            if (
+              /[\\/]node_modules[\\/](@univerjs|react|react-dom|scheduler|cmdk|sonner|react-remove-scroll|react-remove-scroll-bar|react-style-singleton|use-callback-ref|use-sidecar)[\\/]/.test(
+                id,
+              )
+            ) {
+              return 'univer';
+            }
+            // rxjs 独立：antv 页面与 univer 共用，并入任一组都会把整组拖入该页
+            if (/[\\/]node_modules[\\/]rxjs[\\/]/.test(id)) return 'rxjs';
+            // visactor：vchart 与 vtable 共享 vrender/vutils 底层，合并避免跨组循环
+            if (/[\\/]node_modules[\\/]@visactor[\\/]/.test(id)) return 'visactor';
+            // 其余重型库各自成组
             if (/[\\/]node_modules[\\/]three[\\/]/.test(id)) return 'three';
             if (/[\\/]node_modules[\\/](babylonjs|babylonjs-gui)[\\/]/.test(id)) return 'babylonjs';
             if (/[\\/]node_modules[\\/]d3[\\/]/.test(id)) return 'd3';
-            if (/[\\/]node_modules[\\/]@antv[\\/]g6[\\/]/.test(id)) return 'antv-g6';
-            if (/[\\/]node_modules[\\/]@visactor[\\/]vchart[\\/]/.test(id)) return 'vchart';
+            if (/[\\/]node_modules[\\/]@antv[\\/]/.test(id)) return 'antv';
             if (/[\\/]node_modules[\\/](vxe-table|vxe-pc-ui|xe-utils)[\\/]/.test(id)) return 'vxe';
             if (/[\\/]node_modules[\\/]@tiptap[\\/]/.test(id)) return 'tiptap';
             if (/[\\/]node_modules[\\/](codemirror|@codemirror)[\\/]/.test(id)) return 'codemirror';
@@ -92,6 +100,8 @@ export default ({ mode }) => {
             if (/[\\/]node_modules[\\/]frappe-gantt[\\/]/.test(id)) return 'frappe-gantt';
             if (/[\\/]node_modules[\\/]@vue-office[\\/]/.test(id)) return 'vue-office';
             if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
+            // 表格文件读写：univer / tabulator / 导出页共用
+            if (/[\\/]node_modules[\\/](xlsx|exceljs)[\\/]/.test(id)) return 'sheet-io';
             if (id.includes('axios')) return 'axios';
             if (id.includes('vue3-slide-verify')) return 'vue3-slide-verify';
             return;
