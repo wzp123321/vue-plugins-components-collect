@@ -164,6 +164,16 @@ const releaseSelection = () => {
   });
 };
 
+/** 站点明暗：列级字色亮暗各一档（见 useEntrySheet 的 FONT_MUTED / FONT_REGION），下发时按它取值 */
+const isDarkTheme = () => document.documentElement.classList.contains('dark');
+
+/**
+ * 已经下发过列级格式的行数。
+ * 样式是逐格写进单元格的，只能覆盖"当下存在的行"（多刷一行都会撑大 getLastRow，见
+ * useEntrySheet.applyColumnFormats），所以新行出现后要补刷；用它比对避免每次按键都重刷。
+ */
+let formattedRows = 0;
+
 /**
  * 重下发"表格外观与约束"：表头 → 列宽 → 显隐 → 数据验证 → 冻结 → 筛选区。
  * 每次列结构变化都要走一遍（Univer 的验证/格式挂在具体列区间上，列一挪就失效）。
@@ -172,6 +182,9 @@ const applyChrome = () => {
   sheetApi.writeHeader(defs.value);
   sheetApi.applyColumnWidths(defs.value);
   sheetApi.applyColumnVisibility(defs.value);
+  // 列级格式（数字右对齐 / 日期灰 / 院区主色）：列类型变了必须重下发，否则旧类型留下的对齐与字色会残留
+  sheetApi.applyColumnFormats(defs.value, isDarkTheme());
+  formattedRows = sheetApi.dataRowCount();
   sheetApi.applyDataValidation(defs.value);
   // 只冻结表头行，不冻结任何列（首列冻结已按需求去掉）
   sheetApi.applyFreeze(false);
@@ -450,11 +463,14 @@ const onGridPointerDown = () => {
 // ===================== 主题 =====================
 let themeObserver: MutationObserver | null = null;
 const syncTheme = () => {
-  const dark = document.documentElement.classList.contains('dark');
+  const dark = isDarkTheme();
   sheetApi.setDark(dark);
   // 表头底色写的是「亮色值」，暗黑由 Univer 反色统一处理，理论上无需重下发；
   // 但切主题会触发整体重绘，这里重写一次保证加粗/居中/底色在切换后仍一致（幂等、代价小）。
   sheetApi.writeHeader(defs.value);
+  // 列级字色是亮暗两档（日期灰 / 院区主色各一套），切主题必须重下发，
+  // 否则深色面板上还挂着亮色档的主色（#2b5cf6 在近黑底上对比度不够）
+  sheetApi.applyColumnFormats(defs.value, dark);
 };
 
 // ===================== 初始化 =====================
@@ -537,6 +553,12 @@ watch(
     });
     prevSigs = records.map(signatureOf);
     if (changed.length) rules.revalidateRows(defs.value, changed);
+    // 行数涨了（录入到空行 / 粘贴一片）→ 补刷列级格式，新行否则没有对齐与字色。
+    // 样式写入本身会再触发一次 revision，那时行数已与 formattedRows 相等，不会自激循环。
+    if (totalRows.value > formattedRows) {
+      sheetApi.applyColumnFormats(defs.value, isDarkTheme());
+      formattedRows = totalRows.value;
+    }
   },
 );
 
@@ -711,22 +733,23 @@ html.dark section.univer-pointer-events-auto input::placeholder {
 }
 
 /* 行 hover 条带：半透明叠色，压在所有画布之上但不接管指针。
-   底色不用 --bi-hover（亮色 #f7f9fc 压在纯白格子上几乎看不见），改用「面板色混 6% 主色」：
-   亮色得到极淡的一层冷蓝、暗色抬亮一阶，两档都与选区（--bi-select）差着明显力度。
-   transform 定位而不是 top/left：鼠标扫过时只有合成层变化，不触发布局。 */
+   必须带 alpha —— 早期用 color-mix(主色 6%, --bi-panel) 得到的是**不透明色**，
+   条带会把同一行里"错误淡红底 / 选区蓝底 / 查找浅黄底"整片盖掉（鼠标停在错误行上红底当场消失，
+   看着像错误被修好了）。改成纯色 alpha 叠加后，底层是什么颜色都仍然透得出来。
+   亮色 6% 主色：白格上得到极淡的冷蓝，与选区（--bi-select）差着明显力度；
+   暗色画布格接近纯黑，蓝色 6% 提不起来，改用 8% 白色抬一阶（与另两套暗色 hover 同思路）。 */
 .ue-rowhover {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 5;
   pointer-events: none;
-  background: color-mix(in srgb, var(--bi-primary) 6%, var(--bi-panel));
+  background: rgb(43 92 246 / 6%);
   border-radius: 2px;
   transition: transform 50ms linear, width 50ms linear, height 50ms linear;
 }
 
-/* 暗色面板本身很暗，6% 混色几乎感知不到，抬到 10% 才能"看得出是哪一行" */
 html.dark .ue-rowhover {
-  background: color-mix(in srgb, var(--bi-primary) 10%, var(--bi-panel));
+  background: rgb(255 255 255 / 8%);
 }
 </style>

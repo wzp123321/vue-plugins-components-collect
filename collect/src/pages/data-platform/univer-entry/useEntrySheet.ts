@@ -84,6 +84,17 @@ const buildUniverTheme = () => {
   };
 };
 
+/**
+ * 列级字色：明暗各取一档，与 vxe 版 .dt-date（--dt-sub）/ .dt-region（--dt-primary）同口径
+ * —— 日期退成次要信息，院区这种「可点可选」的列给主色提示。
+ *
+ * ⚠️ 这里**不**走「暗色写反色」那条路（表头底色是那条路）：实测单元格字色不参与反色，
+ *    暗色下写 #ff0000 取画布像素仍是纯红。所以直接给两档，取值对齐 bi-entry.less 的
+ *    --bi-sub / --bi-primary 亮暗两套（暗色档更亮，否则深底上主色压不住对比度）。
+ */
+const FONT_MUTED = { light: '#86909c', dark: '#8f95a3' };
+const FONT_REGION = { light: '#2b5cf6', dark: '#6f8dff' };
+
 /** 选区快照：状态栏与批量操作的作用域来源 */
 export interface SelectionInfo {
   a1: string;
@@ -603,6 +614,46 @@ export const useEntrySheet = () => {
   };
 
   /**
+   * 列级格式：数字右对齐、日期弱化灰、院区列主色，其余列复位。
+   *
+   * 三条约束：
+   *   1. **只刷真实数据行，一格余量都不给**。setHorizontalAlignment / setFontColor 最终走
+   *      SetStyleCommand → createStyleCellValue → SetRangeValuesMutation，是**逐格建单元格对象**的；
+   *      多刷 200 行留白 = 模型里凭空多 200 个带样式的空格 → getLastRow() 直接撑到那一行，
+   *      页面上的「行数 / 改动」跟着虚高，行级校验还会把空行当数据去校验（实测刷 201 行 →
+   *      状态栏显示行数 201、错误 1005）。这点与 applyDataValidation 不同：数据验证存在规则层，
+   *      不建单元格，所以它能给 500 行余量，这里不能；
+   *   2. 行数增长后要补刷（新行没有格式），由页面在 revision 里比对行数触发，见 univer-entry.vue；
+   *   3. 列类型变了必须重下发（同一列从日期改成文本还得把灰字清掉），所以每一列都显式写入，
+   *      不假设"上次已经设过"。
+   *
+   * ⚠️ 暗色字色另取一档，见 FONT_MUTED / FONT_REGION（不是反色换算）。
+   * ⚠️ tabular-nums 做不到：画布文字走 canvas fillText，吃不到 font-variant-numeric，
+   *    数字只能靠右对齐保证同位数按位对齐；下拉列的「药丸」标签同理需要自定义单元格渲染器（OSS 版没有）。
+   */
+  const applyColumnFormats = (defs: ColDef[], dark: boolean) => {
+    const ws = sheet.value;
+    const rows = dataRowCount();
+    if (!ws || !defs.length || rows <= 0) return;
+    defs.forEach((d, i) => {
+      if (!d.visible) return;
+      const range = ws.getRange(HEADER_ROW + 1, i, rows, 1);
+      if (d.type === 'number') {
+        // ⚠️ 右对齐在 Facade 里叫 'normal'：transformFacadeHorizontalAlignment 只认 left / center / normal，
+        //    传 'right' 会直接 throw —— 而这里是 forEach 里第一条命令，抛出去会打断整个 applyChrome
+        //    （表头/验证/冻结/筛选区全部不下发），表现出来只是"样式没生效"，排查成本很高。
+        range.setHorizontalAlignment('normal');
+        range.setFontColor(null);
+        return;
+      }
+      range.setHorizontalAlignment('left');
+      if (d.type === 'date') range.setFontColor(dark ? FONT_MUTED.dark : FONT_MUTED.light);
+      else if (d.type === 'region') range.setFontColor(dark ? FONT_REGION.dark : FONT_REGION.light);
+      else range.setFontColor(null);
+    });
+  };
+
+  /**
    * 下发数据验证。列类型只有两种会挂规则：
    *   - number 且配了 min/max → 数字区间（规则本身不画任何角标，不干扰录入）；
    *   - select → LIST 规则 + **renderMode: TEXT**（数值枚举 0）：静态只画纯文本，不画右侧那个常驻箭头
@@ -867,6 +918,7 @@ export const useEntrySheet = () => {
     writeRecords,
     applyColumnWidths,
     applyColumnVisibility,
+    applyColumnFormats,
     applyDataValidation,
     showOptionDropdown,
     applyDataBars,
