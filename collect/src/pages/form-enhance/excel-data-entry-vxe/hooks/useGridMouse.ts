@@ -54,7 +54,6 @@ export const useGridMouse = (
   },
 ) => {
   const { gridBox, gridWrapper, io, find, ops, sel } = deps;
-  const snap = () => core.pushSnapshot(core.snapshotNow());
 
   // ===================== 子状态机装配 =====================
   const fill = useFillHandle(core, tableRef, sel, gridBox);
@@ -119,8 +118,8 @@ export const useGridMouse = (
     menu.show = false;
   };
   /**
-   * 执行右键菜单动作：copy（亮蚂蚁线）/ paste / insertUp / insertDown（插入行）/ clear（清格）/ deleteRow（删行）。
-   * 写数据前统一 snap() 入撤销栈；复制/粘贴分别委托 io + marquee 完成。
+   * 执行右键菜单动作（对齐 Univer 的右键语义：只保留复制 / 粘贴 / 清空内容）。
+   * 行与列的增删改统一走工具条与列头单列配置抽屉，右键不再提供结构操作。
    * @param act 菜单动作标识
    */
   const menuAct = (act: string) => {
@@ -138,37 +137,13 @@ export const useGridMouse = (
       io.pasteFromClipboard();
       return;
     }
-    if (act === 'insertUp' || act === 'insertDown') {
-      snap();
-      const nr = core.makeRow();
-      markDirty(nr);
-      core.validateRow(nr);
-      const idx = core.allRows.value.findIndex((r) => rowIdOf(r) === rowIdOf(row));
-      core.allRows.value.splice(act === 'insertUp' ? idx : idx + 1, 0, nr);
-      core.bumpData();
-      ops.locateRow(nr);
-      ElMessage.success('已插入行');
-    } else if (act === 'clear') {
+    if (act === 'clear') {
       core.commitCells('清空单元格', [row], () => {
         row[menu.field] = core.columnDefs.value.find((d) => d.field === menu.field)?.type === 'number' ? null : '';
         markDirty(row);
         core.validateCell(row, menu.field);
       });
       ElMessage.success('已清空');
-    } else if (act === 'deleteRow') {
-      snap();
-      core.allRows.value = core.allRows.value.filter((r) => rowIdOf(r) !== rowIdOf(row));
-      Object.keys(core.cellErrors).forEach((k) => {
-        if (k.startsWith(`${rowIdOf(row)}__`)) delete core.cellErrors[k];
-      });
-      core.bumpData();
-      ElMessage.success('已删除本行');
-    } else if (act === 'insertColBefore' || act === 'insertColAfter') {
-      // 在右键列的左侧/右侧插入新列（复用 ops.insertColumn，内部已入撤销栈）
-      ops.insertColumn(menu.field, act === 'insertColBefore' ? 'before' : 'after');
-    } else if (act === 'deleteCol') {
-      // 删除右键所在列（复用 ops.removeCol，内部已入撤销栈并处理行/错误/筛选清理）
-      ops.removeCol(menu.field);
     }
   };
 

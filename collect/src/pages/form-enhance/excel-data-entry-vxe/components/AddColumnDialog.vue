@@ -24,6 +24,7 @@ const { colDialogVisible, colForm, confirmAddCol } = props.ops;
           <el-option label="数字" value="number" />
           <el-option label="下拉" value="select" />
           <el-option label="日期" value="date" />
+          <el-option label="院区" value="region" />
         </el-select>
       </el-form-item>
       <!-- 仅下拉类型才展示"下拉选项"（逗号分隔） -->

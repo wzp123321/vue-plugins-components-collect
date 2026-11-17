@@ -1,13 +1,14 @@
 <script setup lang="ts">
-// 右键上下文菜单（网格内右键唤出）：复制 / 粘贴 / 插入行 / 清空 / 删除本行
+// 右键上下文菜单（网格内右键唤出）：复制 / 粘贴 / 清空内容（对齐 Univer 右键语义）
 // 本组件只负责把菜单项点击转发给 useGridMouse 暴露的 menuAct 动作；菜单的显隐与定位由 useGridMouse 控制。
+// 行与列的增删改统一走工具条与列头单列配置抽屉，右键不提供结构操作。
 // 协作：props.mouse(GridMouse) → menu(显隐/定位样式) / menuAct(动作派发)
 import type { GridMouse } from '../hooks/useGridMouse';
 
 defineOptions({ name: 'GridContextMenu' });
 const props = defineProps<{ mouse: GridMouse }>();
 
-// 解构：menu 控制显隐与 fixed 定位样式；menuAct 派发具体动作（'copy'/'paste'/'insertUp'/'insertDown'/'clear'/'deleteRow'）
+// 解构：menu 控制显隐与 fixed 定位样式；menuAct 派发具体动作（'copy'/'paste'/'clear'）
 const { menu, menuAct } = props.mouse;
 </script>
 
@@ -18,15 +19,7 @@ const { menu, menuAct } = props.mouse;
     <div class="dt-menu-item" @click="menuAct('copy')">📋 复制</div>
     <div class="dt-menu-item" @click="menuAct('paste')">📥 粘贴</div>
     <div class="dt-menu-sep" />
-    <div class="dt-menu-item" @click="menuAct('insertUp')">⬆ 在上方插入行</div>
-    <div class="dt-menu-item" @click="menuAct('insertDown')">⬇ 在下方插入行</div>
     <div class="dt-menu-item" @click="menuAct('clear')">🧹 清空内容</div>
-    <!-- danger 样式红色强调不可逆操作 -->
-    <div class="dt-menu-item danger" @click="menuAct('deleteRow')">🗑 删除本行</div>
-    <div class="dt-menu-sep" />
-    <div class="dt-menu-item" @click="menuAct('insertColBefore')">⬅ 在左侧插入列</div>
-    <div class="dt-menu-item" @click="menuAct('insertColAfter')">➡ 在右侧插入列</div>
-    <div class="dt-menu-item danger" @click="menuAct('deleteCol')">🗑 删除本列</div>
   </div>
 </template>
 
@@ -53,9 +46,6 @@ html.dark .dt-menu {
 }
 .dt-menu-item:hover {
   background: var(--dt-hover);
-}
-.dt-menu-item.danger {
-  color: var(--dt-danger);
 }
 .dt-menu-sep {
   height: 1px;

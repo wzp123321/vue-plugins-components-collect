@@ -4,15 +4,15 @@
  * 场景：@visactor/vtable 上的「常见 BI 数据录入」，能力面对齐站内 vxe 录入台
  * （pages/form-enhance/excel-data-entry-vxe），但走 VTable 原生能力，不重写 Excel 仿真层。
  *
- * 本文件的定位：整个录入台的唯一数据契约。列结构是**运行时可编辑的 schema**（加列/改列/列模板），
+ * 本文件的定位：整个录入台的唯一数据契约。列结构是**运行时可编辑的 schema**（加列/改列），
  * 因此不能像普通页面那样把列写死成 interface 字段 —— 行数据用「元信息 + 任意业务字段」表示。
  *
  * 协作模块：
- *   - useBiColumns：列结构增删改、显隐/冻结/分组、列模板、VTable 列构建；
+ *   - useBiColumns：列结构增删改、显隐/冻结/分组、VTable 列构建；
  *   - useBiValidation：按本文件的 ColRule / CrossRule 做声明式校验；
- *   - useBiQuery / useBiHistory / useBiActions / useBiIO：查询、撤销、行操作、导入导出。
+ *   - useBiQuery / useBiHistory / useBiActions：查询、撤销、行操作。
  *
- * ⚠️ 约定：rowId / selected / changed / rowNo 是行元信息，永远不参与校验与导出的业务列。
+ * ⚠️ 约定：rowId / selected / changed / rowNo 是行元信息，永远不参与校验的业务列。
  */
 
 /* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
@@ -30,9 +30,6 @@ import {
   pad2,
   renderDate,
   round2,
-  rowIsEmpty,
-  rowSignature,
-  tsName,
   type BiColLike,
   type ColRule,
   type ColType,
@@ -53,9 +50,6 @@ export {
   pad2,
   renderDate,
   round2,
-  rowIsEmpty,
-  rowSignature,
-  tsName,
 };
 
 /** 单列定义（列结构原子单元）：字段 / 展示 / 校验 / 视图四组属性 */
@@ -79,16 +73,7 @@ export interface BiRow extends Record<string, unknown> {
   rowNo: number;
 }
 
-/** 列类型中文文案 */
-export const typeLabel: Record<ColType, string> = {
-  text: '文本',
-  number: '数字',
-  select: '下拉',
-  date: '日期',
-  region: '院区',
-};
-
-// ============================ 字典（演示数据与下拉候选） ============================
+// ============================ 字典（下拉候选） ============================
 export const REGIONS = ['华东', '华南', '华北', '西南', '东北'];
 export const CATEGORIES = ['食品', '饮料', '日用', '数码', '服饰'];
 export const OWNERS = ['张伟', '李芳', '王敏', '刘洋', '陈磊'];
@@ -228,26 +213,6 @@ export const makeEmptyRow = (cols: readonly BiCol[], rowNo = 0): BiRow => {
   cols.forEach((c) => {
     row[c.field] = emptyValueFor(c);
   });
-  return row;
-};
-
-/** 归一化导入行：补齐缺失列、剥掉脏值 */
-export const normalizeRow = (cols: readonly BiCol[], raw: Record<string, unknown>): BiRow => {
-  const row = makeEmptyRow(cols);
-  cols.forEach((c) => {
-    const v = raw[c.field];
-    if (v === undefined) {
-      return;
-    }
-    if (c.type === 'number') {
-      row[c.field] = numOf(v);
-    } else {
-      row[c.field] = v === null || v === undefined ? '' : String(v);
-    }
-  });
-  if (typeof raw.rowId === 'string') {
-    row.rowId = raw.rowId;
-  }
   return row;
 };
 

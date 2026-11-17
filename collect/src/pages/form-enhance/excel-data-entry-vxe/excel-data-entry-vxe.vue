@@ -2,29 +2,32 @@
   录入台主组件（页面入口 · Excel 式数据录入台）
   ============================================================================
   本文件职责：
-    1. 组装页面布局与顶层 UI（标题/统计、工具栏、查找条、填充条、查询 chips、
-       表格本体、复制蚂蚁线、右键菜单、状态栏、分页、各弹窗/抽屉）。
-    2. 装配所有业务 hooks（core / columns / scroll / ops / tpl / demo / io / find / mouse / sel）
+    1. 组装页面布局与顶层 UI（标题/统计、工具栏、查找条、查询 chips、表格本体、
+       复制蚂蚁线、右键菜单、状态栏、新增列弹窗 / 单列配置抽屉 / 院区选择框）。
+    2. 装配业务 hooks（core / columns / scroll / ops / io / find / mouse / sel），
        并把它们"接线"到 vxe-table 的事件与各类子组件上。
-    3. 承担少量"页面级协调"逻辑：表头点击选列/全选、查询 chips 清除、单元格样式计算、
-       单元格点击分发。
+    3. 承担少量"页面级协调"逻辑：表头点击开列配置/全选、查询 chips 清除、
+       单元格样式计算、单元格点击分发、院区列双击选择器。
 
   在整体架构中的角色：作为"装配层 / 协调层"，本身不实现数据校验、框选、填充、剪贴板、
   键盘导航等复杂逻辑（这些下沉到 hooks 与各子状态机），只负责把 hooks 暴露的状态与动作
   绑定到 vxe-table 与 UI 组件。
 
+  功能口径对齐 Univer 录入台：新增行 / 新增列 / 撤销重做 / 搜索 / 查找替换 / 保存；
+  点列头进入单列配置（改名、改类型、删列）；院区列双击弹选择框；选区数字格聚合。
+
   协作模块：
-    - hooks/*：全部业务逻辑（数据/校验/历史/查询/统计/列/滚动/操作/模板/压测/导入导出/查找/鼠标键盘/框选）。
+    - hooks/*：业务逻辑（数据/校验/历史/查询/列/滚动/操作/剪贴板/查找/鼠标键盘/框选）。
     - components/cells/*：vxe 渲染器（element-plus 编辑器 + 显示渲染器）。
     - components/*.vue：各类 UI 组件（工具栏、抽屉、弹窗、状态条等）。
 
   关键架构约定（详见各对应代码处 ⚠️ 注释）：
     - cell-area 是 vxe pro 功能，OSS 版无实现 → 选区（框选/整行/整列/全选）全部自研（useCellSelection）。
     - 编辑单元格必须用 element-plus 组件（见下方 .dt-el-editor 样式），输入框无边框、
-      编辑不高亮整列。
+      编辑不高亮整列；院区列不挂编辑渲染器，双击走选择框。
     - 列宽只认 px；% 宽会被 XEUtils.toInteger 截断成整数百分比（列宽换算在 useGridColumns）。
     - vxe 表头事件名是 header-cell-click，列宽变更事件名是 column-resizable-change（不可拼错）。
-    - 状态栏统计为"双轨"：当前列全量统计（activeStats）+ 选区内数字格聚合（selectionStats）。
+    - 状态栏统计：选区内数字格聚合（selectionStats）。
     - 复制蚂蚁线：copiedRect 独立快照 + copyMarquee SVG overlay（stroke-dashoffset 循环动画）；
       box-shadow 不支持 dashed，故用 SVG rect 而非 box-shadow。
   ============================================================================
@@ -45,12 +48,11 @@
         <span class="stat-pill warn"><b>{{ dirtyCount }}</b> 改动</span>
         <span class="stat-pill danger"><b>{{ errorCount }}</b> 错误</span>
         <span class="stat-pill ok"><b>{{ selectionCount }}</b> 选中</span>
-        <span v-if="lastGen" class="stat-pill info">{{ lastGen }}</span>
       </div>
     </div>
 
-    <!-- 工具栏 / 查找替换条 / 查询条件 chips / 批量填充面板 -->
-    <GridToolbar :core="core" :ops="ops" :tpl="tpl" :demo="demo" :io="io" :find="find" />
+    <!-- 工具栏 / 查询条件 chips / 查找替换条 -->
+    <GridToolbar :core="core" :ops="ops" :find="find" />
     <GridQueryChips
       :core="core"
       :on-clear-filter="clearFilterChip"
@@ -58,13 +60,13 @@
       :on-clear-all="clearAllQuery"
     />
     <GridFindBar :find="find" />
-    <GridFillBar :core="core" :ops="ops" />
 
     <!-- 表格 -->
     <div class="dt-grid bi-panel" ref="gridBox">
       <VxeTable
         ref="tableRef"
-        :data="pagedRows"
+        :data="processedRows"
+        @cell-dblclick="onCellDblClick"
         :edit-config="editConfig"
         :keyboard-config="keyboardConfig"
         :mouse-config="{ selected: false }"
@@ -78,8 +80,6 @@
         :show-overflow="true"
         :border="true"
         :stripe="true"
-        :show-footer="showFooter"
-        :footer-data="footerData"
         :scroll-y="{ enabled: true, gt: 10 }"
         :scroll-x="{ enabled: true, gt: 0 }"
         :height="gridHeight"
@@ -123,17 +123,7 @@
       <span class="sb-item">改动 <b :class="{ 'c-warn': dirtyCount > 0 }">{{ dirtyCount }}</b></span>
       <span class="sb-item">选中 <b :class="{ 'c-ok': selectionCount > 0 }">{{ selectionCount }}</b></span>
       <span class="sb-item">错误 <b :class="{ 'c-danger': errorCount > 0 }">{{ errorCount }}</b></span>
-      <!-- 状态栏统计双轨之一：当前列全量统计（计数/求和/平均/最大/最小） -->
-      <template v-if="activeStats">
-        <span class="sb-sep" />
-        <span class="sb-item">{{ activeColLabel }}：</span>
-        <span class="sb-item">计数 <b>{{ activeStats.count }}</b></span>
-        <span class="sb-item">求和 <b>{{ activeStats.sum }}</b></span>
-        <span class="sb-item">平均 <b>{{ activeStats.avg }}</b></span>
-        <span class="sb-item">最大 <b>{{ activeStats.max }}</b></span>
-        <span class="sb-item">最小 <b>{{ activeStats.min }}</b></span>
-      </template>
-      <!-- 状态栏统计双轨之二：选区内数字格聚合（仅当选区存在且有数字格时显示） -->
+      <!-- 状态栏：选区内数字格聚合（仅当选区存在且有数字格时显示） -->
       <template v-if="selectionStats">
         <span class="sb-sep" />
         <span class="sb-item">选区统计：</span>
@@ -146,56 +136,40 @@
       <span class="sb-tip">F1 快捷键 · 拖右下角方块填充（双击填到底）· Ctrl+D 向下 / Ctrl+R 向右填充 · 右键菜单</span>
     </div>
 
-    <!-- 分页（仅分页模式） -->
-    <div v-if="viewMode === 'paged'" class="dt-pager">
-      <el-pagination
-        v-model:current-page="pager.currentPage"
-        v-model:page-size="pager.pageSize"
-        :total="processedRows.length"
-        :page-sizes="[50, 100, 200, 500]"
-        layout="total, sizes, prev, pager, next, jumper"
-        background
-      />
-    </div>
-
     <!-- 弹窗与抽屉 -->
     <AddColumnDialog :ops="ops" />
-    <ColumnManagerDrawer :core="core" :ops="ops" @config="openColumnConfig" />
     <ColumnConfigDrawer :core="core" :ops="ops" :field="configField" v-model:visible="configDrawer" />
-    <ErrorDrawer :core="core" :ops="ops" />
-    <TemplateDialog :tpl="tpl" />
-
-    <!-- 隐藏的文件选择 input：导入 Excel 时触发；始终留在 DOM 上以便随时调用 -->
-    <input ref="fileInputRef" type="file" accept=".xlsx,.xls" style="display: none" @change="onFileChange" />
+    <RegionPickerDialog
+      v-model:visible="regionPickerVisible"
+      :current="regionPickerCurrent"
+      @confirm="onRegionPicked"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick, onMounted, computed, watch } from 'vue';
+import { ref, nextTick, onMounted, computed } from 'vue';
 import { VxeTable } from 'vxe-table';
 import 'vxe-table/es/style.css';
 import { registerAllRenderers } from './components/cells';
 import GridToolbar from './components/GridToolbar.vue';
 import GridFindBar from './components/GridFindBar.vue';
-import GridFillBar from './components/GridFillBar.vue';
 import GridQueryChips from './components/GridQueryChips.vue';
 import GridContextMenu from './components/GridContextMenu.vue';
 import GridHelpDialog from './components/GridHelpDialog.vue';
 import AddColumnDialog from './components/AddColumnDialog.vue';
-import ColumnManagerDrawer from './components/ColumnManagerDrawer.vue';
 import ColumnConfigDrawer from './components/ColumnConfigDrawer.vue';
-import ErrorDrawer from './components/ErrorDrawer.vue';
-import TemplateDialog from './components/TemplateDialog.vue';
+import RegionPickerDialog from '@/pages/data-platform/univer-entry/components/RegionPickerDialog.vue';
 import { useGridCore, rowIdOf, dirtyOf } from './hooks/useGridCore';
 import { useGridColumns } from './hooks/useGridColumns';
 import { useGridScroll } from './hooks/useGridScroll';
 import { useGridOps } from './hooks/useGridOps';
-import { useGridTemplates } from './hooks/useGridTemplates';
-import { useGridDemoData } from './hooks/useGridDemoData';
 import { useGridIO } from './hooks/useGridIO';
 import { useGridFindReplace } from './hooks/useGridFindReplace';
 import { useGridMouse } from './hooks/useGridMouse';
 import { useCellSelection } from './hooks/useCellSelection';
+import type { Row } from './types';
+import { isRegionValue, type RegionValue } from '@/pages/data-platform/univer-entry/region-data';
 
 defineOptions({ name: 'ExcelDataEntryVxe' });
 // 注册 vxe 渲染器：element-plus 单元格编辑器 + 单元格显示渲染器
@@ -206,19 +180,16 @@ registerAllRenderers();
 const tableRef = ref<any>(null);
 const gridWrapper = ref<HTMLElement>();
 const gridBox = ref<HTMLElement>();
-const fileInputRef = ref<HTMLInputElement>();
 
 // ===================== hooks 装配 =====================
-// 核心（数据/校验/历史/查询/统计）→ 滚动定位 → 列定义 → 单元格框选 → 数据操作 → 模板 → 压测数据 → 导入导出 → 查找替换 → 鼠标键盘交互
+// 核心（数据/校验/历史/查询/统计）→ 滚动定位 → 列定义 → 单元格框选 → 数据操作 → 剪贴板 → 查找替换 → 鼠标键盘交互
 // 末级的 useGridMouse 为协调层，内部再装配三个子状态机：useFillHandle（填充手柄）/ useCopyMarquee（复制蚂蚁线）/ useGridKeys（键盘导航）
 const core = useGridCore();
 const scroll = useGridScroll(core, tableRef);
 const gridColumns = useGridColumns(core, tableRef);
 const sel = useCellSelection(core, tableRef, gridWrapper);
 const ops = useGridOps(core, tableRef, scroll, sel);
-const tpl = useGridTemplates(core);
-const demo = useGridDemoData(core);
-const io = useGridIO(core, fileInputRef, sel);
+const io = useGridIO(core, sel);
 const find = useGridFindReplace(core, scroll, sel);
 const mouse = useGridMouse(core, tableRef, { gridBox, gridWrapper, io, find, ops, sel });
 
@@ -227,24 +198,13 @@ const {
   processedRows,
   dirtyCount,
   errorCount,
-  pagedRows,
-  viewMode,
-  showFooter,
-  footerData,
-  pager,
   onSortChange,
   onFilterChange,
   onEditActived,
   onEditClosed,
-  activeColLabel,
-  activeStats,
 } = core;
 // ---- 列定义 / 编辑配置 ----
 const { editConfig, keyboardConfig } = gridColumns;
-// ---- 压测数据（头部状态 pill） ----
-const { lastGen } = demo;
-// ---- 文件导入（隐藏 input 仍在页面） ----
-const { onFileChange } = io;
 // ---- 填充手柄 / 网格高度 / 快捷键帮助 / 复制蚂蚁线 ----
 const { gridHeight, fillHandle, startFill, helpVisible, copyMarquee } = mouse;
 // ---- 框选统计（头部 pill 与状态栏共用） ----
@@ -315,18 +275,15 @@ const clearAllQuery = () => {
   tableRef.value?.clearSort?.();
 };
 
-// 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 选中整列（Excel 点列头选列语义）。
-// 列配置入口保留在「列管理」面板的逐列「配置」按钮，普通点列头不再打开列配置。
-// 排序已改为 trigger:'default'（只在点列头排序图标时排序），故点表头不会再被排序动作抢走；
-// 仍用 vxe 给出的 triggerSort/triggerFilter/triggerResizable 兜底，避免点排序/筛选图标时误选整列
+// 列头点击：序号列 = 全选（Excel 左上角三角）；数据列 = 打开该列的单列配置抽屉。
+// 对齐 Univer：点列头即进入列配置（改名/改类型/改必填/删列），不再有独立的「列管理」列表。
+// 排序/筛选/拖拽手柄的点击由 vxe 透出 triggerSort/triggerFilter/triggerResizable，必须排除，
+// 否则点列头上的排序箭头会误弹配置抽屉。
 /**
- * onHeaderClick —— 表头单元格点击处理：序号列=全选；数据列=选中整列（selectColumn）。
+ * onHeaderClick —— 表头单元格点击：序号列=全选；数据列=打开单列配置抽屉。
  * @param column vxe 列对象（含 type/field）
- * @param triggerSort/triggerFilter/triggerResizable vxe 透出的点击落点标志，落在排序/筛选/拖拽手柄上时为 true
- * 坑点：
- *   1) vxe 表头事件名是 header-cell-click（@header-cell-click），不可拼错；
- *   2) 必须排除 triggerSort/triggerFilter/triggerResizable，否则点排序/筛选图标会误触发"选中整列"；
- *   3) 点数据列表头改为选中整列（Excel 语义），列配置改走「列管理」面板的逐列按钮。
+ * @param triggerSort/triggerFilter/triggerResizable vxe 透出的点击落点标志
+ * 坑点：vxe 表头事件名是 header-cell-click（@header-cell-click），不可拼错。
  */
 const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }: any) => {
   if (!column || triggerSort || triggerFilter || triggerResizable) return;
@@ -341,8 +298,42 @@ const onHeaderClick = ({ column, triggerSort, triggerFilter, triggerResizable }:
     }
     return;
   }
-  // 数据列：选中整列（列头点击 = Excel 点列头选列；列配置在「列管理」面板的逐列按钮）
-  if (column.field) sel.selectColumn(column.field);
+  if (column.field) {
+    sel.selectColumn(column.field);
+    openColumnConfig(column.field);
+  }
+};
+
+// ===================== 院区列：双击弹选择框（对齐 Univer 的院区录入） =====================
+// 院区单元格存 RegionValue 对象 { name, id, code }：name 用于展示，id/code 随数据一起存。
+// 单击只选中，双击才弹框；region 列不挂 editRender（见 useGridColumns），故 vxe 不会同时进文本编辑。
+const regionPickerVisible = ref(false);
+const regionPickerCurrent = ref<RegionValue | null>(null);
+const regionPickerCell = ref<{ row: Row | null; field: string }>({ row: null, field: '' });
+
+/** 双击院区列单元格：记住目标格并弹出选择框（回显已有值） */
+const onCellDblClick = ({ row, column }: any) => {
+  const field = column?.field;
+  if (!row || !field) return;
+  const def = core.columnDefs.value.find((d) => d.field === field);
+  if (def?.type !== 'region') return;
+  regionPickerCell.value = { row, field };
+  regionPickerCurrent.value = isRegionValue(row[field]) ? { ...row[field] } : null;
+  regionPickerVisible.value = true;
+};
+
+/** 选择框确定/清除：写回目标格，走 commitCells 接入撤销历史，随后校验 + 重绘 */
+const onRegionPicked = (value: RegionValue | null) => {
+  const { row, field } = regionPickerCell.value;
+  regionPickerCell.value = { row: null, field: '' };
+  if (!row || !field) return;
+  core.commitCells('选择院区', [row], () => {
+    row[field] = value ? { ...value } : '';
+    Object.assign(row, { __dirty: true });
+  });
+  core.validateCell(row, field);
+  // renderCell 不受 Vue 响应式追踪，值改完要主动让 vxe 重绘该格
+  nextTick(() => tableRef.value?.updateData?.());
 };
 
 onMounted(() => {
@@ -350,16 +341,7 @@ onMounted(() => {
   nextTick(gridColumns.applyColumns);
   nextTick(gridColumns.syncBodyWidth);
   nextTick(mouse.syncGridHeight);
-  tpl.loadTemplates();
-  nextTick(mouse.refreshFillHandle);
 });
-
-// 条件格式（数值列数据条）由渲染器读 RT 桥的统计快照渲染，vxe 不会因 RT 变化自动重绘，
-// 故开关切换后主动刷新一次，否则要等滚动/编辑才看得到效果
-watch(
-  () => core.conditionalOn.value,
-  () => nextTick(() => tableRef.value?.updateData?.()),
-);
 
 // ===================== 单元格样式 =====================
 // 错误标红 / 查找命中高亮 / 填充闪烁 / 框选高亮（分别来自 核心校验、查找替换、填充手柄、选区状态机）
@@ -449,7 +431,6 @@ const onCellClick = (params: any) => {
 /* 页面骨架（.bi-page / .bi-header / .stat-pill / .bi-panel / .bi-statusbar）与色板（--bi-*）
    由全局 assets/style/bi-entry.less 提供，三套录入台共用；此处只留 vxe 专有部分。
    .dt-page / .dt-grid 等类名保留在模板上：仍被下方 html.dark 的 :deep() 覆盖规则引用。 */
-.dt-pager { margin-top: 10px; display: flex; justify-content: flex-end; }
 
 /* 填充手柄 */
 .dt-fillhandle {
@@ -599,17 +580,7 @@ html.dark .dt-page :deep(.vxe-table .vxe-body--column.cross-both) { background-i
 :deep(.dt-num-plain) { color: var(--dt-text); }
 :deep(.dt-date) { color: var(--dt-sub); }
 :deep(.dt-text) { color: var(--dt-text); }
-:deep(.dt-bar-cell) {
-  position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: flex-end;
-  padding-right: 8px; box-sizing: border-box; overflow: hidden;
-}
-:deep(.dt-bar-cell .dt-bar) {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  background: rgba(43, 92, 246, 0.16);
-  border-right: 1px solid rgba(43, 92, 246, 0.38); z-index: 0;
-}
-html.dark :deep(.dt-bar-cell .dt-bar) { background: rgba(111, 141, 255, 0.22); border-right-color: rgba(111, 141, 255, 0.5); }
-:deep(.dt-bar-cell .dt-num) { position: relative; z-index: 1; }
+:deep(.dt-region) { color: var(--dt-primary); }
 
 /* 深色主题下 vxe 边框/底色覆盖 */
 html.dark .dt-page :deep(.vxe-table) { background: var(--dt-panel); }

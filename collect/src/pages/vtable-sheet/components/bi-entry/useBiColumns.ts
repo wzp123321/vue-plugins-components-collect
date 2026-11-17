@@ -1,25 +1,17 @@
 /**
  * BI 数据录入 —— 列结构（运行时可编辑的 schema）
  *
- * 为什么要做「可编辑列结构」：vxe 录入台的核心不是「一张写死的表」，而是「用户自己定义字段」——
- * 加列、改类型、配校验、存成列模板。VTable 侧同样需要这层，否则就是一个固定 schema 的表单。
+ * 为什么要做「可编辑列结构」：录入台的核心不是「一张写死的表」，而是「用户自己定义字段」——
+ * 加列、改类型、配校验（共享抽屉 BiColumnDrawer）。VTable 侧同样需要这层，否则就是一个
+ * 固定 schema 的表单。列模板、复制列、移动列已随列设置列表一起移除（对齐 Univer）。
  *
- * 本文件只负责「列结构本身」：增删改、显隐、冻结、分组、列模板持久化、列宽分配。
+ * 本文件只负责「列结构本身」：增删改、显隐、冻结、分组、列宽分配。
  * 不负责渲染——VTable 的列定义在 vt-bi-entry.vue 里组装（那里才拿得到错误态 / 闪烁态）。
  *
  * ⚠️ 关键约束：列宽只认 px。等比分配在 allocWidths 里做，避免把 % 交给表格底层解析。
  */
 import { computed, ref, type ComputedRef } from 'vue';
-import { DEFAULT_COLS, makeCol, nextColField, type BiCol, type BiRow, type ColType } from './schema';
-
-const TPL_KEY = 'vtable-bi-entry:col-tpl:v1';
-
-/** 列模板：只存列结构，不存数据 */
-export interface ColTemplate {
-  name: string;
-  cols: BiCol[];
-  ts: number;
-}
+import { DEFAULT_COLS, makeCol, nextColField, type BiCol, type ColType } from './schema';
 
 /** 行号列 + 勾选列固定占位宽 */
 export const ROWNO_WIDTH = 52;
@@ -71,7 +63,6 @@ export const useBiColumns = () => {
 
   const visibleCols: ComputedRef<BiCol[]> = computed(() => cols.value.filter((c) => c.visible));
   const numberCols: ComputedRef<BiCol[]> = computed(() => cols.value.filter((c) => c.type === 'number'));
-  const editableCols: ComputedRef<BiCol[]> = computed(() => cols.value.filter((c) => c.visible));
   const labelOf = (field: string): string => cols.value.find((c) => c.field === field)?.label ?? field;
   const colOf = (field: string): BiCol | undefined => cols.value.find((c) => c.field === field);
 
@@ -86,134 +77,19 @@ export const useBiColumns = () => {
     cols.value = cols.value.filter((c) => c.field !== field);
   };
 
-  /**
-   * 复制列：克隆 BiCol 定义并生成新字段（如 `${field}_copy`），插入到原列之后。
-   * 同时把每行原字段值复制到新字段（由调用方传入 records，因为本模块不持有行数据）。
-   * 返回新列；若原字段不存在返回 null。
-   */
-  const cloneCol = (field: string, rows?: BiRow[]): BiCol | null => {
-    const idx = cols.value.findIndex((c) => c.field === field);
-    if (idx < 0) {
-      return null;
-    }
-    const src = cols.value[idx];
-    const used = new Set(cols.value.map((c) => c.field));
-    let newField = `${field}_copy`;
-    let suffix = 1;
-    while (used.has(newField)) {
-      suffix += 1;
-      newField = `${field}_copy${suffix}`;
-    }
-    const copy: BiCol = {
-      ...src,
-      field: newField,
-      label: `${src.label}副本`,
-      frozen: false,
-      options: src.options ? [...src.options] : undefined,
-      rules: src.rules ? { ...src.rules } : undefined,
-      cross: src.cross ? [...src.cross] : undefined,
-    };
-    const next = cols.value.slice();
-    next.splice(idx + 1, 0, copy);
-    cols.value = next;
-    if (rows) {
-      rows.forEach((r) => {
-        r[newField] = r[field];
-      });
-    }
-    return copy;
-  };
-
   const updateCol = (field: string, patch: Partial<BiCol>) => {
     cols.value = cols.value.map((c) => (c.field === field ? { ...c, ...patch } : c));
-  };
-
-  /** 左右移动列（顺序影响表头分组与导出列序） */
-  const moveCol = (field: string, dir: -1 | 1) => {
-    const i = cols.value.findIndex((c) => c.field === field);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= cols.value.length) {
-      return;
-    }
-    const next = cols.value.slice();
-    [next[i], next[j]] = [next[j], next[i]];
-    cols.value = next;
-  };
-
-  const resetCols = () => {
-    cols.value = JSON.parse(JSON.stringify(DEFAULT_COLS)) as BiCol[];
-  };
-
-  const replaceCols = (next: BiCol[]) => {
-    cols.value = next.map((c) => ({ ...c }));
-  };
-
-  // ============================ 列模板（localStorage） ============================
-  const templates = ref<ColTemplate[]>([]);
-
-  const loadTemplates = () => {
-    const raw = localStorage.getItem(TPL_KEY);
-    if (!raw) {
-      templates.value = [];
-      return;
-    }
-    try {
-      const arr = JSON.parse(raw) as ColTemplate[];
-      templates.value = Array.isArray(arr) ? arr.filter((t) => t && t.name && Array.isArray(t.cols)) : [];
-    } catch {
-      templates.value = [];
-    }
-  };
-
-  const persistTemplates = () => {
-    localStorage.setItem(TPL_KEY, JSON.stringify(templates.value));
-  };
-
-  const saveTemplate = (name: string) => {
-    const key = name.trim();
-    if (!key) {
-      return false;
-    }
-    const tpl: ColTemplate = { name: key, cols: JSON.parse(JSON.stringify(cols.value)) as BiCol[], ts: Date.now() };
-    const at = templates.value.findIndex((t) => t.name === key);
-    templates.value = at >= 0 ? templates.value.map((t, i) => (i === at ? tpl : t)) : [...templates.value, tpl];
-    persistTemplates();
-    return true;
-  };
-
-  const removeTemplate = (name: string) => {
-    templates.value = templates.value.filter((t) => t.name !== name);
-    persistTemplates();
-  };
-
-  const loadTemplate = (name: string): boolean => {
-    const tpl = templates.value.find((t) => t.name === name);
-    if (!tpl) {
-      return false;
-    }
-    replaceCols(tpl.cols);
-    return true;
   };
 
   return {
     cols,
     visibleCols,
     numberCols,
-    editableCols,
     labelOf,
     colOf,
     addCol,
     removeCol,
-    cloneCol,
     updateCol,
-    moveCol,
-    resetCols,
-    replaceCols,
-    templates,
-    loadTemplates,
-    saveTemplate,
-    removeTemplate,
-    loadTemplate,
   };
 };
 

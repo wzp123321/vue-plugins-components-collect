@@ -405,19 +405,29 @@ export const useEntrySheet = () => {
    * 没有官方的「开关筛选」菜单，所以必须主动 createFilter() 建筛选区。
    * 约束（对 1.3.0 源码核过）：createFilter 要求 endRow > startRow（至少表头 + 1 行），
    * 且表上已有 filter 时直接返回 null → 覆盖范围变化要先 remove() 再建。
-   * 覆盖范围够用时直接返回，避免把用户已设的筛选条件清掉。
+   *
+   * ⚠️ 筛选区固定覆盖**整张网格**，不是"表头 + 当前数据行"。
+   *    根因（对 1.3.0 的 SheetsFilterRenderController 核过）：它用 `SelectionControl`
+   *    ——就是画选区的那套控件——把 filterModel 的 range 描一圈边，于是筛选范围在画布上
+   *    长得跟"选区"一模一样。range 只包住已有数据时，空表一进页面就挂着这个蓝框（用户反馈的
+   *    "默认还有高亮边框"），录一行数据框还跟着长。
+   *    把范围撑到整表后，右边与下边落到视口之外，可视区内两条边都不再出现。
+   *    代价：`_renderButtons` 对 range 内每一列都建漏斗 → 表头右侧的空列也会各带一个。
+   *    这是它的绘制口径（不看该列有没有内容），没有逐列开关；相比每页都挂着的蓝框，这个代价可接受。
+   *    附带好处：范围不再随数据行数增长而变化，列增删也天然被覆盖 → 不需要再 remove 重建，
+   *    用户已设的筛选条件不会被"结构变化"清掉。
    */
-  const ensureFilter = (colCount: number) => {
+  const ensureFilter = () => {
     const ws = sheet.value;
-    if (!ws || colCount <= 0) return;
-    const last = Math.max(lastRow(), HEADER_ROW + 1);
+    if (!ws) return;
     const existing = ws.getFilter();
     if (existing) {
       const r = existing.getRange().getRange();
-      if (r.endColumn >= colCount - 1 && r.endRow >= last) return;
+      if (r.endColumn >= SHEET_COLUMN_COUNT - 1 && r.endRow >= SHEET_ROW_COUNT - 1) return;
+      // 旧版按数据范围建的窄 filter 升级为整表范围
       existing.remove();
     }
-    ws.getRange(HEADER_ROW, 0, last - HEADER_ROW + 1, colCount).createFilter();
+    ws.getRange(0, 0, SHEET_ROW_COUNT, SHEET_COLUMN_COUNT).createFilter();
   };
 
   /** 表头文字：必填列追加星号（Univer 无表头分组/角标能力，用文本方式表达） */

@@ -55,9 +55,8 @@ export const useCellValidation = (deps: {
   getColumnDefs: () => ColDef[];
   getRows: () => Row[];
   labelOf: (field: string) => string;
-  firstVisibleField: () => string | undefined;
 }) => {
-  const { getColumnDefs, getRows, labelOf, firstVisibleField } = deps;
+  const { getColumnDefs, getRows, labelOf } = deps;
   const cellErrors = reactive<Record<string, string>>({});
   const errKey = (rowId: string, field: string) => `${rowId}__${field}`;
 
@@ -154,31 +153,13 @@ export const useCellValidation = (deps: {
     defs.forEach((d) => validateCell(row, d.field, { dup }));
   };
 
-  /** 直接写入一条错误（服务端校验回填用）：不参与规则计算，只污染错误表 */
-  const setCellError = (rowId: string, field: string, msg: string) => {
-    cellErrors[errKey(rowId, field)] = msg;
-  };
-
   const errorCount = computed(() => Object.keys(cellErrors).length);
-  const errorList = computed(() =>
-    Object.entries(cellErrors).map(([k, msg]) => {
-      const [rowId, field] = k.split('__');
-      const row = getRows().find((r) => rowIdOf(r) === rowId);
-      return {
-        rowId,
-        field,
-        msg,
-        rowLabel: row ? String(row[firstVisibleField() ?? 'name'] ?? '') : '?',
-        colLabel: labelOf(field),
-      };
-    }),
-  );
 
-  return { cellErrors, errKey, validateCell, validateRow, revalidateAll, setCellError, errorCount, errorList };
+  return { cellErrors, errKey, validateCell, validateRow, revalidateAll, errorCount };
 }
 
 /**
  * useCellValidation 的返回类型别名：导出 { cellErrors, errKey, validateCell, validateRow,
- * revalidateAll, setCellError, errorCount, errorList }，供核心与各写数据路径调用与读取错误。
+ * revalidateAll, errorCount }，供核心与各写数据路径调用与读取错误。
  */
 export type CellValidation = ReturnType<typeof useCellValidation>;

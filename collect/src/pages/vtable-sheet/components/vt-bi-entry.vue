@@ -1,21 +1,25 @@
 <!--
  * 场景上下文：本页跑在 @visactor/vtable-sheet 上（工作表容器），底层仍由 @visactor/vtable 的
- *   ListTable 渲染，单元格编辑走 @visactor/vtable-editors。能力面对齐站内 vxe 录入台
- *   （pages/form-enhance/excel-data-entry-vxe），但不重写 Excel 仿真层。
+ *   ListTable 渲染，单元格编辑走 @visactor/vtable-editors。能力面对齐 Univer 录入台
+ *   （pages/data-platform/univer-entry），但不重写 Excel 仿真层。
  * 技术组合：Vue3 <script setup> + @visactor/vtable-sheet 1.26.x + @visactor/vtable 1.26.x
- *          + @visactor/vtable-editors 1.26.x + ExcelJS（导入导出）+ file-saver + Element Plus
- * 分工：sheet 管「数据 / 列 / 主题 / 生命周期 / 合并 / 冻结」，单元格级交互（选区、滚动、编辑、
+ *          + @visactor/vtable-editors 1.26.x + Element Plus
+ * 分工：sheet 管「数据 / 列 / 主题 / 生命周期 / 冻结」，单元格级交互（选区、滚动、编辑、
  *       重绘）走 WorkSheet 公开的 tableInstance；工具栏、撤销栈、右键菜单、查找替换是自绘的。
  *       因此 mainMenu / showFormulaBar / showSheetTab / undoRedo 全部关闭。
+ * 功能面（对齐 Univer，只多不少不删）：
+ *   工具条：新增行 / 新增列 / 撤销 / 重做 / 搜索 / 查找替换 / 保存；
+ *   点列头 → 共享单列配置抽屉（BiColumnDrawer），新增列走抽屉 add 模式，删除列走抽屉「删除该列」；
+ *   院区列（type='region'）双击弹 RegionPickerDialog；选区数字格聚合统计；
+ *   表头筛选/排序抽屉、右键菜单（复制/粘贴/清空）、序列填充（填充柄 / Ctrl+D / Ctrl+R）。
  * 模块划分（./bi-entry/*）：
  *   schema.ts        数据契约（列/行/规则/字典/工具）
- *   useBiColumns     列结构增删改、显隐/冻结/分组、列模板、列宽分配
- *   useBiValidation  声明式校验（必填/范围/整数/长度/正则/唯一/跨列/服务端）
- *   useBiQuery       全局搜索、每列筛选、多列排序、查询 chips、分页
+ *   useBiColumns     列结构增删改、显隐/冻结/分组、列宽分配
+ *   useBiValidation  声明式校验（必填/范围/整数/长度/正则/唯一/跨列）
+ *   useBiQuery       全局搜索、每列筛选、多列排序、查询 chips
  *   useBiHistory     撤销重做（结构快照 + 单元格增量）
- *   useBiActions     行操作、批量填充、序列填充、演示/压测数据、提交
- *   useBiIO          Excel 导入 / 三档导出
- * 本文件负责：VTable 实例与事件接线、键盘流、填充柄、右键菜单、全部 UI。
+ *   useBiActions     行操作、序列填充、种子数据
+ * 本文件负责：VTable 实例与事件接线、键盘流、填充柄、右键菜单、院区选择器、全部 UI。
  * 踩坑落点：见 .workbuddy/memory/MEMORY.md「接缝本」
  -->
 <template>
@@ -26,38 +30,8 @@
         <el-tooltip content="新增行（追加到末尾）" placement="bottom">
           <el-button :icon="Plus" size="small" @click="onAddRow" />
         </el-tooltip>
-        <el-tooltip content="在当前行下方插入" placement="bottom">
-          <el-button :icon="Bottom" size="small" @click="onInsertRow" />
-        </el-tooltip>
-        <el-tooltip content="删除选中行" placement="bottom">
-          <el-button
-            type="danger"
-            plain
-            :icon="Delete"
-            size="small"
-            :disabled="selectedCount === 0"
-            @click="onDeleteSelected"
-          />
-        </el-tooltip>
-        <el-tooltip content="复制选中行" placement="bottom">
-          <el-button :icon="CopyDocument" size="small" :disabled="selectedCount === 0" @click="onDuplicate" />
-        </el-tooltip>
-      </div>
-
-      <el-divider direction="vertical" />
-
-      <div class="vtable-sheet-bi__group">
         <el-tooltip content="新增列" placement="bottom">
           <el-button :icon="Grid" size="small" @click="openAddCol" />
-        </el-tooltip>
-        <el-tooltip content="列设置 / 列模板" placement="bottom">
-          <el-button :icon="Setting" size="small" @click="colDrawer = true" />
-        </el-tooltip>
-        <el-tooltip content="合并选中区域" placement="bottom">
-          <el-button :icon="FullScreen" size="small" :disabled="!hasSelection" @click="mergeSelection" />
-        </el-tooltip>
-        <el-tooltip content="取消全部合并" placement="bottom">
-          <el-button :icon="Aim" size="small" @click="clearMerges" />
         </el-tooltip>
       </div>
 
@@ -93,102 +67,15 @@
 
       <el-divider direction="vertical" />
 
-      <div class="vtable-sheet-bi__group">
-        <el-tooltip content="导入 Excel（覆盖当前数据）" placement="bottom">
-          <el-button :icon="Upload" size="small" @click="importExcel" />
-        </el-tooltip>
-        <el-dropdown trigger="click" @command="onExportCommand">
-          <el-button :icon="Download" size="small" />
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="all">导出 Excel（全部 {{ records.length }} 行）</el-dropdown-item>
-              <el-dropdown-item command="result">导出 Excel（当前结果 {{ processedRows.length }} 行）</el-dropdown-item>
-              <el-dropdown-item command="csv">导出 CSV（当前结果）</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-
-      <el-divider direction="vertical" />
-
-      <div class="vtable-sheet-bi__group">
-        <el-tooltip content="删除空行（业务列全空）" placement="bottom">
-          <el-button :icon="DocumentDelete" size="small" plain @click="onRemoveEmpty" />
-        </el-tooltip>
-        <el-tooltip content="去重（整行相同只留首行）" placement="bottom">
-          <el-button :icon="DocumentCopy" size="small" plain @click="onRemoveDup" />
-        </el-tooltip>
-        <el-tooltip content="清空全部数据" placement="bottom">
-          <el-button :icon="Close" size="small" plain @click="onClearAll" />
-        </el-tooltip>
-        <el-tooltip content="保存本地草稿 / 恢复示例数据" placement="bottom">
-          <el-button :icon="Files" size="small" plain @click="saveDraft" />
-        </el-tooltip>
-        <el-tooltip content="重置为示例数据" placement="bottom">
-          <el-button :icon="Refresh" size="small" plain @click="resetDraft" />
-        </el-tooltip>
-      </div>
-
-      <el-divider direction="vertical" />
-
-      <el-tooltip content="提交（mock 服务端校验）" placement="bottom">
-        <el-button type="success" :icon="SelectIcon" size="small" :loading="submitting" @click="onSubmit">提交</el-button>
+      <el-tooltip content="保存（全量校验，mock 提交）" placement="bottom">
+        <el-button type="success" :icon="SelectIcon" size="small" :loading="submitting" @click="onSubmit">保存</el-button>
       </el-tooltip>
 
       <el-divider direction="vertical" />
 
-      <div class="vtable-sheet-bi__group">
-        <el-dropdown trigger="click" @command="onPresetCommand">
-          <el-button size="small" plain type="primary">
-            数据
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="preset">预制 500 行演示数据</el-dropdown-item>
-              <el-dropdown-item v-for="n in GEN_SIZES" :key="n" :command="n" divided>
-                压测：生成 {{ genLabel(n) }} 行
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-
-      <el-divider direction="vertical" />
-
-      <div class="vtable-sheet-bi__group">
-        <el-dropdown trigger="click" @command="onViewCommand">
-          <el-button size="small">
-            {{ query.viewMode.value === 'virtual' ? '虚拟滚动' : '分页' }}
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="virtual">虚拟滚动</el-dropdown-item>
-              <el-dropdown-item command="paged">分页</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-tooltip content="列汇总条" placement="bottom">
-          <el-switch v-model="showSummary" size="small" inline-prompt active-text="汇" inactive-text="汇" />
-        </el-tooltip>
-        <el-tooltip content="条件格式（数值列数据条）" placement="bottom">
-          <el-switch v-model="conditionalOn" size="small" inline-prompt active-text="条" inactive-text="条" />
-        </el-tooltip>
-        <el-tooltip content="批量填充 / 清空列" placement="bottom">
-          <el-button :icon="Operation" size="small" :type="fillVisible ? 'primary' : 'info'" plain @click="fillVisible = !fillVisible" />
-        </el-tooltip>
-        <el-tooltip content="校验面板" placement="bottom">
-          <el-badge :value="errorCount" :hidden="errorCount === 0" type="danger" class="vtable-sheet-bi__badge">
-            <el-button :icon="Warning" size="small" @click="errDrawer = true" />
-          </el-badge>
-        </el-tooltip>
-        <el-tooltip content="快捷键帮助 (F1)" placement="bottom">
-          <el-button :icon="QuestionFilled" size="small" plain @click="helpVisible = true" />
-        </el-tooltip>
-      </div>
-
-      <input ref="fileInput" type="file" accept=".xlsx,.xls" class="vtable-sheet-bi__file" @change="onFileChange" />
+      <el-tooltip content="快捷键帮助 (F1)" placement="bottom">
+        <el-button :icon="QuestionFilled" size="small" plain @click="helpVisible = true" />
+      </el-tooltip>
     </div>
 
     <!-- ===================== 查询 chips ===================== -->
@@ -219,48 +106,8 @@
       <el-button size="small" text :icon="Close" @click="findVisible = false" />
     </div>
 
-    <!-- ===================== 批量填充条 ===================== -->
-    <div v-if="fillVisible" class="vtable-sheet-bi__bar">
-      <span class="vtable-sheet-bi__bar-label">列</span>
-      <el-select v-model="fillField" size="small" placeholder="选择列" class="vtable-sheet-bi__bar-select">
-        <el-option v-for="c in visibleCols" :key="c.field" :label="c.label" :value="c.field" />
-      </el-select>
-      <el-input v-model="fillValue" size="small" placeholder="填入值" class="vtable-sheet-bi__bar-input" />
-      <el-select v-model="fillScope" size="small" class="vtable-sheet-bi__bar-select">
-        <el-option label="选区" value="selected" />
-        <el-option label="当前结果" value="result" />
-        <el-option label="全部" value="all" />
-      </el-select>
-      <el-button size="small" type="primary" @click="doBatchFill">填充</el-button>
-      <el-button size="small" @click="doBatchClear">清空该列</el-button>
-      <span class="vtable-sheet-bi__bar-hint">选区模式先拖拽框选；数字列只接受数值</span>
-    </div>
-
     <!-- ===================== 表格 ===================== -->
     <div ref="tableRef" class="vtable-sheet-bi__table bi-panel"></div>
-
-    <!-- ===================== 列汇总 ===================== -->
-    <div v-if="showSummary" class="vtable-sheet-bi__summary">
-      <span class="vtable-sheet-bi__summary-title">汇总（当前结果）</span>
-      <span v-for="s in summaryItems" :key="s.field" class="vtable-sheet-bi__summary-item">
-        <b>{{ s.label }}</b>
-        合计 {{ s.sum }} · 均值 {{ s.avg }} · 最大 {{ s.max }} · 最小 {{ s.min }} · {{ s.count }} 项
-      </span>
-      <span v-if="!summaryItems.length" class="vtable-sheet-bi__summary-item">当前结果没有可统计的数值列</span>
-    </div>
-
-    <!-- ===================== 分页 ===================== -->
-    <div v-if="query.viewMode.value === 'paged'" class="vtable-sheet-bi__pager">
-      <el-pagination
-        v-model:current-page="query.page.value"
-        v-model:page-size="query.pageSize.value"
-        :total="processedRows.length"
-        :page-sizes="[50, 100, 200, 500]"
-        layout="total, sizes, prev, pager, next"
-        size="small"
-        background
-      />
-    </div>
 
     <!-- ===================== 状态栏 ===================== -->
     <div class="vtable-sheet-bi__status bi-statusbar">
@@ -269,15 +116,6 @@
       <span class="sb-item">改动 <b :class="{ 'c-warn': dirtyCount > 0 }">{{ dirtyCount }}</b></span>
       <span class="sb-item">选中 <b :class="{ 'c-ok': selectedCount > 0 }">{{ selectedCount }}</b></span>
       <span class="sb-item">错误 <b :class="{ 'c-danger': errorCount > 0 }">{{ errorCount }}</b></span>
-      <template v-if="activeStats">
-        <span class="sb-sep" />
-        <span class="sb-item">{{ activeColLabel }}：</span>
-        <span class="sb-item">计数 <b>{{ activeStats.count }}</b></span>
-        <span class="sb-item">求和 <b>{{ activeStats.sum }}</b></span>
-        <span class="sb-item">平均 <b>{{ activeStats.avg }}</b></span>
-        <span class="sb-item">最大 <b>{{ activeStats.max }}</b></span>
-        <span class="sb-item">最小 <b>{{ activeStats.min }}</b></span>
-      </template>
       <template v-if="selectionStats">
         <span class="sb-sep" />
         <span class="sb-item">选区：</span>
@@ -288,7 +126,7 @@
         <span class="sb-item">最小 <b>{{ selectionStats.min }}</b></span>
       </template>
       <span class="sb-tip">
-        F1 快捷键 · 拖右下角方块填充（双击填到底）· Ctrl+D 向下 / Ctrl+R 向右填充 · 右键菜单
+        拖右下角 ▢ 序列填充（双击填到底）· Ctrl+D 向下 / Ctrl+R 向右 · 院区列双击选择 · 列头点击配置
       </span>
     </div>
 
@@ -297,80 +135,26 @@
       <div class="vtable-sheet-bi__menu-item" @click="menuAct('copy')">复制</div>
       <div class="vtable-sheet-bi__menu-item" @click="menuAct('paste')">粘贴</div>
       <div class="vtable-sheet-bi__menu-sep" />
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertUp')">在上方插入行</div>
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertDown')">在下方插入行</div>
-      <div class="vtable-sheet-bi__menu-sep" />
       <div class="vtable-sheet-bi__menu-item" @click="menuAct('clear')">清空内容</div>
-      <div class="vtable-sheet-bi__menu-item danger" @click="menuAct('deleteRow')">删除本行</div>
-      <div class="vtable-sheet-bi__menu-sep" />
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertColLeft')">在左侧插入列</div>
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('insertColRight')">在右侧插入列</div>
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('cloneCol')">复制列</div>
-      <div class="vtable-sheet-bi__menu-item danger" @click="menuAct('deleteCol')">删除本列</div>
     </div>
 
-    <!-- ===================== 校验抽屉 ===================== -->
-    <el-drawer v-model="errDrawer" title="校验未通过" size="420px" class="bi-dlg">
-      <el-empty v-if="!errorItems.length" description="没有校验错误" :image-size="80" />
-      <div v-else class="vtable-sheet-bi__errlist">
-        <div v-for="e in errorItems" :key="e.key" class="vtable-sheet-bi__errrow" @click="jumpToError(e)">
-          <span class="vtable-sheet-bi__errrow-pos">第 {{ e.rowNo }} 行</span>
-          <span class="vtable-sheet-bi__errrow-label">{{ e.label }}</span>
-          <span class="vtable-sheet-bi__errrow-msg">{{ e.msg }}</span>
-        </div>
-      </div>
-    </el-drawer>
-
-    <!-- ===================== 列设置抽屉（三套共用组件） ===================== -->
-    <BiColumnManager
-      v-model:visible="colDrawer"
-      :cols="cols"
-      :caps="{ frozen: true, retype: true, add: false, duplicate: true }"
-      @duplicate="onColDuplicate"
-      @rename="onColRename"
-      @retype="onColRetype"
-      @toggle="onColToggle"
-      @move="onMoveCol"
-      @config="openColConfigAt"
-      @remove="onRemoveField"
-    >
-      <template #tools>
-        <el-dropdown trigger="click" @command="onAddColOf">
-          <el-button size="small" type="primary" :icon="Plus">新增列</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item v-for="(l, t) in typeLabel" :key="t" :command="t">{{ l }}列</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-
-        <el-dropdown trigger="click" @command="onTplCommand">
-          <el-button size="small" plain>列模板</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="save">存为模板</el-dropdown-item>
-              <el-dropdown-item command="load-title" divided disabled>点名字加载</el-dropdown-item>
-              <el-dropdown-item v-for="t in templates" :key="`l-${t.name}`" :command="`load:${t.name}`">
-                {{ t.name }}
-              </el-dropdown-item>
-              <el-dropdown-item command="del-title" divided disabled>删除模板</el-dropdown-item>
-              <el-dropdown-item v-for="t in templates" :key="`d-${t.name}`" :command="`del:${t.name}`">
-                {{ t.name }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </template>
-    </BiColumnManager>
-
-    <!-- ===================== 单列配置（三套共用抽屉，交互唯一定义处） ===================== -->
+    <!-- ===================== 单列配置 / 新增列（三套共用抽屉，交互唯一定义处） ===================== -->
     <BiColumnDrawer
       v-model:visible="colConfigVisible"
       :column="colConfigTarget"
+      :add="addColMode"
       :siblings="cols"
       :caps="{ frozen: true, group: true }"
       @confirm="applyColConfig"
+      @add="onColumnConfigAdd"
       @remove="onRemoveConfigCol"
+    />
+
+    <!-- ===================== 院区选择器（与 Univer 录入台同一份） ===================== -->
+    <RegionPickerDialog
+      v-model:visible="regionPickerVisible"
+      :current="regionPickerCurrent"
+      @confirm="onRegionPicked"
     />
 
     <!-- ===================== 筛选 / 排序抽屉 ===================== -->
@@ -422,38 +206,25 @@
 
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import {
   Aim,
   ArrowDown,
   ArrowUp,
-  Bottom,
   Close,
-  CopyDocument,
-  Delete,
-  DocumentCopy,
-  DocumentDelete,
-  Download,
-  Files,
   Filter,
-  FullScreen,
   Grid,
-  Operation,
   Plus,
   QuestionFilled,
-  Refresh,
   RefreshLeft,
   RefreshRight,
   Search,
   Select as SelectIcon,
-  Setting,
-  Upload,
-  Warning,
 } from '@element-plus/icons-vue';
 import { register, themes, type ColumnsDefine, type ListTable, type ListTableConstructorOptions } from '@visactor/vtable';
 import { DateInputEditor, InputEditor, ListEditor } from '@visactor/vtable-editors';
 // vtable-sheet 内部强制装载 context-menu-plugin 会再画一份右键菜单，与本页自绘的 vtable-sheet-bi__menu 冲突（双弹）。
-// 提升为直接依赖，仅禁用这一个插件；其余插件（筛选/序号/自动填充/编辑键盘/导入导出）保持默认。
+// 提升为直接依赖，仅禁用这一个插件；其余插件（筛选/序号/自动填充/编辑键盘）保持默认。
 import { ContextMenuPlugin } from '@visactor/vtable-plugins';
 import { VTableSheet, type ISheetDefine } from '@visactor/vtable-sheet';
 import { useThemeStore } from '@/store/modules/useThemeStore';
@@ -461,26 +232,22 @@ import {
   emptyValueFor,
   isBlank,
   isMetaField,
-  makeEmptyRow,
   numOf,
   renderDate,
   round2,
   tagColor,
-  tsName,
-  typeLabel,
   type BiCol,
   type BiRow,
-  type ColType,
 } from './bi-entry/schema';
 import BiColumnDrawer from '@/components/bi-column-drawer/bi-column-drawer.vue';
-import BiColumnManager from '@/components/bi-column-manager/bi-column-manager.vue';
 import type { ColumnDraft } from '@/components/bi-column-drawer/types';
+import RegionPickerDialog from '@/pages/data-platform/univer-entry/components/RegionPickerDialog.vue';
+import { isRegionValue, type RegionValue } from '@/pages/data-platform/univer-entry/region-data';
 import { ROWNO_WIDTH, SELECT_WIDTH, allocWidths, groupColumns, useBiColumns } from './bi-entry/useBiColumns';
-import { useBiValidation, type ErrItem } from './bi-entry/useBiValidation';
+import { useBiValidation } from './bi-entry/useBiValidation';
 import { useBiQuery } from './bi-entry/useBiQuery';
 import { useBiHistory } from './bi-entry/useBiHistory';
 import { useBiActions } from './bi-entry/useBiActions';
-import { useBiIO } from './bi-entry/useBiIO';
 
 defineOptions({ name: 'VtBiEntry' });
 
@@ -510,7 +277,6 @@ interface CellRange {
 // ============================ 基础状态（必须早于组合式函数：回调里要用） ============================
 const themeStore = useThemeStore();
 const tableRef = ref<HTMLElement>();
-const fileInput = ref<HTMLInputElement>();
 /** VTable-Sheet 实例：工作表容器，数据 / 列 / 主题 / 生命周期归它管 */
 let sheet: VTableSheet | null = null;
 /** 底层 ListTable：WorkSheet 官方暴露的逃生口，选区 / 滚动 / 编辑 / 合并等细粒度操作走它 */
@@ -520,26 +286,17 @@ let table: ListTable | null = null;
 const statsTick = ref(0);
 const tickDep = () => statsTick.value;
 
-const conditionalOn = ref(false);
-const showSummary = ref(true);
 const submitting = ref(false);
 const helpVisible = ref(false);
-const errDrawer = ref(false);
-const colDrawer = ref(false);
 const queryDrawer = ref(false);
 const colConfigVisible = ref(false);
+/** 新增列模式：共享抽屉以 add 形态打开（与 Univer 的 openAddColumn 同语义） */
+const addColMode = ref(false);
 const findVisible = ref(false);
-const fillVisible = ref(false);
-const newColType = ref<ColType>('text');
-const tplPick = ref('');
 
 const activeCell = ref<{ col: number; row: number } | null>(null);
 const selectionRect = ref<{ c0: number; r0: number; c1: number; r1: number } | null>(null);
 const flashPos = ref<{ col: number; row: number } | null>(null);
-
-const fillField = ref('');
-const fillValue = ref('');
-const fillScope = ref<'selected' | 'result' | 'all'>('result');
 
 const queryField = ref('');
 const filterDraft = reactive<{ values: string[]; min: number | null; max: number | null }>({
@@ -550,27 +307,27 @@ const filterDraft = reactive<{ values: string[]; min: number | null; max: number
 
 const menu = reactive({ show: false, x: 0, y: 0 });
 
-/** 数值列当前最大值（条件格式数据条的分母） */
-const colMaxMap = ref<Record<string, number>>({});
-/** 已合并区域：合并是坐标态，重建表格后要重新应用 */
-const mergeList = shallowRef<Array<{ c0: number; r0: number; c1: number; r1: number }>>([]);
-
-const GEN_SIZES = [1000, 10000, 50000, 100000];
-const genLabel = (n: number) => (n >= 10000 ? `${n / 10000}万` : `${n / 1000}k`);
+// ============================ 院区选择器（对齐 Univer：双击 region 列弹框） ============================
+const regionPickerVisible = ref(false);
+const regionPickerCurrent = ref<RegionValue | null>(null);
+/** 双击的那一格（坐标态：确认回填时要用） */
+let regionCell: { col: number; row: number } | null = null;
 
 const HELP_ROWS = [
-  { key: '双击 / F2 / 直接键入', desc: '编辑单元格（直接键入会覆盖原值）' },
+  { key: '双击 / F2 / 直接键入', desc: '编辑单元格（直接键入会覆盖原值；院区列双击弹出选择器）' },
   { key: 'Enter / Tab', desc: '提交并向下 / 向右移动' },
   { key: '方向键 / Ctrl+方向键', desc: '移动活动单元格 / 跳到数据边界' },
   { key: 'PageUp / PageDown', desc: '翻一屏' },
-  { key: 'Ctrl+C / Ctrl+V', desc: '复制选区（带蚂蚁线）/ 粘贴多格 TSV' },
+  { key: 'Ctrl+C / Ctrl+V', desc: '复制选区 / 粘贴多格 TSV' },
+  { key: 'Ctrl+X', desc: '剪切选区（复制并清空）' },
   { key: 'Ctrl+D / Ctrl+R', desc: '首行向下填充 / 首列向右填充（数字等差、日期按天）' },
   { key: 'Ctrl+Z / Ctrl+Y', desc: '撤销 / 重做' },
   { key: 'Ctrl+F', desc: '查找替换' },
   { key: 'Ctrl+A', desc: '全选' },
   { key: 'Delete / Backspace', desc: '清空选区内单元格' },
   { key: '拖右下角方块 / 双击', desc: '拖拽填充 / 填到数据末行' },
-  { key: '右键', desc: '复制 / 粘贴 / 插入行 / 清空 / 删除行' },
+  { key: '右键', desc: '复制 / 粘贴 / 清空内容' },
+  { key: '点列头', desc: '打开该列的配置抽屉' },
   { key: 'F1', desc: '打开本帮助' },
 ];
 
@@ -583,15 +340,14 @@ let onRestored: () => void = () => undefined;
 let onHeaderCell: (col: number, row: number) => void = () => undefined;
 
 // ============================ 数据与模块装配 ============================
-const { cols, visibleCols, numberCols, labelOf, colOf, addCol, removeCol, cloneCol, updateCol, moveCol, resetCols, templates, loadTemplates, saveTemplate, removeTemplate, loadTemplate } =
-  useBiColumns();
+const { cols, visibleCols, labelOf, colOf, addCol, removeCol, updateCol } = useBiColumns();
 
 /** records：唯一真源。shallowRef —— 只有整体替换才触发视图同步，避免十万行深响应式追踪 */
 const records = shallowRef<BiRow[]>([]);
 const validation = useBiValidation(cols);
 const { errors: errorItems, errorCount, errMap } = validation;
 const query = useBiQuery(cols, records);
-const { processedRows, displayRows } = query;
+const { displayRows } = query;
 
 const historyApi = useBiHistory({
   getRows: () => records.value,
@@ -613,17 +369,8 @@ const actions = useBiActions({
   activeCols: visibleCols,
   validation,
   history: historyApi,
-  query,
   afterStructure: () => onStructure(),
   afterCells: () => onCells(),
-});
-
-const io = useBiIO({
-  rows: records,
-  activeCols: visibleCols,
-  history: historyApi,
-  validation,
-  afterStructure: () => onStructure(),
 });
 
 // ============================ 列索引 ↔ 字段 ============================
@@ -652,6 +399,7 @@ const ensureEditors = () => {
     });
 };
 
+/** region 列不配编辑器：双击由 dblclick_cell 拦截弹院区选择器（getEditor 为空 → VTable 不会进文本编辑） */
 const editorOf = (col: BiCol): string | undefined => {
   if (col.type === 'select') {
     return `bi-sel-${col.field}`;
@@ -708,16 +456,18 @@ const buildColumns = (containerWidth: number): ColumnsDefine => {
       width: widthOf.get(c.field),
       style: cellStyle,
     };
-    if (c.type === 'number' && conditionalOn.value) {
+    if (c.type === 'region') {
+      // 院区值是结构化对象 { name, id, code }：只展示 name
       return {
         ...common,
-        cellType: 'progressbar',
-        min: c.rules?.min ?? 0,
-        max: () => colMaxMap.value[c.field] ?? 100,
+        fieldFormat: (rec: BiRow) => {
+          const v = rec[c.field];
+          return isRegionValue(v) ? String(v.name ?? '') : String(v ?? '');
+        },
       };
     }
     if (c.type === 'date') {
-      return { ...common, fieldFormat: (record: BiRow) => renderDate(record[c.field], c.dateFormat) };
+      return { ...common, fieldFormat: (record: BiRow) => renderDate(record[c.field], c.dateFormat), editor: editorOf(c) };
     }
     return { ...common, editor: editorOf(c) };
   };
@@ -758,30 +508,13 @@ const frozenCount = () => {
   return n;
 };
 
-const refreshColMax = () => {
-  const map: Record<string, number> = {};
-  numberCols.value.forEach((c) => {
-    let max = -Infinity;
-    processedRows.value.forEach((r) => {
-      const n = numOf(r[c.field]);
-      if (n !== null && n > max) {
-        max = n;
-      }
-    });
-    map[c.field] = Number.isFinite(max) && max > 0 ? max : 100;
-  });
-  colMaxMap.value = map;
-};
-
 // ============================ 数据同步 ============================
 const syncData = (keepSelection = false) => {
   if (!table) {
     return;
   }
   const sel = keepSelection ? selectionRect.value : null;
-  // 直接写底层 records：sheet 的 updateSheetOption({ data }) 会重建表格，丢掉选区与滚动位置。
-  // 代价是 sheet 的数据出口（getData / exportData / saveToConfig）会滞后 —— 本页导入导出走 exceljs，
-  // 不读这两个口；后续若要启用，需改走 updateSheetOption 并自行恢复选区。
+  // 直接写底层 records：sheet 的 updateSheetOption({ data }) 会重建表格，丢掉选区与滚动位置
   table.setRecords(displayRows.value);
   if (!sel) {
     return;
@@ -803,6 +536,10 @@ const syncData = (keepSelection = false) => {
 let fillAnchor: { c0: number; r0: number; c1: number; r1: number } | null = null;
 
 const coerce = (col: BiCol, raw: unknown, before: unknown): { value: unknown; reject: boolean } => {
+  // 院区列不接受键盘输入 / 粘贴：只能双击弹选择器（对齐 Univer）
+  if (col.type === 'region') {
+    return { value: before, reject: true };
+  }
   if (col.type === 'number') {
     if (isBlank(raw)) {
       return { value: null, reject: false };
@@ -967,7 +704,7 @@ const onCellChange = (args: CellChangeArg) => {
   if (reject) {
     row[field] = before === undefined ? null : before;
     table?.updateCellContent(args.col, args.row);
-    ElMessage.warning(`「${col.label}」只接受数字`);
+    ElMessage.warning(`「${col.label}」不接受该输入`);
     return;
   }
   row[field] = value;
@@ -1004,7 +741,7 @@ const onCheckboxChange = (args: CheckboxArg) => {
 const onClickCell = (args: { col: number; row: number; cellLocation?: string }) => {
   activeCell.value = { col: args.col, row: args.row };
   menu.show = false;
-  // 点表头 = 配这一列，对齐 vxe 的 header-cell-click 与 Univer 的点列标。
+  // 点表头 = 配这一列（三套录入台统一入口，对齐 Univer 的点列标）。
   // ⚠️ CellLocation 的取值是 'columnHeader'（不是 'colHeader'），写错会静默失效。
   if (args.cellLocation === 'columnHeader') {
     onHeaderCell(args.col, args.row);
@@ -1023,6 +760,50 @@ const onClickCell = (args: { col: number; row: number; cellLocation?: string }) 
     selectionRect.value = { c0: 0, r0: row, c1: lastCol, r1: row };
     tickDep();
   }
+};
+
+/** 双击院区列 → 弹选择器（region 列无编辑器，不会进文本编辑；其他列走 VTable 原生编辑） */
+const onDblClickCell = (args: { col: number; row: number }) => {
+  const field = fieldAt(args.col);
+  const col = colOf(field);
+  if (!col || col.type !== 'region') {
+    return;
+  }
+  const row = recordAt(args.row);
+  if (!row) {
+    return;
+  }
+  regionCell = { col: args.col, row: args.row };
+  const v = row[field];
+  regionPickerCurrent.value = isRegionValue(v) ? v : null;
+  regionPickerVisible.value = true;
+};
+
+/** 选择器确认：把 RegionValue 写回双击的那一格（入撤销栈 + 重校 + 重绘） */
+const onRegionPicked = (value: RegionValue | null) => {
+  const cell = regionCell;
+  regionCell = null;
+  if (!cell || !table) {
+    return;
+  }
+  const field = fieldAt(cell.col);
+  const col = colOf(field);
+  const row = recordAt(cell.row);
+  if (!row || !col) {
+    return;
+  }
+  const before = row[field];
+  const after = value ? { ...value } : '';
+  if (before === after) {
+    return;
+  }
+  historyApi.pushCells(`选择「${col.label}」`, [{ rowId: row.rowId, field, before, after }]);
+  row[field] = after;
+  row.changed = true;
+  validation.setCellError(row, field);
+  tickDep();
+  table.updateCellContent(cell.col, cell.row);
+  table.renderWithRecreateCells();
 };
 
 const onSelectedChanged = (args?: { ranges?: CellRange[] }) => {
@@ -1147,7 +928,7 @@ let builtWidth = 0;
 
 /**
  * sheet 的工作表定义。
- * ISheetDefine 只声明了「工作表语义」字段（data / columns / cellMerge / frozenColCount…），
+ * ISheetDefine 只声明了「工作表语义」字段（data / columns / frozenColCount…），
  * 但 WorkSheet 内部是 `Object.assign({}, sheetOptions, {...覆盖项})` 整包转给 ListTable，
  * 所以 VTable 的构造选项可以透传进来（键盘流 / 双击编辑 / 右键拦截 / 列宽拖拽）。
  * 唯一例外：excelOptions 会被 sheet 整体替换为 `{ fillHandle: true }`。
@@ -1177,11 +958,6 @@ const rebuild = () => {
     columns: buildColumns(builtWidth) as ISheetDefine['columns'],
     data: displayRows.value,
     frozenColCount: frozenCount(),
-    // 合并是配置态：重建时必须重新下发，否则运行时合并的区块会丢
-    cellMerge: mergeList.value.map(({ c0, r0, c1, r1 }) => ({
-      range: { start: { col: c0, row: r0 }, end: { col: c1, row: r1 } },
-      isCustom: true,
-    })),
     columnResizeMode: 'all',
     editCellTrigger: 'doubleclick',
     keyboardOptions: {
@@ -1211,7 +987,7 @@ const rebuild = () => {
     sheets: [define as ISheetDefine],
   });
 
-  // 单元格级交互（选区 / 滚动 / 编辑 / 重绘 / 合并）继续走底层 ListTable —— 官方在工作表上公开了该实例
+  // 单元格级交互（选区 / 滚动 / 编辑 / 重绘）继续走底层 ListTable —— 官方在工作表上公开了该实例
   table = sheet.getActiveSheet()?.tableInstance ?? null;
   if (!table) {
     return;
@@ -1219,19 +995,18 @@ const rebuild = () => {
   table.on('change_cell_value', onCellChange);
   table.on('checkbox_state_change', onCheckboxChange);
   table.on('click_cell', onClickCell);
+  table.on('dblclick_cell', onDblClickCell);
   table.on('selected_changed', onSelectedChanged);
   table.on('contextmenu_cell', onContextMenu);
   table.on('mousedown_fill_handle', onFillStart);
   table.on('drag_fill_handle_end', onFillEnd);
   table.on('dblclick_fill_handle', onFillToEnd);
-  // 合并区域已通过 sheet 的 cellMerge 配置下发，这里不再逐个 mergeCells，避免重复合并
 };
 
 // 迟绑定钩子赋值：此刻所有函数已定义
 onStructure = () => {
   tickDep();
   validation.scanAll(records.value);
-  query.clampPage();
   syncData();
 };
 onCells = () => {
@@ -1242,31 +1017,6 @@ onRestored = () => {
   tickDep();
   validation.scanAll(records.value);
   rebuild();
-};
-
-// ============================ 合并 ============================
-const hasSelection = computed(() => {
-  const s = selectionRect.value;
-  return Boolean(s && (s.c1 > s.c0 || s.r1 > s.r0));
-});
-
-const mergeSelection = () => {
-  const s = selectionRect.value;
-  if (!s || !table) {
-    return;
-  }
-  table.mergeCells(s.c0, s.r0, s.c1, s.r1);
-  mergeList.value = [...mergeList.value, { ...s }];
-  ElMessage.success('已合并选中区域');
-};
-
-const clearMerges = () => {
-  if (!table) {
-    return;
-  }
-  mergeList.value.forEach(({ c0, r0, c1, r1 }) => table?.unmergeCells(c0, r0, c1, r1));
-  mergeList.value = [];
-  ElMessage.success('已取消全部合并');
 };
 
 // ============================ 剪贴板 ============================
@@ -1303,7 +1053,11 @@ const copySelection = async () => {
       const cells: string[] = [];
       for (let c = s.c0; c <= s.c1; c += 1) {
         const f = fieldAt(c);
-        cells.push(f && !isMetaField(f) ? String(row[f] ?? '') : '');
+        const col = colOf(f);
+        // 院区列复制展示名（与单元格显示一致）
+        const v = row[f];
+        const text = col?.type === 'region' && isRegionValue(v) ? String(v.name ?? '') : String(v ?? '');
+        cells.push(f && !isMetaField(f) ? text : '');
       }
       lines.push(cells.join('\t'));
     }
@@ -1392,7 +1146,7 @@ const clearSelectionCells = () => {
   syncData(true);
 };
 
-/** A5 剪切：复用 copySelection 把选区 TSV 写入剪贴板，再清空选区内容并入历史 */
+/** 剪切：复用 copySelection 把选区 TSV 写入剪贴板，再清空选区内容并入历史 */
 const cutSelection = () => {
   const s = selectionRect.value;
   if (!s) {
@@ -1444,7 +1198,6 @@ const onRedo = () => {
 // ============================ 右键菜单动作 ============================
 const menuAct = (act: string) => {
   menu.show = false;
-  const cell = activeCell.value;
   if (act === 'copy') {
     copySelection().catch(() => undefined);
     return;
@@ -1453,92 +1206,8 @@ const menuAct = (act: string) => {
     pasteFromClipboard().catch(() => undefined);
     return;
   }
-  if (!cell) {
-    return;
-  }
-  if (act === 'insertUp') {
-    actions.insertRow(Math.max(0, cell.row - 1));
-    return;
-  }
-  if (act === 'insertDown') {
-    actions.insertRow(cell.row);
-    return;
-  }
   if (act === 'clear') {
     clearSelectionCells();
-    return;
-  }
-  if (act === 'deleteRow') {
-    const row = recordAt(cell.row);
-    if (!row) {
-      return;
-    }
-    const at = records.value.findIndex((r) => r.rowId === row.rowId);
-    if (at < 0) {
-      return;
-    }
-    const before = historyApi.snapshot('右键删除行');
-    const next = records.value.slice();
-    next.splice(at, 1);
-    records.value = next;
-    actions.renumber(records.value);
-    historyApi.pushSnapshot(before);
-    validation.scanAll(records.value);
-    tickDep();
-    syncData();
-  }
-  // D11 右键列操作：插入列 / 复制列 / 删除列
-  if (act === 'insertColLeft' || act === 'insertColRight') {
-    const field = cell ? fieldAt(cell.col) : '';
-    if (!field || isMetaField(field)) {
-      ElMessage.info('请先点一个业务列');
-      return;
-    }
-    const before = historyApi.snapshot(act === 'insertColLeft' ? '左侧插入列' : '右侧插入列');
-    const newCol = addCol('text');
-    const targetIdx = cols.value.findIndex((c) => c.field === field);
-    const dest = act === 'insertColLeft' ? targetIdx : targetIdx + 1;
-    let newIdx = cols.value.findIndex((c) => c.field === newCol.field);
-    while (newIdx > dest) {
-      moveCol(newCol.field, -1);
-      newIdx -= 1;
-    }
-    historyApi.pushSnapshot(before);
-    validation.scanAll(records.value);
-    rebuild();
-    ElMessage.success('已插入列');
-    return;
-  }
-  if (act === 'cloneCol') {
-    const field = cell ? fieldAt(cell.col) : '';
-    if (!field || isMetaField(field)) {
-      ElMessage.info('请先点一个业务列');
-      return;
-    }
-    const before = historyApi.snapshot('复制列');
-    cloneCol(field, records.value);
-    historyApi.pushSnapshot(before);
-    validation.scanAll(records.value);
-    rebuild();
-    ElMessage.success('已复制列');
-    return;
-  }
-  if (act === 'deleteCol') {
-    const field = cell ? fieldAt(cell.col) : '';
-    if (!field || isMetaField(field)) {
-      ElMessage.info('请先点一个业务列');
-      return;
-    }
-    const before = historyApi.snapshot('删除列');
-    removeCol(field);
-    // 同步清理所有行上的该字段（参考 onStructure 收尾）
-    records.value.forEach((r) => {
-      delete r[field];
-    });
-    historyApi.pushSnapshot(before);
-    validation.scanAll(records.value);
-    rebuild();
-    ElMessage.success('已删除列');
   }
 };
 
@@ -1575,7 +1244,7 @@ const onKeydown = (e: KeyboardEvent) => {
     findVisible.value = true;
     return;
   }
-  // A11 替换：Ctrl+H 打开查找替换条（含「替换为」输入框）
+  // 替换：Ctrl+H 打开查找替换条（含「替换为」输入框）
   if (mod && key === 'h') {
     e.preventDefault();
     findVisible.value = true;
@@ -1611,7 +1280,7 @@ const onKeydown = (e: KeyboardEvent) => {
     pasteFromClipboard().catch(() => undefined);
     return;
   }
-  // A5 剪切：Ctrl+X 先复制选区到剪贴板，再清空选区内容并记入历史
+  // 剪切：Ctrl+X 先复制选区到剪贴板，再清空选区内容并记入历史
   if (mod && key === 'x') {
     e.preventDefault();
     cutSelection();
@@ -1826,35 +1495,6 @@ const posLabel = computed(() => {
   return `${colLabel} · 第 ${row ? records.value.indexOf(row) + 1 : cell.row + 1} 行`;
 });
 
-const activeColLabel = computed(() => {
-  const field = fieldAt(activeCell.value?.col ?? -1);
-  return field ? labelOf(field) : '';
-});
-
-const activeStats = computed<NumAgg | null>(() => {
-  tickDep();
-  const field = fieldAt(activeCell.value?.col ?? -1);
-  const col = colOf(field);
-  if (!col || col.type !== 'number') {
-    return null;
-  }
-  const acc = emptyAgg();
-  processedRows.value.forEach((r) => {
-    const n = numOf(r[field]);
-    if (n !== null) {
-      acc.count += 1;
-      acc.sum += n;
-      if (n < acc.min) {
-        acc.min = n;
-      }
-      if (n > acc.max) {
-        acc.max = n;
-      }
-    }
-  });
-  return finishAgg(acc);
-});
-
 const selectionStats = computed<NumAgg | null>(() => {
   tickDep();
   const s = selectionRect.value;
@@ -1887,31 +1527,6 @@ const selectionStats = computed<NumAgg | null>(() => {
   return finishAgg(acc);
 });
 
-const summaryItems = computed(() => {
-  tickDep();
-  return numberCols.value
-    .filter((c) => c.visible)
-    .map((c) => {
-      const acc = emptyAgg();
-      processedRows.value.forEach((r) => {
-        const n = numOf(r[c.field]);
-        if (n !== null) {
-          acc.count += 1;
-          acc.sum += n;
-          if (n < acc.min) {
-            acc.min = n;
-          }
-          if (n > acc.max) {
-            acc.max = n;
-          }
-        }
-      });
-      const agg = finishAgg(acc);
-      return agg ? { field: c.field, label: c.label, ...agg } : null;
-    })
-    .filter((x): x is { field: string; label: string } & NumAgg => x !== null);
-});
-
 const chips = computed(() => query.chips.value);
 const queryCol = computed(() => colOf(queryField.value));
 const distinctValues = computed(() => (queryField.value ? query.distinctValues(queryField.value) : []));
@@ -1940,216 +1555,87 @@ const clearFilterOf = (field: string) => {
 };
 
 // ============================ 工具栏动作 ============================
-const positionOfActive = () => {
-  const cell = activeCell.value;
-  if (!cell) {
-    return records.value.length - 1;
-  }
-  const row = recordAt(cell.row);
-  return row ? records.value.findIndex((r) => r.rowId === row.rowId) : cell.row;
-};
-
 const onAddRow = () => {
   actions.addRow();
   ElMessage.success('已新增行');
 };
 
-const onInsertRow = () => {
-  actions.insertRow(positionOfActive());
-  ElMessage.success('已插入行');
-};
-
-const onDeleteSelected = () => {
-  const n = actions.deleteSelected();
-  ElMessage.success(n ? `已删除 ${n} 行` : '没有选中行');
-};
-
-const onDuplicate = () => {
-  const n = actions.duplicateSelected();
-  ElMessage.success(n ? `已复制 ${n} 行` : '没有选中行');
-};
-
-const onRemoveEmpty = () => {
-  const n = actions.removeEmptyRows();
-  ElMessage.success(n ? `已删除 ${n} 个空行` : '没有空行');
-};
-
-const onRemoveDup = () => {
-  const n = actions.removeDuplicateRows();
-  ElMessage.success(n ? `已去除 ${n} 个重复行` : '没有重复行');
-};
-
-const onClearAll = async () => {
-  try {
-    await ElMessageBox.confirm('清空后可用撤销恢复，确定继续？', '清空全部数据', { type: 'warning' });
-  } catch {
-    return;
-  }
-  actions.clearAll();
-  ElMessage.success('已清空');
-};
-
-const doBatchFill = () => {
-  if (!fillField.value) {
-    ElMessage.warning('先选择要填充的列');
-    return;
-  }
-  const col = colOf(fillField.value);
-  if (!col) {
-    return;
-  }
-  const { value, reject } = coerce(col, fillValue.value, '');
-  if (reject) {
-    ElMessage.warning('该列只接受数值');
-    return;
-  }
-  const ids = new Set(selectionCells().map((c) => c.row.rowId));
-  const n = actions.batchFill(fillField.value, value, fillScope.value, ids);
-  ElMessage.success(n ? `已填充 ${n} 行` : '作用域内没有可填充的行');
-};
-
-const doBatchClear = () => {
-  if (!fillField.value) {
-    ElMessage.warning('先选择要清空的列');
-    return;
-  }
-  const ids = new Set(selectionCells().map((c) => c.row.rowId));
-  const n = actions.batchClearCol(fillField.value, fillScope.value, ids);
-  ElMessage.success(n ? `已清空 ${n} 行` : '作用域内没有可清空的行');
-};
-
-const onPresetCommand = (cmd: string | number) => {
-  if (cmd === 'preset') {
-    actions.presetData(500);
-    ElMessage.success('已生成 500 行演示数据');
-    return;
-  }
-  if (typeof cmd === 'number') {
-    actions.genData(cmd);
-    ElMessage.success(`已生成 ${cmd.toLocaleString()} 行`);
-  }
-};
-
-const onViewCommand = (cmd: string | number) => {
-  if (cmd === 'virtual' || cmd === 'paged') {
-    query.viewMode.value = cmd;
-  }
-};
-
-const onExportCommand = (cmd: string) => {
-  if (cmd === 'all') {
-    io.exportRows(records.value, '全部').catch(() => ElMessage.error('导出失败'));
-    return;
-  }
-  if (cmd === 'result') {
-    io.exportRows(processedRows.value, '结果').catch(() => ElMessage.error('导出失败'));
-    return;
-  }
-  if (cmd === 'csv') {
-    io.exportCsv(processedRows.value, '结果');
-  }
-};
-
-const importExcel = () => fileInput.value?.click();
-
-const onFileChange = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = '';
-  if (!file) {
-    return;
-  }
-  io.importExcel(file, 'replace')
-    .then((res) => {
-      if (res.ok) {
-        ElMessage.success(`已导入 ${res.count} 行`);
-      } else {
-        ElMessage.error(res.reason);
-      }
-    })
-    .catch(() => ElMessage.error('导入失败，请确认文件格式'));
-};
-
+// ============================ 保存（Univer 式：全量复校验 → 跳错 / 清脏 + mock 提交） ============================
 const onSubmit = () => {
   submitting.value = true;
   window.setTimeout(() => {
-    const res = actions.submit();
     submitting.value = false;
-    if (res.ok) {
-      ElMessage.success('提交成功（mock 服务端已接收）');
-      tickDep();
+    validation.scanAll(records.value);
+    tickDep();
+    const first = errorItems.value[0];
+    if (first) {
+      ElMessage.error(`保存失败：${errorCount.value} 处校验未通过`);
+      // 跳到第一个错误格（该行被筛选挡住时先清查询条件再定位）
+      const locate = () => {
+        const at = displayRows.value.findIndex((r) => r.rowId === first.rowId);
+        const col = colFields.value.indexOf(first.field);
+        if (at >= 0 && col >= 0) {
+          revealCell(col, at);
+        }
+      };
+      if (displayRows.value.some((r) => r.rowId === first.rowId)) {
+        locate();
+      } else {
+        query.clearAllQuery();
+        nextTick(locate);
+      }
       return;
     }
-    errDrawer.value = true;
-    ElMessage.error(`提交失败：${res.errors} 处校验未通过`);
+    // 校验全过：清改动标记（服务端已接收），打印 mock 数据（结构对齐 Univer）
+    records.value.forEach((r) => {
+      r.changed = false;
+    });
+    records.value = records.value.slice();
+    tickDep();
+    console.log('[mock] 保存数据', records.value);
+    ElMessage.success('保存成功');
   }, 400);
 };
 
-// ============================ 列设置 ============================
-/** 点列头 / 点列表里「配置」时要配的那一列（共享抽屉的入参） */
+// ============================ 列配置（共享抽屉：点列头 / 新增列 / 删除列） ============================
+/** 点列头 / 抽屉正在配的那一列（add 模式下为 null） */
 const colConfigTarget = ref<BiCol | null>(null);
 
-const openAddCol = () => {
-  const before = historyApi.snapshot('新增列');
-  addCol(newColType.value);
-  historyApi.pushSnapshot(before);
-  validation.scanAll(records.value);
-  rebuild();
-  ElMessage.success('已新增列');
-};
-
-const onRemoveCol = (col: BiCol) => {
-  const before = historyApi.snapshot('删除列');
-  removeCol(col.field);
-  historyApi.pushSnapshot(before);
-  validation.scanAll(records.value);
-  rebuild();
-};
-
-/** 列管理面板「复制列」：克隆该列到右侧（与右键菜单同逻辑） */
-const onColDuplicate = (field: string) => {
-  if (!field || isMetaField(field)) {
-    ElMessage.info('请先点一个业务列');
-    return;
-  }
-  const before = historyApi.snapshot('复制列');
-  cloneCol(field, records.value);
-  historyApi.pushSnapshot(before);
-  validation.scanAll(records.value);
-  rebuild();
-  ElMessage.success('已复制列');
-};
-
-const onMoveCol = (index: number, dir: -1 | 1) => {
-  const target = cols.value[index];
-  if (!target) {
-    return;
-  }
-  moveCol(target.field, dir);
-  rebuild();
-};
-
-const onColMetaChange = () => {
-  validation.scanAll(records.value);
-  rebuild();
-};
-
-const onColTypeChange = (col: BiCol) => {
-  records.value.forEach((r) => {
-    const v = r[col.field];
-    if (col.type === 'number') {
-      r[col.field] = numOf(v);
-    } else {
-      r[col.field] = v === null || v === undefined ? '' : String(v);
-    }
-  });
-  validation.scanAll(records.value);
-  rebuild();
-};
-
 const openColConfig = (col: BiCol) => {
+  addColMode.value = false;
   colConfigTarget.value = col;
   colConfigVisible.value = true;
+};
+
+/** 工具栏「新增列」：打开同一个抽屉的新增模式（不绑定已有列，与 Univer 同语义） */
+const openAddCol = () => {
+  addColMode.value = true;
+  colConfigTarget.value = null;
+  colConfigVisible.value = true;
+};
+
+/** 新增模式确认：建列 + 回写草稿细项 + 全行回填空值（必填空值不标红形同虚设） */
+const onColumnConfigAdd = (d: Omit<ColumnDraft, 'field'>) => {
+  const before = historyApi.snapshot(`新增列「${d.label}」`);
+  const col = addCol(d.type, d.label);
+  updateCol(col.field, {
+    required: !!d.required,
+    visible: d.visible ?? true,
+    options: d.type === 'select' ? d.options : undefined,
+    rules: d.rules,
+    cross: d.cross?.length ? d.cross : undefined,
+    dateFormat: d.type === 'date' ? d.dateFormat : undefined,
+    width: d.width ?? col.width,
+    frozen: d.frozen,
+    group: d.group,
+  });
+  records.value.forEach((r) => {
+    r[col.field] = emptyValueFor(col);
+  });
+  historyApi.pushSnapshot(before);
+  validation.scanAll(records.value);
+  rebuild();
+  ElMessage.success(`已新增列「${col.label}」`);
 };
 
 /**
@@ -2170,19 +1656,14 @@ onHeaderCell = (col: number, row: number) => {
   if (!field || isMetaField(field)) {
     return;
   }
-  // B2 普通点击数据列头 = 选中整列（列配置仍走列管理面板的逐列按钮）
-  const lastRow = displayRows.value.length - 1;
-  try {
-    table?.selectCells([{ start: { col, row: 0 }, end: { col, row: lastRow } }]);
-  } catch {
-    // 选区越界时忽略
+  const target = colOf(field);
+  if (target) {
+    openColConfig(target);
   }
-  selectionRect.value = { c0: col, r0: 0, c1: col, r1: lastRow };
-  tickDep();
 };
 
 /**
- * 共享抽屉确认：整体回写列定义后整表重校 + 重建。
+ * 共享抽屉确认：整体回写列定义后全表重校 + 重建。
  * 草稿里的 rules / cross 已由抽屉裁剪（空值不落盘），这里不再二次清洗。
  */
 const applyColConfig = (d: ColumnDraft) => {
@@ -2206,196 +1687,26 @@ const applyColConfig = (d: ColumnDraft) => {
   rebuild();
 };
 
-/** 共享抽屉里点「删除该列」：沿用列设置里的删除链路（入撤销栈 + 清理校验/查询态） */
+/** 共享抽屉里点「删除该列」：入撤销栈 + 重校 + 重建 */
+const onRemoveCol = (col: BiCol) => {
+  const before = historyApi.snapshot('删除列');
+  removeCol(col.field);
+  // 同步清理所有行上的该字段
+  records.value.forEach((r) => {
+    delete r[col.field];
+  });
+  historyApi.pushSnapshot(before);
+  validation.scanAll(records.value);
+  rebuild();
+};
+
+/** 共享抽屉里点「删除该列」：删当前正在配置的那一列 */
 const onRemoveConfigCol = () => {
   const col = colConfigTarget.value;
   if (!col) {
     return;
   }
   onRemoveCol(col);
-};
-
-const onSaveTemplate = async () => {
-  try {
-    const res = await ElMessageBox.prompt('模板名（只保存列结构，不含数据）', '存为列模板', {
-      inputPlaceholder: '例如：销售录入标准',
-    });
-    if (saveTemplate(res.value)) {
-      ElMessage.success('已保存模板');
-    }
-  } catch {
-    // 取消
-  }
-};
-
-const onLoadTemplate = (name: string) => {
-  if (!name) {
-    return;
-  }
-  const before = historyApi.snapshot(`应用列模板「${name}」`);
-  if (!loadTemplate(name)) {
-    return;
-  }
-  historyApi.pushSnapshot(before);
-  records.value = records.value.map((r) => {
-    const next = makeEmptyRow(cols.value);
-    cols.value.forEach((c) => {
-      next[c.field] = r[c.field] ?? emptyValueFor(c);
-    });
-    next.rowId = r.rowId;
-    next.selected = r.selected;
-    next.changed = true;
-    return next;
-  });
-  validation.scanAll(records.value);
-  rebuild();
-  ElMessage.success(`已应用模板「${name}」`);
-};
-
-const onRemoveTemplate = () => {
-  if (!tplPick.value) {
-    return;
-  }
-  removeTemplate(tplPick.value);
-  tplPick.value = '';
-  ElMessage.success('已删除模板');
-};
-
-// ===================== 列设置抽屉（共享组件的事件映射） =====================
-// 抽屉本体在 components/bi-column-manager（三套共用），这里只负责把「按字段」的
-// 事件还原成 VTable 这边「按列对象」的操作，并保持原有的重校验 / 重建顺序。
-const colByField = (field: string) => cols.value.find((c) => c.field === field);
-
-const onColRename = (field: string, label: string) => {
-  const col = colByField(field);
-  if (!col) {
-    return;
-  }
-  col.label = label;
-  onColMetaChange();
-};
-
-const onColRetype = (field: string, type: ColType) => {
-  const col = colByField(field);
-  if (!col) {
-    return;
-  }
-  col.type = type;
-  onColTypeChange(col);
-};
-
-const onColToggle = (field: string, flag: 'required' | 'visible' | 'frozen') => {
-  const col = colByField(field);
-  if (!col) {
-    return;
-  }
-  if (flag === 'required') {
-    col.required = !col.required;
-    validation.scanAll(records.value);
-  } else if (flag === 'visible') {
-    col.visible = !col.visible;
-  } else {
-    col.frozen = !col.frozen;
-  }
-  rebuild();
-};
-
-const onRemoveField = (field: string) => {
-  const col = colByField(field);
-  if (col) {
-    onRemoveCol(col);
-  }
-};
-
-const openColConfigAt = (field: string) => {
-  const col = colByField(field);
-  if (col) {
-    openColConfig(col);
-  }
-};
-
-/** 新增列下拉：选类型即建（列名沿用引擎的自动编号） */
-const onAddColOf = (type: ColType) => {
-  newColType.value = type;
-  openAddCol();
-};
-
-/** 列模板下拉：save / load:<名> / del:<名> */
-const onTplCommand = (cmd: string) => {
-  if (cmd === 'save') {
-    onSaveTemplate();
-    return;
-  }
-  if (cmd.startsWith('load:')) {
-    onLoadTemplate(cmd.slice(5));
-    return;
-  }
-  if (cmd.startsWith('del:')) {
-    tplPick.value = cmd.slice(4);
-    onRemoveTemplate();
-  }
-};
-
-// ============================ 草稿 ============================
-const DRAFT_KEY = 'vtable-bi-entry:draft:v2';
-
-const saveDraft = () => {
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ cols: cols.value, rows: records.value, ts: tsName() }));
-  ElMessage.success('已保存本地草稿');
-};
-
-const resetDraft = async () => {
-  try {
-    await ElMessageBox.confirm('将清空本地草稿并恢复示例数据，确定？', '重置', { type: 'warning' });
-  } catch {
-    return;
-  }
-  localStorage.removeItem(DRAFT_KEY);
-  resetCols();
-  actions.presetData(500);
-  loadTemplates();
-  ElMessage.success('已恢复示例数据');
-};
-
-const loadDraft = () => {
-  const raw = localStorage.getItem(DRAFT_KEY);
-  if (!raw) {
-    return false;
-  }
-  try {
-    const data = JSON.parse(raw) as { cols?: BiCol[]; rows?: BiRow[] };
-    if (Array.isArray(data.cols) && data.cols.length) {
-      cols.value = data.cols;
-    }
-    if (Array.isArray(data.rows) && data.rows.length) {
-      records.value = data.rows.map((r, i) => ({ ...r, rowNo: i + 1 }));
-      return true;
-    }
-  } catch {
-    return false;
-  }
-  return false;
-};
-
-// ============================ 错误跳转 ============================
-const jumpToError = (e: ErrItem) => {
-  const idx = displayRows.value.findIndex((r) => r.rowId === e.rowId);
-  if (idx >= 0) {
-    const col = colFields.value.indexOf(e.field);
-    if (col >= 0) {
-      revealCell(col, idx);
-    }
-    return;
-  }
-  // 该行被筛选挡住：清掉筛选后再定位
-  query.clearAllQuery();
-  nextTick(() => {
-    const at = displayRows.value.findIndex((r) => r.rowId === e.rowId);
-    const col = colFields.value.indexOf(e.field);
-    if (at >= 0 && col >= 0) {
-      revealCell(col, at);
-    }
-  });
 };
 
 // ============================ 生命周期 ============================
@@ -2409,17 +1720,9 @@ const closeOverlays = () => {
 };
 
 onMounted(() => {
-  loadTemplates();
-  if (!loadDraft()) {
-    actions.presetData(500);
-  } else {
-    validation.scanAll(records.value);
-    tickDep();
-  }
+  // 种子数据（不进撤销栈，语义对齐 Univer 的 seedData）
+  actions.seedData(500);
   rebuild();
-  if (conditionalOn.value) {
-    refreshColMax();
-  }
   window.addEventListener('keydown', onKeydown, true);
   window.addEventListener('click', onGlobalClick);
 });
@@ -2440,19 +1743,9 @@ watch(
       return;
     }
     table.setRecords(displayRows.value);
-    query.clampPage();
-    if (conditionalOn.value) {
-      refreshColMax();
-    }
   },
   { flush: 'post' },
 );
-
-watch(conditionalOn, () => {
-  refreshColMax();
-  rebuild();
-});
-
 
 watch(
   () => themeStore.isDark,
@@ -2507,18 +1800,6 @@ defineExpose({ resize });
     width: 170px;
   }
 
-  &__file {
-    display: none;
-  }
-
-  &__badge {
-    display: inline-flex;
-
-    :deep(.el-badge__content) {
-      top: 6px;
-    }
-  }
-
   &__chips {
     flex: 0 0 auto;
     display: flex;
@@ -2544,18 +1825,8 @@ defineExpose({ resize });
     border-radius: var(--bi-radius, 10px);
   }
 
-  &__bar-label,
-  &__bar-hint {
-    font-size: 12px;
-    color: var(--bi-sub);
-  }
-
   &__bar-input {
     width: 150px;
-  }
-
-  &__bar-select {
-    width: 130px;
   }
 
   &__bar-count {
@@ -2574,29 +1845,6 @@ defineExpose({ resize });
       height: 100%;
       min-height: 0;
     }
-  }
-
-  &__summary {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding: 4px 8px;
-    font-size: 12px;
-    color: var(--bi-sub);
-    border-top: 1px solid var(--bi-border);
-  }
-
-  &__summary-title {
-    color: var(--bi-sub);
-  }
-
-  &__pager {
-    flex: 0 0 auto;
-    display: flex;
-    justify-content: flex-end;
-    padding: 2px 0;
   }
 
   // 状态栏：骨架见 .bi-statusbar（全局 bi-entry.less），此处只留 VTable 专有的定位数字样式
@@ -2634,59 +1882,12 @@ defineExpose({ resize });
     &:hover {
       background: var(--el-fill-color-light, #f5f7fa);
     }
-
-    &.danger {
-      color: var(--bi-danger);
-    }
   }
 
   &__menu-sep {
     height: 1px;
     margin: 4px 2px;
     background: var(--el-border-color-lighter, #ebeef5);
-  }
-
-  &__errlist {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  &__errrow {
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-    padding: 6px 8px;
-    font-size: 12px;
-    border: 1px solid var(--el-border-color-lighter, #ebeef5);
-    border-radius: var(--ai-radius-xs);
-    cursor: pointer;
-
-    &:hover {
-      border-color: var(--el-color-primary, #409eff);
-    }
-  }
-
-  &__errrow-pos {
-    color: var(--el-text-color-secondary, #909399);
-    flex: 0 0 auto;
-  }
-
-  &__errrow-label {
-    font-weight: 600;
-    flex: 0 0 auto;
-  }
-
-  &__errrow-msg {
-    color: var(--bi-danger);
-  }
-
-  &__colebar {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
   }
 
   &__coleselect {

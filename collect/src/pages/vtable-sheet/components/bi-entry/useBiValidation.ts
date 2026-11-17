@@ -27,9 +27,6 @@ export interface ErrItem {
 const errKey = (rowId: string, field: string) => `${rowId}\u0001${field}`;
 
 export const useBiValidation = (cols: Ref<BiCol[]>) => {
-  /** 服务端校验开关：演示「前端规则 + 服务端规则」合并，真实项目换成接口返回 */
-  const serverMode = ref(false);
-
   const errors = shallowRef<ErrItem[]>([]);
   const errorCount = ref(0);
   /** rowId::field → 错误文案（列 style 回调直接查，O(1)） */
@@ -83,19 +80,6 @@ export const useBiValidation = (cols: Ref<BiCol[]>) => {
   };
 
   // ============================ 规则判定 ============================
-  const checkServer = (field: string, value: unknown): string | null => {
-    if (!serverMode.value) {
-      return null;
-    }
-    if (field === 'product' && String(value ?? '').trim().startsWith('测试')) {
-      return '服务端：疑似测试数据，请修正产品名称';
-    }
-    if (field === 'rate' && numOf(value) !== null && (numOf(value) as number) > 100) {
-      return '服务端：完成率超 100 需复核';
-    }
-    return null;
-  };
-
 /** 三种比较语义：gte / lte / eq */
 const compareHit = <T extends number | string>(kind: CrossKind, a: T, b: T, msg: string): string | null => {
   if (kind === 'gte' && a < b) {
@@ -208,7 +192,7 @@ const checkCross = (row: BiRow, col: BiCol): string | null => {
         }
       }
     }
-    return checkCross(row, col) ?? checkServer(field, value);
+    return checkCross(row, col);
   };
 
   // ============================ 错误索引维护 ============================
@@ -282,7 +266,6 @@ const checkCross = (row: BiRow, col: BiCol): string | null => {
     cols.value.filter((c) => c.cross?.some((r) => r.other === field)).map((c) => c.field);
 
   return {
-    serverMode,
     errors,
     errorCount,
     errMap,

@@ -1,11 +1,10 @@
-// 录入台核心脊梁：列元信息 / 行数据 / 查询管道（搜索·筛选·排序·分页）/ 列统计 / 编辑事件
+// 录入台核心脊梁：列元信息 / 行数据 / 查询管道（搜索·筛选·排序）/ 编辑事件
 // 校验与历史已内聚为子 hook（useCellValidation / useHistory），本 hook 负责装配与共享状态。
 import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue';
 import { RT } from '../components/cells/runtime';
 import { useCellValidation } from './useCellValidation';
 import { useHistory } from './useHistory';
 import type { CellChange } from './useHistory';
-import { aggregateByField, aggregateColumn, type NumAgg } from './aggregate';
 import {
   type ColDef,
   type Row,
@@ -34,7 +33,6 @@ export const dirtyOf = (r: { __dirty: boolean }): boolean => {
   const { __dirty } = r;
   return __dirty;
 };
-const touch = <T>(source: { value: T }): T => source.value;
 
 /** 搜索输入防抖（ms）：大表下每个按键全表扫描会卡输入，停手后再算 */
 const SEARCH_DEBOUNCE_MS = 200;
@@ -77,10 +75,9 @@ const matchFilter = (def: ColDef | undefined, raw: any, expr: string): boolean =
  * useGridMouse / useGridIO / useGridFindReplace / useGridColumns 等）都依赖本 hook
  * 提供的 `core` 实例；它不感知 DOM 与事件，只负责：
  *   1. 列元信息（columnDefs / visibleDefs）—— 校验规则、列宽、可见性都声明在此；
- *   2. 行数据（allRows）+ 查询管道（搜索 / 筛选 / 排序 / 分页 → processedRows / pagedRows）；
- *   3. 当前单元格（currentCell）—— 选区塌缩 / 编辑 / 填充手柄 / 状态栏统计的唯一基准；
- *   4. 列汇总 / 条件格式 / 状态栏聚合等派生统计；
- *   5. 装配两个子 hook（useCellValidation 校验、useHistory 历史）并共享它们的能力。
+ *   2. 行数据（allRows）+ 查询管道（搜索 / 筛选 / 排序 → processedRows）；
+ *   3. 当前单元格（currentCell）—— 选区塌缩 / 编辑 / 填充手柄的唯一基准；
+ *   4. 装配两个子 hook（useCellValidation 校验、useHistory 历史）并共享它们的能力。
  *
  * 协作约定：数据写入一律走 makeRow 造行；任何会改数据的 mutating 操作前先
  * `core.pushSnapshot(core.snapshotNow())` 入撤销栈；行/列结构变更后必须 `revalidateAll()`。
@@ -124,8 +121,8 @@ export const useGridCore = () => {
   // ===================== 行数据 =====================
   /**
    * 按当前列结构造一行：init 覆盖指定字段，其余列按 emptyValueFor 留空（下拉不预选首项）。
-   * 注意：init 里的 __id / __dirty 必须剥离——复制行（duplicateSelected）会整行传入，
-   * 若被 init 覆盖就会产生两个相同 __id 的行（vxe 主键重复告警，且编辑/选区/校验会串行）
+   * 注意：init 里的 __id / __dirty 必须剥离——整行作为 init 传入时会覆盖新主键，
+   * 产生两个相同 __id 的行（vxe 主键重复告警，且编辑/选区/校验会串行）
    */
   const makeRow = (init: Record<string, any> = {}): Row => {
     // ⚠️ 坑：构造行必须剥离 init 里的 __id/__dirty——{ __id: uid(), ...init } 遇 makeRow({...row})
@@ -177,7 +174,6 @@ export const useGridCore = () => {
     getColumnDefs: () => columnDefs.value,
     getRows: () => allRows.value,
     labelOf,
-    firstVisibleField: () => visibleDefs.value[0]?.field,
   });
 
   // ===================== 历史（子 hook） =====================
@@ -264,13 +260,11 @@ export const useGridCore = () => {
   // 筛选面板（vxe 弹层里）拿不到 core，经 runtime 桥读取当前筛选值做回显
   RT.filters = columnFilters;
   const sortList = ref<{ field: string; order: 'asc' | 'desc' }[]>([]);
-  const viewMode = ref<'virtual' | 'paged'>('virtual');
-  const pager = reactive({ currentPage: 1, pageSize: 100 });
 
   const searchFiltered = computed<Row[]>(() => {
     const kw = searchTerm.value.trim().toLowerCase();
     // ⚠️ 坑：无关键词也必须返回新数组：原地增删行（push/splice）不改变 allRows 引用，
-    // 若原样返回，pagedRows 引用不变 → vxe 的 :data prop 不触发更新 → 新行根本不渲染
+    // 若原样返回，:data 的引用不变 → vxe 不触发更新 → 新行根本不渲染
     if (!kw) return allRows.value.slice();
     // 预取字段名一次：省掉重复的 visibleDefs 读取（some 命中即短路退出）
     const fields = visibleDefs.value.map((d) => d.field);
@@ -312,23 +306,6 @@ export const useGridCore = () => {
       return 0;
     });
   });
-
-  const pagedRows = computed<Row[]>(() => {
-    if (viewMode.value === 'paged') {
-      const start = (pager.currentPage - 1) * pager.pageSize;
-      return processedRows.value.slice(start, start + pager.pageSize);
-    }
-    return processedRows.value;
-  });
-
-  watch(
-    () => [processedRows.value.length, pager.pageSize, viewMode.value],
-    () => {
-      const maxPage = Math.max(1, Math.ceil(processedRows.value.length / pager.pageSize));
-      if (pager.currentPage > maxPage) pager.currentPage = maxPage;
-    },
-    { immediate: true },
-  );
 
   /**
    * 统一适配 vxe 的多种排序事件源：既处理 sort-config 的批量 sortList，也兼容单字段点击排序。
@@ -411,84 +388,7 @@ export const useGridCore = () => {
     }, ms);
   };
 
-  // ===================== 条件格式统计 =====================
-  const conditionalOn = ref(false);
-  /**
-   * 条件格式统计：仅在 conditionalOn 开启时为各数值列算出 min/max，结果经 RT 桥（runtime）被渲染器读取做色阶。
-   * 依赖 dataRev：行值是原地改的，没有版本号时编辑后色阶不会重算。
-   */
-  const colStat = computed(() => {
-    touch(dataRev); // 显式依赖数据版本
-    const stat: Record<string, { min: number; max: number }> = {};
-    if (conditionalOn.value) {
-      const fields = columnDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
-      const agg = aggregateByField(processedRows.value, fields);
-      fields.forEach((f) => {
-        const a = agg[f];
-        if (a) stat[f] = { min: a.min, max: a.max };
-      });
-    }
-    RT.colStat = stat;
-    return stat;
-  });
-  watch(conditionalOn, (v) => {
-    RT.conditionalOn = v;
-    // 主动求值一次，把 RT.colStat 写出去（computed 是惰性的，没人读就不会更新桥）
-    if (v) touch(colStat);
-  });
-  // 数据变化时刷新色阶统计（只在开启时才算，避免无谓的全表扫描）
-  watch(dataRev, () => {
-    if (conditionalOn.value) touch(colStat);
-  });
-
-  // ===================== 列汇总（footer） =====================
-  // 列顺序恒为 [seq, ...visibleDefs]（复选框列已移除），故汇总行可直接由 visibleDefs 推导，无需读取列配置
-  const showFooter = ref(false);
-  /** 列汇总（footer）：数值列求和（保留 2 位）、首列显示总行数；列顺序恒为 [合计, ...visibleDefs]，无需读列配置 */
-  const footerData = computed<any[]>(() => {
-    if (!showFooter.value) return [];
-    touch(dataRev);
-    const rows = processedRows.value;
-    // 一次扫描算完所有数值列（原来每列各扫一遍全表）
-    const fields = visibleDefs.value.filter((d) => d.type === 'number').map((d) => d.field);
-    const agg = aggregateByField(rows, fields);
-    const firstField = visibleDefs.value[0]?.field;
-    const row: any[] = ['合计'];
-    visibleDefs.value.forEach((d) => {
-      if (d.type === 'number') row.push(agg[d.field] ? agg[d.field].sum : '');
-      else if (d.field === firstField) row.push(`共 ${rows.length} 行`);
-      else row.push('');
-    });
-    return [row];
-  });
-
   // ===================== 状态栏聚合 =====================
-  const activeColLabel = computed(() => (currentCell.value ? labelOf(currentCell.value.field) : ''));
-  /**
-   * 当前列统计缓存：键 = 字段 + 结果集引用 + 数据版本。
-   * 移动当前格（上/下/左/右）时通常命中缓存，5 万行表不再每按一次方向键就全表扫一遍。
-   */
-  let statCache: { field: string; rows: Row[]; rev: number; value: NumAgg | null } | null = null;
-  /**
-   * 状态栏统计·当前列全量轨（activeStats）：以 currentCell 所在数值列为基准，
-   * 对当前查询结果的所有行做 count/sum/avg/min/max。
-   * 与 useGridOps 的 selectionStats（选区内数字格聚合）构成"双轨"统计。
-   */
-  const activeStats = computed(() => {
-    const f = currentCell.value?.field;
-    if (!f) return null;
-    const def = columnDefs.value.find((d) => d.field === f);
-    if (def?.type !== 'number') return null;
-    const rows = processedRows.value;
-    const rev = dataRev.value;
-    if (statCache && statCache.field === f && statCache.rows === rows && statCache.rev === rev) {
-      return statCache.value;
-    }
-    const value = aggregateColumn(rows, f);
-    statCache = { field: f, rows, rev, value };
-    return value;
-  });
-
   // 编辑开始记录旧值，结束时校验并把本次单元格改动接入撤销历史
   let editOld: any;
   let editRowId = '';
@@ -541,10 +441,7 @@ export const useGridCore = () => {
     searchTerm,
     columnFilters,
     sortList,
-    viewMode,
-    pager,
     processedRows,
-    pagedRows,
     onSortChange,
     onFilterChange,
     removeColumnFilter,
@@ -557,13 +454,6 @@ export const useGridCore = () => {
     flashCells,
     onEditActived,
     onEditClosed,
-    // 统计 / footer
-    conditionalOn,
-    colStat,
-    showFooter,
-    footerData,
-    activeColLabel,
-    activeStats,
   };
 }
 

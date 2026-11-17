@@ -1,10 +1,10 @@
 /**
- * BI 数据录入 —— 查询层（全局搜索 / 每列筛选 / 多列排序 / 查询 chips / 分页）
+ * BI 数据录入 —— 查询层（全局搜索 / 每列筛选 / 多列排序 / 查询 chips）
  *
- * 对齐 vxe 录入台的查询体验：搜索框 + 每列筛选 + 多列排序，并把当前查询态渲染成可单独清除的 chips。
- * 筛选与排序都在「前端内存」做（等价 vxe 的 remote 模式），这样切换列结构、撤销、导入后状态一致。
+ * 对齐 Univer 录入台的查询体验：搜索框 + 每列筛选 + 多列排序，并把当前查询态渲染成可单独清除的 chips。
+ * 筛选与排序都在「前端内存」做，这样切换列结构、撤销后状态一致。
  *
- * ⚠️ 顺序固定：先筛选 → 再搜索 → 最后排序。排序必须在筛选之后，否则分页页码会跳。
+ * ⚠️ 顺序固定：先筛选 → 再搜索 → 最后排序。
  */
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { isBlank, numOf, type BiCol, type BiRow } from './schema';
@@ -31,15 +31,10 @@ export interface QueryChip {
   remove: () => void;
 }
 
-export type ViewMode = 'virtual' | 'paged';
-
 export const useBiQuery = (cols: Ref<BiCol[]>, rows: Ref<BiRow[]>) => {
   const searchText = ref('');
   const filters = ref<ColFilter[]>([]);
   const sorts = ref<SortRule[]>([]);
-  const viewMode = ref<ViewMode>('virtual');
-  const page = ref(1);
-  const pageSize = ref(50);
 
   const visibleCols = computed(() => cols.value.filter((c) => c.visible));
 
@@ -121,25 +116,8 @@ export const useBiQuery = (cols: Ref<BiCol[]>, rows: Ref<BiRow[]>) => {
     return copy;
   });
 
-  const pageCount = computed(() => Math.max(1, Math.ceil(processedRows.value.length / pageSize.value)));
-
-  const displayRows = computed(() => {
-    if (viewMode.value !== 'paged') {
-      return processedRows.value;
-    }
-    const start = (page.value - 1) * pageSize.value;
-    return processedRows.value.slice(start, start + pageSize.value);
-  });
-
-  // 页码越界钳制：删行 / 改筛选后不会白屏
-  const clampPage = () => {
-    if (page.value > pageCount.value) {
-      page.value = pageCount.value;
-    }
-    if (page.value < 1) {
-      page.value = 1;
-    }
-  };
+  // 单一视图（虚拟滚动）：displayRows 与 processedRows 同源，保留名字减少调用方改动
+  const displayRows: ComputedRef<BiRow[]> = computed(() => processedRows.value);
 
   // ============================ 筛选 ============================
   const filterOf = (field: string): ColFilter => {
@@ -155,12 +133,10 @@ export const useBiQuery = (cols: Ref<BiCol[]>, rows: Ref<BiRow[]>) => {
     filters.value = empty
       ? filters.value.filter((f) => f.field !== field)
       : [...filters.value.filter((f) => f.field !== field), merged];
-    page.value = 1;
   };
 
   const clearFilter = (field: string) => {
     filters.value = filters.value.filter((f) => f.field !== field);
-    page.value = 1;
   };
 
   // ============================ 排序 ============================
@@ -177,19 +153,16 @@ export const useBiQuery = (cols: Ref<BiCol[]>, rows: Ref<BiRow[]>) => {
     } else {
       sorts.value = rest;
     }
-    page.value = 1;
   };
 
   const clearSort = (field?: string) => {
     sorts.value = field ? sorts.value.filter((s) => s.field !== field) : [];
-    page.value = 1;
   };
 
   const clearAllQuery = () => {
     searchText.value = '';
     filters.value = [];
     sorts.value = [];
-    page.value = 1;
   };
 
   // ============================ chips ============================
@@ -236,13 +209,8 @@ export const useBiQuery = (cols: Ref<BiCol[]>, rows: Ref<BiRow[]>) => {
     searchText,
     filters,
     sorts,
-    viewMode,
-    page,
-    pageSize,
-    pageCount,
     processedRows,
     displayRows,
-    clampPage,
     filterOf,
     setFilter,
     clearFilter,

@@ -166,7 +166,8 @@ const applyChrome = () => {
   // 只冻结表头行，不冻结任何列（首列冻结已按需求去掉）
   sheetApi.applyFreeze(false);
   // 漏斗按钮依赖 filterModel 的 range，ribbon 被隐藏后没有开关菜单，必须主动建筛选区
-  sheetApi.ensureFilter(defs.value.length);
+  // （范围固定为整表，见 useEntrySheet.ensureFilter 里关于"蓝框"的说明）
+  sheetApi.ensureFilter();
   // 上面这些整列 range 操作（写表头 / 显隐列 / 数据验证）会把 active cell 顺带挪到最后一列，
   // 表现为"一进页面就整列选中备注列"。收尾统一清掉选区。
   releaseSelection();

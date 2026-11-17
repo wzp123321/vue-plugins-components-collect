@@ -6,6 +6,7 @@ import type { GridCore } from './useGridCore';
 /**
  * 把列类型编译为 vxe 编辑渲染器名称：number→dt-el-number、select→dt-el-select（带 options）、
  * date→dt-el-date、其余→dt-el-text。统一由 element-plus 组件实现（输入框无边框、编辑不高亮整列）。
+ * 院区列不挂编辑渲染器（见 buildColumns）：双击由主组件拦截弹院区选择框，不能进文本编辑。
  * @param d 列类型与下拉选项
  */
 const makeEditRender = (d: { type: string; options?: string[]; dateFormat?: string }) => {
@@ -104,7 +105,9 @@ export const useGridColumns = (core: GridCore, tableRef: Ref<any>) => {
       } else {
         col.filters = [];
       }
-      col.editRender = makeEditRender(d);
+      // 院区列不挂 editRender：vxe 只给配了编辑渲染器的列启编辑，去掉后双击不会进文本编辑，
+      // 主组件 @cell-dblclick 才能独占这次双击去弹院区选择框
+      if (d.type !== 'region') col.editRender = makeEditRender(d);
       return col;
     });
     // 连续同 group 的列汇聚到一个父表头（children）；无 group 的单列直接平铺。

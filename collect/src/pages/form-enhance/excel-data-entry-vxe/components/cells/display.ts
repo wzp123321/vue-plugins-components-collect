@@ -1,20 +1,19 @@
-// 单元格显示渲染器（非编辑态）：select→彩色 tag；number→数字 + 条件格式数据条；date→带图标文本
+// 单元格显示渲染器（非编辑态）：select→彩色 tag；number→数字；region→院区名称；date→日期文本
 // 与 cells/index.ts 的 element-plus 编辑渲染器分开注册，由 registerAllRenderers 统一挂载。
 //
 // 本文件职责：把"非编辑态"单元格的原始值，按列类型渲染成更易读的展示内容：
 //   - select：把选项值映射成稳定配色的彩色 tag（选项顺序即色板索引，保证同一选项颜色一致）；
-//   - number：空值显示空白，否则显示数字；当开启条件格式（RT.conditionalOn）且本列有统计(min/max)时，
-//     叠加一条按比例宽度的数据条（迷你条形图）；
+//   - number：空值显示空白，否则显示数字；
+//   - region：院区对象取 name（与 Univer 展示口径一致，避免显示 [object Object]）；
 //   - date：日期文本；
 //   - 其它（text）：普通文本。
 //
 // 协作模块：
-//   - ./runtime (RT)：提供条件格式开关 conditionalOn 与各列统计 colStat（min/max）；
 //   - ./index.ts：通过 registerAllRenderers 把本渲染器注册为 vxe 的 'dt-cell-display'；
-//   - 样式类 .dt-tag / .dt-num / .dt-bar-cell / .dt-date / .dt-text 由主组件 style 块提供（色值走 --dt-* → 全局 --bi-*）。
+//   - 样式类 .dt-tag / .dt-num / .dt-region / .dt-date / .dt-text 由主组件 style 块提供（色值走 --dt-* → 全局 --bi-*）。
 import { h } from 'vue';
-import { RT } from './runtime';
 import { renderDate } from '@/utils/bi-entry';
+import { isRegionValue } from '@/pages/data-platform/univer-entry/region-data';
 
 // select 选项色板：8 套固定配色，循环取用。顺序即"选项在列表中的索引"对应的颜色。
 const TAG_PALETTE = [
@@ -46,21 +45,21 @@ const renderCellDisplay = (renderOpts: any, params: any) => {
     // 空串 / null / NaN 一律按"无值"处理（避免把非法值渲染成 NaN 文本）
     const num = value === null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
     if (num === null) return [h('span', { class: 'dt-num' }, '')];
-    // 条件格式开启且本列有统计时，按 (num-min)/(max-min) 计算数据条占比
-    if (RT.conditionalOn && RT.colStat[field]) {
-      const { min, max } = RT.colStat[field];
-      // max==min 时分母归零，直接给 0% 避免 Infinity/NaN
-      const pct = max > min ? (num - min) / (max - min) : 0;
-      return [h('div', { class: 'dt-bar-cell' }, [
-        h('div', { class: 'dt-bar', style: { width: `${(pct * 100).toFixed(1)}%` } }),
-        h('span', { class: 'dt-num' }, String(num)),
-      ])];
-    }
     return [h('span', { class: 'dt-num dt-num-plain' }, String(num))];
   }
+  // 院区存的是结构化对象 { name, id, code }：只显示 name，其余随数据保留
+  if (ctype === 'region') {
+    let text = '';
+    if (isRegionValue(value)) text = value.name;
+    else if (value != null) text = String(value);
+    return [h('span', { class: 'dt-region dt-text' }, text)];
+  }
   if (ctype === 'date') return [h('span', { class: 'dt-date' }, renderDate(value, renderOpts.dateFormat))];
-  // 兜底：文本等其它类型，null/undefined 渲染为空串
-  return [h('span', { class: 'dt-text' }, value == null ? '' : String(value))];
+  // 兜底：文本等其它类型，null/undefined 渲染为空串；
+  // 列类型由 region 改成 text 后残留的院区对象仍显示 name，避免出现 [object Object]
+  let text = '';
+  if (value != null) text = isRegionValue(value) ? value.name : String(value);
+  return [h('span', { class: 'dt-text' }, text)];
 };
 
 export { renderCellDisplay };

@@ -114,7 +114,7 @@ export const useGridKeys = (
       } else if (nc >= fields.length) {
         nc = 0;
         // 编辑态 Tab 到末行末尾同样追加新行（连续录入不中断）
-        if (!shift && ri === rows.length - 1 && core.viewMode.value === 'virtual' && appendRow) {
+        if (!shift && ri === rows.length - 1 && appendRow) {
           const nr2 = appendRow();
           if (nr2) {
             tableRef.value?.clearActived?.();
@@ -287,7 +287,6 @@ export const useGridKeys = (
       find.focusReplace?.();
     } else if (mod && key === 'd') {
       // Ctrl+D：向下填充——选区首行逐列复制到选区其余行（Excel 语义）。
-      // 注意：早期此键绑的是 duplicateSelected（复制整行），与 Excel 同名不同义；复制整行请用工具栏按钮
       e.preventDefault();
       const rect = sel.selRect.value;
       if (!rect || rect.bottomIdx - rect.topIdx + 1 < 2) {
@@ -493,9 +492,8 @@ export const useGridKeys = (
       let nc = ci + (shift ? -1 : 1);
       if (nc >= fields.length) {
         nc = 0;
-        // 连续录入：末行末尾 Tab 自动追加一行并落到新行首格（仅虚拟滚动模式；
-        // 分页模式下新行不在当前页，跳过去会显示为空页）
-        if (!shift && ri === rows.length - 1 && core.viewMode.value === 'virtual' && appendRow) {
+        // 连续录入：末行末尾 Tab 自动追加一行并落到新行首格
+        if (!shift && ri === rows.length - 1 && appendRow) {
           const nr2 = appendRow();
           if (nr2) {
             core.currentCell.value = { row: nr2, field: fields[0] };

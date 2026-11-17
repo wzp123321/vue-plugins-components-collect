@@ -1,7 +1,7 @@
 // 录入台共享类型与基础常量
 //
 // 本文件职责：定义 Excel 式数据录入台的全部共享类型（列定义、行结构、撤销快照、
-// 模板、校验规则）与基础常量（列类型文案、压测用字典、行 id 生成、空值默认值）。
+// 校验规则）与基础常量（列类型文案、示例数据字典、行 id 生成、空值默认值）。
 //
 // 在整体架构中的角色：是整个录入台的"数据契约层"。hooks（useGridCore / useGridColumns /
 // useGridOps 等）、vxe 渲染器（components/cells）、各 UI 组件（列设置抽屉、规则弹窗、模板
@@ -10,8 +10,7 @@
 // 协作模块：
 //   - useGridCore：基于 ColDef / Row / ColRule / CrossRule 做校验与统计；
 //   - components/cells：根据 ColType 选择显示/编辑渲染器；
-//   - useGridTemplates：把 ColDef[] 序列化为 Tpl 持久化到 localStorage；
-//   - ColumnManagerDrawer / AddColumnDialog：可视化编辑这些结构（单列细项走共享抽屉
+//   - AddColumnDialog / ColumnConfigDrawer：可视化编辑这些结构（单列细项走共享抽屉
 //     components/bi-column-drawer，三套录入台同一份 UI）。
 
 /* ⚠️ 列类型 / 校验规则 / 空值判定 / 跨列规则这些「三套共用」的定义统一放在
@@ -86,17 +85,10 @@ export interface Snap {
   defs: ColDef[];
 }
 
-// 列结构模板（localStorage 持久化，仅存列结构不存数据）
-export interface Tpl {
-  name: string;
-  defs: ColDef[];
-  ts: number;
-}
-
 // 列类型 → 中文文案，多处下拉/标签展示复用
 export const typeLabel: Record<ColType, string> = { text: '文本', number: '数字', select: '下拉', date: '日期', region: '院区' };
 
-// 压测/演示数据的字典常量（useGridDemoData 随机生成姓名/部门等时使用）
+// 示例数据字典常量（useGridCore.genSampleRows 生成员工主数据用）
 export const DEPARTMENTS = ['研发', '市场', '财务', '人事', '运营'];
 export const STATUSES = ['在职', '试用期', '离职'];
 export const SURNAMES = ['王', '李', '张', '刘', '陈', '杨', '赵', '黄', '周', '吴', '徐', '孙', '胡', '朱', '高', '林', '何', '郭', '马', '罗'];
