@@ -43,8 +43,14 @@
     </div>
 
     <!-- 行 hover 高亮条带：Univer 没有行级 hover，几何由 useEntrySheet 用 getCellRect 算好，
-         这里只负责画（fixed + pointer-events:none，不参与任何点击/选区的命中判定） -->
-    <div class="ue-rowhover" :style="rowHoverStyle" />
+         这里只负责画（fixed + pointer-events:none，不参与任何点击/选区的命中判定）。
+         ⚠️ 必须 Teleport 到 body：外壳 common-page-container 的 .pcv-wrap 带 backdrop-filter，
+         会成为 position:fixed 的包含块；留在页面内会让条带按 .pcv-wrap 原点二次偏移
+         （左偏约侧栏宽、上偏约 header 高），与鼠标所在行错位。传送到 body 后 fixed 以视口为基准，
+         与坐标计算口径（outer.top/left + cellRect）一致。 -->
+    <Teleport to="body">
+      <div class="ue-rowhover" :style="rowHoverStyle" />
+    </Teleport>
 
     <div class="ue-statusbar bi-statusbar">
       <span class="sb-item pos">{{ activeCell }}</span>

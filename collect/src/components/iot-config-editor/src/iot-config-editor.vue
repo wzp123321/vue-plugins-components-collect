@@ -127,9 +127,13 @@
       </svg>
 
       <!-- 拖拽 ghost -->
-      <div v-if="drag.mode === 'palette'" class="ghost" :style="{ left: drag.gx + 'px', top: drag.gy + 'px' }">
-        {{ kindName(drag.kind) }}
-      </div>
+      <!-- ⚠️ ghost / ctx 用 clientX/clientY 定位（视口坐标），必须 Teleport 到 body：
+           外壳 .pcv-wrap 的 backdrop-filter 会成为 fixed 的包含块，留在页面内会整体偏移。 -->
+      <Teleport to="body">
+        <div v-if="drag.mode === 'palette'" class="ghost" :style="{ left: drag.gx + 'px', top: drag.gy + 'px' }">
+          {{ kindName(drag.kind) }}
+        </div>
+      </Teleport>
 
       <!-- 空态 -->
       <div v-if="!devices.length" class="empty-hint">
@@ -137,10 +141,12 @@
       </div>
 
       <!-- 右键菜单 -->
-      <div v-if="ctx.show" class="ctx" :style="{ left: ctx.x + 'px', top: ctx.y + 'px' }" @pointerdown.stop>
-        <button @click="dupOne(ctx.uid)">复制</button>
-        <button @click="delOne(ctx.uid)">删除</button>
-      </div>
+      <Teleport to="body">
+        <div v-if="ctx.show" class="ctx" :style="{ left: ctx.x + 'px', top: ctx.y + 'px' }" @pointerdown.stop>
+          <button @click="dupOne(ctx.uid)">复制</button>
+          <button @click="delOne(ctx.uid)">删除</button>
+        </div>
+      </Teleport>
 
       <!-- 底部工具条 -->
       <div class="toolbar">

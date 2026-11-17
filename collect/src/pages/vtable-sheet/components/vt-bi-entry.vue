@@ -131,12 +131,17 @@
     </div>
 
     <!-- ===================== 右键菜单 ===================== -->
-    <div v-if="menu.show" class="vtable-sheet-bi__menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('copy')">复制</div>
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('paste')">粘贴</div>
-      <div class="vtable-sheet-bi__menu-sep" />
-      <div class="vtable-sheet-bi__menu-item" @click="menuAct('clear')">清空内容</div>
-    </div>
+    <!-- ⚠️ Teleport 到 body：外壳 .pcv-wrap 的 backdrop-filter 会成为 fixed 的包含块，
+         留在页面内坐标按 .pcv-wrap 原点二次偏移，菜单点不到目标项。
+         样式依赖的 --el-* / --ai-* 都挂在 :root，脱离页面根类仍可解析。 -->
+    <Teleport to="body">
+      <div v-if="menu.show" class="vt-bi-menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
+        <div class="vt-bi-menu-item" @click="menuAct('copy')">复制</div>
+        <div class="vt-bi-menu-item" @click="menuAct('paste')">粘贴</div>
+        <div class="vt-bi-menu-sep" />
+        <div class="vt-bi-menu-item" @click="menuAct('clear')">清空内容</div>
+      </div>
+    </Teleport>
 
     <!-- ===================== 单列配置 / 新增列（三套共用抽屉，交互唯一定义处） ===================== -->
     <BiColumnDrawer
@@ -223,7 +228,7 @@ import {
 } from '@element-plus/icons-vue';
 import { register, themes, type ColumnsDefine, type ListTable, type ListTableConstructorOptions } from '@visactor/vtable';
 import { DateInputEditor, InputEditor, ListEditor } from '@visactor/vtable-editors';
-// vtable-sheet 内部强制装载 context-menu-plugin 会再画一份右键菜单，与本页自绘的 vtable-sheet-bi__menu 冲突（双弹）。
+// vtable-sheet 内部强制装载 context-menu-plugin 会再画一份右键菜单，与本页自绘的 vt-bi-menu 冲突（双弹）。
 // 提升为直接依赖，仅禁用这一个插件；其余插件（筛选/序号/自动填充/编辑键盘）保持默认。
 import { ContextMenuPlugin } from '@visactor/vtable-plugins';
 import { VTableSheet, type ISheetDefine } from '@visactor/vtable-sheet';
@@ -979,7 +984,7 @@ const rebuild = () => {
     showSheetTab: false,
     mainMenu: { show: false },
     undoRedo: { show: false },
-    // 禁用 vtable-sheet 自带的 context-menu-plugin：它与本页自绘的 vtable-sheet-bi__menu 都会监听右键，会双弹。
+    // 禁用 vtable-sheet 自带的 context-menu-plugin：它与本页自绘的 vt-bi-menu 都会监听右键，会双弹。
     // 本页右键由 table.on('contextmenu_cell') 触发，原生菜单已被 eventOptions.preventDefaultContextMenu 屏蔽。
     VTablePluginModules: [{ module: ContextMenuPlugin, disabled: true }],
     defaultRowHeight: 32,
@@ -1862,34 +1867,6 @@ defineExpose({ resize });
     background: var(--bi-border);
   }
 
-  &__menu {
-    position: fixed;
-    z-index: 3000;
-    min-width: 168px;
-    padding: 4px;
-    background: var(--el-bg-color-overlay, #fff);
-    border: 1px solid var(--el-border-color-light, #e4e7ed);
-    border-radius: var(--ai-radius-sm);
-    box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
-  }
-
-  &__menu-item {
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: var(--ai-radius-xs);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--el-fill-color-light, #f5f7fa);
-    }
-  }
-
-  &__menu-sep {
-    height: 1px;
-    margin: 4px 2px;
-    background: var(--el-border-color-lighter, #ebeef5);
-  }
-
   &__coleselect {
     width: 150px;
   }
@@ -1917,5 +1894,35 @@ defineExpose({ resize });
   &__full {
     width: 100%;
   }
+}
+
+/* 右键菜单：Teleport 到 body 后不在 .vtable-sheet-bi 内，必须写成顶层选择器。
+   scoped 会给这类元素同样打 data-v，所以仍能命中；所用 --el-* / --ai-* 均在 :root。 */
+.vt-bi-menu {
+  position: fixed;
+  z-index: 3000;
+  min-width: 168px;
+  padding: 4px;
+  background: var(--el-bg-color-overlay, #fff);
+  border: 1px solid var(--el-border-color-light, #e4e7ed);
+  border-radius: var(--ai-radius-sm);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+}
+
+.vt-bi-menu-item {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: var(--ai-radius-xs);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--el-fill-color-light, #f5f7fa);
+  }
+}
+
+.vt-bi-menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--el-border-color-lighter, #ebeef5);
 }
 </style>

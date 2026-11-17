@@ -14,13 +14,19 @@ const { menu, menuAct } = props.mouse;
 
 <template>
   <!-- position:fixed + 高 z-index：菜单从 gridWrapper 之外弹出，避免被表格遮挡；
-       @contextmenu.prevent 阻止默认浏览器右键菜单冒泡 -->
-  <div v-if="menu.show" class="dt-menu" :style="menu.style" @contextmenu.prevent>
-    <div class="dt-menu-item" @click="menuAct('copy')">📋 复制</div>
-    <div class="dt-menu-item" @click="menuAct('paste')">📥 粘贴</div>
-    <div class="dt-menu-sep" />
-    <div class="dt-menu-item" @click="menuAct('clear')">🧹 清空内容</div>
-  </div>
+       @contextmenu.prevent 阻止默认浏览器右键菜单冒泡
+       ⚠️ 必须 Teleport 到 body：外壳 .pcv-wrap 带 backdrop-filter，会成为 fixed 的包含块，
+       留在页面内坐标会按 .pcv-wrap 原点二次偏移（右下偏约侧栏宽/header 高），右键菜单点不到目标项。
+       ⚠️ Teleport 后不在 .dt-page 内，--dt-* 自定义属性不再继承，故自身挂 .dt-dlg
+       （bi-entry.less 里 .dt-dlg 与 .dt-page 映射同一套 --bi-*）。 -->
+  <Teleport to="body">
+    <div v-if="menu.show" class="dt-menu dt-dlg" :style="menu.style" @contextmenu.prevent>
+      <div class="dt-menu-item" @click="menuAct('copy')">📋 复制</div>
+      <div class="dt-menu-item" @click="menuAct('paste')">📥 粘贴</div>
+      <div class="dt-menu-sep" />
+      <div class="dt-menu-item" @click="menuAct('clear')">🧹 清空内容</div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>

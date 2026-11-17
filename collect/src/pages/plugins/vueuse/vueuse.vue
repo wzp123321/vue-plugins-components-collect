@@ -8,7 +8,11 @@
 
     <div ref="elboundingRef">{{ ElementBoundingInfo }}</div>
 
-    <div ref="dragRef" class="vueuse-drag" :style="style">我在drag{{ x }}, {{ y }}</div>
+    <!-- ⚠️ 拖拽块用 useDraggable 的视口坐标 + fixed，必须 Teleport 到 body：
+         外壳 .pcv-wrap 的 backdrop-filter 会成为 fixed 的包含块，留在页面内会整体偏移。 -->
+    <Teleport to="body">
+      <div ref="dragRef" class="vueuse-drag" :style="style">我在drag{{ x }}, {{ y }}</div>
+    </Teleport>
 
     <div ref="outsideRef" class="vueuse-outside mt24">outsideRef</div>
 
@@ -182,5 +186,16 @@ const { stop } = useIntersectionObserver(IntersectionObserverTarget, ([{ isInter
     /* 演示「进入可见区」的底块：黑色叠加在暗色下会看不见，用随主题翻转的令牌 */
     background-color: var(--color-text-background);
   }
+}
+
+/* 拖拽块 Teleport 到 body 后不在 .vueuse 内，写成顶层选择器（scoped 仍会给它打 data-v）。
+   --color-text-disable 是全局令牌（html.dark / 亮色根），脱离页面根仍可解析。 */
+.vueuse-drag {
+  cursor: move;
+  user-select: none;
+  position: fixed;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--color-text-disable);
 }
 </style>

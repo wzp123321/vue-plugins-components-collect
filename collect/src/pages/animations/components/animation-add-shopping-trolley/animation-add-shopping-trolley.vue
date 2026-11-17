@@ -53,7 +53,12 @@
     </div>
 
     <!-- 小球 -->
-    <div v-for="(ball, index) in balls" :key="index" class="ball" v-show="ball.show" :style="getBallStyle(ball)"></div>
+    <!-- ⚠️ 弹道坐标取自 getBoundingClientRect（视口坐标），fixed 若留在 .pcv-wrap 内会被
+         backdrop-filter 劫持包含块而整体偏移；Teleport 到 body 才能与视口坐标同基准。
+         终点 .end-point 仍留在页面内（购物车位置不变），其 rect 取到的本就是视口坐标。 -->
+    <Teleport to="body">
+      <div v-for="(ball, index) in balls" :key="index" class="ball" v-show="ball.show" :style="getBallStyle(ball)" />
+    </Teleport>
   </div>
 </template>
 

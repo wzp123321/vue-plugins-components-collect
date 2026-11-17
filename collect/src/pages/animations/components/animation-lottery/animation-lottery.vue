@@ -17,13 +17,17 @@
     <el-button class="al-btn" :disabled="isLotteryFlag" @click="startLottery">
       {{ isLotteryFlag ? '抽奖中...' : '开始抽奖' }}
     </el-button>
-    <div v-if="result" class="result-modal">
-      <div class="modal-content">
-        <h3>恭喜您!</h3>
-        <p>获得: {{ result }}</p>
-        <button @click="result = ''">确定</button>
+    <!-- ⚠️ 全屏遮罩（inset:0）必须 Teleport 到 body：外壳 .pcv-wrap 的 backdrop-filter
+         会成为 fixed 的包含块，留在页面内只盖住内容区，侧栏/顶栏会露在外面。 -->
+    <Teleport to="body">
+      <div v-if="result" class="result-modal">
+        <div class="modal-content">
+          <h3>恭喜您!</h3>
+          <p>获得: {{ result }}</p>
+          <button @click="result = ''">确定</button>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 <script lang="ts" setup>
