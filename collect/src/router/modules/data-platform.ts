@@ -15,6 +15,20 @@ const dataPlatformRoutes: RouteRecordRaw[] = [
     },
     component: () => import('../../pages/data-platform/univer-entry/univer-entry.vue'),
   },
+  {
+    path: '/data-platform-report-showcase',
+    meta: {
+      name: '报表展示',
+    },
+    component: () => import('../../pages/data-platform/report-showcase/report-showcase.vue'),
+  },
+  {
+    path: '/data-platform-digital-twin',
+    meta: {
+      name: '数字孪生',
+    },
+    component: () => import('../../pages/data-platform/digital-twin/digital-twin.vue'),
+  },
 ];
 
 export default dataPlatformRoutes;

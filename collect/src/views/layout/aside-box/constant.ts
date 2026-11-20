@@ -179,7 +179,7 @@ export const navGroups: NavGroup[] = [
   {
     key: 'data-platform',
     label: '数据中台',
-    caption: '指标口径、数据表格与 BI 录入',
+    caption: '指标口径、报表展示与数字孪生',
     icon: 'database',
     tone: '#fbbf24',
     sections: [
@@ -195,6 +195,13 @@ export const navGroups: NavGroup[] = [
           { path: '/vtable-sheet', label: 'vtable-sheet BI 数据录入' },
           { path: '/form-excel-data-entry-vxe', label: 'vxe-table BI 数据录入' },
           { path: '/data-platform-univer-entry', label: 'Univer BI 数据录入' },
+        ],
+      },
+      {
+        label: '报表与孪生',
+        items: [
+          { path: '/data-platform-report-showcase', label: '报表展示' },
+          { path: '/data-platform-digital-twin', label: '数字孪生' },
         ],
       },
     ],
